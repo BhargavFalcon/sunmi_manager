@@ -3,12 +3,20 @@ part of 'app_pages.dart';
 
 abstract class Routes {
   Routes._();
-  static const HOME = _Paths.HOME;
   static const MAIN_HOME_SCREEN = _Paths.MAIN_HOME_SCREEN;
+  static const DASHBOARD_SCREEN = _Paths.DASHBOARD_SCREEN;
+  static const ORDER_SCREEN = _Paths.ORDER_SCREEN;
+  static const INVENTORY_SCREEN = _Paths.INVENTORY_SCREEN;
+  static const TABLE_RESERVATION_SCREEN = _Paths.TABLE_RESERVATION_SCREEN;
+  static const SETTING_SCREEN = _Paths.SETTING_SCREEN;
 }
 
 abstract class _Paths {
   _Paths._();
-  static const HOME = '/home';
   static const MAIN_HOME_SCREEN = '/main-home-screen';
+  static const DASHBOARD_SCREEN = '/dashboard-screen';
+  static const ORDER_SCREEN = '/order-screen';
+  static const INVENTORY_SCREEN = '/inventory-screen';
+  static const TABLE_RESERVATION_SCREEN = '/table-reservation-screen';
+  static const SETTING_SCREEN = '/setting-screen';
 }
