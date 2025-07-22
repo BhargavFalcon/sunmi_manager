@@ -17,7 +17,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Dashboard'),
+            title: const Text('Home'),
             centerTitle: true,
             backgroundColor: Colors.white,
           ),
@@ -121,8 +121,8 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                           color: Colors.red.shade100,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          "1 alerts",
+                        child: Text(
+                          "${controller.lowStockItems.length} alerts",
                           style: TextStyle(
                             color: ColorConstants.red,
                             fontWeight: FontWeight.bold,

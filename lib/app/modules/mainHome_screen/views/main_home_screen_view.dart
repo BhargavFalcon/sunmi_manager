@@ -86,7 +86,7 @@ class _CustomBottomNavBar extends StatelessWidget {
                 children: [
                   _NavBarItem(
                     icon: ImageConstant.dashboard,
-                    label: "Dashboard",
+                    label: "Home",
                     isSelected: selectedIndex == 0,
                     onTap: () => onTabChange(0),
                   ),
