@@ -3,6 +3,11 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 
 class ColorConstants {
   static const Color primaryColor = Color(0xFFf85168);
+  static const Color bgColor = Color(0xFFFAFAFA);
+  static const Color grey600 = Color(0xFF757575);
+  static const Color grey800 = Color(0xff424242);
+  static const Color green = Color(0xff4CAF50);
+  static const Color red = Color(0xFFF44336);
 
   static List<BoxShadow> get getShadow {
     return [
@@ -41,16 +46,10 @@ class ColorConstants {
   static List<BoxShadow> get getShadow2 {
     return [
       BoxShadow(
-        offset: Offset(MySize.getWidth(2.5), MySize.getHeight(2.5)),
-        color: const Color(0xffAEAEC0).withValues(alpha: 0.4),
-        blurRadius: MySize.getHeight(5),
-        spreadRadius: MySize.getHeight(0.2),
-      ),
-      BoxShadow(
-        offset: Offset(MySize.getWidth(-2.5), MySize.getHeight(-2.5)),
-        color: const Color(0xffFFFFFF).withValues(alpha: 0.4),
-        blurRadius: MySize.getHeight(5),
-        spreadRadius: MySize.getHeight(0.2),
+        offset: Offset(MySize.getWidth(2), MySize.getHeight(2)),
+        color: const Color(0xffAEAEC0).withOpacity(0.4),
+        blurRadius: MySize.getHeight(4),
+        spreadRadius: MySize.getWidth(1),
       ),
     ];
   }

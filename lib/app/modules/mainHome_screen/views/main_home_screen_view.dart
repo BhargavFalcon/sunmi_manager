@@ -207,7 +207,7 @@ class _NavBarItemState extends State<_NavBarItem>
               color: ColorConstants.primaryColor.withValues(
                 alpha: 0.1 * _backgroundAnimation.value,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: ColorConstants.primaryColor.withValues(
                   alpha: _backgroundAnimation.value,
