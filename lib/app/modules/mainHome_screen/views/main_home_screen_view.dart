@@ -92,7 +92,7 @@ class _CustomBottomNavBar extends StatelessWidget {
                   ),
                   _NavBarItem(
                     icon: ImageConstant.tableReservation,
-                    label: "Table Reservation",
+                    label: "Reservation",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),
