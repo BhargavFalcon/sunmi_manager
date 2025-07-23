@@ -6,13 +6,18 @@ class TableReservationScreenController extends GetxController {
   RxInt selectedPeople = 0.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   Rx<TimeOfDay?> selectedTime = Rx<TimeOfDay?>(null);
+  RxBool agreeToTerms = false.obs;
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController specialRequestController = TextEditingController();
 
   List<String> steps = ['People', 'Date', 'Time', 'Confirm'];
   List<IconData> icons = [
     Icons.people,
     Icons.calendar_today,
     Icons.access_time,
-    Icons.check_circle,
+    Icons.check,
   ];
 
   final List<String> timeSlots = [
@@ -37,6 +42,12 @@ class TableReservationScreenController extends GetxController {
   ];
 
   void jumpToStep(int step) {
+    if (step > 0 && selectedPeople.value == 0) return;
+
+    if (step > 1 && selectedDate.value == null) return;
+
+    if (step > 2 && selectedTime.value == null) return;
+
     if (step >= 0 && step < steps.length) {
       currentStep.value = step;
     }

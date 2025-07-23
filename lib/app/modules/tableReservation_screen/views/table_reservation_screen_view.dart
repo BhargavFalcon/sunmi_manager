@@ -183,7 +183,7 @@ class TableReservationScreenView
                     valueColor: ColorConstants.primaryColor,
                     minHeight: 4,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
                   Expanded(child: _buildCurrentStep(controller)),
                 ],
               ),
@@ -419,103 +419,158 @@ class TableReservationScreenView
   }
 
   Widget _buildConfirmStep(TableReservationScreenController controller) {
-    return Column(
-      key: const ValueKey('confirm_step'),
-      children: [
-        Text(
-          'Confirm Reservation',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: 30),
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildDetailRow(
-                  'People',
-                  '${controller.selectedPeople.value} ${controller.selectedPeople.value == 1 ? 'Person' : 'People'}',
-                ),
-                Divider(),
-                _buildDetailRow(
-                  'Date',
-                  '${controller.selectedDate.value.day} '
-                      '${controller.getMonthAbbreviation(controller.selectedDate.value.month)} '
-                      '${controller.selectedDate.value.year}',
-                ),
-                Divider(),
-                _buildDetailRow(
-                  'Time',
-                  controller.selectedTime.value!.format(Get.context!),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: 40),
-        ElevatedButton(
-          onPressed: () {
-            // Handle reservation confirmation
-            Get.snackbar(
-              'Reservation Confirmed',
-              'Your table has been booked successfully!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ColorConstants.primaryColor,
-            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text(
-            'Confirm Reservation',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SingleChildScrollView(
+      child: Column(
+        key: const ValueKey('confirm_step'),
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
+          const Text(
+            'Your contact information',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.black,
             ),
           ),
+          const SizedBox(height: 20),
+          _buildTextField(
+            label: 'Full Name*',
+            controller: controller.nameController,
+          ),
+          const SizedBox(height: 10),
+          _buildTextField(
+            label: 'Phone Number*',
+            controller: controller.phoneController,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 10),
+          _buildTextField(
+            label: 'Email Address',
+            controller: controller.emailController,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 10),
+          _buildTextField(
+            label: 'Any special request?',
+            maxLines: 3,
+            controller: controller.specialRequestController,
+          ),
+          const SizedBox(height: 10),
+          Obx(
+            () => Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Checkbox(
+                  value: controller.agreeToTerms.value,
+                  onChanged:
+                      (val) => controller.agreeToTerms.value = val ?? false,
+                  activeColor: Colors.pinkAccent,
+                ),
+                Expanded(
+                  child: Wrap(
+                    children: [
+                      const Text(
+                        'I agree to the ',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // open Terms of Service
+                        },
+                        child: const Text(
+                          'Terms of Service',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        ' and ',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // open Privacy Policy
+                        },
+                        child: const Text(
+                          'Privacy Policy.*',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Obx(
+            () => ElevatedButton(
+              onPressed:
+                  controller.agreeToTerms.value
+                      ? () {
+                        Get.snackbar(
+                          'Reservation Confirmed',
+                          'Your table has been booked successfully!',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                        );
+                      }
+                      : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    controller.agreeToTerms.value
+                        ? ColorConstants.primaryColor
+                        : Colors.grey.shade800,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Reserve Now',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    TextEditingController? controller,
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.black, fontSize: 14)),
+        const SizedBox(height: 6),
+        TextField(
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: const TextStyle(color: Colors.black),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
     );
   }
 }
