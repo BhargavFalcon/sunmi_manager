@@ -51,32 +51,32 @@ class TableReservationScreenController extends GetxController {
 
   String getStepLabel(int index) {
     switch (index) {
-      case 0: // People
+      case 0:
         return selectedPeople.value > 0
             ? '${selectedPeople.value} ${selectedPeople.value == 1 ? 'Person' : 'People'}'
             : 'People';
-      case 1: // Date
+      case 1:
         final now = DateTime.now();
         final selected = selectedDate.value;
         final showYear = selected.year != now.year;
         return showYear
-            ? '${selected.day} ${_getMonthAbbreviation(selected.month)} ${selected.year}'
-            : '${selected.day} ${_getMonthAbbreviation(selected.month)}';
-      case 2: // Time
+            ? '${selected.day} ${getMonthAbbreviation(selected.month)} ${selected.year}'
+            : '${selected.day} ${getMonthAbbreviation(selected.month)}';
+      case 2:
         if (selectedTime.value == null) return 'Time';
         final hour = selectedTime.value!.hour;
         final minute = selectedTime.value!.minute;
         final period = hour < 12 ? 'AM' : 'PM';
         final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
-      case 3: // Confirm
+      case 3:
         return 'Confirm';
       default:
         return steps[index];
     }
   }
 
-  String _getMonthAbbreviation(int month) {
+  String getMonthAbbreviation(int month) {
     return [
       'Jan',
       'Feb',
