@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/modules/dashboard_screen/views/dashboard_screen_view.dart';
 import 'package:managerapp/app/modules/inventory_screen/views/inventory_screen_view.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
+import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
 import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
-import 'package:managerapp/app/modules/tableReservation_screen/views/table_reservation_screen_view.dart';
 
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
@@ -26,7 +26,7 @@ class MainHomeScreenView extends GetView<MainHomeScreenController> {
         onPageChanged: controller.onPageChanged,
         children: [
           DashboardScreenView(),
-          TableReservationScreenView(),
+          ReservationScreenView(),
           OrderScreenView(),
           InventoryScreenView(),
           SettingScreenView(),

@@ -9,6 +9,7 @@ abstract class Routes {
   static const INVENTORY_SCREEN = _Paths.INVENTORY_SCREEN;
   static const TABLE_RESERVATION_SCREEN = _Paths.TABLE_RESERVATION_SCREEN;
   static const SETTING_SCREEN = _Paths.SETTING_SCREEN;
+  static const RESERVATION_SCREEN = _Paths.RESERVATION_SCREEN;
 }
 
 abstract class _Paths {
@@ -19,4 +20,5 @@ abstract class _Paths {
   static const INVENTORY_SCREEN = '/inventory-screen';
   static const TABLE_RESERVATION_SCREEN = '/table-reservation-screen';
   static const SETTING_SCREEN = '/setting-screen';
+  static const RESERVATION_SCREEN = '/reservation-screen';
 }
