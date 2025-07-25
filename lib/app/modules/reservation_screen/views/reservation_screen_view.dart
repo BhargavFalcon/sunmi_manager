@@ -54,7 +54,9 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     focusColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: () {},
+                    onTap: () {
+                      _showReservationBottomSheet(context, controller);
+                    },
                     child: Center(
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -89,6 +91,100 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           ),
         );
       },
+    );
+  }
+
+  void _showReservationBottomSheet(
+    BuildContext context,
+    ReservationScreenController controller,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (_) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            builder:
+                (_, scrollController) => Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.bgColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Reservation",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildAddDatePicker(
+                                      context,
+                                      controller,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildSelectPersonDropdown(
+                                      controller,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text("Select Time Slot"),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
     );
   }
 
@@ -139,6 +235,53 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
     );
   }
 
+  Widget _buildSelectPersonDropdown(ReservationScreenController controller) {
+    return MenuAnchor(
+      style: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(Colors.white),
+        elevation: WidgetStateProperty.all(4),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      builder: (context, menuController, _) {
+        return Obx(
+          () => GestureDetector(
+            onTap:
+                () =>
+                    menuController.isOpen
+                        ? menuController.close()
+                        : menuController.open(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: ColorConstants.grey9E9E9E),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(controller.selectedPerson.value),
+                  const Icon(Icons.keyboard_arrow_down),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      menuChildren:
+          controller.personOptions
+              .map(
+                (option) => MenuItemButton(
+                  onPressed: () => controller.selectPerson(option),
+                  child: Text(option),
+                ),
+              )
+              .toList(),
+    );
+  }
+
   Widget _buildDatePicker(
     BuildContext context,
     ReservationScreenController controller,
@@ -181,6 +324,55 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             children: [
               Text(controller.formattedDate),
               const Icon(Icons.keyboard_arrow_down),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddDatePicker(
+    BuildContext context,
+    ReservationScreenController controller,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        final pickedDate = await showDatePicker(
+          context: context,
+          initialDate: controller.selectedDate.value,
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF3B82F6),
+                  onPrimary: Colors.white,
+                  surface: Colors.white,
+                  onSurface: Colors.black,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (pickedDate != null) {
+          controller.selectedDateReservation.value = pickedDate;
+        }
+      },
+      child: Obx(
+        () => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: ColorConstants.grey9E9E9E),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.date_range_rounded),
+              Text(controller.formattedDateReservation),
             ],
           ),
         ),

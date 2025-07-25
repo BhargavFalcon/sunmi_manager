@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 
 class ReservationScreenController extends GetxController {
   RxString selectedFilter = 'Today'.obs;
+  RxString selectedPerson = '1 Person'.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
+  Rx<DateTime> selectedDateReservation = DateTime.now().obs;
 
   List<String> filterOptions = [
     'Today',
@@ -18,8 +20,24 @@ class ReservationScreenController extends GetxController {
     'Last Year',
   ];
 
+  List<String> personOptions = [
+    '1 Person',
+    '2 Persons',
+    '3 Persons',
+    '4 Persons',
+    '5 Persons',
+    '6 Persons',
+    '7 Persons',
+    '8 Persons',
+    '9 Persons',
+    '10 Persons',
+  ];
+
   String get formattedDate =>
       DateFormat('dd MMM yyyy').format(selectedDate.value);
+
+  String get formattedDateReservation =>
+      DateFormat('EEE MMMM dd yyyy').format(selectedDateReservation.value);
 
   List<String> statusOptions = ['Pending', 'Confirmed', 'Cancelled'];
 
@@ -63,6 +81,8 @@ class ReservationScreenController extends GetxController {
       ].obs;
 
   void selectFilter(String value) => selectedFilter.value = value;
+
+  void selectPerson(String value) => selectedPerson.value = value;
 
   void updateStatus(int index, String newStatus) {
     reservations[index]['status'] = newStatus;
