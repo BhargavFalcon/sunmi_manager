@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
@@ -120,44 +121,36 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     ),
                     boxShadow: ColorConstants.getShadow2,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Reservation",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () => Navigator.pop(context),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: const Text(
+                              "Reservation",
+                              style: TextStyle(
                                 color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                      SingleChildScrollView(
-                        child: Padding(
+                        Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
@@ -176,12 +169,250 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              Text("Select Time Slot"),
+                              Text(
+                                "Select Time Slot",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children:
+                                        controller.timeSlots.map((time) {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              border: Border.all(
+                                                color:
+                                                    ColorConstants.grey9E9E9E,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(time),
+                                          );
+                                        }).toList(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.add_circle_outline_rounded,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            "Any special request ?",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      CupertinoTextField(
+                                        maxLines: 2,
+                                        placeholder:
+                                            "Enter your special request here",
+                                        decoration: BoxDecoration(
+                                          color: ColorConstants.bgColor,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: ColorConstants.grey9E9E9E,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        placeholderStyle: TextStyle(
+                                          color: ColorConstants.grey9E9E9E,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(Icons.person_2_rounded),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            "Customer Name *",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      CupertinoTextField(
+                                        placeholder: "Enter name",
+                                        decoration: BoxDecoration(
+                                          color: ColorConstants.bgColor,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: ColorConstants.grey9E9E9E,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        placeholderStyle: TextStyle(
+                                          color: ColorConstants.grey9E9E9E,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.phone_outlined),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            "Customer Phone *",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      CupertinoTextField(
+                                        placeholder: "Enter phone number",
+                                        keyboardType: TextInputType.phone,
+                                        decoration: BoxDecoration(
+                                          color: ColorConstants.bgColor,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: ColorConstants.grey9E9E9E,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        placeholderStyle: TextStyle(
+                                          color: ColorConstants.grey9E9E9E,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: ColorConstants.grey9E9E9E,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.primaryColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        "Reserve Now",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
           ),
@@ -346,7 +577,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             return Theme(
               data: ThemeData.light().copyWith(
                 colorScheme: const ColorScheme.light(
-                  primary: Color(0xFF3B82F6),
+                  primary: ColorConstants.primaryColor,
                   onPrimary: Colors.white,
                   surface: Colors.white,
                   onSurface: Colors.black,

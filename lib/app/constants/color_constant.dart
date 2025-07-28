@@ -48,7 +48,7 @@ class ColorConstants {
     return [
       BoxShadow(
         offset: Offset(MySize.getWidth(2), MySize.getHeight(2)),
-        color: const Color(0xffAEAEC0).withOpacity(0.4),
+        color: const Color(0xffAEAEC0).withValues(alpha: 0.2),
         blurRadius: MySize.getHeight(4),
         spreadRadius: MySize.getWidth(1),
       ),
