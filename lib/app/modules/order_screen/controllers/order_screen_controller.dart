@@ -1,3 +1,4 @@
+import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
@@ -50,53 +51,52 @@ class OrderScreenController extends GetxController {
   Rx<DateTime> startDate = DateTime(2025, 6, 1).obs;
   Rx<DateTime> endDate = DateTime(2025, 6, 30).obs;
 
-  void updateMonth(String value) => selectedMonth.value = value;
-  void updateOrderFilter(String value) => selectedOrderFilter.value = value;
+  void updateMonth(String value) {
+    selectedMonth.value = value;
 
-  Future<void> pickStartDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: startDate.value,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: ColorConstants.primaryColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) startDate.value = picked;
+    final now = DateTime.now();
+    if (value == 'Current Month') {
+      startDate.value = DateTime(now.year, now.month, 1);
+      endDate.value = DateTime(now.year, now.month + 1, 0);
+    } else if (value == 'Last Month') {
+      startDate.value = DateTime(now.year, now.month - 1, 1);
+      endDate.value = DateTime(now.year, now.month, 0);
+    }
   }
 
-  Future<void> pickEndDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: endDate.value,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: ColorConstants.primaryColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) endDate.value = picked;
+  void updateOrderFilter(String value) => selectedOrderFilter.value = value;
+
+  Future<void> showCustomDateRangePickerPop(BuildContext context) async {
+    try {
+      showCustomDateRangePicker(
+        context,
+        dismissible: true,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        minimumDate: DateTime.now().subtract(
+          const Duration(days: 365 * 5),
+        ), // 5 years back
+        maximumDate: DateTime.now().add(
+          const Duration(days: 365 * 5),
+        ), // 5 years forward
+        backgroundColor: Colors.white,
+        primaryColor: ColorConstants.primaryColor,
+        onApplyClick: (DateTime start, DateTime end) {
+          startDate.value = start;
+          endDate.value = end;
+          selectedMonth.value = 'Custom Range';
+        },
+        onCancelClick: () {},
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to select date range: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   String formatDate(DateTime date) {

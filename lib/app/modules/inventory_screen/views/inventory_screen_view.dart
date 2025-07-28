@@ -8,7 +8,11 @@ class InventoryScreenView extends GetView<InventoryScreenController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inventory'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Inventory'),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+      ),
     );
   }
 }

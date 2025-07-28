@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
-
-import '../controllers/order_screen_controller.dart';
+import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -34,97 +33,37 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      Obx(() {
+                        return GestureDetector(
+                          onTap:
+                              () => controller.showCustomDateRangePickerPop(
+                                context,
+                              ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade400),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text("Start Date"),
-                                const SizedBox(height: 6),
-                                Obx(() {
-                                  return GestureDetector(
-                                    onTap:
-                                        () => controller.pickStartDate(context),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            controller.formatDate(
-                                              controller.startDate.value,
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.calendar_today_outlined,
-                                            size: 18,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
+                                Text(
+                                  "${controller.formatDate(controller.startDate.value)} - ${controller.formatDate(controller.endDate.value)}",
+                                ),
+                                const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 18,
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("End Date"),
-                                const SizedBox(height: 6),
-                                Obx(() {
-                                  return GestureDetector(
-                                    onTap:
-                                        () => controller.pickEndDate(context),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            controller.formatDate(
-                                              controller.endDate.value,
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.calendar_today_outlined,
-                                            size: 18,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      }),
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -227,30 +166,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: SizedBox(
-                          width: 250,
-                          height: 45,
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ColorConstants.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              "Generate Report",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -276,6 +191,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
 class OrderCard extends StatelessWidget {
   final OrderModel order;
+
   const OrderCard({super.key, required this.order});
 
   @override
@@ -376,7 +292,7 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
