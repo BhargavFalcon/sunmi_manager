@@ -48,6 +48,8 @@ class OrderScreenController extends GetxController {
     'Cancelled',
   ];
 
+  RxString selectedOrderType = 'Dine In'.obs;
+
   Rx<DateTime> startDate = DateTime(2025, 6, 1).obs;
   Rx<DateTime> endDate = DateTime(2025, 6, 30).obs;
 
@@ -73,12 +75,8 @@ class OrderScreenController extends GetxController {
         dismissible: true,
         startDate: startDate.value,
         endDate: endDate.value,
-        minimumDate: DateTime.now().subtract(
-          const Duration(days: 365 * 5),
-        ), // 5 years back
-        maximumDate: DateTime.now().add(
-          const Duration(days: 365 * 5),
-        ), // 5 years forward
+        minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+        maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
         backgroundColor: Colors.white,
         primaryColor: ColorConstants.primaryColor,
         onApplyClick: (DateTime start, DateTime end) {

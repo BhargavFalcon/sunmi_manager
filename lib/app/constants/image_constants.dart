@@ -5,4 +5,7 @@ class ImageConstant {
   static const order = "${imagePath}order.png";
   static const inventory = "${imagePath}inventory.png";
   static const setting = "${imagePath}setting.png";
+  static const delivery = "${imagePath}delivery.png";
+  static const dinein = "${imagePath}dinein.png";
+  static const Pickup = "${imagePath}Pickup.png";
 }

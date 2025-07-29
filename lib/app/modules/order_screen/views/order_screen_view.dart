@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 
+import '../../../constants/image_constants.dart';
+
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
 
@@ -166,6 +168,55 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      Obx(() {
+                        final selectedType = controller.selectedOrderType.value;
+                        return Center(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade400),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildOrderTypeButton(
+                                    icon: ImageConstant.dinein,
+                                    label: 'Dine In',
+                                    isSelected: selectedType == 'Dine In',
+                                    onTap:
+                                        () =>
+                                            controller.selectedOrderType.value =
+                                                'Dine In',
+                                  ),
+                                  _buildOrderTypeButton(
+                                    icon: ImageConstant.Pickup,
+                                    label: 'Pickup',
+                                    isSelected: selectedType == 'Pickup',
+                                    onTap:
+                                        () =>
+                                            controller.selectedOrderType.value =
+                                                'Pickup',
+                                  ),
+                                  _buildOrderTypeButton(
+                                    icon: ImageConstant.delivery,
+                                    label: 'Delivery',
+                                    isSelected: selectedType == 'Delivery',
+                                    onTap:
+                                        () =>
+                                            controller.selectedOrderType.value =
+                                                'Delivery',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -176,7 +227,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final order = controller.orders[index];
-                      return OrderCard(order: order);
+                      return InkWell(
+                        onTap: () {
+                          // hear bottom sheet open karna he
+                        },
+                        child: OrderCard(order: order),
+                      );
                     },
                   ),
                 ),
@@ -185,6 +241,44 @@ class OrderScreenView extends GetView<OrderScreenController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildOrderTypeButton({
+    required String icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? ColorConstants.red.withOpacity(0.05)
+                  : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? ColorConstants.red : Colors.transparent,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          children: [
+            Image.asset(icon, height: 20, width: 20),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? ColorConstants.red : Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -248,7 +342,6 @@ class OrderCard extends StatelessWidget {
               order.datetime,
               style: TextStyle(color: ColorConstants.grey600, fontSize: 13),
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -268,7 +361,7 @@ class OrderCard extends StatelessWidget {
                   ),
                   child: Text(
                     "KOT # ${order.kot}",
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
