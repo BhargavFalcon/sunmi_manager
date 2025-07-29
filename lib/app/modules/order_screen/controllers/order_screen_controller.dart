@@ -32,13 +32,15 @@ class OrderModel {
 }
 
 class OrderScreenController extends GetxController {
-  RxString selectedMonth = 'Current Month'.obs;
+  RxString selectedMonth = 'Today'.obs;
   RxString selectedOrderFilter = 'Show All Orders'.obs;
 
-  final List<String> monthOptions = [
-    'Current Month',
-    'Last Month',
-    'Custom Range',
+  final List<String> dateOptions = [
+    'Today',
+    'Yesterday',
+    'Last 7 Days',
+    'Last 30 Days',
+    'Custom Date',
   ];
 
   final List<String> orderFilterOptions = [
@@ -50,23 +52,69 @@ class OrderScreenController extends GetxController {
 
   RxString selectedOrderType = 'Dine In'.obs;
 
-  Rx<DateTime> startDate = DateTime(2025, 6, 1).obs;
-  Rx<DateTime> endDate = DateTime(2025, 6, 30).obs;
+  Rx<DateTime> startDate = DateTime.now().obs;
+  Rx<DateTime> endDate = DateTime.now().obs;
 
-  void updateMonth(String value) {
-    selectedMonth.value = value;
-
-    final now = DateTime.now();
-    if (value == 'Current Month') {
-      startDate.value = DateTime(now.year, now.month, 1);
-      endDate.value = DateTime(now.year, now.month + 1, 0);
-    } else if (value == 'Last Month') {
-      startDate.value = DateTime(now.year, now.month - 1, 1);
-      endDate.value = DateTime(now.year, now.month, 0);
-    }
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize with today's date
+    _updateDatesByOption('Today');
   }
 
   void updateOrderFilter(String value) => selectedOrderFilter.value = value;
+
+  void updateDateOption(String option) {
+    selectedMonth.value = option;
+    if (option == 'Custom Date') {
+      // Date picker will be opened from the view
+    } else {
+      _updateDatesByOption(option);
+    }
+  }
+
+  void _updateDatesByOption(String option) {
+    final now = DateTime.now();
+
+    switch (option) {
+      case 'Today':
+        startDate.value = DateTime(now.year, now.month, now.day);
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+      case 'Yesterday':
+        final yesterday = now.subtract(const Duration(days: 1));
+        startDate.value = DateTime(
+          yesterday.year,
+          yesterday.month,
+          yesterday.day,
+        );
+        endDate.value = DateTime(
+          yesterday.year,
+          yesterday.month,
+          yesterday.day,
+          23,
+          59,
+          59,
+        );
+        break;
+      case 'Last 7 Days':
+        startDate.value = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(const Duration(days: 6));
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+      case 'Last 30 Days':
+        startDate.value = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(const Duration(days: 29));
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+    }
+  }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
     try {
@@ -82,7 +130,7 @@ class OrderScreenController extends GetxController {
         onApplyClick: (DateTime start, DateTime end) {
           startDate.value = start;
           endDate.value = end;
-          selectedMonth.value = 'Custom Range';
+          selectedMonth.value = 'Custom Date';
         },
         onCancelClick: () {},
       );
@@ -98,7 +146,33 @@ class OrderScreenController extends GetxController {
   }
 
   String formatDate(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}-${_monthName(date.month)}-${date.year}";
+    return "${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)} ${date.year}";
+  }
+
+  String getDisplayDate() {
+    switch (selectedMonth.value) {
+      case 'Today':
+        return formatDate(DateTime.now());
+      case 'Yesterday':
+        return formatDate(DateTime.now().subtract(const Duration(days: 1)));
+      case 'Last 7 Days':
+        return "${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+      case 'Last 30 Days':
+        return "${formatDate(DateTime.now().subtract(const Duration(days: 29)))} - ${formatDate(DateTime.now())}";
+      case 'Custom Date':
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+      default:
+        return formatDate(DateTime.now());
+    }
+  }
+
+  String getDropdownDisplayText() {
+    switch (selectedMonth.value) {
+      case 'Custom Date':
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+      default:
+        return selectedMonth.value;
+    }
   }
 
   String _monthName(int month) {

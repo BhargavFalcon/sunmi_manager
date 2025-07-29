@@ -35,38 +35,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Obx(() {
-                        return GestureDetector(
-                          onTap:
-                              () => controller.showCustomDateRangePickerPop(
-                                context,
-                              ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.grey.shade400),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "${controller.formatDate(controller.startDate.value)} - ${controller.formatDate(controller.endDate.value)}",
-                                ),
-                                const Icon(
-                                  Icons.calendar_today_outlined,
-                                  size: 18,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -82,8 +50,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   child: Obx(() {
                                     return Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 14,
+                                        horizontal: 8,
+                                        vertical: 8,
                                       ),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
@@ -96,7 +64,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(controller.selectedMonth.value),
+                                          Expanded(
+                                            child: Text(
+                                              controller
+                                                  .getDropdownDisplayText(),
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
                                           const Icon(Icons.keyboard_arrow_down),
                                         ],
                                       ),
@@ -105,10 +83,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 );
                               },
                               menuChildren:
-                                  controller.monthOptions.map((option) {
+                                  controller.dateOptions.map((option) {
                                     return MenuItemButton(
-                                      onPressed:
-                                          () => controller.updateMonth(option),
+                                      onPressed: () {
+                                        controller.updateDateOption(option);
+                                        if (option == 'Custom Date') {
+                                          Future.delayed(
+                                            const Duration(milliseconds: 10),
+                                            () {
+                                              controller
+                                                  .showCustomDateRangePickerPop(
+                                                    context,
+                                                  );
+                                            },
+                                          );
+                                        }
+                                      },
                                       child: Text(option),
                                     );
                                   }).toList(),
@@ -128,8 +118,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   child: Obx(() {
                                     return Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 14,
+                                        horizontal: 8,
+                                        vertical: 8,
                                       ),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
@@ -168,7 +158,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Obx(() {
                         final selectedType = controller.selectedOrderType.value;
                         return Center(
@@ -176,13 +166,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(color: Colors.grey.shade400),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(5),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   _buildOrderTypeButton(
                                     icon: ImageConstant.dinein,
@@ -228,8 +218,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     itemBuilder: (context, index) {
                       final order = controller.orders[index];
                       return InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
                         onTap: () {
-                          // hear bottom sheet open karna he
+                          _showOrderBottomSheet(context, controller);
                         },
                         child: OrderCard(order: order),
                       );
@@ -244,6 +238,38 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
+  void _showOrderBottomSheet(
+    BuildContext context,
+    OrderScreenController controller,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (_) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            builder:
+                (_, scrollController) => Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.bgColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: SingleChildScrollView(child: Column(children: [])),
+                ),
+          ),
+    );
+  }
+
   Widget _buildOrderTypeButton({
     required String icon,
     required String label,
@@ -253,7 +279,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         decoration: BoxDecoration(
           color:
               isSelected
