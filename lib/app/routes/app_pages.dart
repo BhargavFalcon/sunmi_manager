@@ -1,5 +1,9 @@
 import 'package:get/get.dart';
 
+import '../modules/Inventory_Dashboard/bindings/inventory_dashboard_binding.dart';
+import '../modules/Inventory_Dashboard/views/inventory_dashboard_view.dart';
+import '../modules/Inventory_PurchaseOrder/bindings/inventory_purchase_order_binding.dart';
+import '../modules/Inventory_PurchaseOrder/views/inventory_purchase_order_view.dart';
 import '../modules/dashboard_screen/bindings/dashboard_screen_binding.dart';
 import '../modules/dashboard_screen/views/dashboard_screen_view.dart';
 import '../modules/inventory_screen/bindings/inventory_screen_binding.dart';
@@ -50,6 +54,16 @@ class AppPages {
       name: _Paths.RESERVATION_SCREEN,
       page: () => const ReservationScreenView(),
       binding: ReservationScreenBinding(),
+    ),
+    GetPage(
+      name: _Paths.INVENTORY_DASHBOARD,
+      page: () => const InventoryDashboardView(),
+      binding: InventoryDashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.INVENTORY_PURCHASE_ORDER,
+      page: () => const InventoryPurchaseOrderView(),
+      binding: InventoryPurchaseOrderBinding(),
     ),
   ];
 }
