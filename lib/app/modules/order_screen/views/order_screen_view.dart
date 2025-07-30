@@ -56,7 +56,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         border: Border.all(
-                                          color: Colors.grey.shade400,
+                                          color: Colors.grey.shade300,
+                                          width: 1.0,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -124,7 +125,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         border: Border.all(
-                                          color: Colors.grey.shade400,
+                                          color: Colors.grey.shade300,
+                                          width: 1.0,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -165,7 +167,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: Colors.grey.shade400),
+                              border: Border.all(
+                                color: Colors.grey.shade300,
+                                width: 1.0,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Padding(
@@ -640,11 +645,13 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: ColorConstants.getShadow2,
+        border: Border.all(color: Colors.grey.shade300, width: 1.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

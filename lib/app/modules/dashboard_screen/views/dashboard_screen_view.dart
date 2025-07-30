@@ -92,16 +92,24 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                     selectedTabIndex: controller.orderSelectedTabIndex,
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   Obx(() {
                     return Column(
                       children:
                           controller.orders
-                              .map((order) => OrderCard(order: order))
+                              .map(
+                                (order) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 5,
+                                  ),
+                                  child: OrderCard(order: order),
+                                ),
+                              )
                               .toList(),
                     );
                   }),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -478,11 +486,13 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: ColorConstants.getShadow2,
+        border: Border.all(color: Colors.grey.shade300, width: 1.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

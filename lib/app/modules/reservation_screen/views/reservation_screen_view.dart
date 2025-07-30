@@ -440,7 +440,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(color: ColorConstants.grey9E9E9E),
+                border: Border.all(color: Colors.grey.shade300, width: 1.0),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -487,7 +487,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(color: ColorConstants.grey9E9E9E),
+                border: Border.all(color: Colors.grey.shade300, width: 1.0),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -547,7 +547,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border.all(color: ColorConstants.grey9E9E9E),
+            border: Border.all(color: Colors.grey.shade300, width: 1.0),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -620,16 +620,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: ColorConstants.grey9E9E9E),
-        borderRadius: BorderRadius.circular(12),
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: ColorConstants.getShadow2,
+        border: Border.all(color: Colors.grey.shade300, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
