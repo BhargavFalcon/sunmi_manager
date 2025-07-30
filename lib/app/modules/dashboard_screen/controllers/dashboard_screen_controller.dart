@@ -32,41 +32,32 @@ class DashboardScreenController extends GetxController {
       <Order>[
         Order(
           id: "#352",
-          name: "Rey Nadeem",
-          type: "Dine In",
+          customerName: "Rey Nadeem",
           datetime: "June 26, 2025 | 09:01 AM",
           statusText: "Order Preparing",
           statusColor: Colors.purple,
           tag: "KOT",
           tagColor: Colors.purple,
-          kot: "#365",
-          note: "None",
           total: "46.63",
         ),
         Order(
           id: "#353",
-          name: "Frank Castle",
-          type: "Dine In",
+          customerName: "Frank Castle",
           datetime: "June 26, 2025 | 01:33 AM",
           statusText: "Order Preparing",
           statusColor: Colors.green,
           tag: "SERVED",
           tagColor: Colors.green,
-          kot: "#366",
-          note: "None",
           total: "24.75",
         ),
         Order(
           id: "#354",
-          name: "Matt Murdock",
-          type: "Delivery",
+          customerName: "Matt Murdock",
           datetime: "June 26, 2025 | 07:46 PM",
           statusText: "Order Placed",
           statusColor: Colors.orange,
           tag: "PAID",
           tagColor: Colors.orange,
-          kot: "#367",
-          note: "None",
           total: "72.86",
         ),
       ].obs;
@@ -134,28 +125,22 @@ class DashboardScreenController extends GetxController {
 
 class Order {
   final String id;
-  final String name;
-  final String type;
+  final String customerName;
   final String datetime;
   final String statusText;
   final Color statusColor;
   final String tag;
   final Color tagColor;
-  final String kot;
-  final String note;
   final String total;
 
   const Order({
     required this.id,
-    required this.name,
-    required this.type,
+    required this.customerName,
     required this.datetime,
     required this.statusText,
     required this.statusColor,
     required this.tag,
     required this.tagColor,
-    required this.kot,
-    required this.note,
     required this.total,
   });
 }

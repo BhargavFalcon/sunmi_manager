@@ -506,29 +506,57 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildPriceSummary() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: ColorConstants.getShadow2,
-        border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Item(s) header only
+          const Text(
+            'Item(s)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+
+          // Price details
           _buildPriceRow('Sub Total:', '\$179.80'),
           _buildPriceRow(
             'Food and Drinks Tax:',
             'Consumption & Excise Tax (11.5%)',
+            isSecondary: true,
           ),
           _buildPriceRow('Packaging Tax (0%):', '€19.90'),
-          _buildPriceRow('Beverage Sales Tax:', 'Consumption Tax (19%): €12.9'),
+          _buildPriceRow(
+            'Beverage Sales Tax:',
+            'Consumption Tax (19%): €12.9',
+            isSecondary: true,
+          ),
           _buildPriceRow('Excise Tax (12%):', '€0.80'),
-          const Divider(),
+
+          // Divider
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Divider(height: 1, thickness: 1, color: Colors.grey),
+          ),
+
+          // Total row
           _buildPriceRow(
             'Total:',
             '€201.81',
             isBold: true,
-            textColor: ColorConstants.red,
+            valueColor: Colors.red,
           ),
         ],
       ),
@@ -539,25 +567,27 @@ class OrderScreenView extends GetView<OrderScreenController> {
     String label,
     String value, {
     bool isBold = false,
-    Color? textColor,
+    bool isSecondary = false,
+    Color? valueColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
+              fontSize: isSecondary ? 12 : 14,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: textColor,
             ),
           ),
           Text(
             value,
             style: TextStyle(
+              fontSize: isSecondary ? 12 : 14,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: textColor,
+              color: valueColor ?? Colors.black,
             ),
           ),
         ],
@@ -605,8 +635,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 }
 
 class OrderCard extends StatelessWidget {
-  final OrderModel order;
-
+  final Order order;
   const OrderCard({super.key, required this.order});
 
   @override
@@ -622,40 +651,52 @@ class OrderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Orders : ${order.id}",
-                  style: const TextStyle(
-                    color: ColorConstants.red,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
                   ),
-                ),
-                _statusBadge(order.tag, order.tagColor),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
+                  decoration: BoxDecoration(
+                    color: ColorConstants.primaryColor.withValues(alpha: 0.15),
+                    border: Border.all(
+                      color: ColorConstants.primaryColor.withValues(alpha: 0.3),
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                   child: Text(
-                    "${order.name} - ${order.type}",
-                    style: const TextStyle(
-                      fontSize: 16,
+                    "T1",
+                    style: TextStyle(
+                      color: ColorConstants.primaryColor,
                       fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
                 ),
-                Row(
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    CircleAvatar(radius: 5, backgroundColor: order.statusColor),
-                    const SizedBox(width: 5),
                     Text(
-                      order.statusText,
-                      style: TextStyle(color: ColorConstants.grey800),
+                      "Order ID: ${order.id}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      order.customerName,
+                      style: const TextStyle(
+                        color: ColorConstants.grey600,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
+                const Spacer(),
+                _statusBadge(order.tag, order.tagColor),
               ],
             ),
             const SizedBox(height: 6),
@@ -663,38 +704,30 @@ class OrderCard extends StatelessWidget {
               order.datetime,
               style: TextStyle(color: ColorConstants.grey600, fontSize: 13),
             ),
+            Divider(color: Colors.grey.shade300, thickness: 1, height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Note : ${order.note}",
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  "€ ${order.total}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "KOT # ${order.kot}",
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(ImageConstant.order, width: 18, height: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      order.customerName,
+                      style: const TextStyle(fontSize: 13),
                     ),
-                  ),
+                  ],
                 ),
               ],
-            ),
-            Divider(color: Colors.grey.shade300, thickness: 1, height: 20),
-            Text(
-              "Total : € ${order.total}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
         ),
@@ -706,7 +739,7 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

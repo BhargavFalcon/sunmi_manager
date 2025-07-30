@@ -3,31 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 
-class OrderModel {
+class Order {
   final String id;
-  final String name;
-  final String type;
-  final String statusText;
+  final String customerName;
   final String datetime;
-  final String kot;
-  final String note;
-  final double total;
+  final String statusText;
   final Color statusColor;
   final String tag;
   final Color tagColor;
+  final String total;
 
-  OrderModel({
+  const Order({
     required this.id,
-    required this.name,
-    required this.type,
-    required this.statusText,
+    required this.customerName,
     required this.datetime,
-    required this.kot,
-    required this.note,
-    required this.total,
+    required this.statusText,
     required this.statusColor,
     required this.tag,
     required this.tagColor,
+    required this.total,
   });
 }
 
@@ -193,93 +187,72 @@ class OrderScreenController extends GetxController {
     return months[month - 1];
   }
 
-  List<OrderModel> orders = [
-    OrderModel(
+  List<Order> orders = [
+    Order(
       id: "356",
-      name: "Luke Cage",
-      type: "Dine In",
+      customerName: "Luke Cage",
       datetime: "June 21, 2025 | 10:21 AM",
-      kot: "397",
-      note: "None",
-      total: 201.81,
+      total: "201.81",
       statusText: "Order Preparing",
       statusColor: Colors.purple,
       tag: "PREPARING",
       tagColor: Colors.purple,
     ),
-    OrderModel(
+    Order(
       id: "355",
-      name: "Jessica Jones",
-      type: "Takeaway",
+      customerName: "Jessica Jones",
       datetime: "June 20, 2025 | 02:53 AM",
-      kot: "376",
-      note: "None",
-      total: 153.64,
+      total: "153.64",
       statusText: "Order Placed",
       statusColor: Colors.orange,
       tag: "PAYMENT VERIFICATION",
       tagColor: Colors.orange,
     ),
-    OrderModel(
+    Order(
       id: "354",
-      name: "Trish Walker",
-      type: "Delivery",
+      customerName: "Trish Walker",
       datetime: "June 20, 2025 | 07:16 PM",
-      kot: "390",
-      note: "None",
-      total: 106.53,
+      total: "106.53",
       statusText: "Order Placed",
       statusColor: Colors.orange,
       tag: "PAID",
       tagColor: Colors.green,
     ),
-    OrderModel(
+    Order(
       id: "353",
-      name: "Turk Barrett",
-      type: "Dine In",
+      customerName: "Turk Barrett",
       datetime: "June 19, 2025 | 10:14 PM",
-      kot: "394",
-      note: "None",
-      total: 13.87,
+      total: "13.87",
       statusText: "Order Served",
       statusColor: Colors.green,
       tag: "PAID",
       tagColor: Colors.green,
     ),
-    OrderModel(
+    Order(
       id: "352",
-      name: "Malcolm Ducasse",
-      type: "Delivery",
+      customerName: "Malcolm Ducasse",
       datetime: "June 18, 2025 | 05:48 PM",
-      kot: "395",
-      note: "None",
-      total: 39.46,
+      total: "39.46",
       statusText: "Delivered",
       statusColor: Colors.blue,
       tag: "OUT FOR DELIVERY",
       tagColor: Colors.blue,
     ),
-    OrderModel(
+    Order(
       id: "351",
-      name: "Claire Temple",
-      type: "Dine In",
+      customerName: "Claire Temple",
       datetime: "June 20, 2025 | 09:06 PM",
-      kot: "392",
-      note: "None",
-      total: 369.76,
+      total: "369.76",
       statusText: "Delivered",
       statusColor: Colors.green,
       tag: "PAID",
       tagColor: Colors.green,
     ),
-    OrderModel(
+    Order(
       id: "350",
-      name: "Marci Stahl",
-      type: "Takeaway",
+      customerName: "Marci Stahl",
       datetime: "June 18, 2025 | 10:06 PM",
-      kot: "391",
-      note: "None",
-      total: 166.56,
+      total: "166.56",
       statusText: "Delivered",
       statusColor: Colors.green,
       tag: "PAID",

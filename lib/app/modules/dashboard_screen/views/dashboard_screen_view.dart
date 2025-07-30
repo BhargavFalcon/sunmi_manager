@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/model/chartModel.dart';
 
 import '../controllers/dashboard_screen_controller.dart';
@@ -488,40 +489,52 @@ class OrderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Orders : ${order.id}",
-                  style: const TextStyle(
-                    color: ColorConstants.red,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
                   ),
-                ),
-                _statusBadge(order.tag, order.tagColor),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
+                  decoration: BoxDecoration(
+                    color: ColorConstants.primaryColor.withValues(alpha: 0.15),
+                    border: Border.all(
+                      color: ColorConstants.primaryColor.withValues(alpha: 0.3),
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                   child: Text(
-                    "${order.name} - ${order.type}",
-                    style: const TextStyle(
-                      fontSize: 16,
+                    "T1",
+                    style: TextStyle(
+                      color: ColorConstants.primaryColor,
                       fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
                 ),
-                Row(
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    CircleAvatar(radius: 5, backgroundColor: order.statusColor),
-                    const SizedBox(width: 5),
                     Text(
-                      order.statusText,
-                      style: TextStyle(color: ColorConstants.grey800),
+                      "Order ID: ${order.id}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      order.customerName,
+                      style: const TextStyle(
+                        color: ColorConstants.grey600,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
+                const Spacer(),
+                _statusBadge(order.tag, order.tagColor),
               ],
             ),
             const SizedBox(height: 6),
@@ -529,39 +542,30 @@ class OrderCard extends StatelessWidget {
               order.datetime,
               style: TextStyle(color: ColorConstants.grey600, fontSize: 13),
             ),
-
+            Divider(color: Colors.grey.shade300, thickness: 1, height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Note : ${order.note}",
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  "€ ${order.total}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "KOT : ${order.kot}",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(ImageConstant.order, width: 18, height: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      order.customerName,
+                      style: const TextStyle(fontSize: 13),
                     ),
-                  ),
+                  ],
                 ),
               ],
-            ),
-            Divider(color: Colors.grey.shade300, thickness: 1, height: 20),
-            Text(
-              "Total : € ${order.total}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
         ),
