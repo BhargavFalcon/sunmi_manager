@@ -1,9 +1,12 @@
 import 'package:get/get.dart';
 
 class InventoryPurchaseOrderController extends GetxController {
-  //TODO: Implement InventoryPurchaseOrderController
-
-  final count = 0.obs;
+  RxString selectedSuppliers = 'All Suppliers'.obs;
+  final List<String> selectedSupplierList = [
+    'All Suppliers',
+    'New Supplier',
+    'Test Supplier',
+  ];
   @override
   void onInit() {
     super.onInit();
@@ -18,6 +21,4 @@ class InventoryPurchaseOrderController extends GetxController {
   void onClose() {
     super.onClose();
   }
-
-  void increment() => count.value++;
 }

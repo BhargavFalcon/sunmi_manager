@@ -48,6 +48,7 @@ class InventoryScreenView extends GetView<InventoryScreenController> {
               ),
             ),
             body: TabBarView(
+              physics: const NeverScrollableScrollPhysics(),
               controller: controller.tabController,
               children: const [
                 InventoryDashboardView(),
