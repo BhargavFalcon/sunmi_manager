@@ -79,6 +79,7 @@ class ReservationScreenController extends GetxController {
       [
         {
           'guests': 3,
+          'note': 'Allergic to peanuts',
           'time': '26 June, 12:00 PM',
           'name': 'Foggy Nelson',
           'phone': '+91 98765 43210',
@@ -86,6 +87,7 @@ class ReservationScreenController extends GetxController {
         },
         {
           'guests': 6,
+          'note': 'Requires wheelchair access',
           'time': '26 June, 08:00 PM',
           'name': 'Karen Page',
           'phone': '+91 45620 45620',
@@ -93,6 +95,7 @@ class ReservationScreenController extends GetxController {
         },
         {
           'guests': 2,
+          'note': 'Vegetarian meal requested',
           'time': '26 June, 09:30 AM',
           'name': 'Wilson Fisk',
           'phone': '+91 88812 88812',
@@ -100,6 +103,7 @@ class ReservationScreenController extends GetxController {
         },
         {
           'guests': 4,
+          'note': 'Celebrating anniversary',
           'time': '26 June, 07:00 PM',
           'name': 'Matt Murdock',
           'phone': '+91 12345 67890',
@@ -107,6 +111,7 @@ class ReservationScreenController extends GetxController {
         },
         {
           'guests': 5,
+          'note': 'Requires high chair for child',
           'time': '26 June, 10:00 AM',
           'name': 'Jessica Jones',
           'phone': '+91 23456 78901',

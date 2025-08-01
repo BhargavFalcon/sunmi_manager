@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/sizeConstant.dart';
 
 import '../controllers/reservation_screen_controller.dart';
 
@@ -21,6 +22,39 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             centerTitle: true,
             backgroundColor: Colors.white,
             foregroundColor: Colors.black,
+            actions: [
+              InkWell(
+                onTap: () => _showReservationBottomSheet(context, controller),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Container(
+                    width: MySize.getWidth(80),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: ColorConstants.primaryColor),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.add, size: 20),
+                          const SizedBox(width: 6),
+                          const Text(
+                            "New",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -28,11 +62,6 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Reservations :",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(child: _buildFilterDropdown(controller)),
@@ -49,42 +78,6 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                       final item = controller.reservations[index];
                       return _buildReservationCard(controller, item, index);
                     },
-                  ),
-                  InkWell(
-                    hoverColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    onTap: () {
-                      _showReservationBottomSheet(context, controller);
-                    },
-                    child: Center(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorConstants.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.add, color: Colors.white),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Add",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -627,26 +620,83 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // Top Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${item['guests']} Guests',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${item['guests']} Guests',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        item['time'],
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: controller.getStatusBgColor(item['status']),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: controller.getStatusBorderColor(item['status']),
+                  ),
+                ),
+                child: Text(
+                  item['status'].toUpperCase(),
+                  style: TextStyle(
+                    color: controller.getStatusColor(item['status']),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.note_alt_outlined, size: 20),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text("${item['note']}", overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: ColorConstants.grey9E9E9E),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.table_bar_outlined),
                     const SizedBox(width: 4),
@@ -656,20 +706,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.access_time, size: 16, color: Colors.red),
-              const SizedBox(width: 4),
-              Text(
-                item['time'],
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
+
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -690,7 +727,6 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               MenuAnchor(
                 style: MenuStyle(
@@ -739,6 +775,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                         )
                         .toList(),
               ),
+              Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
@@ -747,35 +784,6 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                   border: Border.all(color: ColorConstants.grey9E9E9E),
                 ),
                 child: Icon(Icons.edit_outlined),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: ColorConstants.grey9E9E9E),
-                ),
-                child: Icon(Icons.delete_outline),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: controller.getStatusBgColor(item['status']),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: controller.getStatusBorderColor(item['status']),
-                  ),
-                ),
-                child: Text(
-                  item['status'].toUpperCase(),
-                  style: TextStyle(
-                    color: controller.getStatusColor(item['status']),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ),
             ],
           ),
