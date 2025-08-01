@@ -13,7 +13,7 @@ import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../controllers/main_home_screen_controller.dart';
 
-class MainHomeScreenView extends GetView<MainHomeScreenController> {
+class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
   const MainHomeScreenView({super.key});
 
   @override
@@ -26,8 +26,8 @@ class MainHomeScreenView extends GetView<MainHomeScreenController> {
         onPageChanged: controller.onPageChanged,
         children: [
           DashboardScreenView(),
-          ReservationScreenView(),
           OrderScreenView(),
+          ReservationScreenView(),
           InventoryScreenView(),
           SettingScreenView(),
         ],
@@ -91,14 +91,14 @@ class _CustomBottomNavBar extends StatelessWidget {
                     onTap: () => onTabChange(0),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.tableReservation,
-                    label: "Reservation",
+                    icon: ImageConstant.order,
+                    label: "Order",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.order,
-                    label: "Order",
+                    icon: ImageConstant.tableReservation,
+                    label: "Reservation",
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),
