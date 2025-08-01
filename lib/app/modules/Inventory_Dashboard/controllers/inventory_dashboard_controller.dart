@@ -99,7 +99,7 @@ class InventoryDashboardController extends GetxController {
       'name': 'Lettuce',
       'category': 'Fresh Produce',
       'status': 'In Stock',
-      'currentStock': '~23 pc',
+      'currentStock': '23 pc',
       'usage': '0 pc',
       'stockAdded': '45.00 pc',
     },
