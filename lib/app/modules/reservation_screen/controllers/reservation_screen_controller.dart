@@ -1,6 +1,8 @@
+import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:managerapp/app/constants/color_constant.dart';
 
 class ReservationScreenController extends GetxController {
   // Text Editing Controllers
@@ -9,29 +11,42 @@ class ReservationScreenController extends GetxController {
   final TextEditingController specialRequestController =
       TextEditingController();
 
-  // Observables
-  RxString selectedFilter = 'Today'.obs;
   RxString selectedPerson = '1 Person'.obs;
   RxString selectedTimeSlot = ''.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   Rx<DateTime> selectedDateReservation = DateTime.now().obs;
-
+  RxString selectedMonth = 'Today'.obs;
+  Rx<DateTime> startDate = DateTime.now().obs;
+  Rx<DateTime> endDate = DateTime.now().obs;
+  RxString selectedOrderFilter = 'Pending'.obs;
   // Validation
   RxBool isNameValid = false.obs;
   RxBool isPhoneValid = false.obs;
   RxString nameError = ''.obs;
   RxString phoneError = ''.obs;
 
-  List<String> filterOptions = [
+  final List<String> dateOptions = [
     'Today',
-    'Future',
-    'Current Week',
-    'Last Week',
+    'Yesterday',
     'Last 7 Days',
-    'Current Month',
-    'Last Month',
-    'Current Year',
-    'Last Year',
+    'Last 30 Days',
+    'Custom Date',
+  ];
+
+  final List<String> orderFilterOptions = [
+    'Pending',
+    'Confirmed',
+    'Cancelled',
+    'Checked In',
+    'No Show',
+  ];
+
+  List<String> statusOptions = [
+    'Pending',
+    'Confirmed',
+    'Cancelled'
+        'Checked In',
+    'No Show',
   ];
 
   List<String> personOptions = [
@@ -67,13 +82,59 @@ class ReservationScreenController extends GetxController {
     '04:00 PM',
   ];
 
+  String formatDate(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)} ${date.year}";
+  }
+
+  String getDisplayDate() {
+    switch (selectedMonth.value) {
+      case 'Today':
+        return formatDate(DateTime.now());
+      case 'Yesterday':
+        return formatDate(DateTime.now().subtract(const Duration(days: 1)));
+      case 'Last 7 Days':
+        return "${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+      case 'Last 30 Days':
+        return "${formatDate(DateTime.now().subtract(const Duration(days: 29)))} - ${formatDate(DateTime.now())}";
+      case 'Custom Date':
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+      default:
+        return formatDate(DateTime.now());
+    }
+  }
+
+  String getDropdownDisplayText() {
+    switch (selectedMonth.value) {
+      case 'Custom Date':
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+      default:
+        return selectedMonth.value;
+    }
+  }
+
   String get formattedDate =>
       DateFormat('dd MMM yyyy').format(selectedDate.value);
 
   String get formattedDateReservation =>
       DateFormat('EEE MMMM dd yyyy').format(selectedDateReservation.value);
 
-  List<String> statusOptions = ['Pending', 'Confirmed', 'Cancelled'];
+  String _monthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
 
   RxList<Map<String, dynamic>> reservations =
       [
@@ -131,6 +192,90 @@ class ReservationScreenController extends GetxController {
     customerPhoneController.addListener(() {
       validatePhone(customerPhoneController.text);
     });
+    _updateDatesByOption('Today');
+  }
+
+  void updateOrderFilter(String value) => selectedOrderFilter.value = value;
+
+  void updateDateOption(String option) {
+    selectedMonth.value = option;
+    if (option == 'Custom Date') {
+      // Date picker will be opened from the view
+    } else {
+      _updateDatesByOption(option);
+    }
+  }
+
+  void _updateDatesByOption(String option) {
+    final now = DateTime.now();
+
+    switch (option) {
+      case 'Today':
+        startDate.value = DateTime(now.year, now.month, now.day);
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+      case 'Yesterday':
+        final yesterday = now.subtract(const Duration(days: 1));
+        startDate.value = DateTime(
+          yesterday.year,
+          yesterday.month,
+          yesterday.day,
+        );
+        endDate.value = DateTime(
+          yesterday.year,
+          yesterday.month,
+          yesterday.day,
+          23,
+          59,
+          59,
+        );
+        break;
+      case 'Last 7 Days':
+        startDate.value = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(const Duration(days: 6));
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+      case 'Last 30 Days':
+        startDate.value = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(const Duration(days: 29));
+        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+    }
+  }
+
+  Future<void> showCustomDateRangePickerPop(BuildContext context) async {
+    try {
+      showCustomDateRangePicker(
+        context,
+        dismissible: true,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+        maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        backgroundColor: Colors.white,
+        primaryColor: ColorConstants.primaryColor,
+        onApplyClick: (DateTime start, DateTime end) {
+          startDate.value = start;
+          endDate.value = end;
+          selectedMonth.value = 'Custom Date';
+        },
+        onCancelClick: () {},
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to select date range: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   @override
@@ -141,8 +286,6 @@ class ReservationScreenController extends GetxController {
     specialRequestController.dispose();
     super.onClose();
   }
-
-  void selectFilter(String value) => selectedFilter.value = value;
 
   void selectPerson(String value) => selectedPerson.value = value;
 

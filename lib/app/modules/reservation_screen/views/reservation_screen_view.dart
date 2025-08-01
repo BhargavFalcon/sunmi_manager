@@ -64,9 +64,123 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _buildFilterDropdown(controller)),
+                      Expanded(
+                        child: MenuAnchor(
+                          style: MenuStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              Colors.white,
+                            ),
+                          ),
+                          builder: (context, controllerMenu, child) {
+                            return GestureDetector(
+                              onTap: () => controllerMenu.open(),
+                              child: Obx(() {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          controller.getDropdownDisplayText(),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.keyboard_arrow_down),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                          menuChildren:
+                              controller.dateOptions.map((option) {
+                                return MenuItemButton(
+                                  onPressed: () {
+                                    controller.updateDateOption(option);
+                                    if (option == 'Custom Date') {
+                                      Future.delayed(
+                                        const Duration(milliseconds: 10),
+                                        () {
+                                          controller
+                                              .showCustomDateRangePickerPop(
+                                                context,
+                                              );
+                                        },
+                                      );
+                                    }
+                                  },
+                                  child: Text(option),
+                                );
+                              }).toList(),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildDatePicker(context, controller)),
+                      Expanded(
+                        child: MenuAnchor(
+                          style: MenuStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              Colors.white,
+                            ),
+                          ),
+                          builder: (context, controllerMenu, child) {
+                            return GestureDetector(
+                              onTap: () => controllerMenu.open(),
+                              child: Obx(() {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        controller.selectedOrderFilter.value,
+                                      ),
+                                      const Icon(Icons.keyboard_arrow_down),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                          menuChildren:
+                              controller.orderFilterOptions.map((option) {
+                                return MenuItemButton(
+                                  onPressed:
+                                      () =>
+                                          controller.updateOrderFilter(option),
+                                  child: Text(option),
+                                );
+                              }).toList(),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -409,53 +523,6 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                   ),
                 ),
           ),
-    );
-  }
-
-  Widget _buildFilterDropdown(ReservationScreenController controller) {
-    return MenuAnchor(
-      style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(Colors.white),
-        elevation: WidgetStateProperty.all(4),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      ),
-      builder: (context, menuController, _) {
-        return Obx(
-          () => GestureDetector(
-            onTap:
-                () =>
-                    menuController.isOpen
-                        ? menuController.close()
-                        : menuController.open(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade300, width: 1.0),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(controller.selectedFilter.value),
-                  const Icon(Icons.keyboard_arrow_down),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      menuChildren:
-          controller.filterOptions
-              .map(
-                (option) => MenuItemButton(
-                  onPressed: () => controller.selectFilter(option),
-                  child: Text(option),
-                ),
-              )
-              .toList(),
     );
   }
 
