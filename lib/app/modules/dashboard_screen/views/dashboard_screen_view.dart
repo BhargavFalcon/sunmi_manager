@@ -40,8 +40,8 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
                     childAspectRatio: 2,
                     children: [
                       statCard(
@@ -372,7 +372,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: ColorConstants.getShadow2,
       ),
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -381,33 +381,33 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
             title,
             style: const TextStyle(color: ColorConstants.grey800, fontSize: 12),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Row(
             children: [
               Icon(
                 status ? Icons.arrow_upward : Icons.arrow_downward,
                 color: status ? ColorConstants.green : ColorConstants.red,
-                size: 14,
+                size: 12,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Text(
                 percentage,
                 style: TextStyle(
                   color: status ? ColorConstants.green : ColorConstants.red,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Text(
                 subtitle,
                 style: const TextStyle(
                   color: ColorConstants.grey600,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ],

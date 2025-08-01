@@ -518,7 +518,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 1),
@@ -609,11 +609,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? ColorConstants.red.withOpacity(0.05)
+                  ? ColorConstants.red.withValues(alpha: 0.05)
                   : Colors.transparent,
           border: Border.all(
             color: isSelected ? ColorConstants.red : Colors.transparent,
