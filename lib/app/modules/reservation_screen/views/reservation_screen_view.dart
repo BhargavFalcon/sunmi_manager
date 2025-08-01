@@ -33,11 +33,11 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: ColorConstants.primaryColor),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(Icons.add, size: 20),
                           const SizedBox(width: 6),
