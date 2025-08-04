@@ -56,14 +56,10 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                           color: ColorConstants.primaryColor.withValues(
                             alpha: 0.10,
                           ),
-                          border: Border.all(
-                            color: ColorConstants.primaryColor,
-                            width: 1.0,
-                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          Icons.power_settings_new,
+                          Icons.power_settings_new_sharp,
                           color: ColorConstants.primaryColor,
                           size: 20,
                         ),
