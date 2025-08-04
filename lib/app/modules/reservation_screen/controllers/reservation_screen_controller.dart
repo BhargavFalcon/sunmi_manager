@@ -44,8 +44,8 @@ class ReservationScreenController extends GetxController {
   List<String> statusOptions = [
     'Pending',
     'Confirmed',
-    'Cancelled'
-        'Checked In',
+    'Cancelled',
+    'Checked In',
     'No Show',
   ];
 
