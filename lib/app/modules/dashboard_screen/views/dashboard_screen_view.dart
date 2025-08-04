@@ -341,6 +341,35 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                 ),
                 gridData: FlGridData(show: false),
                 borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (LineBarSpot touchedSpot) {
+                      return ColorConstants.primaryColor.withValues(
+                        alpha: 0.15,
+                      );
+                    },
+                    tooltipBorder: BorderSide(
+                      color: ColorConstants.primaryColor,
+                      width: 1,
+                    ),
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          '€ ${spot.y.toStringAsFixed(2)}',
+                          const TextStyle(
+                            color:
+                                ColorConstants
+                                    .primaryColor, // Text color inside tooltip
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     isCurved: true,
