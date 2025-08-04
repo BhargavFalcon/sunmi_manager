@@ -488,9 +488,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                   enabled: true,
                   touchTooltipData: LineTouchTooltipData(
                     getTooltipColor: (LineBarSpot touchedSpot) {
-                      return ColorConstants.primaryColor.withValues(
-                        alpha: 0.15,
-                      );
+                      return Colors.white;
                     },
                     tooltipBorder: BorderSide(
                       color: ColorConstants.primaryColor,
