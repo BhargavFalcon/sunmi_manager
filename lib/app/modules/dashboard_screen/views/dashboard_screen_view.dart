@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
+import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/chartModel.dart';
 
 import '../controllers/dashboard_screen_controller.dart';
@@ -392,7 +393,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
               Icon(
                 status ? Icons.arrow_upward : Icons.arrow_downward,
                 color: status ? ColorConstants.green : ColorConstants.red,
-                size: 12,
+                size: MySize.getHeight(12),
               ),
               const SizedBox(width: 2),
               Text(
@@ -405,9 +406,9 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
               const SizedBox(width: 3),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   color: ColorConstants.grey600,
-                  fontSize: 10,
+                  fontSize: MySize.getHeight(10),
                 ),
               ),
             ],
