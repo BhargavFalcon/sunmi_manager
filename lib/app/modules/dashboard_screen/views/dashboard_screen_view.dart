@@ -295,6 +295,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
   void showLogoutDialog({required BuildContext context}) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: Colors.white,
