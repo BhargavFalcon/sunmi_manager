@@ -179,32 +179,41 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _buildOrderTypeButton(
-                                    icon: ImageConstant.dinein,
-                                    label: 'Dine In',
-                                    isSelected: selectedType == 'Dine In',
-                                    onTap:
-                                        () =>
-                                            controller.selectedOrderType.value =
-                                                'Dine In',
+                                  Expanded(
+                                    child: _buildOrderTypeButton(
+                                      icon: ImageConstant.dinein,
+                                      label: 'Dine In',
+                                      isSelected: selectedType == 'Dine In',
+                                      onTap:
+                                          () =>
+                                              controller
+                                                  .selectedOrderType
+                                                  .value = 'Dine In',
+                                    ),
                                   ),
-                                  _buildOrderTypeButton(
-                                    icon: ImageConstant.Pickup,
-                                    label: 'Pickup',
-                                    isSelected: selectedType == 'Pickup',
-                                    onTap:
-                                        () =>
-                                            controller.selectedOrderType.value =
-                                                'Pickup',
+                                  Expanded(
+                                    child: _buildOrderTypeButton(
+                                      icon: ImageConstant.Pickup,
+                                      label: 'Pickup',
+                                      isSelected: selectedType == 'Pickup',
+                                      onTap:
+                                          () =>
+                                              controller
+                                                  .selectedOrderType
+                                                  .value = 'Pickup',
+                                    ),
                                   ),
-                                  _buildOrderTypeButton(
-                                    icon: ImageConstant.delivery,
-                                    label: 'Delivery',
-                                    isSelected: selectedType == 'Delivery',
-                                    onTap:
-                                        () =>
-                                            controller.selectedOrderType.value =
-                                                'Delivery',
+                                  Expanded(
+                                    child: _buildOrderTypeButton(
+                                      icon: ImageConstant.delivery,
+                                      label: 'Delivery',
+                                      isSelected: selectedType == 'Delivery',
+                                      onTap:
+                                          () =>
+                                              controller
+                                                  .selectedOrderType
+                                                  .value = 'Delivery',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -609,7 +618,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color:
               isSelected
@@ -617,11 +626,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   : Colors.transparent,
           border: Border.all(
             color: isSelected ? ColorConstants.red : Colors.transparent,
-            width: isSelected ? 2 : 1,
+            width: 1.5,
           ),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset(icon, height: 20, width: 20),
             const SizedBox(width: 6),
