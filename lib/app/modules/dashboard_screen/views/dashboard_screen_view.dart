@@ -345,7 +345,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                   LineChartBarData(
                     isCurved: true,
                     color: ColorConstants.red,
-                    barWidth: 3,
+                    barWidth: 2,
                     isStrokeCapRound: true,
                     dotData: FlDotData(show: true),
                     belowBarData: BarAreaData(show: false),
