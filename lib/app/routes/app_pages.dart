@@ -14,8 +14,6 @@ import '../modules/order_screen/bindings/order_screen_binding.dart';
 import '../modules/order_screen/views/order_screen_view.dart';
 import '../modules/reservation_screen/bindings/reservation_screen_binding.dart';
 import '../modules/reservation_screen/views/reservation_screen_view.dart';
-import '../modules/setting_screen/bindings/setting_screen_binding.dart';
-import '../modules/setting_screen/views/setting_screen_view.dart';
 
 part 'app_routes.dart';
 
@@ -44,11 +42,6 @@ class AppPages {
       name: _Paths.INVENTORY_SCREEN,
       page: () => const InventoryScreenView(),
       binding: InventoryScreenBinding(),
-    ),
-    GetPage(
-      name: _Paths.SETTING_SCREEN,
-      page: () => const SettingScreenView(),
-      binding: SettingScreenBinding(),
     ),
     GetPage(
       name: _Paths.RESERVATION_SCREEN,

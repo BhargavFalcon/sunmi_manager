@@ -6,7 +6,6 @@ import 'package:managerapp/app/modules/dashboard_screen/views/dashboard_screen_v
 import 'package:managerapp/app/modules/inventory_screen/views/inventory_screen_view.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
-import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
 
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
@@ -29,7 +28,6 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
           OrderScreenView(),
           ReservationScreenView(),
           InventoryScreenView(),
-          SettingScreenView(),
         ],
       ),
       bottomNavigationBar: Obx(() {
@@ -107,13 +105,6 @@ class _CustomBottomNavBar extends StatelessWidget {
                     label: "Inventory",
                     isSelected: selectedIndex == 3,
                     onTap: () => onTabChange(3),
-                  ),
-
-                  _NavBarItem(
-                    icon: ImageConstant.setting,
-                    label: "Settings",
-                    isSelected: selectedIndex == 4,
-                    onTap: () => onTabChange(4),
                   ),
                 ],
               ),

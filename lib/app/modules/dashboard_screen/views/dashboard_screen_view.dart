@@ -21,21 +21,54 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
           backgroundColor: ColorConstants.bgColor,
           body: Column(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(
-                  12,
-                ).copyWith(top: MediaQuery.of(context).padding.top + 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: ColorConstants.getShadow2,
-                ),
-                child: Center(
-                  child: Text(
-                    "Home",
-                    style: TextStyle(fontSize: 20, color: Colors.black),
+              Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(
+                      12,
+                    ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: ColorConstants.getShadow2,
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Home",
+                        style: TextStyle(fontSize: 20, color: Colors.black),
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    left: 12,
+                    top: MediaQuery.of(context).padding.top + 8,
+                    child: InkWell(
+                      hoverColor: Colors.transparent,
+                      focusColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      onTap: () {},
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: ColorConstants.primaryColor.withValues(
+                            alpha: 0.10,
+                          ),
+                          border: Border.all(
+                            color: ColorConstants.primaryColor,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.power_settings_new,
+                          color: ColorConstants.primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Expanded(
                 child: SingleChildScrollView(
