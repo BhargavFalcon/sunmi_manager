@@ -17,184 +17,224 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       builder: (controller) {
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
-          appBar: AppBar(
-            title: const Text('Reservation'),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            actions: [
-              InkWell(
-                onTap: () => _showReservationBottomSheet(context, controller),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: Container(
-                    width: MySize.getWidth(80),
+          body: Column(
+            children: [
+              Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(
+                      12,
+                    ).copyWith(top: MediaQuery.of(context).padding.top + 12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: ColorConstants.primaryColor),
+                      color: Colors.white,
+                      boxShadow: ColorConstants.getShadow2,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.add, size: 20),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "New",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                    child: Center(
+                      child: Text(
+                        "Reservation",
+                        style: TextStyle(fontSize: 20, color: Colors.black),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 8,
+                    right: 0,
+                    child: InkWell(
+                      onTap:
+                          () =>
+                              _showReservationBottomSheet(context, controller),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Container(
+                          width: MySize.getWidth(80),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: ColorConstants.primaryColor,
                             ),
                           ),
-                        ],
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.add, size: 20),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  "New",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
+                    ),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: MenuAnchor(
+                                style: MenuStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    Colors.white,
+                                  ),
+                                ),
+                                builder: (context, controllerMenu, child) {
+                                  return GestureDetector(
+                                    onTap: () => controllerMenu.open(),
+                                    child: Obx(() {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.0,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                controller
+                                                    .getDropdownDisplayText(),
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            const Icon(
+                                              Icons.keyboard_arrow_down,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                },
+                                menuChildren:
+                                    controller.dateOptions.map((option) {
+                                      return MenuItemButton(
+                                        onPressed: () {
+                                          controller.updateDateOption(option);
+                                          if (option == 'Custom Date') {
+                                            Future.delayed(
+                                              const Duration(milliseconds: 10),
+                                              () {
+                                                controller
+                                                    .showCustomDateRangePickerPop(
+                                                      context,
+                                                    );
+                                              },
+                                            );
+                                          }
+                                        },
+                                        child: Text(option),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: MenuAnchor(
+                                style: MenuStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    Colors.white,
+                                  ),
+                                ),
+                                builder: (context, controllerMenu, child) {
+                                  return GestureDetector(
+                                    onTap: () => controllerMenu.open(),
+                                    child: Obx(() {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.0,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              controller
+                                                  .selectedOrderFilter
+                                                  .value,
+                                            ),
+                                            const Icon(
+                                              Icons.keyboard_arrow_down,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                },
+                                menuChildren:
+                                    controller.orderFilterOptions.map((option) {
+                                      return MenuItemButton(
+                                        onPressed:
+                                            () => controller.updateOrderFilter(
+                                              option,
+                                            ),
+                                        child: Text(option),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: controller.reservations.length,
+                          itemBuilder: (context, index) {
+                            return _buildReservationCard(controller, index);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ],
-          ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: MenuAnchor(
-                          style: MenuStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                              Colors.white,
-                            ),
-                          ),
-                          builder: (context, controllerMenu, child) {
-                            return GestureDetector(
-                              onTap: () => controllerMenu.open(),
-                              child: Obx(() {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          controller.getDropdownDisplayText(),
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      const Icon(Icons.keyboard_arrow_down),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            );
-                          },
-                          menuChildren:
-                              controller.dateOptions.map((option) {
-                                return MenuItemButton(
-                                  onPressed: () {
-                                    controller.updateDateOption(option);
-                                    if (option == 'Custom Date') {
-                                      Future.delayed(
-                                        const Duration(milliseconds: 10),
-                                        () {
-                                          controller
-                                              .showCustomDateRangePickerPop(
-                                                context,
-                                              );
-                                        },
-                                      );
-                                    }
-                                  },
-                                  child: Text(option),
-                                );
-                              }).toList(),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: MenuAnchor(
-                          style: MenuStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                              Colors.white,
-                            ),
-                          ),
-                          builder: (context, controllerMenu, child) {
-                            return GestureDetector(
-                              onTap: () => controllerMenu.open(),
-                              child: Obx(() {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        controller.selectedOrderFilter.value,
-                                      ),
-                                      const Icon(Icons.keyboard_arrow_down),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            );
-                          },
-                          menuChildren:
-                              controller.orderFilterOptions.map((option) {
-                                return MenuItemButton(
-                                  onPressed:
-                                      () =>
-                                          controller.updateOrderFilter(option),
-                                  child: Text(option),
-                                );
-                              }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: controller.reservations.length,
-                    itemBuilder: (context, index) {
-                      return _buildReservationCard(controller, index);
-                    },
-                  ),
-                ],
-              ),
-            ),
           ),
         );
       },

@@ -15,237 +15,275 @@ class OrderScreenView extends GetView<OrderScreenController> {
       assignId: true,
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Order'),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-          ),
           backgroundColor: ColorConstants.bgColor,
-          body: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: ColorConstants.getShadow2,
+          body: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(
+                  12,
+                ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: Center(
+                  child: Text(
+                    "Order",
+                    style: TextStyle(fontSize: 20, color: Colors.black),
                   ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MenuAnchor(
-                              style: MenuStyle(
-                                backgroundColor: WidgetStateProperty.all(
-                                  Colors.white,
-                                ),
-                              ),
-                              builder: (context, controllerMenu, child) {
-                                return GestureDetector(
-                                  onTap: () => controllerMenu.open(),
-                                  child: Obx(() {
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 10,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: ColorConstants.getShadow2,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: MenuAnchor(
+                                    style: MenuStyle(
+                                      backgroundColor: WidgetStateProperty.all(
+                                        Colors.white,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1.0,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              controller
-                                                  .getDropdownDisplayText(),
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                              ),
+                                    ),
+                                    builder: (context, controllerMenu, child) {
+                                      return GestureDetector(
+                                        onTap: () => controllerMenu.open(),
+                                        child: Obx(() {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 10,
                                             ),
-                                          ),
-                                          const Icon(Icons.keyboard_arrow_down),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                );
-                              },
-                              menuChildren:
-                                  controller.dateOptions.map((option) {
-                                    return MenuItemButton(
-                                      onPressed: () {
-                                        controller.updateDateOption(option);
-                                        if (option == 'Custom Date') {
-                                          Future.delayed(
-                                            const Duration(milliseconds: 10),
-                                            () {
-                                              controller
-                                                  .showCustomDateRangePickerPop(
-                                                    context,
-                                                  );
-                                            },
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                                width: 1.0,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    controller
+                                                        .getDropdownDisplayText(),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                ),
+                                              ],
+                                            ),
                                           );
-                                        }
-                                      },
-                                      child: Text(option),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: MenuAnchor(
-                              style: MenuStyle(
-                                backgroundColor: WidgetStateProperty.all(
-                                  Colors.white,
+                                        }),
+                                      );
+                                    },
+                                    menuChildren:
+                                        controller.dateOptions.map((option) {
+                                          return MenuItemButton(
+                                            onPressed: () {
+                                              controller.updateDateOption(
+                                                option,
+                                              );
+                                              if (option == 'Custom Date') {
+                                                Future.delayed(
+                                                  const Duration(
+                                                    milliseconds: 10,
+                                                  ),
+                                                  () {
+                                                    controller
+                                                        .showCustomDateRangePickerPop(
+                                                          context,
+                                                        );
+                                                  },
+                                                );
+                                              }
+                                            },
+                                            child: Text(option),
+                                          );
+                                        }).toList(),
+                                  ),
                                 ),
-                              ),
-                              builder: (context, controllerMenu, child) {
-                                return GestureDetector(
-                                  onTap: () => controllerMenu.open(),
-                                  child: Obx(() {
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 10,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: MenuAnchor(
+                                    style: MenuStyle(
+                                      backgroundColor: WidgetStateProperty.all(
+                                        Colors.white,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1.0,
+                                    ),
+                                    builder: (context, controllerMenu, child) {
+                                      return GestureDetector(
+                                        onTap: () => controllerMenu.open(),
+                                        child: Obx(() {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                                width: 1.0,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  controller
+                                                      .selectedOrderFilter
+                                                      .value,
+                                                ),
+                                                const Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      );
+                                    },
+                                    menuChildren:
+                                        controller.orderFilterOptions.map((
+                                          option,
+                                        ) {
+                                          return MenuItemButton(
+                                            onPressed:
+                                                () => controller
+                                                    .updateOrderFilter(option),
+                                            child: Text(option),
+                                          );
+                                        }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Obx(() {
+                              final selectedType =
+                                  controller.selectedOrderType.value;
+                              return Center(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(5),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: _buildOrderTypeButton(
+                                            icon: ImageConstant.dinein,
+                                            label: 'Dine In',
+                                            isSelected:
+                                                selectedType == 'Dine In',
+                                            onTap:
+                                                () =>
+                                                    controller
+                                                        .selectedOrderType
+                                                        .value = 'Dine In',
+                                          ),
                                         ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            controller
-                                                .selectedOrderFilter
-                                                .value,
+                                        Expanded(
+                                          child: _buildOrderTypeButton(
+                                            icon: ImageConstant.Pickup,
+                                            label: 'Pickup',
+                                            isSelected:
+                                                selectedType == 'Pickup',
+                                            onTap:
+                                                () =>
+                                                    controller
+                                                        .selectedOrderType
+                                                        .value = 'Pickup',
                                           ),
-                                          const Icon(Icons.keyboard_arrow_down),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                );
-                              },
-                              menuChildren:
-                                  controller.orderFilterOptions.map((option) {
-                                    return MenuItemButton(
-                                      onPressed:
-                                          () => controller.updateOrderFilter(
-                                            option,
+                                        ),
+                                        Expanded(
+                                          child: _buildOrderTypeButton(
+                                            icon: ImageConstant.delivery,
+                                            label: 'Delivery',
+                                            isSelected:
+                                                selectedType == 'Delivery',
+                                            onTap:
+                                                () =>
+                                                    controller
+                                                        .selectedOrderType
+                                                        .value = 'Delivery',
                                           ),
-                                      child: Text(option),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                        ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 10),
-                      Obx(() {
-                        final selectedType = controller.selectedOrderType.value;
-                        return Center(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(
-                                color: Colors.grey.shade300,
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: _buildOrderTypeButton(
-                                      icon: ImageConstant.dinein,
-                                      label: 'Dine In',
-                                      isSelected: selectedType == 'Dine In',
-                                      onTap:
-                                          () =>
-                                              controller
-                                                  .selectedOrderType
-                                                  .value = 'Dine In',
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildOrderTypeButton(
-                                      icon: ImageConstant.Pickup,
-                                      label: 'Pickup',
-                                      isSelected: selectedType == 'Pickup',
-                                      onTap:
-                                          () =>
-                                              controller
-                                                  .selectedOrderType
-                                                  .value = 'Pickup',
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildOrderTypeButton(
-                                      icon: ImageConstant.delivery,
-                                      label: 'Delivery',
-                                      isSelected: selectedType == 'Delivery',
-                                      onTap:
-                                          () =>
-                                              controller
-                                                  .selectedOrderType
-                                                  .value = 'Delivery',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: controller.orders.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final order = controller.orders[index];
+                            return InkWell(
+                              hoverColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              onTap: () {
+                                _showOrderBottomSheet(context, controller);
+                              },
+                              child: OrderCard(order: order),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: controller.orders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final order = controller.orders[index];
-                      return InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          _showOrderBottomSheet(context, controller);
-                        },
-                        child: OrderCard(order: order),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

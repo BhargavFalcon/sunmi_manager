@@ -22,11 +22,7 @@ class InventoryScreenView extends GetView<InventoryScreenController> {
             appBar: AppBar(
               title: const Text(
                 'Inventory',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.black, fontSize: 20),
               ),
               centerTitle: true,
               backgroundColor: Colors.white,

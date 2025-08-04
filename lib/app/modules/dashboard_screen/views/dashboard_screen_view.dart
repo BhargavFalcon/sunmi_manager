@@ -18,215 +18,239 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
       assignId: true,
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Home'),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-          ),
           backgroundColor: ColorConstants.bgColor,
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TabSwitcher(
-                    title: "Statistics",
-                    tabs: controller.statisticTabs,
-                    selectedTabIndex: controller.statisticSelectedTabIndex,
+          body: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(
+                  12,
+                ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: Center(
+                  child: Text(
+                    "Home",
+                    style: TextStyle(fontSize: 20, color: Colors.black),
                   ),
-                  const SizedBox(height: 20),
-                  GridView.count(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 6,
-                    mainAxisSpacing: 6,
-                    childAspectRatio: 2,
-                    children: [
-                      statCard(
-                        title: "Today's Orders",
-                        value: "11",
-                        percentage: "+80.48%",
-                        status: true,
-                        subtitle: "Since yesterday",
-                      ),
-                      statCard(
-                        title: "Today's Earnings",
-                        value: "€ 56.33",
-                        percentage: "+49%",
-                        status: true,
-                        subtitle: "Since yesterday",
-                      ),
-                      statCard(
-                        title: "Today's Customer",
-                        value: "3",
-                        percentage: "-67.48%",
-                        status: false,
-                        subtitle: "Since yesterday",
-                      ),
-                      statCard(
-                        title: "Average Daily Earnings (June)",
-                        value: "€ 186.54",
-                        percentage: "+49%",
-                        status: true,
-                        subtitle: "Since previous month",
-                      ),
-                    ],
-                  ),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TabSwitcher(
+                          title: "Statistics",
+                          tabs: controller.statisticTabs,
+                          selectedTabIndex:
+                              controller.statisticSelectedTabIndex,
+                        ),
+                        const SizedBox(height: 20),
+                        GridView.count(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                          childAspectRatio: 2,
+                          children: [
+                            statCard(
+                              title: "Today's Orders",
+                              value: "11",
+                              percentage: "+80.48%",
+                              status: true,
+                              subtitle: "Since yesterday",
+                            ),
+                            statCard(
+                              title: "Today's Earnings",
+                              value: "€ 56.33",
+                              percentage: "+49%",
+                              status: true,
+                              subtitle: "Since yesterday",
+                            ),
+                            statCard(
+                              title: "Today's Customer",
+                              value: "3",
+                              percentage: "-67.48%",
+                              status: false,
+                              subtitle: "Since yesterday",
+                            ),
+                            statCard(
+                              title: "Average Daily Earnings (June)",
+                              value: "€ 186.54",
+                              percentage: "+49%",
+                              status: true,
+                              subtitle: "Since previous month",
+                            ),
+                          ],
+                        ),
 
-                  const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                  Obx(() {
-                    if (controller.chartData.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    return salesChartCard(controller);
-                  }),
+                        Obx(() {
+                          if (controller.chartData.isEmpty) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return salesChartCard(controller);
+                        }),
 
-                  const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                  TabSwitcher(
-                    title: "Order Details",
-                    tabs: controller.orderTabs,
-                    selectedTabIndex: controller.orderSelectedTabIndex,
-                  ),
+                        TabSwitcher(
+                          title: "Order Details",
+                          tabs: controller.orderTabs,
+                          selectedTabIndex: controller.orderSelectedTabIndex,
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  Obx(() {
-                    return Column(
-                      children:
-                          controller.orders
-                              .map(
-                                (order) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 5,
-                                  ),
-                                  child: OrderCard(order: order),
+                        Obx(() {
+                          return Column(
+                            children:
+                                controller.orders
+                                    .map(
+                                      (order) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 5,
+                                        ),
+                                        child: OrderCard(order: order),
+                                      ),
+                                    )
+                                    .toList(),
+                          );
+                        }),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Alerts for low stock :",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "${controller.lowStockItems.length} alerts",
+                                style: TextStyle(
+                                  color: ColorConstants.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
-                              )
-                              .toList(),
-                    );
-                  }),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Alerts for low stock :",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "${controller.lowStockItems.length} alerts",
+                        const SizedBox(height: 10),
+                        Obx(() {
+                          return Column(
+                            children:
+                                controller.lowStockItems.map((item) {
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.warning_amber_rounded,
+                                                  size: 16,
+                                                  color: ColorConstants.red,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Current: ${item.current} pc',
+                                                  style: TextStyle(
+                                                    color: ColorConstants.red,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              item.category,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Threshold: ${item.threshold.toStringAsFixed(2)} pc',
+                                              style: TextStyle(
+                                                color: ColorConstants.red,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          );
+                        }),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Top Selling Tables (Today)",
                           style: TextStyle(
-                            color: ColorConstants.red,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 18,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 10),
+                        buildTopTableList(controller.tables),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Obx(() {
-                    return Column(
-                      children:
-                          controller.lowStockItems.map((item) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.warning_amber_rounded,
-                                            size: 16,
-                                            color: ColorConstants.red,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Current: ${item.current} pc',
-                                            style: TextStyle(
-                                              color: ColorConstants.red,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        item.category,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Threshold: ${item.threshold.toStringAsFixed(2)} pc',
-                                        style: TextStyle(
-                                          color: ColorConstants.red,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                    );
-                  }),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Top Selling Tables (Today)",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                  buildTopTableList(controller.tables),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
