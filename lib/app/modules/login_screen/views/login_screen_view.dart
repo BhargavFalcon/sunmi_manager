@@ -39,38 +39,33 @@ class LoginScreenView extends GetView<LoginScreenController> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Image.asset(
-                            ImageConstant.bottomLogo,
-                            height: MySize.getHeight(30),
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 3),
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 25,
-                                color: Colors.black,
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Image.asset(
+                          ImageConstant.bottomLogo,
+                          height: MySize.getHeight(30),
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(width: 3),
+                        RichText(
+                          text: TextSpan(
+                            style: TextStyle(fontSize: 25, color: Colors.black),
+                            children: [
+                              TextSpan(
+                                text: 'Dine',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              children: [
-                                TextSpan(
-                                  text: 'Dine',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                TextSpan(text: 'metrics'),
-                              ],
-                            ),
+                              TextSpan(text: 'metrics'),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
+                  SizedBox(height: MySize.getHeight(50)),
                   Container(
                     width: MySize.screenWidth,
                     decoration: BoxDecoration(
