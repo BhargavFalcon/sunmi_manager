@@ -10,6 +10,7 @@ abstract class Routes {
   static const RESERVATION_SCREEN = _Paths.RESERVATION_SCREEN;
   static const INVENTORY_DASHBOARD = _Paths.INVENTORY_DASHBOARD;
   static const INVENTORY_PURCHASE_ORDER = _Paths.INVENTORY_PURCHASE_ORDER;
+  static const LOGIN_SCREEN = _Paths.LOGIN_SCREEN;
 }
 
 abstract class _Paths {
@@ -21,4 +22,5 @@ abstract class _Paths {
   static const RESERVATION_SCREEN = '/reservation-screen';
   static const INVENTORY_DASHBOARD = '/inventory-dashboard';
   static const INVENTORY_PURCHASE_ORDER = '/inventory-purchase-order';
+  static const LOGIN_SCREEN = '/login-screen';
 }

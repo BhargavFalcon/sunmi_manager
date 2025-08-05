@@ -8,6 +8,8 @@ import '../modules/dashboard_screen/bindings/dashboard_screen_binding.dart';
 import '../modules/dashboard_screen/views/dashboard_screen_view.dart';
 import '../modules/inventory_screen/bindings/inventory_screen_binding.dart';
 import '../modules/inventory_screen/views/inventory_screen_view.dart';
+import '../modules/login_screen/bindings/login_screen_binding.dart';
+import '../modules/login_screen/views/login_screen_view.dart';
 import '../modules/mainHome_screen/bindings/main_home_screen_binding.dart';
 import '../modules/mainHome_screen/views/main_home_screen_view.dart';
 import '../modules/order_screen/bindings/order_screen_binding.dart';
@@ -20,7 +22,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.MAIN_HOME_SCREEN;
+  static const INITIAL = Routes.LOGIN_SCREEN;
 
   static final routes = [
     GetPage(
@@ -57,6 +59,11 @@ class AppPages {
       name: _Paths.INVENTORY_PURCHASE_ORDER,
       page: () => const InventoryPurchaseOrderView(),
       binding: InventoryPurchaseOrderBinding(),
+    ),
+    GetPage(
+      name: _Paths.LOGIN_SCREEN,
+      page: () => const LoginScreenView(),
+      binding: LoginScreenBinding(),
     ),
   ];
 }
