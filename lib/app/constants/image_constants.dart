@@ -8,4 +8,5 @@ class ImageConstant {
   static const delivery = "${imagePath}delivery.png";
   static const dinein = "${imagePath}dinein.png";
   static const Pickup = "${imagePath}Pickup.png";
+  static const bottomLogo = "${imagePath}bottomLogo.png";
 }
