@@ -12,7 +12,12 @@ void main() {
       title: "Application",
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
-      theme: ThemeData(fontFamily: GoogleFonts.rubik().fontFamily),
+      theme: ThemeData(
+        fontFamily: GoogleFonts.rubik().fontFamily,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+      ),
     ),
   );
 }

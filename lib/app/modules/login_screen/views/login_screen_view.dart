@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../controllers/login_screen_controller.dart';
 
@@ -153,20 +154,29 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(20)),
-                        Container(
-                          width: MySize.screenWidth,
-                          height: MySize.getHeight(35),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                        InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            Get.offAndToNamed(Routes.MAIN_HOME_SCREEN);
+                          },
+                          child: Container(
+                            width: MySize.screenWidth,
+                            height: MySize.getHeight(35),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Login",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
