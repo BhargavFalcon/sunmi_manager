@@ -1,4 +1,4 @@
-package com.example.managerapp
+package com.dinemetrics.manager
 
 import io.flutter.embedding.android.FlutterActivity
 
