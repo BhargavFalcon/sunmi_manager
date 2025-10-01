@@ -128,7 +128,6 @@ class TakeOrderController extends GetxController {
     {"Id": "11", "title": "Snacks", "product_name": "Pakora", "amount": "463"},
     {"Id": "11", "title": "Snacks", "product_name": "Kachori", "amount": "688"},
     {"Id": "11", "title": "Snacks", "product_name": "Roll", "amount": "749"},
-
     {"Id": "12", "title": "Dairy", "product_name": "Milk", "amount": "421"},
     {"Id": "12", "title": "Dairy", "product_name": "Curd", "amount": "674"},
     {"Id": "12", "title": "Dairy", "product_name": "Butter", "amount": "732"},
@@ -375,7 +374,18 @@ class TakeOrderController extends GetxController {
 
   void updateCategory(String value) => selectedCategory.value = value;
 
-  void toggleCategorySticky() => isCategorySticky.value = !isCategorySticky.value;
+  void toggleCategorySticky() =>
+      isCategorySticky.value = !isCategorySticky.value;
+
+  void scrollToStickyPosition() {
+    if (!isCategorySticky.value && mainScrollController.hasClients) {
+      mainScrollController.animateTo(
+        205.0,
+        duration: const Duration(milliseconds: 50),
+        curve: Curves.easeOut,
+      );
+    }
+  }
 
   @override
   void onClose() {

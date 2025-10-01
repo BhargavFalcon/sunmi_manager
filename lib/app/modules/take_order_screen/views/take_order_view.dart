@@ -118,96 +118,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              // Sticky category list overlay
-              Obx(() {
-                if (controller.isCategorySticky.value) {
-                  return Container(
-                    height: MySize.getHeight(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: ColorConstants.getShadow2,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Obx(() {
-                      final filteredItems = controller.filteredGroupedItems;
-                      final visibleCategories =
-                          controller.categories
-                              .where((cat) => filteredItems.containsKey(cat))
-                              .toList();
-                      return ListView.builder(
-                        controller: controller.categoryScrollController,
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        itemCount: visibleCategories.length,
-                        itemBuilder: (context, index) {
-                          final category = visibleCategories[index];
-
-                          return Obx(() {
-                            final isSelected =
-                                controller.selectedCategory.value == category;
-
-                            return GestureDetector(
-                              onTap: () => controller.updateCategory(category),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isSelected
-                                          ? ColorConstants.primaryColor
-                                          : Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow:
-                                      isSelected
-                                          ? [
-                                            BoxShadow(
-                                              color: ColorConstants.primaryColor
-                                                  .withValues(alpha: 0.3),
-                                              spreadRadius: 0,
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                          : null,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    category,
-                                    style: TextStyle(
-                                      color:
-                                          isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
-                                      fontWeight:
-                                          isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          });
-                        },
-                      );
-                    }),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-              // Main scrollable content
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: Obx(() {
+                  if (controller.isCategorySticky.value) {
+                    return _buildCategoryList(controller);
+                  }
+                  return const SizedBox.shrink();
+                }),
+              ),
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
-                    // Calculate when category list should become sticky
-                    double stickyThreshold =
-                        200.0; // Adjust based on header height
+                    double stickyThreshold = 200.0;
 
                     if (scrollInfo.metrics.pixels >= stickyThreshold) {
                       if (!controller.isCategorySticky.value) {
@@ -310,96 +234,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             ),
                           ),
                         ),
-                        // Category list in scrollable content
+                        _buildCategoryList(controller),
                         Container(
-                          height: MySize.getHeight(40),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: ColorConstants.getShadow2,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Obx(() {
-                            final filteredItems =
-                                controller.filteredGroupedItems;
-                            final visibleCategories =
-                                controller.categories
-                                    .where(
-                                      (cat) => filteredItems.containsKey(cat),
-                                    )
-                                    .toList();
-                            return ListView.builder(
-                              controller: controller.categoryScrollController,
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              itemCount: visibleCategories.length,
-                              itemBuilder: (context, index) {
-                                final category = visibleCategories[index];
-
-                                return Obx(() {
-                                  final isSelected =
-                                      controller.selectedCategory.value ==
-                                      category;
-
-                                  return GestureDetector(
-                                    onTap:
-                                        () =>
-                                            controller.updateCategory(category),
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isSelected
-                                                ? ColorConstants.primaryColor
-                                                : Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow:
-                                            isSelected
-                                                ? [
-                                                  BoxShadow(
-                                                    color: ColorConstants
-                                                        .primaryColor
-                                                        .withValues(alpha: 0.3),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ]
-                                                : null,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          category,
-                                          style: TextStyle(
-                                            color:
-                                                isSelected
-                                                    ? Colors.white
-                                                    : Colors.black87,
-                                            fontWeight:
-                                                isSelected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w500,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                });
-                              },
-                            );
-                          }),
-                        ),
-                        // Menu items content
-                        Container(
-                          height: 1000, // Placeholder height
+                          height: 1000,
                           color: Colors.grey.shade100,
                           child: Center(
                             child: Text(
@@ -420,6 +257,80 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCategoryList(TakeOrderController controller) {
+    return Container(
+      height: MySize.getHeight(40),
+      decoration: BoxDecoration(color: Colors.white),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Obx(() {
+        final filteredItems = controller.filteredGroupedItems;
+        final visibleCategories =
+            controller.categories
+                .where((cat) => filteredItems.containsKey(cat))
+                .toList();
+
+        return ListView.builder(
+          controller: controller.categoryScrollController,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: visibleCategories.length,
+          itemBuilder: (context, index) {
+            final category = visibleCategories[index];
+
+            return Obx(() {
+              final isSelected = controller.selectedCategory.value == category;
+
+              return GestureDetector(
+                onTap: () {
+                  controller.updateCategory(category);
+                  controller.scrollToStickyPosition();
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? ColorConstants.primaryColor
+                            : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow:
+                        isSelected
+                            ? [
+                              BoxShadow(
+                                color: ColorConstants.primaryColor.withValues(
+                                  alpha: 0.3,
+                                ),
+                                spreadRadius: 0,
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                            : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black87,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            });
+          },
+        );
+      }),
     );
   }
 
