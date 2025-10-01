@@ -118,95 +118,301 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: ColorConstants.getShadow2,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Obx(() {
-                                final selectedType =
-                                    controller.selectedOrderType.value;
-                                return Center(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(5),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: _buildOrderTypeButton(
-                                              icon: ImageConstant.Pickup,
-                                              label: 'Pickup',
-                                              isSelected:
-                                                  selectedType == 'Pickup',
-                                              onTap:
-                                                  () =>
-                                                      controller
-                                                          .selectedOrderType
-                                                          .value = 'Pickup',
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: _buildOrderTypeButton(
-                                              icon: ImageConstant.delivery,
-                                              label: 'Delivery',
-                                              isSelected:
-                                                  selectedType == 'Delivery',
-                                              onTap:
-                                                  () =>
-                                                      controller
-                                                          .selectedOrderType
-                                                          .value = 'Delivery',
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                              const SizedBox(height: 12),
-                              CupertinoTextField(
+              // Sticky category list overlay
+              Obx(() {
+                if (controller.isCategorySticky.value) {
+                  return Container(
+                    height: MySize.getHeight(40),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: ColorConstants.getShadow2,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Obx(() {
+                      final filteredItems = controller.filteredGroupedItems;
+                      final visibleCategories =
+                          controller.categories
+                              .where((cat) => filteredItems.containsKey(cat))
+                              .toList();
+                      return ListView.builder(
+                        controller: controller.categoryScrollController,
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        itemCount: visibleCategories.length,
+                        itemBuilder: (context, index) {
+                          final category = visibleCategories[index];
+
+                          return Obx(() {
+                            final isSelected =
+                                controller.selectedCategory.value == category;
+
+                            return GestureDetector(
+                              onTap: () => controller.updateCategory(category),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
+                                  color:
+                                      isSelected
+                                          ? ColorConstants.primaryColor
+                                          : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow:
+                                      isSelected
+                                          ? [
+                                            BoxShadow(
+                                              color: ColorConstants.primaryColor
+                                                  .withValues(alpha: 0.3),
+                                              spreadRadius: 0,
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                          : null,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    category,
+                                    style: TextStyle(
+                                      color:
+                                          isSelected
+                                              ? Colors.white
+                                              : Colors.black87,
+                                      fontWeight:
+                                          isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
+                                      fontSize: 13,
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                placeholder: "Search your menu item here",
-                                prefix: const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Icon(Icons.search),
-                                ),
-                                clearButtonMode: OverlayVisibilityMode.editing,
-                                onChanged: (value) {},
                               ),
-                            ],
+                            );
+                          });
+                        },
+                      );
+                    }),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+              // Main scrollable content
+              Expanded(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    // Calculate when category list should become sticky
+                    double stickyThreshold =
+                        200.0; // Adjust based on header height
+
+                    if (scrollInfo.metrics.pixels >= stickyThreshold) {
+                      if (!controller.isCategorySticky.value) {
+                        controller.isCategorySticky.value = true;
+                      }
+                    } else {
+                      if (controller.isCategorySticky.value) {
+                        controller.isCategorySticky.value = false;
+                      }
+                    }
+                    return true;
+                  },
+                  child: SingleChildScrollView(
+                    controller: controller.mainScrollController,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: ColorConstants.getShadow2,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Obx(() {
+                                  final selectedType =
+                                      controller.selectedOrderType.value;
+                                  return Center(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                          width: 1.0,
+                                        ),
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: _buildOrderTypeButton(
+                                                icon: ImageConstant.Pickup,
+                                                label: 'Pickup',
+                                                isSelected:
+                                                    selectedType == 'Pickup',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'Pickup',
+                                                        ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: _buildOrderTypeButton(
+                                                icon: ImageConstant.delivery,
+                                                label: 'Delivery',
+                                                isSelected:
+                                                    selectedType == 'Delivery',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'Delivery',
+                                                        ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                const SizedBox(height: 12),
+                                CupertinoTextField(
+                                  controller: controller.searchController,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  placeholder: "Search your menu item here",
+                                  prefix: const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Icon(Icons.search),
+                                  ),
+                                  clearButtonMode:
+                                      OverlayVisibilityMode.editing,
+                                  onChanged: (value) {},
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        // Category list in scrollable content
+                        Container(
+                          height: MySize.getHeight(40),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: ColorConstants.getShadow2,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Obx(() {
+                            final filteredItems =
+                                controller.filteredGroupedItems;
+                            final visibleCategories =
+                                controller.categories
+                                    .where(
+                                      (cat) => filteredItems.containsKey(cat),
+                                    )
+                                    .toList();
+                            return ListView.builder(
+                              controller: controller.categoryScrollController,
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              itemCount: visibleCategories.length,
+                              itemBuilder: (context, index) {
+                                final category = visibleCategories[index];
+
+                                return Obx(() {
+                                  final isSelected =
+                                      controller.selectedCategory.value ==
+                                      category;
+
+                                  return GestureDetector(
+                                    onTap:
+                                        () =>
+                                            controller.updateCategory(category),
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            isSelected
+                                                ? ColorConstants.primaryColor
+                                                : Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow:
+                                            isSelected
+                                                ? [
+                                                  BoxShadow(
+                                                    color: ColorConstants
+                                                        .primaryColor
+                                                        .withValues(alpha: 0.3),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ]
+                                                : null,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          category,
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? Colors.white
+                                                    : Colors.black87,
+                                            fontWeight:
+                                                isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                });
+                              },
+                            );
+                          }),
+                        ),
+                        // Menu items content
+                        Container(
+                          height: 1000, // Placeholder height
+                          color: Colors.grey.shade100,
+                          child: Center(
+                            child: Text(
+                              'Menu items will be displayed here',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

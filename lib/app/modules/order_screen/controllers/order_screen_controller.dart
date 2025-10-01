@@ -58,6 +58,8 @@ class OrderScreenController extends GetxController {
 
   void updateOrderFilter(String value) => selectedOrderFilter.value = value;
 
+  void updateOrderType(String value) => selectedOrderType.value = value;
+
   void updateDateOption(String option) {
     selectedMonth.value = option;
     if (option == 'Custom Date') {

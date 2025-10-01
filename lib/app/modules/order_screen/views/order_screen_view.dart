@@ -219,8 +219,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                             onTap:
                                                 () =>
                                                     controller
-                                                        .selectedOrderType
-                                                        .value = 'Dine In',
+                                                        .updateOrderType('Dine In'),
                                           ),
                                         ),
                                         Expanded(
@@ -232,8 +231,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                             onTap:
                                                 () =>
                                                     controller
-                                                        .selectedOrderType
-                                                        .value = 'Pickup',
+                                                        .updateOrderType('Pickup'),
                                           ),
                                         ),
                                         Expanded(
@@ -245,8 +243,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                             onTap:
                                                 () =>
                                                     controller
-                                                        .selectedOrderType
-                                                        .value = 'Delivery',
+                                                        .updateOrderType('Delivery'),
                                           ),
                                         ),
                                       ],
