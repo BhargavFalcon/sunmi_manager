@@ -16,6 +16,8 @@ import '../modules/order_screen/bindings/order_screen_binding.dart';
 import '../modules/order_screen/views/order_screen_view.dart';
 import '../modules/reservation_screen/bindings/reservation_screen_binding.dart';
 import '../modules/reservation_screen/views/reservation_screen_view.dart';
+import '../modules/take_order_screen/bindings/take_order_binding.dart';
+import '../modules/take_order_screen/views/take_order_view.dart';
 
 part 'app_routes.dart';
 
@@ -59,6 +61,11 @@ class AppPages {
       name: _Paths.INVENTORY_PURCHASE_ORDER,
       page: () => const InventoryPurchaseOrderView(),
       binding: InventoryPurchaseOrderBinding(),
+    ),
+    GetPage(
+      name: _Paths.TAKE_ORDER_SCREEN,
+      page: () => const TakeOrderView(),
+      binding: TakeOrderBinding(),
     ),
     GetPage(
       name: _Paths.LOGIN_SCREEN,

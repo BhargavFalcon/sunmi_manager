@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
+import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../../../constants/image_constants.dart';
 
@@ -284,6 +285,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
               ),
             ],
+          ),
+          floatingActionButton: InkWell(
+            hoverColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: () => Get.toNamed(Routes.TAKE_ORDER_SCREEN),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ColorConstants.primaryColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: ColorConstants.getShadow2,
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
           ),
         );
       },
@@ -660,10 +677,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? ColorConstants.red.withValues(alpha: 0.05)
+                  ? ColorConstants.primaryColor.withValues(alpha: 0.05)
                   : Colors.transparent,
           border: Border.all(
-            color: isSelected ? ColorConstants.red : Colors.transparent,
+            color: isSelected ? ColorConstants.primaryColor : Colors.transparent,
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(24),
@@ -677,7 +694,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? ColorConstants.red : Colors.grey.shade700,
+                color: isSelected ? ColorConstants.primaryColor : Colors.grey.shade700,
                 fontWeight: FontWeight.w500,
               ),
             ),

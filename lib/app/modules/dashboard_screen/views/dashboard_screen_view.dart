@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/chartModel.dart';
+import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../controllers/dashboard_screen_controller.dart';
 
@@ -159,114 +160,114 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                           );
                         }),
                         const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Alerts for low stock :",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                "${controller.lowStockItems.length} alerts",
-                                style: TextStyle(
-                                  color: ColorConstants.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Obx(() {
-                          return Column(
-                            children:
-                                controller.lowStockItems.map((item) {
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.black87,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.warning_amber_rounded,
-                                                  size: 16,
-                                                  color: ColorConstants.red,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Current: ${item.current} pc',
-                                                  style: TextStyle(
-                                                    color: ColorConstants.red,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              item.category,
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              'Threshold: ${item.threshold.toStringAsFixed(2)} pc',
-                                              style: TextStyle(
-                                                color: ColorConstants.red,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          );
-                        }),
-                        const SizedBox(height: 10),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //   crossAxisAlignment: CrossAxisAlignment.center,
+                        //   children: [
+                        //     Text(
+                        //       "Alerts for low stock :",
+                        //       style: TextStyle(
+                        //         fontWeight: FontWeight.bold,
+                        //         fontSize: 18,
+                        //       ),
+                        //     ),
+                        //     Container(
+                        //       padding: const EdgeInsets.symmetric(
+                        //         horizontal: 12,
+                        //         vertical: 6,
+                        //       ),
+                        //       decoration: BoxDecoration(
+                        //         color: Colors.red.shade100,
+                        //         borderRadius: BorderRadius.circular(8),
+                        //       ),
+                        //       child: Text(
+                        //         "${controller.lowStockItems.length} alerts",
+                        //         style: TextStyle(
+                        //           color: ColorConstants.red,
+                        //           fontWeight: FontWeight.bold,
+                        //           fontSize: 14,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
+                        // const SizedBox(height: 10),
+                        // Obx(() {
+                        //   return Column(
+                        //     children:
+                        //         controller.lowStockItems.map((item) {
+                        //           return Container(
+                        //             margin: const EdgeInsets.only(bottom: 10),
+                        //             padding: const EdgeInsets.all(12),
+                        //             decoration: BoxDecoration(
+                        //               color: Colors.red.shade50,
+                        //               borderRadius: BorderRadius.circular(12),
+                        //             ),
+                        //             child: Row(
+                        //               mainAxisAlignment:
+                        //                   MainAxisAlignment.spaceBetween,
+                        //               children: [
+                        //                 Column(
+                        //                   crossAxisAlignment:
+                        //                       CrossAxisAlignment.start,
+                        //                   children: [
+                        //                     Text(
+                        //                       item.name,
+                        //                       style: const TextStyle(
+                        //                         fontWeight: FontWeight.bold,
+                        //                         fontSize: 16,
+                        //                         color: Colors.black87,
+                        //                       ),
+                        //                     ),
+                        //                     const SizedBox(height: 6),
+                        //                     Row(
+                        //                       children: [
+                        //                         const Icon(
+                        //                           Icons.warning_amber_rounded,
+                        //                           size: 16,
+                        //                           color: ColorConstants.red,
+                        //                         ),
+                        //                         const SizedBox(width: 4),
+                        //                         Text(
+                        //                           'Current: ${item.current} pc',
+                        //                           style: TextStyle(
+                        //                             color: ColorConstants.red,
+                        //                             fontSize: 13,
+                        //                           ),
+                        //                         ),
+                        //                       ],
+                        //                     ),
+                        //                   ],
+                        //                 ),
+                        //                 Column(
+                        //                   crossAxisAlignment:
+                        //                       CrossAxisAlignment.end,
+                        //                   children: [
+                        //                     Text(
+                        //                       item.category,
+                        //                       style: const TextStyle(
+                        //                         fontSize: 13,
+                        //                         color: Colors.black54,
+                        //                       ),
+                        //                     ),
+                        //                     const SizedBox(height: 6),
+                        //                     Text(
+                        //                       'Threshold: ${item.threshold.toStringAsFixed(2)} pc',
+                        //                       style: TextStyle(
+                        //                         color: ColorConstants.red,
+                        //                         fontWeight: FontWeight.bold,
+                        //                         fontSize: 13,
+                        //                       ),
+                        //                     ),
+                        //                   ],
+                        //                 ),
+                        //               ],
+                        //             ),
+                        //           );
+                        //         }).toList(),
+                        //   );
+                        // }),
+                        // const SizedBox(height: 10),
                         Text(
                           "Top Selling Tables (Today)",
                           style: TextStyle(
@@ -282,6 +283,22 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                 ),
               ),
             ],
+          ),
+          floatingActionButton: InkWell(
+            hoverColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: () => Get.toNamed(Routes.TAKE_ORDER_SCREEN),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ColorConstants.primaryColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: ColorConstants.getShadow2,
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
           ),
         );
       },

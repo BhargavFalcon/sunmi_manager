@@ -54,6 +54,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                   width: MySize.screenWidth,
                   decoration: BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: ColorConstants.getShadow2,
                   ),
                   padding: const EdgeInsets.all(8),
@@ -90,7 +91,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: MySize.getHeight(2)),
+                      SizedBox(height: MySize.getHeight(5)),
                       CupertinoTextField(
                         padding: const EdgeInsets.all(12),
                         placeholder: "Email or Username",
@@ -108,7 +109,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           ),
                         ),
                       ),
-                      SizedBox(height: MySize.getHeight(2)),
+                      SizedBox(height: MySize.getHeight(15)),
                       Text(
                         "Enter your password",
                         style: TextStyle(
@@ -117,7 +118,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: MySize.getHeight(2)),
+                      SizedBox(height: MySize.getHeight(5)),
                       CupertinoTextField(
                         padding: const EdgeInsets.all(12),
                         placeholder: "Password",

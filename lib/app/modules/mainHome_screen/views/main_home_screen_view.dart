@@ -1,12 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/modules/dashboard_screen/views/dashboard_screen_view.dart';
-import 'package:managerapp/app/modules/inventory_screen/views/inventory_screen_view.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
-
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -27,7 +24,7 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
           DashboardScreenView(),
           OrderScreenView(),
           ReservationScreenView(),
-          InventoryScreenView(),
+          // InventoryScreenView(),
         ],
       ),
       bottomNavigationBar: Obx(() {
@@ -100,12 +97,12 @@ class _CustomBottomNavBar extends StatelessWidget {
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),
-                  _NavBarItem(
-                    icon: ImageConstant.inventory,
-                    label: "Inventory",
-                    isSelected: selectedIndex == 3,
-                    onTap: () => onTabChange(3),
-                  ),
+                  // _NavBarItem(
+                  //   icon: ImageConstant.inventory,
+                  //   label: "Inventory",
+                  //   isSelected: selectedIndex == 3,
+                  //   onTap: () => onTabChange(3),
+                  // ),
                 ],
               ),
             ),
