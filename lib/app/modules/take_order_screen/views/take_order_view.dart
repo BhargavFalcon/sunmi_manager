@@ -235,19 +235,45 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           ),
                         ),
                         _buildCategoryList(controller),
-                        Container(
-                          height: 1000,
-                          color: Colors.grey.shade100,
-                          child: Center(
-                            child: Text(
-                              'Menu items will be displayed here',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
+
+                        Obx(() {
+                          final filteredItems = controller.filteredGroupedItems;
+                          return Column(
+                            children:
+                                filteredItems.entries.map((entry) {
+                                  final category = entry.key;
+                                  final items = entry.value;
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Category Title
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          16,
+                                          16,
+                                          8,
+                                        ),
+                                        child: Text(
+                                          category,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      ..._buildItemsInRows(items),
+                                    ],
+                                  );
+                                }).toList(),
+                          );
+                        }),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -331,6 +357,82 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           },
         );
       }),
+    );
+  }
+
+  List<Widget> _buildItemsInRows(List<Map<String, dynamic>> items) {
+    List<Widget> rows = [];
+
+    for (int i = 0; i < items.length; i += 2) {
+      List<Widget> rowItems = [];
+
+      // First item
+      rowItems.add(Expanded(child: _buildItemCell(items[i])));
+
+      // Second item (if exists)
+      if (i + 1 < items.length) {
+        rowItems.add(const SizedBox(width: 8));
+        rowItems.add(Expanded(child: _buildItemCell(items[i + 1])));
+      } else {
+        // If odd number of items, add empty space
+        rowItems.add(const Expanded(child: SizedBox()));
+      }
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(children: rowItems),
+        ),
+      );
+    }
+
+    return rows;
+  }
+
+  Widget _buildItemCell(Map<String, dynamic> item) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: ColorConstants.getShadow2,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            child: Text(
+              item["product_name"],
+              maxLines: 2,
+              style: TextStyle(
+                overflow: TextOverflow.ellipsis,
+                fontSize: MySize.getHeight(12),
+                color: Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Divider(color: Colors.grey.shade300, height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Image.asset(
+                ImageConstant.veg,
+                height: MySize.getHeight(20),
+                width: MySize.getHeight(20),
+              ),
+              Text(
+                " ₹ ${item["amount"]}",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
