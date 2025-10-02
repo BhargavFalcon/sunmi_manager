@@ -118,13 +118,21 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              // Sticky Search + Category
-              Obx(() {
-                if (controller.isCategorySticky.value) {
-                  return _buildSearchAndCategoryBox(controller);
-                }
-                return const SizedBox.shrink();
-              }),
+              Obx(
+                () => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  height: controller.isCategorySticky.value ? null : 0,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
+                    child:
+                        controller.isCategorySticky.value
+                            ? _buildSearchAndCategoryBox(controller)
+                            : const SizedBox.shrink(),
+                  ),
+                ),
+              ),
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
