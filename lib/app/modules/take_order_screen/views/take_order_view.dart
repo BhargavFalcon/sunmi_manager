@@ -296,7 +296,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           ),
           // Category List
           Container(
-            height: MySize.getHeight(40),
+            height: MySize.getHeight(42),
             padding: const EdgeInsets.only(bottom: 4),
             child: Obx(() {
               final filteredItems = controller.filteredGroupedItems;
@@ -356,10 +356,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               color:
                               isSelected ? Colors.white : Colors.black87,
                               fontWeight:
-                              isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                              fontSize: 13,
+
+                                   FontWeight.w600,
+                              fontSize: MySize.getHeight(14),
                             ),
                           ),
                         ),
