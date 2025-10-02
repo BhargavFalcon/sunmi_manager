@@ -119,16 +119,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 ],
               ),
               // Sticky Search + Category
-              AnimatedSize(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: Obx(() {
-                  if (controller.isCategorySticky.value) {
-                    return _buildSearchAndCategoryBox(controller);
-                  }
-                  return const SizedBox.shrink();
-                }),
-              ),
+              Obx(() {
+                if (controller.isCategorySticky.value) {
+                  return _buildSearchAndCategoryBox(controller);
+                }
+                return const SizedBox.shrink();
+              }),
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
@@ -176,19 +172,17 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                     padding: const EdgeInsets.all(5),
                                     child: Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
                                           child: _buildOrderTypeButton(
                                             icon: ImageConstant.pickup,
                                             label: 'Pickup',
                                             isSelected:
-                                            selectedType == 'Pickup',
+                                                selectedType == 'Pickup',
                                             onTap:
                                                 () => controller
-                                                .updateOrderType(
-                                              'Pickup',
-                                            ),
+                                                    .updateOrderType('Pickup'),
                                           ),
                                         ),
                                         Expanded(
@@ -196,12 +190,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                             icon: ImageConstant.delivery,
                                             label: 'Delivery',
                                             isSelected:
-                                            selectedType == 'Delivery',
+                                                selectedType == 'Delivery',
                                             onTap:
-                                                () => controller
-                                                .updateOrderType(
-                                              'Delivery',
-                                            ),
+                                                () =>
+                                                    controller.updateOrderType(
+                                                      'Delivery',
+                                                    ),
                                           ),
                                         ),
                                       ],
@@ -219,37 +213,37 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           final filteredItems = controller.filteredGroupedItems;
                           return Column(
                             children:
-                            filteredItems.entries.map((entry) {
-                              final category = entry.key;
-                              final items = entry.value;
+                                filteredItems.entries.map((entry) {
+                                  final category = entry.key;
+                                  final items = entry.value;
 
-                              return Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  // Category Title
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      16,
-                                      16,
-                                      8,
-                                    ),
-                                    child: Text(
-                                      category,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.black87,
-                                        fontWeight: FontWeight.bold,
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Category Title
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          16,
+                                          16,
+                                          8,
+                                        ),
+                                        child: Text(
+                                          category,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  ..._buildItemsInRows(items),
-                                ],
-                              );
-                            }).toList(),
+                                      ..._buildItemsInRows(items),
+                                    ],
+                                  );
+                                }).toList(),
                           );
                         }),
                         const SizedBox(height: 20),
@@ -280,9 +274,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               controller: controller.searchController,
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                ),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               placeholder: "Search your menu item here",
@@ -296,14 +288,14 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           ),
           // Category List
           Container(
-            height: MySize.getHeight(42),
+            height: MySize.getHeight(40),
             padding: const EdgeInsets.only(bottom: 4),
             child: Obx(() {
               final filteredItems = controller.filteredGroupedItems;
               final visibleCategories =
-              controller.categories
-                  .where((cat) => filteredItems.containsKey(cat))
-                  .toList();
+                  controller.categories
+                      .where((cat) => filteredItems.containsKey(cat))
+                      .toList();
 
               return ListView.builder(
                 controller: controller.categoryScrollController,
@@ -330,34 +322,29 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         ),
                         decoration: BoxDecoration(
                           color:
-                          isSelected
-                              ? ColorConstants.primaryColor
-                              : Colors.grey.shade200,
+                              isSelected
+                                  ? ColorConstants.primaryColor
+                                  : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow:
-                          isSelected
-                              ? [
-                            BoxShadow(
-                              color: ColorConstants.primaryColor
-                                  .withValues(
-                                alpha: 0.3,
-                              ),
-                              spreadRadius: 0,
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                              : null,
+                              isSelected
+                                  ? [
+                                    BoxShadow(
+                                      color: ColorConstants.primaryColor
+                                          .withValues(alpha: 0.3),
+                                      spreadRadius: 0,
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                  : null,
                         ),
                         child: Center(
                           child: Text(
                             category,
                             style: TextStyle(
-                              color:
-                              isSelected ? Colors.white : Colors.black87,
-                              fontWeight:
-
-                                   FontWeight.w600,
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w600,
                               fontSize: MySize.getHeight(14),
                             ),
                           ),
@@ -387,9 +374,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               const SizedBox(width: 8),
               Expanded(
                 child:
-                i + 1 < items.length
-                    ? _buildItemCell(items[i + 1])
-                    : const SizedBox(),
+                    i + 1 < items.length
+                        ? _buildItemCell(items[i + 1])
+                        : const SizedBox(),
               ),
             ],
           ),
@@ -459,12 +446,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
           color:
-          isSelected
-              ? ColorConstants.primaryColor.withValues(alpha: 0.05)
-              : Colors.transparent,
+              isSelected
+                  ? ColorConstants.primaryColor.withValues(alpha: 0.05)
+                  : Colors.transparent,
           border: Border.all(
             color:
-            isSelected ? ColorConstants.primaryColor : Colors.transparent,
+                isSelected ? ColorConstants.primaryColor : Colors.transparent,
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(24),
@@ -479,9 +466,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               label,
               style: TextStyle(
                 color:
-                isSelected
-                    ? ColorConstants.primaryColor
-                    : Colors.grey.shade700,
+                    isSelected
+                        ? ColorConstants.primaryColor
+                        : Colors.grey.shade700,
                 fontWeight: FontWeight.w500,
               ),
             ),
