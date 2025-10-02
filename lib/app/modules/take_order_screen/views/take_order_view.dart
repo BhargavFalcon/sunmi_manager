@@ -362,30 +362,26 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
 
   List<Widget> _buildItemsInRows(List<Map<String, dynamic>> items) {
     List<Widget> rows = [];
-
+    
     for (int i = 0; i < items.length; i += 2) {
-      List<Widget> rowItems = [];
-
-      // First item
-      rowItems.add(Expanded(child: _buildItemCell(items[i])));
-
-      // Second item (if exists)
-      if (i + 1 < items.length) {
-        rowItems.add(const SizedBox(width: 8));
-        rowItems.add(Expanded(child: _buildItemCell(items[i + 1])));
-      } else {
-        // If odd number of items, add empty space
-        rowItems.add(const Expanded(child: SizedBox()));
-      }
-
       rows.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(children: rowItems),
+          child: Row(
+            children: [
+              Expanded(child: _buildItemCell(items[i])),
+              const SizedBox(width: 8),
+              Expanded(
+                child: i + 1 < items.length 
+                  ? _buildItemCell(items[i + 1]) 
+                  : const SizedBox(),
+              ),
+            ],
+          ),
         ),
       );
     }
-
+    
     return rows;
   }
 
