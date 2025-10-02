@@ -181,7 +181,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                           children: [
                                             Expanded(
                                               child: _buildOrderTypeButton(
-                                                icon: ImageConstant.Pickup,
+                                                icon: ImageConstant.pickup,
                                                 label: 'Pickup',
                                                 isSelected:
                                                     selectedType == 'Pickup',
