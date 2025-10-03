@@ -357,107 +357,64 @@ class TakeOrderController extends GetxController {
   }
 
   void _onScrollPositionChanged() {
-    if (isAutoScrolling.value)
-      return; // Don't update if programmatically scrolling
+    if (isAutoScrolling.value) return;
 
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    // Get the first visible item that is most visible
-    final visiblePositions =
+    final mostVisible =
         positions
-            .where(
-              (position) =>
-                  position.itemLeadingEdge < 0.5 &&
-                  position.itemTrailingEdge > 0,
-            )
-            .toList();
+            .where((p) => p.itemLeadingEdge < 0.5 && p.itemTrailingEdge > 0)
+            .toList()
+          ..sort((a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge));
 
-    if (visiblePositions.isEmpty) return;
-
-    // Sort by most visible (closest to top)
-    visiblePositions.sort(
-      (a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge),
-    );
-    final mostVisible = visiblePositions.first;
+    if (mostVisible.isEmpty) return;
 
     final filteredItems = filteredGroupedItems;
     final visibleCategories =
         categories.where((cat) => filteredItems.containsKey(cat)).toList();
+    final categoryIndex = mostVisible.first.index - 2;
 
-    // Account for the 2 sticky items at the top (pickup/delivery + search/category)
-    final categoryIndex = mostVisible.index - 2;
+    // Update selected category
     if (categoryIndex >= 0 && categoryIndex < visibleCategories.length) {
       final newCategory = visibleCategories[categoryIndex];
       if (selectedCategory.value != newCategory) {
         selectedCategory.value = newCategory;
-        _scrollCategoryToCenter(newCategory);
+        Future.delayed(
+          const Duration(milliseconds: 50),
+          () => _scrollCategoryToCenter(newCategory),
+        );
       }
     }
-    
-    // Update sticky state based on scroll position
-    // If we're past the first two items (pickup/delivery + search/category), show sticky
-    if (mostVisible.index > 1) {
-      if (!isCategorySticky.value) {
-        isCategorySticky.value = true;
-      }
-    } else {
-      if (isCategorySticky.value) {
-        isCategorySticky.value = false;
-      }
-    }
+
+    // Update sticky state
+    isCategorySticky.value = mostVisible.first.index > 1;
   }
 
   void _scrollCategoryToCenter(String category) {
-    final filteredItems = filteredGroupedItems;
     final visibleCategories =
-        categories.where((cat) => filteredItems.containsKey(cat)).toList();
+        categories
+            .where((cat) => filteredGroupedItems.containsKey(cat))
+            .toList();
     final index = visibleCategories.indexOf(category);
-
     if (index == -1) return;
 
-    // Calculate approximate position to center the category
     const itemWidth = 100.0;
-    
-    // Scroll the main category list
-    if (categoryScrollController.hasClients) {
-      final screenWidth = categoryScrollController.position.viewportDimension;
-      final targetOffset =
-          (index * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
-
-      final clampedOffset = targetOffset.clamp(
-        0.0,
-        categoryScrollController.position.maxScrollExtent,
+    final scrollToCenter = (ScrollController controller) {
+      if (!controller.hasClients) return;
+      final screenWidth = controller.position.viewportDimension;
+      final itemPosition = index * itemWidth;
+      final targetOffset = (itemPosition - screenWidth / 2 + itemWidth / 2)
+          .clamp(0.0, controller.position.maxScrollExtent);
+      controller.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
+    };
 
-      if ((categoryScrollController.offset - clampedOffset).abs() > 10) {
-        categoryScrollController.animateTo(
-          clampedOffset,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
-    
-    // Scroll the sticky category list
-    if (stickyCategoryScrollController.hasClients) {
-      final screenWidth = stickyCategoryScrollController.position.viewportDimension;
-      final targetOffset =
-          (index * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
-
-      final clampedOffset = targetOffset.clamp(
-        0.0,
-        stickyCategoryScrollController.position.maxScrollExtent,
-      );
-
-      if ((stickyCategoryScrollController.offset - clampedOffset).abs() > 10) {
-        stickyCategoryScrollController.animateTo(
-          clampedOffset,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
+    scrollToCenter(categoryScrollController);
+    scrollToCenter(stickyCategoryScrollController);
   }
 
   Map<String, List<Map<String, dynamic>>> get filteredGroupedItems {
@@ -491,56 +448,47 @@ class TakeOrderController extends GetxController {
 
   void updateCategory(String category) async {
     selectedCategory.value = category;
-
-    final filteredItems = filteredGroupedItems;
-    final visibleCategories =
-        categories.where((cat) => filteredItems.containsKey(cat)).toList();
-    final categoryIndex = visibleCategories.indexOf(category);
-
-    if (categoryIndex == -1 || !itemScrollController.isAttached) return;
-
-    // Add 2 to account for the sticky items at the top
-    final scrollIndex = categoryIndex + 2;
-
-    // Show sticky elements immediately when scrolling to any category
     isCategorySticky.value = true;
 
-    // Set flag to prevent auto-update during programmatic scroll
-    isAutoScrolling.value = true;
+    final visibleCategories =
+        categories
+            .where((cat) => filteredGroupedItems.containsKey(cat))
+            .toList();
+    final categoryIndex = visibleCategories.indexOf(category);
+    if (categoryIndex == -1 || !itemScrollController.isAttached) return;
 
+    Future.delayed(
+      const Duration(milliseconds: 100),
+      () => _scrollCategoryToCenter(category),
+    );
+
+    isAutoScrolling.value = true;
     try {
       await itemScrollController.scrollTo(
-        index: scrollIndex,
+        index: categoryIndex + 2,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
-        alignment: 0.0,
       );
     } catch (e) {
       print('Scroll error: $e');
     }
-
-    // Re-enable auto-update after scroll completes
-    Future.delayed(const Duration(milliseconds: 600), () {
-      isAutoScrolling.value = false;
-    });
+    Future.delayed(
+      const Duration(milliseconds: 600),
+      () => isAutoScrolling.value = false,
+    );
   }
 
   void toggleCategorySticky() =>
       isCategorySticky.value = !isCategorySticky.value;
 
-
   void scrollToTop() async {
     if (!itemScrollController.isAttached) return;
-    
-    // Hide sticky elements when scrolling to top
     isCategorySticky.value = false;
-    
     try {
       await itemScrollController.scrollTo(
         index: 0,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
-        alignment: 0.0,
       );
     } catch (e) {
       print('Scroll to top error: $e');

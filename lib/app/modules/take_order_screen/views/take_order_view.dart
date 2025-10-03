@@ -141,112 +141,71 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ),
               ),
-              // Main Content with ScrollablePositionedList
+              // Main Content
               Expanded(
                 child: Obx(() {
-                  final filteredItems = controller.filteredGroupedItems;
-                  final visibleCategories = controller.categories
-                      .where((cat) => filteredItems.containsKey(cat))
-                      .toList();
-
+                  final visibleCategories = controller.categories.where((cat) => controller.filteredGroupedItems.containsKey(cat)).toList();
                   return ScrollablePositionedList.builder(
-                      itemScrollController: controller.itemScrollController,
-                      itemPositionsListener: controller.itemPositionsListener,
-                      itemCount: visibleCategories.length + 2, // +2 for sticky elements
-                      itemBuilder: (context, index) {
-                        // First item is the Pickup/Delivery selector
-                        if (index == 0) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: ColorConstants.getShadow2,
-                              ),
-                              child: Obx(() {
-                                final selectedType = controller.selectedOrderType.value;
-                                return Center(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(5),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: _buildOrderTypeButton(
-                                              icon: ImageConstant.pickup,
-                                              label: 'Pickup',
-                                              isSelected: selectedType == 'Pickup',
-                                              onTap: () => controller.updateOrderType('Pickup'),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: _buildOrderTypeButton(
-                                              icon: ImageConstant.delivery,
-                                              label: 'Delivery',
-                                              isSelected: selectedType == 'Delivery',
-                                              onTap: () => controller.updateOrderType('Delivery'),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          );
-                        }
-
-                        // Second item is the Search and Category Box
-                        if (index == 1) {
-                          return _buildSearchAndCategoryBox(controller, categoryController: controller.categoryScrollController);
-                        }
-
-                        // Category items
-                        final categoryIndex = index - 2;
-                        final category = visibleCategories[categoryIndex];
-                        final items = filteredItems[category]!;
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Category Title
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              child: Text(
-                                category,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            ..._buildItemsInRows(items),
-                            const SizedBox(height: 16),
-                          ],
-                        );
-                      },
-                    );
+                    itemScrollController: controller.itemScrollController,
+                    itemPositionsListener: controller.itemPositionsListener,
+                    itemCount: visibleCategories.length + 2,
+                    itemBuilder: (context, index) {
+                      if (index == 0) return _buildPickupDeliverySelector(controller);
+                      if (index == 1) return _buildSearchAndCategoryBox(controller, categoryController: controller.categoryScrollController);
+                      
+                      final category = visibleCategories[index - 2];
+                      final items = controller.filteredGroupedItems[category]!;
+                      return _buildCategorySection(category, items);
+                    },
+                  );
                 }),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPickupDeliverySelector(TakeOrderController controller) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: ColorConstants.getShadow2),
+        child: Obx(() {
+          final selectedType = controller.selectedOrderType.value;
+          return Center(
+            child: Container(
+              decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey.shade300, width: 1.0), borderRadius: BorderRadius.circular(30)),
+              child: Padding(
+                padding: const EdgeInsets.all(5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: _buildOrderTypeButton(icon: ImageConstant.pickup, label: 'Pickup', isSelected: selectedType == 'Pickup', onTap: () => controller.updateOrderType('Pickup'))),
+                    Expanded(child: _buildOrderTypeButton(icon: ImageConstant.delivery, label: 'Delivery', isSelected: selectedType == 'Delivery', onTap: () => controller.updateOrderType('Delivery'))),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(String category, List<Map<String, dynamic>> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(category, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.bold)),
+        ),
+        ..._buildItemsInRows(items),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -282,12 +241,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             height: MySize.getHeight(40),
             padding: const EdgeInsets.only(bottom: 4),
             child: Obx(() {
-              final filteredItems = controller.filteredGroupedItems;
-              final visibleCategories =
-                  controller.categories
-                      .where((cat) => filteredItems.containsKey(cat))
-                      .toList();
-
+              final visibleCategories = controller.categories.where((cat) => controller.filteredGroupedItems.containsKey(cat)).toList();
               return ListView.builder(
                 controller: categoryController ?? controller.categoryScrollController,
                 scrollDirection: Axis.horizontal,
@@ -295,49 +249,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 itemCount: visibleCategories.length,
                 itemBuilder: (context, index) {
                   final category = visibleCategories[index];
-
                   return Obx(() {
-                    final isSelected =
-                        controller.selectedCategory.value == category;
-
+                    final isSelected = controller.selectedCategory.value == category;
                     return GestureDetector(
-                      onTap: () {
-                        controller.updateCategory(category);
-                      },
+                      onTap: () => controller.updateCategory(category),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? ColorConstants.primaryColor
-                                  : Colors.grey.shade200,
+                          color: isSelected ? ColorConstants.primaryColor : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow:
-                              isSelected
-                                  ? [
-                                    BoxShadow(
-                                      color: ColorConstants.primaryColor
-                                          .withValues(alpha: 0.3),
-                                      spreadRadius: 0,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                  : null,
+                          boxShadow: isSelected ? [BoxShadow(color: ColorConstants.primaryColor.withValues(alpha: 0.3), spreadRadius: 0, blurRadius: 4, offset: const Offset(0, 2))] : null,
                         ),
                         child: Center(
-                          child: Text(
-                            category,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w600,
-                              fontSize: MySize.getHeight(14),
-                            ),
-                          ),
+                          child: Text(category, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontSize: MySize.getHeight(14))),
                         ),
                       ),
                     );
