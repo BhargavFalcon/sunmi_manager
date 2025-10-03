@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -19,21 +20,28 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           backgroundColor: ColorConstants.bgColor,
           body: Column(
             children: [
+              // Header
               Stack(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(
-                      12,
-                    ).copyWith(top: MediaQuery.of(context).padding.top + 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: ColorConstants.getShadow2,
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Take Order",
-                        style: TextStyle(fontSize: 20, color: Colors.black),
+                  GestureDetector(
+                    onTap: () {
+                      // Scroll to top when header is tapped
+                      controller.scrollToTop();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(
+                        12,
+                      ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: ColorConstants.getShadow2,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Take Order",
+                          style: TextStyle(fontSize: 20, color: Colors.black),
+                        ),
                       ),
                     ),
                   ),
@@ -118,146 +126,112 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              Obx(
-                () => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: controller.isCategorySticky.value ? null : 0,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
-                    child:
-                        controller.isCategorySticky.value
-                            ? _buildSearchAndCategoryBox(controller)
-                            : const SizedBox.shrink(),
-                  ),
-                ),
-              ),
+              // Sticky Content Area
               Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (ScrollNotification scrollInfo) {
-                    double stickyThreshold = 200.0;
+                child: Stack(
+                  children: [
+                    // Main Content with ScrollablePositionedList
+                    Obx(() {
+                      final filteredItems = controller.filteredGroupedItems;
+                      final visibleCategories =
+                          controller.categories
+                              .where((cat) => filteredItems.containsKey(cat))
+                              .toList();
 
-                    if (scrollInfo.metrics.pixels >= stickyThreshold) {
-                      if (!controller.isCategorySticky.value) {
-                        controller.isCategorySticky.value = true;
-                      }
-                    } else {
-                      if (controller.isCategorySticky.value) {
-                        controller.isCategorySticky.value = false;
-                      }
-                    }
-                    return true;
-                  },
-                  child: SingleChildScrollView(
-                    controller: controller.mainScrollController,
-                    child: Column(
-                      children: [
-                        // Delivery/Pickup Button (Not Sticky)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: ColorConstants.getShadow2,
-                            ),
-                            child: Obx(() {
-                              final selectedType =
-                                  controller.selectedOrderType.value;
-                              return Center(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: _buildOrderTypeButton(
-                                            icon: ImageConstant.pickup,
-                                            label: 'Pickup',
-                                            isSelected:
-                                                selectedType == 'Pickup',
-                                            onTap:
-                                                () => controller
-                                                    .updateOrderType('Pickup'),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: _buildOrderTypeButton(
-                                            icon: ImageConstant.delivery,
-                                            label: 'Delivery',
-                                            isSelected:
-                                                selectedType == 'Delivery',
-                                            onTap:
-                                                () =>
-                                                    controller.updateOrderType(
-                                                      'Delivery',
-                                                    ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                      return ScrollablePositionedList.builder(
+                        itemScrollController: controller.itemScrollController,
+                        itemPositionsListener: controller.itemPositionsListener,
+                        itemCount: visibleCategories.length + 2, // +2 for sticky elements
+                        itemBuilder: (context, index) {
+                          // First item is the Pickup/Delivery selector
+                          if (index == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: ColorConstants.getShadow2,
                                 ),
-                              );
-                            }),
-                          ),
-                        ),
-                        // Search + Category Box (Will be Sticky)
-                        _buildSearchAndCategoryBox(controller),
-
-                        Obx(() {
-                          final filteredItems = controller.filteredGroupedItems;
-                          return Column(
-                            children:
-                                filteredItems.entries.map((entry) {
-                                  final category = entry.key;
-                                  final items = entry.value;
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Category Title
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          16,
-                                          16,
-                                          16,
-                                          8,
+                                child: Obx(() {
+                                  final selectedType = controller.selectedOrderType.value;
+                                  return Center(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                          width: 1.0,
                                         ),
-                                        child: Text(
-                                          category,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: _buildOrderTypeButton(
+                                                icon: ImageConstant.pickup,
+                                                label: 'Pickup',
+                                                isSelected: selectedType == 'Pickup',
+                                                onTap: () => controller.updateOrderType('Pickup'),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: _buildOrderTypeButton(
+                                                icon: ImageConstant.delivery,
+                                                label: 'Delivery',
+                                                isSelected: selectedType == 'Delivery',
+                                                onTap: () => controller.updateOrderType('Delivery'),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      ..._buildItemsInRows(items),
-                                    ],
+                                    ),
                                   );
-                                }).toList(),
+                                }),
+                              ),
+                            );
+                          }
+
+                          // Second item is the Search and Category Box
+                          if (index == 1) {
+                            return _buildSearchAndCategoryBox(controller);
+                          }
+
+                          // Category items
+                          final categoryIndex = index - 2;
+                          final category = visibleCategories[categoryIndex];
+                          final items = filteredItems[category]!;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Category Title
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                                child: Text(
+                                  category,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              ..._buildItemsInRows(items),
+                              const SizedBox(height: 16),
+                            ],
                           );
-                        }),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
+                        },
+                      );
+                    }),
+                  ],
                 ),
               ),
             ],
@@ -320,7 +294,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     return GestureDetector(
                       onTap: () {
                         controller.updateCategory(category);
-                        controller.scrollToStickyPosition();
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),

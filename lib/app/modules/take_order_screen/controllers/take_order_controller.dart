@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TakeOrderController extends GetxController {
   RxString selectedOrderType = 'Pickup'.obs;
   TextEditingController searchController = TextEditingController();
   ScrollController categoryScrollController = ScrollController();
-  ScrollController mainScrollController = ScrollController();
+
+  // For scrollable positioned list
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
+
   RxString searchText = "".obs;
   RxString selectedCategory = "".obs;
   RxBool isCategorySticky = false.obs;
+  RxBool isAutoScrolling =
+      false.obs; // Track if we're programmatically scrolling
+
   List<String> categories = [];
   Map<String, List<Map<String, dynamic>>> groupedItems = {};
   Map<String, int> categoryIndexMap = {};
@@ -340,7 +349,76 @@ class TakeOrderController extends GetxController {
       searchText.value = searchController.text;
     });
 
+    // Listen to scroll position changes to update selected category
+    itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
+
     super.onInit();
+  }
+
+  void _onScrollPositionChanged() {
+    if (isAutoScrolling.value)
+      return; // Don't update if programmatically scrolling
+
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    // Get the first visible item that is most visible
+    final visiblePositions =
+        positions
+            .where(
+              (position) =>
+                  position.itemLeadingEdge < 0.5 &&
+                  position.itemTrailingEdge > 0,
+            )
+            .toList();
+
+    if (visiblePositions.isEmpty) return;
+
+    // Sort by most visible (closest to top)
+    visiblePositions.sort(
+      (a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge),
+    );
+    final mostVisible = visiblePositions.first;
+
+    final filteredItems = filteredGroupedItems;
+    final visibleCategories =
+        categories.where((cat) => filteredItems.containsKey(cat)).toList();
+
+    if (mostVisible.index < visibleCategories.length) {
+      final newCategory = visibleCategories[mostVisible.index];
+      if (selectedCategory.value != newCategory) {
+        selectedCategory.value = newCategory;
+        _scrollCategoryToCenter(newCategory);
+      }
+    }
+  }
+
+  void _scrollCategoryToCenter(String category) {
+    final filteredItems = filteredGroupedItems;
+    final visibleCategories =
+        categories.where((cat) => filteredItems.containsKey(cat)).toList();
+    final index = visibleCategories.indexOf(category);
+
+    if (index == -1 || !categoryScrollController.hasClients) return;
+
+    // Calculate approximate position to center the category
+    const itemWidth = 100.0;
+    final screenWidth = categoryScrollController.position.viewportDimension;
+    final targetOffset =
+        (index * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
+
+    final clampedOffset = targetOffset.clamp(
+      0.0,
+      categoryScrollController.position.maxScrollExtent,
+    );
+
+    if ((categoryScrollController.offset - clampedOffset).abs() > 10) {
+      categoryScrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   Map<String, List<Map<String, dynamic>>> get filteredGroupedItems {
@@ -372,18 +450,51 @@ class TakeOrderController extends GetxController {
 
   void updateOrderType(String value) => selectedOrderType.value = value;
 
-  void updateCategory(String value) => selectedCategory.value = value;
+  void updateCategory(String category) async {
+    selectedCategory.value = category;
+
+    final filteredItems = filteredGroupedItems;
+    final visibleCategories =
+        categories.where((cat) => filteredItems.containsKey(cat)).toList();
+    final index = visibleCategories.indexOf(category);
+
+    if (index == -1 || !itemScrollController.isAttached) return;
+
+    // Set flag to prevent auto-update during programmatic scroll
+    isAutoScrolling.value = true;
+
+    try {
+      await itemScrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        alignment: 0.0,
+      );
+    } catch (e) {
+      print('Scroll error: $e');
+    }
+
+    // Re-enable auto-update after scroll completes
+    Future.delayed(const Duration(milliseconds: 600), () {
+      isAutoScrolling.value = false;
+    });
+  }
 
   void toggleCategorySticky() =>
       isCategorySticky.value = !isCategorySticky.value;
 
-  void scrollToStickyPosition() {
-    if (!isCategorySticky.value && mainScrollController.hasClients) {
-      mainScrollController.animateTo(
-        205.0,
-        duration: const Duration(milliseconds: 50),
-        curve: Curves.easeOut,
+  void scrollToTop() async {
+    if (!itemScrollController.isAttached) return;
+    
+    try {
+      await itemScrollController.scrollTo(
+        index: 0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        alignment: 0.0,
       );
+    } catch (e) {
+      print('Scroll to top error: $e');
     }
   }
 
@@ -391,7 +502,6 @@ class TakeOrderController extends GetxController {
   void onClose() {
     searchController.dispose();
     categoryScrollController.dispose();
-    mainScrollController.dispose();
     super.onClose();
   }
 }

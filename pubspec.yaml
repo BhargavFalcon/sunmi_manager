@@ -41,6 +41,7 @@ dependencies:
   custom_date_range_picker: ^1.1.0
   google_fonts: ^6.2.1
   get: ^4.7.2
+  scrollable_positioned_list: ^0.3.8
 
 dev_dependencies:
   flutter_test:
