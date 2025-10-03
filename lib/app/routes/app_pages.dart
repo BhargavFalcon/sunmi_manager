@@ -4,6 +4,8 @@ import '../modules/Inventory_Dashboard/bindings/inventory_dashboard_binding.dart
 import '../modules/Inventory_Dashboard/views/inventory_dashboard_view.dart';
 import '../modules/Inventory_PurchaseOrder/bindings/inventory_purchase_order_binding.dart';
 import '../modules/Inventory_PurchaseOrder/views/inventory_purchase_order_view.dart';
+import '../modules/cart_screen/bindings/cart_screen_binding.dart';
+import '../modules/cart_screen/views/cart_screen_view.dart';
 import '../modules/dashboard_screen/bindings/dashboard_screen_binding.dart';
 import '../modules/dashboard_screen/views/dashboard_screen_view.dart';
 import '../modules/inventory_screen/bindings/inventory_screen_binding.dart';
@@ -71,6 +73,11 @@ class AppPages {
       name: _Paths.LOGIN_SCREEN,
       page: () => const LoginScreenView(),
       binding: LoginScreenBinding(),
+    ),
+    GetPage(
+      name: _Paths.CART_SCREEN,
+      page: () => const CartScreenView(),
+      binding: CartScreenBinding(),
     ),
   ];
 }

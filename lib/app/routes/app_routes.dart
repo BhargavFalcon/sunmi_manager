@@ -12,6 +12,7 @@ abstract class Routes {
   static const INVENTORY_PURCHASE_ORDER = _Paths.INVENTORY_PURCHASE_ORDER;
   static const TAKE_ORDER_SCREEN = _Paths.TAKE_ORDER_SCREEN;
   static const LOGIN_SCREEN = _Paths.LOGIN_SCREEN;
+  static const CART_SCREEN = _Paths.CART_SCREEN;
 }
 
 abstract class _Paths {
@@ -25,4 +26,5 @@ abstract class _Paths {
   static const INVENTORY_PURCHASE_ORDER = '/inventory-purchase-order';
   static const TAKE_ORDER_SCREEN = '/take-order-screen';
   static const LOGIN_SCREEN = '/login-screen';
+  static const CART_SCREEN = '/cart-screen';
 }
