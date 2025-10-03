@@ -126,113 +126,122 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              // Sticky Content Area
+              // Sticky Search and Category Box
+              Obx(
+                () => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  height: controller.isCategorySticky.value ? null : 0,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
+                    child: controller.isCategorySticky.value
+                        ? _buildSearchAndCategoryBox(controller, categoryController: controller.stickyCategoryScrollController)
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+              // Main Content with ScrollablePositionedList
               Expanded(
-                child: Stack(
-                  children: [
-                    // Main Content with ScrollablePositionedList
-                    Obx(() {
-                      final filteredItems = controller.filteredGroupedItems;
-                      final visibleCategories =
-                          controller.categories
-                              .where((cat) => filteredItems.containsKey(cat))
-                              .toList();
+                child: Obx(() {
+                  final filteredItems = controller.filteredGroupedItems;
+                  final visibleCategories = controller.categories
+                      .where((cat) => filteredItems.containsKey(cat))
+                      .toList();
 
-                      return ScrollablePositionedList.builder(
-                        itemScrollController: controller.itemScrollController,
-                        itemPositionsListener: controller.itemPositionsListener,
-                        itemCount: visibleCategories.length + 2, // +2 for sticky elements
-                        itemBuilder: (context, index) {
-                          // First item is the Pickup/Delivery selector
-                          if (index == 0) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: ColorConstants.getShadow2,
-                                ),
-                                child: Obx(() {
-                                  final selectedType = controller.selectedOrderType.value;
-                                  return Center(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1.0,
-                                        ),
-                                        borderRadius: BorderRadius.circular(30),
+                  return ScrollablePositionedList.builder(
+                      itemScrollController: controller.itemScrollController,
+                      itemPositionsListener: controller.itemPositionsListener,
+                      itemCount: visibleCategories.length + 2, // +2 for sticky elements
+                      itemBuilder: (context, index) {
+                        // First item is the Pickup/Delivery selector
+                        if (index == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: ColorConstants.getShadow2,
+                              ),
+                              child: Obx(() {
+                                final selectedType = controller.selectedOrderType.value;
+                                return Center(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 1.0,
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(5),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: _buildOrderTypeButton(
-                                                icon: ImageConstant.pickup,
-                                                label: 'Pickup',
-                                                isSelected: selectedType == 'Pickup',
-                                                onTap: () => controller.updateOrderType('Pickup'),
-                                              ),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              icon: ImageConstant.pickup,
+                                              label: 'Pickup',
+                                              isSelected: selectedType == 'Pickup',
+                                              onTap: () => controller.updateOrderType('Pickup'),
                                             ),
-                                            Expanded(
-                                              child: _buildOrderTypeButton(
-                                                icon: ImageConstant.delivery,
-                                                label: 'Delivery',
-                                                isSelected: selectedType == 'Delivery',
-                                                onTap: () => controller.updateOrderType('Delivery'),
-                                              ),
+                                          ),
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              icon: ImageConstant.delivery,
+                                              label: 'Delivery',
+                                              isSelected: selectedType == 'Delivery',
+                                              onTap: () => controller.updateOrderType('Delivery'),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                }),
-                              ),
-                            );
-                          }
-
-                          // Second item is the Search and Category Box
-                          if (index == 1) {
-                            return _buildSearchAndCategoryBox(controller);
-                          }
-
-                          // Category items
-                          final categoryIndex = index - 2;
-                          final category = visibleCategories[categoryIndex];
-                          final items = filteredItems[category]!;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Category Title
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                                child: Text(
-                                  category,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
                                   ),
+                                );
+                              }),
+                            ),
+                          );
+                        }
+
+                        // Second item is the Search and Category Box
+                        if (index == 1) {
+                          return _buildSearchAndCategoryBox(controller, categoryController: controller.categoryScrollController);
+                        }
+
+                        // Category items
+                        final categoryIndex = index - 2;
+                        final category = visibleCategories[categoryIndex];
+                        final items = filteredItems[category]!;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Category Title
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              child: Text(
+                                category,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              ..._buildItemsInRows(items),
-                              const SizedBox(height: 16),
-                            ],
-                          );
-                        },
-                      );
-                    }),
-                  ],
-                ),
+                            ),
+                            ..._buildItemsInRows(items),
+                            const SizedBox(height: 16),
+                          ],
+                        );
+                      },
+                    );
+                }),
               ),
             ],
           ),
@@ -241,7 +250,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     );
   }
 
-  Widget _buildSearchAndCategoryBox(TakeOrderController controller) {
+  Widget _buildSearchAndCategoryBox(TakeOrderController controller, {ScrollController? categoryController}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -280,7 +289,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       .toList();
 
               return ListView.builder(
-                controller: controller.categoryScrollController,
+                controller: categoryController ?? controller.categoryScrollController,
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 itemCount: visibleCategories.length,
