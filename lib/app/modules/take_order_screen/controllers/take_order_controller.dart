@@ -397,7 +397,7 @@ class TakeOrderController extends GetxController {
     
     // Update sticky state based on scroll position
     // If we're past the first two items (pickup/delivery + search/category), show sticky
-    if (mostVisible.index >= 2) {
+    if (mostVisible.index > 1) {
       if (!isCategorySticky.value) {
         isCategorySticky.value = true;
       }
@@ -502,6 +502,9 @@ class TakeOrderController extends GetxController {
     // Add 2 to account for the sticky items at the top
     final scrollIndex = categoryIndex + 2;
 
+    // Show sticky elements immediately when scrolling to any category
+    isCategorySticky.value = true;
+
     // Set flag to prevent auto-update during programmatic scroll
     isAutoScrolling.value = true;
 
@@ -528,6 +531,9 @@ class TakeOrderController extends GetxController {
 
   void scrollToTop() async {
     if (!itemScrollController.isAttached) return;
+    
+    // Hide sticky elements when scrolling to top
+    isCategorySticky.value = false;
     
     try {
       await itemScrollController.scrollTo(
