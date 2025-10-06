@@ -6,6 +6,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 
 import '../controllers/cart_screen_controller.dart';
+import 'widgets/cart_note_editor.dart';
 
 class CartScreenView extends GetWidget<CartScreenController> {
   const CartScreenView({super.key});
@@ -100,7 +101,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     itemBuilder: (context, index) {
                       final item = controller.cartItems[index];
                       final itemId = item['id'] as String;
-                      
+
                       return Stack(
                         children: [
                           Container(
@@ -120,9 +121,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: ColorConstants.primaryColor.withValues(
-                                      alpha: 0.1,
-                                    ),
+                                    color: ColorConstants.primaryColor
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -138,10 +138,12 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 Expanded(
                                   flex: 3,
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        (item['name'] as String?) ?? "Item Name",
+                                        (item['name'] as String?) ??
+                                            "Item Name",
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(14),
                                           fontWeight: FontWeight.w600,
@@ -149,6 +151,140 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: MySize.getHeight(4)),
+                                      if ((item['variantName'] as String?) !=
+                                              null &&
+                                          (item['variantName'] as String)
+                                              .trim()
+                                              .isNotEmpty)
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF0F2F5),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                    maxWidth: Get.width * 0.5,
+                                                  ),
+                                                  child: Text(
+                                                    item['variantName']
+                                                        as String,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MySize.getHeight(12),
+                                                      color: Colors.black87,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 20),
+                                                Text(
+                                                  () {
+                                                    final num? price =
+                                                        item['variantPrice']
+                                                            as num?;
+                                                    return price != null
+                                                        ? "₹ ${price.toStringAsFixed(2)}"
+                                                        : '';
+                                                  }(),
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      12,
+                                                    ),
+                                                    color: Colors.black54,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      if (((item['variantName'] as String?) == null ||
+                                              (item['variantName'] as String?)
+                                                      ?.trim()
+                                                      .isEmpty ==
+                                                  true) &&
+                                          ((item['details'] as String?) != null &&
+                                              (item['details'] as String)
+                                                  .trim()
+                                                  .isNotEmpty))
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 2,
+                                          ),
+                                          child: Text(
+                                            item['details'] as String,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(12),
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      if ((item['variantName'] as String?) !=
+                                              null &&
+                                          (item['variantName'] as String)
+                                              .trim()
+                                              .isNotEmpty)
+                                        SizedBox(height: MySize.getHeight(4)),
+                                      InkWell(
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        focusColor: Colors.transparent,
+                                        onTap: () {
+                                          controller.startEditingNote(itemId);
+                                        },
+                                        child: Builder(
+                                          builder: (context) {
+                                            final bool isEditing =
+                                                (item['editingNote']
+                                                    as bool?) ??
+                                                false;
+                                            final String existingNote =
+                                                (item['note'] as String?) ?? '';
+                                            if (!isEditing) {
+                                              return Text(
+                                                existingNote.isEmpty
+                                                    ? "+ Add Note"
+                                                    : existingNote,
+                                                style: TextStyle(
+                                                  fontSize: MySize.getHeight(
+                                                    12,
+                                                  ),
+                                                  fontWeight: FontWeight.w500,
+                                                  color:
+                                                      existingNote.isEmpty
+                                                          ? Colors.grey.shade600
+                                                          : Colors.black87,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              );
+                                            }
+
+                                            return CartNoteEditor(
+                                              itemId: itemId,
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -159,7 +295,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                     QuantitySelector(
                                       key: ValueKey(item['id']),
                                       initialQuantity:
-                                          (item['quantity'] as num?)?.toInt() ?? 1,
+                                          (item['quantity'] as num?)?.toInt() ??
+                                          1,
                                       onQuantityChanged: (newQuantity) {
                                         if (newQuantity == 0) {
                                           controller.removeItem(
@@ -290,7 +427,6 @@ class CartScreenView extends GetWidget<CartScreenController> {
       },
     );
   }
-
 }
 
 class QuantitySelector extends StatefulWidget {
@@ -389,7 +525,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
       height: MySize.getHeight(26),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.red.shade400),
+        border: Border.all(color: ColorConstants.primaryColor),
         color: Colors.pink.shade50,
       ),
       child: Row(
@@ -413,7 +549,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
                   style: TextStyle(
                     fontSize: MySize.getHeight(16),
                     fontWeight: FontWeight.bold,
-                    color: Colors.red.shade400,
+                    color: ColorConstants.primaryColor,
                   ),
                 ),
               ),
@@ -478,7 +614,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
                     fontWeight: FontWeight.bold,
                     color:
                         _currentQuantity < widget.maxQuantity
-                            ? Colors.red.shade400
+                            ? ColorConstants.primaryColor
                             : Colors.grey.shade400,
                   ),
                 ),

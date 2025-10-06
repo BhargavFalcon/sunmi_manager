@@ -10,6 +10,8 @@ class CartScreenController extends GetxController {
           'price': 150.0,
           'quantity': 1,
           'tableNumber': 'B1',
+          'variantName': 'Butter',
+          'variantPrice': 20.0,
         },
         {
           'id': '2',
@@ -17,6 +19,8 @@ class CartScreenController extends GetxController {
           'price': 80.0,
           'quantity': 2,
           'tableNumber': 'B1',
+          'variantName': 'Vanilla Shot',
+          'variantPrice': 30.0,
         },
         {
           'id': '3',
@@ -38,6 +42,8 @@ class CartScreenController extends GetxController {
           'price': 280.0,
           'quantity': 2,
           'tableNumber': 'B3',
+          'variantName': 'Extra Paneer',
+          'variantPrice': 40.0,
         },
         {
           'id': '6',
@@ -73,6 +79,8 @@ class CartScreenController extends GetxController {
           'price': 350.0,
           'quantity': 1,
           'tableNumber': 'C2',
+          'variantName': 'Leg Piece',
+          'variantPrice': 60.0,
         },
         {
           'id': '11',
@@ -150,6 +158,8 @@ class CartScreenController extends GetxController {
           'price': 150.0,
           'quantity': 2,
           'tableNumber': 'F2',
+          'variantName': 'Cheese Slice',
+          'variantPrice': 25.0,
         },
         {
           'id': '22',
@@ -171,6 +181,8 @@ class CartScreenController extends GetxController {
           'price': 280.0,
           'quantity': 1,
           'tableNumber': 'G1',
+          'variantName': 'Mushrooms',
+          'variantPrice': 35.0,
         },
         {
           'id': '25',
@@ -192,6 +204,7 @@ class CartScreenController extends GetxController {
           'price': 180.0,
           'quantity': 1,
           'tableNumber': 'H1',
+          'details': '5" (480 grams)',
         },
         {
           'id': '28',
@@ -213,6 +226,8 @@ class CartScreenController extends GetxController {
           'price': 60.0,
           'quantity': 3,
           'tableNumber': 'H2',
+          'variantName': 'Choco Chips',
+          'variantPrice': 15.0,
         },
         {
           'id': '31',
@@ -234,6 +249,9 @@ class CartScreenController extends GetxController {
           'price': 150.0,
           'quantity': 1,
           'tableNumber': 'I2',
+          // Example variant to showcase chip between title and note
+          'variantName': 'Vanilla',
+          'variantPrice': 50.0,
         },
         {
           'id': '34',
@@ -407,4 +425,61 @@ class CartScreenController extends GetxController {
     return total;
   }
 
+  // --- Notes handling per item ---
+  void _ensureNoteFields(Map<String, dynamic> item) {
+    item.putIfAbsent('note', () => '');
+    item.putIfAbsent('noteDraft', () => '');
+    item.putIfAbsent('editingNote', () => false);
+  }
+
+  void startEditingNote(String itemId) {
+    for (int i = 0; i < cartItems.length; i++) {
+      if (cartItems[i]['id'] == itemId) {
+        final item = cartItems[i];
+        _ensureNoteFields(item);
+        item['noteDraft'] = (item['note'] as String?) ?? '';
+        item['editingNote'] = true;
+        cartItems.refresh();
+        break;
+      }
+    }
+  }
+
+  void updateNoteDraft(String itemId, String value) {
+    for (int i = 0; i < cartItems.length; i++) {
+      if (cartItems[i]['id'] == itemId) {
+        final item = cartItems[i];
+        _ensureNoteFields(item);
+        item['noteDraft'] = value;
+        cartItems.refresh();
+        break;
+      }
+    }
+  }
+
+  void saveNote(String itemId) {
+    for (int i = 0; i < cartItems.length; i++) {
+      if (cartItems[i]['id'] == itemId) {
+        final item = cartItems[i];
+        _ensureNoteFields(item);
+        item['note'] = (item['noteDraft'] as String?) ?? '';
+        item['editingNote'] = false;
+        cartItems.refresh();
+        break;
+      }
+    }
+  }
+
+  void cancelEditingNote(String itemId) {
+    for (int i = 0; i < cartItems.length; i++) {
+      if (cartItems[i]['id'] == itemId) {
+        final item = cartItems[i];
+        _ensureNoteFields(item);
+        item['noteDraft'] = item['note'];
+        item['editingNote'] = false;
+        cartItems.refresh();
+        break;
+      }
+    }
+  }
 }
