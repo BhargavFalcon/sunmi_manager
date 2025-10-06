@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
@@ -68,91 +69,424 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   ),
                 ],
               ),
-              Container(
-                color: Colors.grey.withValues(alpha: 0.2),
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                height: MySize.getHeight(28),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+              Expanded(
+                child: Obx(() {
+                  if (controller.cartItems.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: MySize.getHeight(64),
+                            color: Colors.grey.shade400,
+                          ),
+                          SizedBox(height: MySize.getHeight(16)),
+                          Text(
+                            "Your cart is empty",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(18),
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: controller.cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = controller.cartItems[index];
+                      final itemId = item['id'] as String;
+                      
+                      return Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: ColorConstants.getShadow2,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: ColorConstants.primaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    (item['tableNumber'] as String?) ?? "B1",
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(12),
+                                      fontWeight: FontWeight.bold,
+                                      color: ColorConstants.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: MySize.getWidth(12)),
+                                Expanded(
+                                  flex: 3,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (item['name'] as String?) ?? "Item Name",
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(14),
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    QuantitySelector(
+                                      key: ValueKey(item['id']),
+                                      initialQuantity:
+                                          (item['quantity'] as num?)?.toInt() ?? 1,
+                                      onQuantityChanged: (newQuantity) {
+                                        if (newQuantity == 0) {
+                                          controller.removeItem(
+                                            item['id'] as String,
+                                          );
+                                        } else {
+                                          controller.updateItemQuantity(
+                                            item['id'] as String,
+                                            newQuantity,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(height: MySize.getHeight(4)),
+                                    Text(
+                                      "₹${(item['price'] as num?)?.toStringAsFixed(0) ?? '0'}",
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(12),
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }),
+              ),
+
+              Obx(() {
+                if (controller.cartItems.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Column(
                     children: [
-                      SizedBox(
-                        width: MySize.getHeight(80),
-                        child: Text(
-                          "NUMBER",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(11),
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total Items:",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MySize.getHeight(100),
-                        child: Text(
-                          "ITEM NAME",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(11),
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                          Text(
+                            "${controller.totalItems}",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(
-                        width: MySize.getHeight(100),
-                        child: Text(
-                          "QTY",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(11),
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                      SizedBox(height: MySize.getHeight(8)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total Amount:",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(16),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MySize.getHeight(100),
-                        child: Text(
-                          "AMOUNT",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(11),
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                          Text(
+                            "₹${controller.totalPrice.toStringAsFixed(0)}",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(16),
+                              fontWeight: FontWeight.bold,
+                              color: ColorConstants.primaryColor,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
+                      SizedBox(height: MySize.getHeight(16)),
                       SizedBox(
-                        width: MySize.getHeight(50),
-                        child: Text(
-                          "ACTION",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(11),
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.snackbar(
+                              "Checkout",
+                              "Order placed successfully!",
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorConstants.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            "Place Order",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(16),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: ColorConstants.getShadow2,
-                ),
-                child: Row(children: []),
-              ),
+                );
+              }),
             ],
           ),
         );
       },
+    );
+  }
+
+}
+
+class QuantitySelector extends StatefulWidget {
+  final int initialQuantity;
+  final Function(int) onQuantityChanged;
+  final int minQuantity;
+  final int maxQuantity;
+
+  const QuantitySelector({
+    super.key,
+    required this.initialQuantity,
+    required this.onQuantityChanged,
+    this.minQuantity = 1,
+    this.maxQuantity = 99,
+  });
+
+  @override
+  State<QuantitySelector> createState() => _QuantitySelectorState();
+}
+
+class _QuantitySelectorState extends State<QuantitySelector> {
+  late TextEditingController _controller;
+  late int _currentQuantity;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentQuantity = widget.initialQuantity;
+    _controller = TextEditingController(text: _currentQuantity.toString());
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(QuantitySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialQuantity != widget.initialQuantity) {
+      _currentQuantity = widget.initialQuantity;
+      _controller.text = _currentQuantity.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _updateQuantity(int newQuantity) {
+    if (newQuantity >= widget.minQuantity &&
+        newQuantity <= widget.maxQuantity) {
+      setState(() {
+        _currentQuantity = newQuantity;
+        _controller.text = newQuantity.toString();
+      });
+      widget.onQuantityChanged(newQuantity);
+    }
+  }
+
+  void _increment() {
+    _updateQuantity(_currentQuantity + 1);
+  }
+
+  void _decrement() {
+    if (_currentQuantity <= widget.minQuantity) {
+      widget.onQuantityChanged(0);
+    } else {
+      _updateQuantity(_currentQuantity - 1);
+    }
+  }
+
+  void _onTextChanged(String value) {
+    if (value.isEmpty) {
+      return;
+    }
+
+    int? quantity = int.tryParse(value);
+    if (quantity != null) {
+      if (quantity >= widget.minQuantity && quantity <= widget.maxQuantity) {
+        setState(() {
+          _currentQuantity = quantity;
+        });
+        widget.onQuantityChanged(quantity);
+      } else {
+        _controller.text = _currentQuantity.toString();
+      }
+    } else {
+      _controller.text = _currentQuantity.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MySize.getHeight(26),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.red.shade400),
+        color: Colors.pink.shade50,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _decrement,
+            child: Container(
+              width: MySize.getWidth(26),
+              height: MySize.getHeight(26),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  bottomLeft: Radius.circular(6),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '-',
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          Container(
+            width: MySize.getWidth(35),
+            height: MySize.getHeight(26),
+            decoration: BoxDecoration(color: Colors.transparent),
+            child: Center(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  height: 1.2,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  isDense: true,
+                ),
+                onChanged: _onTextChanged,
+                onSubmitted: (value) {
+                  _onTextChanged(value);
+                  _focusNode.unfocus();
+                },
+                onTapOutside: (event) {
+                  _focusNode.unfocus();
+                },
+              ),
+            ),
+          ),
+
+          GestureDetector(
+            onTap: _currentQuantity < widget.maxQuantity ? _increment : null,
+            child: Container(
+              width: MySize.getWidth(26),
+              height: MySize.getHeight(26),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(6),
+                  bottomRight: Radius.circular(6),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '+',
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
+                    fontWeight: FontWeight.bold,
+                    color:
+                        _currentQuantity < widget.maxQuantity
+                            ? Colors.red.shade400
+                            : Colors.grey.shade400,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
