@@ -214,12 +214,14 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                             ),
                                           ),
                                         ),
-                                      if (((item['variantName'] as String?) == null ||
+                                      if (((item['variantName'] as String?) ==
+                                                  null ||
                                               (item['variantName'] as String?)
                                                       ?.trim()
                                                       .isEmpty ==
                                                   true) &&
-                                          ((item['details'] as String?) != null &&
+                                          ((item['details'] as String?) !=
+                                                  null &&
                                               (item['details'] as String)
                                                   .trim()
                                                   .isNotEmpty))
@@ -345,12 +347,43 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     boxShadow: ColorConstants.getShadow2,
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.local_offer_outlined,
+                                size: MySize.getHeight(16),
+                                color: Colors.black.withValues(alpha: 0.6),
+                              ),
+                              SizedBox(width: MySize.getWidth(4)),
+                              Text(
+                                "Add Discount",
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: MySize.getHeight(10)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Total Items:",
+                            "Items",
                             style: TextStyle(
                               fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.w500,
@@ -361,20 +394,106 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             "${controller.totalItems}",
                             style: TextStyle(
                               fontSize: MySize.getHeight(14),
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               color: Colors.black,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: MySize.getHeight(8)),
+                      SizedBox(height: MySize.getHeight(2)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Total Amount:",
+                            "Sub Total",
                             style: TextStyle(
-                              fontSize: MySize.getHeight(16),
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            "${controller.totalPrice}",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: MySize.getHeight(2)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Discount",
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                              SizedBox(width: MySize.getWidth(2)),
+                              Icon(
+                                Icons.delete_outline_outlined,
+                                size: MySize.getHeight(14),
+                                color: Colors.red,
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "- ${controller.totalPrice}",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: MySize.getHeight(2)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Packing Charge",
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(width: MySize.getWidth(2)),
+                              Icon(
+                                Icons.delete_outline_outlined,
+                                size: MySize.getHeight(14),
+                                color: Colors.red,
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${controller.totalPrice}",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: MySize.getHeight(2)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total",
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
@@ -382,40 +501,80 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           Text(
                             "₹${controller.totalPrice.toStringAsFixed(0)}",
                             style: TextStyle(
-                              fontSize: MySize.getHeight(16),
+                              fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.bold,
                               color: ColorConstants.primaryColor,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: MySize.getHeight(16)),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.snackbar(
-                              "Checkout",
-                              "Order placed successfully!",
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorConstants.primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+
+                      SizedBox(height: MySize.getHeight(10)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: Color(0xFF374151),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "cancel",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                          child: Text(
-                            "Place Order",
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(16),
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: ColorConstants.primaryColor,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "cancel",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: Color(0xFF2A9F6E),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Submit & Bill",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
