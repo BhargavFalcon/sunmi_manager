@@ -1,5 +1,8 @@
 import 'package:get/get.dart';
 
+import '../../main.dart';
+import '../constants/api_constants.dart';
+import '../middleware/auth_middleware.dart';
 import '../modules/Inventory_Dashboard/bindings/inventory_dashboard_binding.dart';
 import '../modules/Inventory_Dashboard/views/inventory_dashboard_view.dart';
 import '../modules/Inventory_PurchaseOrder/bindings/inventory_purchase_order_binding.dart';
@@ -26,58 +29,79 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.LOGIN_SCREEN;
+  // Check if user is already logged in and return appropriate initial route
+  static String get INITIAL {
+    try {
+      final token = box.read<String>(ArgumentConstant.tokenKey);
+      if (token != null && token.isNotEmpty) {
+        return Routes.MAIN_HOME_SCREEN;
+      }
+    } catch (e) {
+      // Handle error silently
+    }
+    return Routes.LOGIN_SCREEN;
+  }
 
   static final routes = [
     GetPage(
       name: _Paths.MAIN_HOME_SCREEN,
       page: () => const MainHomeScreenView(),
       binding: MainHomeScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.DASHBOARD_SCREEN,
       page: () => const DashboardScreenView(),
       binding: DashboardScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.ORDER_SCREEN,
       page: () => const OrderScreenView(),
       binding: OrderScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.INVENTORY_SCREEN,
       page: () => const InventoryScreenView(),
       binding: InventoryScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.RESERVATION_SCREEN,
       page: () => const ReservationScreenView(),
       binding: ReservationScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.INVENTORY_DASHBOARD,
       page: () => const InventoryDashboardView(),
       binding: InventoryDashboardBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.INVENTORY_PURCHASE_ORDER,
       page: () => const InventoryPurchaseOrderView(),
       binding: InventoryPurchaseOrderBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.TAKE_ORDER_SCREEN,
       page: () => const TakeOrderView(),
       binding: TakeOrderBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.LOGIN_SCREEN,
       page: () => const LoginScreenView(),
       binding: LoginScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.CART_SCREEN,
       page: () => const CartScreenView(),
       binding: CartScreenBinding(),
+      middlewares: [AuthMiddleware()],
     ),
   ];
 }

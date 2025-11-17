@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
-import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../controllers/login_screen_controller.dart';
 
@@ -93,6 +92,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                       ),
                       SizedBox(height: MySize.getHeight(5)),
                       CupertinoTextField(
+                        controller: controller.emailController,
                         padding: const EdgeInsets.all(12),
                         placeholder: "Email or Username",
                         placeholderStyle: TextStyle(
@@ -120,6 +120,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                       ),
                       SizedBox(height: MySize.getHeight(5)),
                       CupertinoTextField(
+                        controller: controller.passwordController,
                         padding: const EdgeInsets.all(12),
                         placeholder: "Password",
                         placeholderStyle: TextStyle(
@@ -138,29 +139,46 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         ),
                       ),
                       SizedBox(height: MySize.getHeight(20)),
-                      InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          Get.offAndToNamed(Routes.MAIN_HOME_SCREEN);
-                        },
-                        child: Container(
-                          width: MySize.screenWidth,
-                          height: MySize.getHeight(35),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      Obx(
+                        () => InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: controller.isLoading.value
+                              ? null
+                              : () {
+                                  controller.login();
+                                },
+                          child: Container(
+                            width: MySize.screenWidth,
+                            height: MySize.getHeight(35),
+                            decoration: BoxDecoration(
+                              color: controller.isLoading.value
+                                  ? ColorConstants.grey600
+                                  : ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: controller.isLoading.value
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      "Login",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
