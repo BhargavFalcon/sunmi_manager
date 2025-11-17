@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
+import 'package:managerapp/app/model/LoginModels.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import '../../../../main.dart';
 
 class LoginScreenController extends GetxController {
   final emailController = TextEditingController();
@@ -62,43 +64,49 @@ class LoginScreenController extends GetxController {
 
       // Handle successful login
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Save token if available in response
-        String? token;
         if (response.data != null && response.data is Map<String, dynamic>) {
-          final data = response.data as Map<String, dynamic>;
+          try {
+            // Parse response to LoginModel
+            final loginModel = LoginModel.fromJson(
+              response.data as Map<String, dynamic>,
+            );
 
-          // Try different possible token locations in response
-          if (data.containsKey('token')) {
-            token = data['token']?.toString();
-          } else if (data.containsKey('access_token')) {
-            token = data['access_token']?.toString();
-          } else if (data.containsKey('data') &&
-              data['data'] is Map<String, dynamic>) {
-            final nestedData = data['data'] as Map<String, dynamic>;
-            token =
-                nestedData['token']?.toString() ??
-                nestedData['access_token']?.toString();
-          }
+            // Save LoginModel to GetStorage
+            box.write(ArgumentConstant.loginModelKey, loginModel.toJson());
 
-          // Save token if found
-          if (token != null && token.isNotEmpty) {
-            networkClient.setAuthToken(token);
-            // Verify token was saved before navigation
-            final savedToken = networkClient.getSavedToken();
-            if (savedToken != null && savedToken.isNotEmpty) {
-              // Navigate to main home screen - use offAllNamed to clear stack
-              Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+            // Extract and save token
+            String? token;
+            if (loginModel.data?.token != null &&
+                loginModel.data!.token!.isNotEmpty) {
+              token = loginModel.data!.token;
+            }
+
+            // Save token if found
+            if (token != null && token.isNotEmpty) {
+              networkClient.setAuthToken(token);
+              // Verify token was saved before navigation
+              final savedToken = networkClient.getSavedToken();
+              if (savedToken != null && savedToken.isNotEmpty) {
+                // Navigate to main home screen - use offAllNamed to clear stack
+                Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+              } else {
+                Get.snackbar(
+                  'Error',
+                  'Failed to save authentication token',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
             } else {
               Get.snackbar(
                 'Error',
-                'Failed to save authentication token',
+                'Token not found in response',
                 snackPosition: SnackPosition.BOTTOM,
               );
             }
-          } else {
+          } catch (e) {
             Get.snackbar(
               'Error',
-              'Token not found in response',
+              'Failed to parse login response: ${e.toString()}',
               snackPosition: SnackPosition.BOTTOM,
             );
           }
