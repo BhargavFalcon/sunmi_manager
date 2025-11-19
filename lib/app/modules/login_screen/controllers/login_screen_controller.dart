@@ -30,7 +30,6 @@ class LoginScreenController extends GetxController {
   }
 
   Future<void> login() async {
-    // Validate email and password
     if (emailController.text.trim().isEmpty) {
       Get.snackbar(
         'Error',
@@ -62,32 +61,25 @@ class LoginScreenController extends GetxController {
 
       isLoading.value = false;
 
-      // Handle successful login
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data != null && response.data is Map<String, dynamic>) {
           try {
-            // Parse response to LoginModel
             final loginModel = LoginModel.fromJson(
               response.data as Map<String, dynamic>,
             );
 
-            // Save LoginModel to GetStorage
             box.write(ArgumentConstant.loginModelKey, loginModel.toJson());
 
-            // Extract and save token
             String? token;
             if (loginModel.data?.token != null &&
                 loginModel.data!.token!.isNotEmpty) {
               token = loginModel.data!.token;
             }
 
-            // Save token if found
             if (token != null && token.isNotEmpty) {
               networkClient.setAuthToken(token);
-              // Verify token was saved before navigation
               final savedToken = networkClient.getSavedToken();
               if (savedToken != null && savedToken.isNotEmpty) {
-                // Navigate to main home screen - use offAllNamed to clear stack
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
                 Get.snackbar(

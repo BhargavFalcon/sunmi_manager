@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -152,6 +153,26 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               // Main Content
               Expanded(
                 child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return Center(
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: ColorConstants.getShadow2,
+                        ),
+                        child: Center(
+                          child: CupertinoActivityIndicator(
+                            radius: 12,
+                            color: ColorConstants.primaryColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
                   final visibleCategories =
                       controller.categories
                           .where(
@@ -159,6 +180,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 .containsKey(cat),
                           )
                           .toList();
+
+                  if (visibleCategories.isEmpty) {
+                    return const Center(child: Text('No items found'));
+                  }
+
                   return ScrollablePositionedList.builder(
                     itemScrollController: controller.itemScrollController,
                     itemPositionsListener: controller.itemPositionsListener,
@@ -176,8 +202,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       }
 
                       final category = visibleCategories[index - 2];
-                      final items = controller.filteredGroupedItems[category]!;
-                      return _buildCategorySection(category, items);
+                      final items = controller.filteredGroupedItems[category];
+                      if (items == null || items.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return _buildCategorySection(controller, category, items);
                     },
                   );
                 }),
@@ -240,6 +269,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
   }
 
   Widget _buildCategorySection(
+    TakeOrderController controller,
     String category,
     List<Map<String, dynamic>> items,
   ) {
@@ -259,7 +289,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             ),
           ),
         ),
-        ..._buildItemsInRows(items),
+        ..._buildItemsInRows(controller, items),
         const SizedBox(height: 16),
       ],
     );
@@ -367,7 +397,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     );
   }
 
-  List<Widget> _buildItemsInRows(List<Map<String, dynamic>> items) {
+  List<Widget> _buildItemsInRows(
+    TakeOrderController controller,
+    List<Map<String, dynamic>> items,
+  ) {
     List<Widget> rows = [];
 
     for (int i = 0; i < items.length; i += 2) {
@@ -376,12 +409,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             children: [
-              Expanded(child: _buildItemCell(items[i])),
+              Expanded(child: _buildItemCell(controller, items[i])),
               const SizedBox(width: 8),
               Expanded(
                 child:
                     i + 1 < items.length
-                        ? _buildItemCell(items[i + 1])
+                        ? _buildItemCell(controller, items[i + 1])
                         : const SizedBox(),
               ),
             ],
@@ -393,7 +426,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     return rows;
   }
 
-  Widget _buildItemCell(Map<String, dynamic> item) {
+  Widget _buildItemCell(
+    TakeOrderController controller,
+    Map<String, dynamic> item,
+  ) {
+    final itemObject = item["item"] as Items?;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -425,14 +462,26 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 height: MySize.getHeight(20),
                 width: MySize.getHeight(20),
               ),
-              Text(
-                " ₹ ${item["amount"]}",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Obx(() {
+                String price = '0';
+                if (itemObject != null) {
+                  if (controller.selectedOrderType.value == 'Pickup') {
+                    price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+                  } else {
+                    price = itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                  }
+                } else {
+                  price = item["amount"] ?? '0';
+                }
+                return Text(
+                  " ₹ $price",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              }),
             ],
           ),
         ],

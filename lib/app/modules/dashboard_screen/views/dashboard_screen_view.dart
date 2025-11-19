@@ -306,11 +306,12 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
   }
 
   void showLogoutDialog({required BuildContext context}) {
+    final controller = Get.find<DashboardScreenController>();
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
+        return Obx(() => Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -339,9 +340,11 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                         focusColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         splashColor: Colors.transparent,
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
+                        onTap: controller.isLoading.value
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                              },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
@@ -364,17 +367,36 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                         focusColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         splashColor: Colors.transparent,
+                        onTap: controller.isLoading.value
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                                controller.logout();
+                              },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
+                            color: controller.isLoading.value
+                                ? Colors.grey
+                                : ColorConstants.primaryColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Center(
-                            child: Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            child: controller.isLoading.value
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Logout',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                           ),
                         ),
                       ),
@@ -384,7 +406,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
               ],
             ),
           ),
-        );
+        ));
       },
     );
   }
