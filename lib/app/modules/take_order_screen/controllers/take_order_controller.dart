@@ -377,7 +377,7 @@ class TakeOrderController extends GetxController {
                   Text(
                     'Item Variations',
                     style: TextStyle(
-                      fontSize: MySize.getHeight(24),
+                      fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -469,7 +469,7 @@ class TakeOrderController extends GetxController {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: MySize.getHeight(14),
+                                      fontSize: MySize.getHeight(12),
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
                                     ),
@@ -483,7 +483,7 @@ class TakeOrderController extends GetxController {
                               Text(
                                 item.description!,
                                 style: TextStyle(
-                                  fontSize: MySize.getHeight(14),
+                                  fontSize: MySize.getHeight(12),
                                   color: Colors.grey.shade600,
                                 ),
                               ),
@@ -510,7 +510,7 @@ class TakeOrderController extends GetxController {
                           child: Text(
                             'ITEM NAME',
                             style: TextStyle(
-                              fontSize: MySize.getHeight(12),
+                              fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                               letterSpacing: 0.5,
@@ -522,7 +522,7 @@ class TakeOrderController extends GetxController {
                           child: Text(
                             'PRICE',
                             style: TextStyle(
-                              fontSize: MySize.getHeight(12),
+                              fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                               letterSpacing: 0.5,
@@ -534,7 +534,7 @@ class TakeOrderController extends GetxController {
                           child: Text(
                             'ACTION',
                             style: TextStyle(
-                              fontSize: MySize.getHeight(12),
+                              fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                               letterSpacing: 0.5,
@@ -582,7 +582,7 @@ class TakeOrderController extends GetxController {
                             child: Text(
                               variation.variation ?? 'Variation',
                               style: TextStyle(
-                                fontSize: MySize.getHeight(14),
+                                fontSize: MySize.getHeight(12),
                                 fontWeight: FontWeight.w600,
                                 color: Colors.black87,
                               ),
@@ -593,7 +593,7 @@ class TakeOrderController extends GetxController {
                             child: Text(
                               formattedPrice,
                               style: TextStyle(
-                                fontSize: MySize.getHeight(14),
+                                fontSize: MySize.getHeight(12),
                                 fontWeight: FontWeight.w600,
                                 color: Colors.black87,
                               ),
@@ -637,7 +637,7 @@ class TakeOrderController extends GetxController {
                                 child: Text(
                                   'Select',
                                   style: TextStyle(
-                                    fontSize: MySize.getHeight(12),
+                                    fontSize: MySize.getHeight(11),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -674,7 +674,7 @@ class TakeOrderController extends GetxController {
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            fontSize: MySize.getHeight(14),
+                            fontSize: MySize.getHeight(12),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -730,7 +730,7 @@ class TakeOrderController extends GetxController {
                   Text(
                     'Item Extras',
                     style: TextStyle(
-                      fontSize: MySize.getHeight(24),
+                      fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -823,7 +823,7 @@ class TakeOrderController extends GetxController {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: MySize.getHeight(14),
+                            fontSize: MySize.getHeight(12),
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
@@ -868,7 +868,7 @@ class TakeOrderController extends GetxController {
                                           Text(
                                             modifierGroup.name ?? 'Section',
                                             style: TextStyle(
-                                              fontSize: MySize.getHeight(16),
+                                              fontSize: MySize.getHeight(14),
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black87,
                                             ),
@@ -884,7 +884,7 @@ class TakeOrderController extends GetxController {
                                             Text(
                                               modifierGroup.description!,
                                               style: TextStyle(
-                                                fontSize: MySize.getHeight(12),
+                                                fontSize: MySize.getHeight(11),
                                                 color: Colors.grey.shade600,
                                               ),
                                             ),
@@ -927,7 +927,7 @@ class TakeOrderController extends GetxController {
                                       child: Text(
                                         'OPTION NAME',
                                         style: TextStyle(
-                                          fontSize: MySize.getHeight(11),
+                                          fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black87,
                                           letterSpacing: 0.5,
@@ -940,7 +940,7 @@ class TakeOrderController extends GetxController {
                                         'PRICE',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: MySize.getHeight(11),
+                                          fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black87,
                                           letterSpacing: 0.5,
@@ -953,7 +953,7 @@ class TakeOrderController extends GetxController {
                                         'SELECT',
                                         textAlign: TextAlign.right,
                                         style: TextStyle(
-                                          fontSize: MySize.getHeight(11),
+                                          fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black87,
                                           letterSpacing: 0.5,
@@ -999,7 +999,7 @@ class TakeOrderController extends GetxController {
                                         child: Text(
                                           option.name ?? 'Option',
                                           style: TextStyle(
-                                            fontSize: MySize.getHeight(14),
+                                            fontSize: MySize.getHeight(12),
                                             fontWeight: FontWeight.w500,
                                             color: Colors.black87,
                                           ),
@@ -1011,7 +1011,7 @@ class TakeOrderController extends GetxController {
                                           formattedPrice,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            fontSize: MySize.getHeight(14),
+                                            fontSize: MySize.getHeight(12),
                                             fontWeight: FontWeight.w500,
                                             color: Colors.black87,
                                           ),
@@ -1137,7 +1137,7 @@ class TakeOrderController extends GetxController {
                           child: Text(
                             'Save',
                             style: TextStyle(
-                              fontSize: MySize.getHeight(14),
+                              fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
