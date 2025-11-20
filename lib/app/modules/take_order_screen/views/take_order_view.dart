@@ -22,12 +22,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           backgroundColor: ColorConstants.bgColor,
           body: Column(
             children: [
-              // Header
               Stack(
                 children: [
                   GestureDetector(
                     onTap: () {
-                      // Scroll to top when header is tapped
                       controller.scrollToTop();
                     },
                     child: Container(
@@ -130,7 +128,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ],
               ),
-              // Sticky Search and Category Box
               Obx(
                 () => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -150,7 +147,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   ),
                 ),
               ),
-              // Main Content
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
@@ -306,7 +302,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
       ),
       child: Column(
         children: [
-          // Search Field
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
             child: CupertinoTextField(
@@ -325,7 +320,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               onChanged: (value) {},
             ),
           ),
-          // Category List
           Container(
             height: MySize.getHeight(40),
             padding: const EdgeInsets.only(bottom: 4),
@@ -431,60 +425,81 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     Map<String, dynamic> item,
   ) {
     final itemObject = item["item"] as Items?;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: ColorConstants.getShadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            child: Text(
-              item["product_name"],
-              maxLines: 2,
-              style: TextStyle(
-                overflow: TextOverflow.ellipsis,
-                fontSize: MySize.getHeight(12),
-                color: Colors.black87,
-                fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        if (itemObject != null) {
+          controller.showItemVariationsBottomSheet(itemObject);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: ColorConstants.getShadow2,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              child: Text(
+                item["product_name"],
+                maxLines: 2,
+                style: TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  fontSize: MySize.getHeight(12),
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          Divider(color: Colors.grey.shade300, height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Image.asset(
-                ImageConstant.veg,
-                height: MySize.getHeight(20),
-                width: MySize.getHeight(20),
-              ),
-              Obx(() {
-                String price = '0';
-                if (itemObject != null) {
-                  if (controller.selectedOrderType.value == 'Pickup') {
-                    price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+            Divider(color: Colors.grey.shade300, height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      _getItemTypeImages(itemObject?.type)
+                          .map(
+                            (imagePath) => Padding(
+                              padding: EdgeInsets.only(
+                                right: MySize.getWidth(4),
+                              ),
+                              child: Image.asset(
+                                imagePath,
+                                height: MySize.getHeight(16),
+                                width: MySize.getHeight(16),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                ),
+                Obx(() {
+                  String price = '0';
+                  if (itemObject != null) {
+                    if (controller.selectedOrderType.value == 'Pickup') {
+                      price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+                    } else {
+                      price =
+                          itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                    }
                   } else {
-                    price = itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                    price = item["amount"] ?? '0';
                   }
-                } else {
-                  price = item["amount"] ?? '0';
-                }
-                return Text(
-                  " ₹ $price",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                );
-              }),
-            ],
-          ),
-        ],
+                  return Text(
+                    " ₹ $price",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -531,5 +546,36 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         ),
       ),
     );
+  }
+
+  List<String> _getItemTypeImages(String? type) {
+    if (type == null || type.isEmpty) {
+      return [ImageConstant.veg];
+    }
+
+    final types = type.toLowerCase().split(',').map((e) => e.trim()).toList();
+    List<String> images = [];
+
+    if (types.contains('halal')) {
+      images.add(ImageConstant.halal);
+    }
+    if (types.contains('hot')) {
+      images.add(ImageConstant.hot);
+    }
+    if (types.contains('non-veg')) {
+      images.add(ImageConstant.nonVeg);
+    }
+    if (types.contains('drink')) {
+      images.add(ImageConstant.drink);
+    }
+    if (types.contains('veg')) {
+      images.add(ImageConstant.veg);
+    }
+
+    if (images.isEmpty) {
+      return [ImageConstant.veg];
+    }
+
+    return images;
   }
 }
