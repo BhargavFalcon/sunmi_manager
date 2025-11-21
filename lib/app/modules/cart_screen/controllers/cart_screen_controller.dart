@@ -15,14 +15,11 @@ class CartScreenController extends GetxController {
   // Tax included flag
   RxBool isTaxIncluded = false.obs;
 
-  // Additional charges
-  RxList<AdditionalCharges> additionalCharges = <AdditionalCharges>[].obs;
-
   @override
   void onInit() {
     super.onInit();
     _checkTaxIncluded();
-    _loadAdditionalCharges();
+    _syncOrderTypeFromCartItems();
   }
 
   void _checkTaxIncluded() {
@@ -35,86 +32,33 @@ class CartScreenController extends GetxController {
           final taxesIncludedValue =
               restaurantModel.data!.branches!.first.taxesIncluded;
           isTaxIncluded.value = taxesIncludedValue ?? false;
-          print('Tax included value: $taxesIncludedValue');
         } else {
-          print('No branches found in restaurant details');
           isTaxIncluded.value = false;
         }
       } else {
-        print('No restaurant details found in box');
         isTaxIncluded.value = false;
       }
     } catch (e) {
-      print('Error checking tax included: $e');
       isTaxIncluded.value = false;
     }
   }
 
-  void _loadAdditionalCharges() {
-    try {
-      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
-      if (storedData != null && storedData is Map<String, dynamic>) {
-        final restaurantModel = RestaurantModel.fromJson(storedData);
-        if (restaurantModel.data?.branches != null &&
-            restaurantModel.data!.branches!.isNotEmpty) {
-          final branch = restaurantModel.data!.branches!.first;
-          if (branch.additionalCharges != null &&
-              branch.additionalCharges!.isNotEmpty) {
-            // Filter only enabled charges
-            additionalCharges.value =
-                branch.additionalCharges!
-                    .where((charge) => charge.isEnabled == 1)
-                    .toList();
-            print('Additional charges loaded: ${additionalCharges.length}');
-          } else {
-            additionalCharges.clear();
-            print('No additional charges found');
-          }
-        }
-      }
-    } catch (e) {
-      print('Error loading additional charges: $e');
-      additionalCharges.clear();
-    }
-  }
-
-  // Get additional charges list for current order type
-  List<AdditionalCharges> getAdditionalChargesForOrderType(String orderType) {
-    return additionalCharges
-        .where(
-          (charge) =>
-              charge.orderTypes != null &&
-              charge.orderTypes!.contains(orderType),
-        )
-        .toList();
-  }
-
-  // Get additional charges total for current order type
-  double getAdditionalChargesTotal(String orderType) {
-    double total = 0.0;
-    for (var charge in additionalCharges) {
-      // Check if charge applies to this order type
-      if (charge.orderTypes != null && charge.orderTypes!.contains(orderType)) {
-        if (charge.type == 'fixed') {
-          total += double.tryParse(charge.rate ?? '0') ?? 0.0;
-        } else if (charge.type == 'percent') {
-          final rate = double.tryParse(charge.rate ?? '0') ?? 0.0;
-          total += (subTotalAfterDiscount * rate) / 100;
+  void syncOrderTypeFromCartItems() {
+    if (cartItems.isNotEmpty) {
+      // Get order type from first cart item
+      final firstItem = cartItems.first;
+      if (firstItem.cartOrderType != null &&
+          firstItem.cartOrderType!.isNotEmpty) {
+        final orderType = firstItem.cartOrderType!;
+        if (currentOrderType.value != orderType) {
+          currentOrderType.value = orderType;
         }
       }
     }
-    return total;
   }
 
-  // Get charge amount for a specific charge
-  double getChargeAmount(AdditionalCharges charge) {
-    if (charge.type == 'fixed') {
-      return double.tryParse(charge.rate ?? '0') ?? 0.0;
-    } else if (charge.type == 'percent') {
-      final rate = double.tryParse(charge.rate ?? '0') ?? 0.0;
-      return (subTotalAfterDiscount * rate) / 100;
-    }
-    return 0.0;
+  void _syncOrderTypeFromCartItems() {
+    syncOrderTypeFromCartItems();
   }
 
   @override
@@ -199,6 +143,15 @@ class CartScreenController extends GetxController {
     } else {
       // New item - add to cart
       cartItems.add(item);
+    }
+
+    // Sync order type from the item (restaurant settings based)
+    if (item.cartOrderType != null && item.cartOrderType!.isNotEmpty) {
+      final newOrderType = item.cartOrderType!;
+      if (currentOrderType.value != newOrderType) {
+        currentOrderType.value = newOrderType;
+        print('Order type updated to: $newOrderType for additional charges');
+      }
     }
   }
 
@@ -315,63 +268,8 @@ class CartScreenController extends GetxController {
     currentOrderType.value = orderType;
   }
 
-  // Get VAT/Tax amount from cart items
-  double get vatAmount {
-    if (isTaxIncluded.value && cartItems.isNotEmpty) {
-      // If tax is included, calculate VAT from sub total after discount
-      // We need to get tax percentage from items
-      double totalTaxPercent = 0.0;
-
-      // Get tax percentage from first item that has taxes
-      for (var item in cartItems) {
-        if (item.taxes != null && item.taxes!.isNotEmpty) {
-          final tax = item.taxes!.first;
-          totalTaxPercent = double.tryParse(tax.taxPercent ?? '0') ?? 0.0;
-          if (totalTaxPercent > 0) {
-            break; // Use first tax found
-          }
-        }
-      }
-
-      if (totalTaxPercent > 0) {
-        // Calculate VAT from tax-included price
-        // Formula: VAT = (Price * Tax%) / (100 + Tax%)
-        // Since subTotalAfterDiscount already includes tax, we extract it
-        return (subTotalAfterDiscount * totalTaxPercent) /
-            (100 + totalTaxPercent);
-      }
-    }
-    return 0.0;
-  }
-
-  // Get VAT percentage
-  String get vatPercentage {
-    for (var item in cartItems) {
-      if (item.taxes != null && item.taxes!.isNotEmpty) {
-        final tax = item.taxes!.first;
-        final taxPercent = tax.taxPercent ?? '0';
-        return taxPercent;
-      }
-    }
-    return '0';
-  }
-
-  // Get VAT name
-  String get vatName {
-    for (var item in cartItems) {
-      if (item.taxes != null && item.taxes!.isNotEmpty) {
-        final tax = item.taxes!.first;
-        return tax.taxName ?? 'VAT';
-      }
-    }
-    return 'VAT';
-  }
-
-  // Get final total (including additional charges)
+  // Get final total
   double get finalTotal {
-    double total = subTotalAfterDiscount;
-    // Add additional charges based on order type
-    total += getAdditionalChargesTotal(currentOrderType.value);
-    return total;
+    return subTotalAfterDiscount;
   }
 }

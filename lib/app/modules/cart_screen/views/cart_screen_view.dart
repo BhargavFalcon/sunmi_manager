@@ -18,6 +18,12 @@ class CartScreenView extends GetWidget<CartScreenController> {
     return GetBuilder<CartScreenController>(
       assignId: true,
       builder: (controller) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (controller.cartItems.isNotEmpty) {
+            controller.syncOrderTypeFromCartItems();
+          }
+        });
+
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
           body: Column(
@@ -576,86 +582,6 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               ],
                             ),
                           ],
-                        );
-                      }),
-                      Obx(() {
-                        if (!controller.isTaxIncluded.value ||
-                            controller.vatAmount == 0.0) {
-                          return const SizedBox.shrink();
-                        }
-                        return Column(
-                          children: [
-                            SizedBox(height: MySize.getHeight(2)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "${controller.vatName} (${controller.vatPercentage}%) incl.",
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(14),
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  CurrencyFormatter.formatPriceFromDouble(
-                                    controller.vatAmount,
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(14),
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      }),
-                      Obx(() {
-                        final chargesList = controller
-                            .getAdditionalChargesForOrderType(
-                              controller.currentOrderType.value,
-                            );
-                        if (chargesList.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Column(
-                          children:
-                              chargesList.map((charge) {
-                                final chargeAmount = controller.getChargeAmount(
-                                  charge,
-                                );
-                                return Column(
-                                  children: [
-                                    SizedBox(height: MySize.getHeight(2)),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          charge.name ?? "Additional Charge",
-                                          style: TextStyle(
-                                            fontSize: MySize.getHeight(14),
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        Text(
-                                          CurrencyFormatter.formatPriceFromDouble(
-                                            chargeAmount,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: MySize.getHeight(14),
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                );
-                              }).toList(),
                         );
                       }),
                       SizedBox(height: MySize.getHeight(2)),
