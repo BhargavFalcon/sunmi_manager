@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../../../constants/image_constants.dart';
 
@@ -779,7 +780,7 @@ class OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "€ ${order.total}",
+                  CurrencyFormatter.formatPrice(order.total?.toString() ?? '0'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
+import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../../main.dart';
 
@@ -80,6 +81,11 @@ class LoginScreenController extends GetxController {
               networkClient.setAuthToken(token);
               final savedToken = networkClient.getSavedToken();
               if (savedToken != null && savedToken.isNotEmpty) {
+                // Fetch restaurant details after successful login
+                final restaurantId = loginModel.data?.user?.restaurantId;
+                if (restaurantId != null) {
+                  await fetchRestaurantDetails(restaurantId);
+                }
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
                 Get.snackbar(
@@ -120,6 +126,39 @@ class LoginScreenController extends GetxController {
         'Something went wrong. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
+    }
+  }
+
+  // Fetch restaurant details
+  Future<void> fetchRestaurantDetails(int restaurantId) async {
+    try {
+      final endpoint = ArgumentConstant.restaurantDetailsEndpoint.replaceAll(
+        ':restaurant_id',
+        restaurantId.toString(),
+      );
+
+      final response = await networkClient.get(endpoint);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          try {
+            final restaurantModel = RestaurantModel.fromJson(
+              response.data as Map<String, dynamic>,
+            );
+
+            // Save restaurant details to box
+            box.write(
+              ArgumentConstant.restaurantDetailsKey,
+              restaurantModel.toJson(),
+            );
+          } catch (e) {
+            print('Error parsing restaurant details: ${e.toString()}');
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching restaurant details: ${e.toString()}');
+      // Don't show error to user, just log it
     }
   }
 }

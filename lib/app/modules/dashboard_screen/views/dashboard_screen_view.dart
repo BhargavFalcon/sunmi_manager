@@ -6,6 +6,7 @@ import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/chartModel.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/dashboard_screen_controller.dart';
 
@@ -501,7 +502,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          '€ ${value.toInt()}',
+                          CurrencyFormatter.formatPriceFromDouble(value.toDouble()),
                           style: const TextStyle(fontSize: 10),
                         );
                       },
@@ -534,7 +535,7 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                     getTooltipItems: (List<LineBarSpot> touchedSpots) {
                       return touchedSpots.map((spot) {
                         return LineTooltipItem(
-                          '€ ${spot.y.toStringAsFixed(2)}',
+                          CurrencyFormatter.formatPriceFromDouble(spot.y),
                           const TextStyle(
                             color:
                                 ColorConstants
@@ -763,7 +764,7 @@ class OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "€ ${order.total}",
+                  CurrencyFormatter.formatPrice(order.total?.toString() ?? '0'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -854,7 +855,7 @@ Widget buildTopTableList(List<TableData> tables) {
               ],
             ),
             Text(
-              "€ ${table.total.toStringAsFixed(2)}",
+              CurrencyFormatter.formatPriceFromDouble(table.total ?? 0.0),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

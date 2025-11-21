@@ -21,10 +21,10 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
   void initState() {
     super.initState();
     _controllerGet = Get.find<CartScreenController>();
-    final item = _controllerGet.cartItems
-        .firstWhere((e) => e['id'] == widget.itemId, orElse: () => {});
-    final String initialText =
-        (item['noteDraft'] as String?) ?? (item['note'] as String?) ?? '';
+    final item = _controllerGet.cartItems.firstWhere(
+      (e) => e.cartItemId == widget.itemId,
+    );
+    final String initialText = item.cartNoteDraft ?? item.cartNote ?? '';
     _controller = TextEditingController(text: initialText);
   }
 
@@ -32,10 +32,10 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
   void didUpdateWidget(covariant CartNoteEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.itemId != widget.itemId) {
-      final item = _controllerGet.cartItems
-          .firstWhere((e) => e['id'] == widget.itemId, orElse: () => {});
-      final String text =
-          (item['noteDraft'] as String?) ?? (item['note'] as String?) ?? '';
+      final item = _controllerGet.cartItems.firstWhere(
+        (e) => e.cartItemId == widget.itemId,
+      );
+      final String text = item.cartNoteDraft ?? item.cartNote ?? '';
       _controller.text = text;
     }
   }
@@ -70,7 +70,8 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 4),
               ),
-              onChanged: (v) => _controllerGet.updateNoteDraft(widget.itemId, v),
+              onChanged:
+                  (v) => _controllerGet.updateNoteDraft(widget.itemId, v),
               onSubmitted: (_) => _controllerGet.saveNote(widget.itemId),
             ),
           ),
@@ -105,5 +106,3 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
     );
   }
 }
-
-

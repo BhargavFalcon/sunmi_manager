@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class ItemMenu {
   bool? success;
   Data? data;
@@ -64,6 +66,17 @@ class Items {
   int? variationsCount;
   int? modifierGroupsCount;
   List<Taxes>? taxes;
+  RxInt quantity = 0.obs;
+
+  // Cart specific fields
+  String? cartItemId;
+  Variations? selectedVariation;
+  List<Options>? selectedExtras;
+  double? cartTotalPrice;
+  String? cartOrderType;
+  String? cartNote;
+  String? cartNoteDraft;
+  bool cartEditingNote = false;
 
   Items({
     this.id,
@@ -82,7 +95,9 @@ class Items {
     this.variationsCount,
     this.modifierGroupsCount,
     this.taxes,
-  });
+  }) {
+    quantity = 0.obs;
+  }
 
   Items.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -119,6 +134,7 @@ class Items {
         taxes!.add(new Taxes.fromJson(v));
       });
     }
+    quantity = (json['quantity'] as int? ?? 0).obs;
   }
 
   Map<String, dynamic> toJson() {
@@ -148,6 +164,7 @@ class Items {
     if (this.taxes != null) {
       data['taxes'] = this.taxes!.map((v) => v.toJson()).toList();
     }
+    data['quantity'] = this.quantity.value;
     return data;
   }
 }
@@ -180,6 +197,7 @@ class Variations {
   String? price;
   String? onlinePrice;
   String? takeAwayPrice;
+  RxBool selected = false.obs;
 
   Variations({
     this.id,
@@ -187,7 +205,9 @@ class Variations {
     this.price,
     this.onlinePrice,
     this.takeAwayPrice,
-  });
+  }) {
+    selected = false.obs;
+  }
 
   Variations.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -195,6 +215,7 @@ class Variations {
     price = json['price'];
     onlinePrice = json['online_price'];
     takeAwayPrice = json['take_away_price'];
+    selected = false.obs;
   }
 
   Map<String, dynamic> toJson() {
@@ -204,6 +225,7 @@ class Variations {
     data['price'] = this.price;
     data['online_price'] = this.onlinePrice;
     data['take_away_price'] = this.takeAwayPrice;
+    data['selected'] = this.selected.value;
     return data;
   }
 }
@@ -245,14 +267,18 @@ class Options {
   String? name;
   String? price;
   int? isAvailable;
+  RxBool isSelected = false.obs;
 
-  Options({this.id, this.name, this.price, this.isAvailable});
+  Options({this.id, this.name, this.price, this.isAvailable}) {
+    isSelected = false.obs;
+  }
 
   Options.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     price = json['price'];
     isAvailable = json['is_available'];
+    isSelected = false.obs;
   }
 
   Map<String, dynamic> toJson() {
@@ -261,6 +287,7 @@ class Options {
     data['name'] = this.name;
     data['price'] = this.price;
     data['is_available'] = this.isAvailable;
+    data['is_selected'] = this.isSelected.value;
     return data;
   }
 }

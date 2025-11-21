@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/model/menuItemsModel.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/cart_screen_controller.dart';
 import 'widgets/cart_note_editor.dart';
@@ -15,7 +17,6 @@ class CartScreenView extends GetWidget<CartScreenController> {
   Widget build(BuildContext context) {
     return GetBuilder<CartScreenController>(
       assignId: true,
-      init: CartScreenController(),
       builder: (controller) {
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
@@ -100,7 +101,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     itemCount: controller.cartItems.length,
                     itemBuilder: (context, index) {
                       final item = controller.cartItems[index];
-                      final itemId = item['id'] as String;
+                      final itemId = item.cartItemId ?? '';
+                      final selectedVariation = item.selectedVariation;
+                      final selectedExtras = item.selectedExtras;
 
                       return Stack(
                         children: [
@@ -126,7 +129,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    (item['tableNumber'] as String?) ?? "B1",
+                                    item.itemNumber ?? '',
                                     style: TextStyle(
                                       fontSize: MySize.getHeight(12),
                                       fontWeight: FontWeight.bold,
@@ -142,8 +145,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        (item['name'] as String?) ??
-                                            "Item Name",
+                                        item.itemName ?? "Item Name",
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(14),
                                           fontWeight: FontWeight.w600,
@@ -153,98 +155,100 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       SizedBox(height: MySize.getHeight(4)),
-                                      if ((item['variantName'] as String?) !=
-                                              null &&
-                                          (item['variantName'] as String)
-                                              .trim()
-                                              .isNotEmpty)
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 6,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF0F2F5),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxWidth: Get.width * 0.5,
-                                                  ),
-                                                  child: Text(
-                                                    item['variantName']
-                                                        as String,
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          MySize.getHeight(12),
-                                                      color: Colors.black87,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 20),
-                                                Text(
-                                                  () {
-                                                    final num? price =
-                                                        item['variantPrice']
-                                                            as num?;
-                                                    return price != null
-                                                        ? "₹ ${price.toStringAsFixed(2)}"
-                                                        : '';
-                                                  }(),
-                                                  style: TextStyle(
-                                                    fontSize: MySize.getHeight(
-                                                      12,
-                                                    ),
-                                                    color: Colors.black54,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                      if (selectedVariation != null)
+                                        Text(
+                                          selectedVariation.variation ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(12),
+                                            color: Colors.grey.shade600,
+                                            fontWeight: FontWeight.normal,
                                           ),
                                         ),
-                                      if (((item['variantName'] as String?) ==
-                                                  null ||
-                                              (item['variantName'] as String?)
-                                                      ?.trim()
-                                                      .isEmpty ==
-                                                  true) &&
-                                          ((item['details'] as String?) !=
-                                                  null &&
-                                              (item['details'] as String)
-                                                  .trim()
-                                                  .isNotEmpty))
+                                      if (selectedExtras != null &&
+                                          selectedExtras.isNotEmpty)
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 2,
+                                          padding: EdgeInsets.only(
+                                            top: MySize.getHeight(4),
                                           ),
-                                          child: Text(
-                                            item['details'] as String,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: MySize.getHeight(12),
-                                              color: Colors.black54,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          child: Wrap(
+                                            spacing: MySize.getWidth(4),
+                                            runSpacing: MySize.getHeight(4),
+                                            children:
+                                                selectedExtras.map<Widget>((
+                                                  extra,
+                                                ) {
+                                                  return Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                        0xFFF0F2F5,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          extra.name ?? '',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                MySize.getHeight(
+                                                                  11,
+                                                                ),
+                                                            color:
+                                                                Colors.black87,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                        if (extra.price !=
+                                                                null &&
+                                                            extra
+                                                                    .price
+                                                                    ?.isNotEmpty ==
+                                                                true) ...[
+                                                          SizedBox(
+                                                            width:
+                                                                MySize.getWidth(
+                                                                  4,
+                                                                ),
+                                                          ),
+                                                          Text(
+                                                            CurrencyFormatter.formatPrice(
+                                                              extra.price ??
+                                                                  '0',
+                                                            ),
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    11,
+                                                                  ),
+                                                              color:
+                                                                  Colors
+                                                                      .black54,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
                                           ),
                                         ),
-                                      if ((item['variantName'] as String?) !=
-                                              null &&
-                                          (item['variantName'] as String)
-                                              .trim()
-                                              .isNotEmpty)
+                                      if (selectedVariation != null)
                                         SizedBox(height: MySize.getHeight(4)),
                                       InkWell(
                                         splashColor: Colors.transparent,
@@ -257,11 +261,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         child: Builder(
                                           builder: (context) {
                                             final bool isEditing =
-                                                (item['editingNote']
-                                                    as bool?) ??
-                                                false;
+                                                item.cartEditingNote;
                                             final String existingNote =
-                                                (item['note'] as String?) ?? '';
+                                                item.cartNote ?? '';
                                             if (!isEditing) {
                                               return Text(
                                                 existingNote.isEmpty
@@ -295,30 +297,68 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     QuantitySelector(
-                                      key: ValueKey(item['id']),
-                                      initialQuantity:
-                                          (item['quantity'] as num?)?.toInt() ??
-                                          1,
+                                      key: ValueKey(itemId),
+                                      initialQuantity: item.quantity.value,
                                       onQuantityChanged: (newQuantity) {
                                         if (newQuantity == 0) {
-                                          controller.removeItem(
-                                            item['id'] as String,
-                                          );
+                                          controller.removeItem(itemId);
                                         } else {
                                           controller.updateItemQuantity(
-                                            item['id'] as String,
+                                            itemId,
                                             newQuantity,
                                           );
                                         }
                                       },
                                     ),
                                     SizedBox(height: MySize.getHeight(4)),
-                                    Text(
-                                      "₹${(item['price'] as num?)?.toStringAsFixed(0) ?? '0'}",
-                                      style: TextStyle(
-                                        fontSize: MySize.getHeight(12),
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Price: ',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(10),
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.formatPriceFromDouble(
+                                            item.cartTotalPrice ?? 0.0,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(11),
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: MySize.getHeight(2)),
+                                    Obx(
+                                      () => Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Amount: ',
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(11),
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          Text(
+                                            CurrencyFormatter.formatPriceFromDouble(
+                                              (item.cartTotalPrice ?? 0.0) *
+                                                  item.quantity.value,
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(12),
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -332,7 +372,6 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   );
                 }),
               ),
-
               Obx(() {
                 if (controller.cartItems.isEmpty) {
                   return const SizedBox.shrink();
@@ -350,31 +389,40 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.local_offer_outlined,
-                                size: MySize.getHeight(16),
-                                color: Colors.black.withValues(alpha: 0.6),
-                              ),
-                              SizedBox(width: MySize.getWidth(4)),
-                              Text(
-                                "Add Discount",
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(14),
-                                  fontWeight: FontWeight.w500,
+                      InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          _showAddDiscountDialog(context, controller);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.local_offer_outlined,
+                                  size: MySize.getHeight(16),
                                   color: Colors.black.withValues(alpha: 0.6),
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: MySize.getWidth(4)),
+                                Text(
+                                  "Add Discount",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -413,7 +461,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             ),
                           ),
                           Text(
-                            "${controller.totalPrice}",
+                            CurrencyFormatter.formatPriceFromDouble(
+                              controller.totalPrice,
+                            ),
                             style: TextStyle(
                               fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.w500,
@@ -422,70 +472,192 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                         ],
                       ),
-                      SizedBox(height: MySize.getHeight(2)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                "Discount",
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(14),
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF10B981),
+                      Obx(() {
+                        if (controller.discountValue.value == 0.0) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            SizedBox(height: MySize.getHeight(2)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      controller.discountType.value == 'Percent'
+                                          ? "Discount (${controller.discountValue.value.toStringAsFixed(0)}%)"
+                                          : "Discount",
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
+                                    SizedBox(width: MySize.getWidth(2)),
+                                    InkWell(
+                                      onTap: () {
+                                        controller.removeDiscount();
+                                      },
+                                      child: Icon(
+                                        Icons.delete_outline_outlined,
+                                        size: MySize.getHeight(14),
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(width: MySize.getWidth(2)),
-                              Icon(
-                                Icons.delete_outline_outlined,
-                                size: MySize.getHeight(14),
-                                color: Colors.red,
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "- ${controller.totalPrice}",
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(14),
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: MySize.getHeight(2)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                "Packing Charge",
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(14),
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                                Text(
+                                  "- ${CurrencyFormatter.formatPriceFromDouble(controller.discountType.value == 'Fixed' ? controller.discountValue.value : (controller.totalPrice * controller.discountValue.value) / 100)}",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF10B981),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: MySize.getWidth(2)),
-                              Icon(
-                                Icons.delete_outline_outlined,
-                                size: MySize.getHeight(14),
-                                color: Colors.red,
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "${controller.totalPrice}",
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(14),
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        );
+                      }),
+                      Obx(() {
+                        if (!controller.isTaxIncluded.value) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            SizedBox(height: MySize.getHeight(2)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: MySize.getWidth(8),
+                                        vertical: MySize.getHeight(4),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(
+                                          0xFF10B981,
+                                        ).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            size: MySize.getHeight(12),
+                                            color: Color(0xFF10B981),
+                                          ),
+                                          SizedBox(width: MySize.getWidth(4)),
+                                          Text(
+                                            "Tax Inclusive",
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(11),
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF10B981),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  "Tax included in item prices",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(11),
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }),
+                      Obx(() {
+                        if (!controller.isTaxIncluded.value ||
+                            controller.vatAmount == 0.0) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            SizedBox(height: MySize.getHeight(2)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "${controller.vatName} (${controller.vatPercentage}%) incl.",
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  CurrencyFormatter.formatPriceFromDouble(
+                                    controller.vatAmount,
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }),
+                      Obx(() {
+                        final chargesList = controller
+                            .getAdditionalChargesForOrderType(
+                              controller.currentOrderType.value,
+                            );
+                        if (chargesList.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children:
+                              chargesList.map((charge) {
+                                final chargeAmount = controller.getChargeAmount(
+                                  charge,
+                                );
+                                return Column(
+                                  children: [
+                                    SizedBox(height: MySize.getHeight(2)),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          charge.name ?? "Additional Charge",
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.formatPriceFromDouble(
+                                            chargeAmount,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                        );
+                      }),
                       SizedBox(height: MySize.getHeight(2)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -498,12 +670,16 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               color: Colors.black,
                             ),
                           ),
-                          Text(
-                            "₹${controller.totalPrice.toStringAsFixed(0)}",
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(14),
-                              fontWeight: FontWeight.bold,
-                              color: ColorConstants.primaryColor,
+                          Obx(
+                            () => Text(
+                              CurrencyFormatter.formatPriceFromDouble(
+                                controller.finalTotal,
+                              ),
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(14),
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.primaryColor,
+                              ),
                             ),
                           ),
                         ],
@@ -513,16 +689,21 @@ class CartScreenView extends GetWidget<CartScreenController> {
                       Row(
                         children: [
                           Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Color(0xFF374151),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                            child: InkWell(
+                              onTap: () {
+                                Get.back();
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF374151),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                                 child: Text(
-                                  "cancel",
+                                  "Cancel",
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(14),
                                     fontWeight: FontWeight.w500,
@@ -534,16 +715,19 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                           SizedBox(width: MySize.getWidth(8)),
                           Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: ColorConstants.primaryColor,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                            child: InkWell(
+                              onTap: () {},
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: ColorConstants.primaryColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                                 child: Text(
-                                  "cancel",
+                                  "Submit",
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(14),
                                     fontWeight: FontWeight.w500,
@@ -555,14 +739,17 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                           SizedBox(width: MySize.getWidth(8)),
                           Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Color(0xFF2A9F6E),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                            child: InkWell(
+                              onTap: () {},
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF10B981),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                                 child: Text(
                                   "Submit & Bill",
                                   style: TextStyle(
@@ -581,6 +768,228 @@ class CartScreenView extends GetWidget<CartScreenController> {
                 );
               }),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddDiscountDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    final discountValueController = TextEditingController(
+      text:
+          controller.discountValue.value > 0
+              ? controller.discountValue.value.toString()
+              : '',
+    );
+    final discountTypeController = controller.discountType;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Obx(
+          () => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: ColorConstants.bgColor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Add Discount',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: discountValueController,
+                          keyboardType: TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Enter Discount Value',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: ColorConstants.primaryColor,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      MenuAnchor(
+                        builder: (context, menuController, child) {
+                          return InkWell(
+                            onTap: () {
+                              if (menuController.isOpen) {
+                                menuController.close();
+                              } else {
+                                menuController.open();
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    discountTypeController.value,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    size: 20,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              discountTypeController.value = 'Fixed';
+                            },
+                            child: Row(
+                              children: [
+                                if (discountTypeController.value == 'Fixed')
+                                  Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: ColorConstants.primaryColor,
+                                  ),
+                                if (discountTypeController.value == 'Fixed')
+                                  const SizedBox(width: 8),
+                                const Text('Fixed'),
+                              ],
+                            ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              discountTypeController.value = 'Percent';
+                            },
+                            child: Row(
+                              children: [
+                                if (discountTypeController.value == 'Percent')
+                                  Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: ColorConstants.primaryColor,
+                                  ),
+                                if (discountTypeController.value == 'Percent')
+                                  const SizedBox(width: 8),
+                                const Text('Percent'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            final value =
+                                double.tryParse(discountValueController.text) ??
+                                0.0;
+                            if (value > 0) {
+                              controller.setDiscount(
+                                value,
+                                discountTypeController.value,
+                              );
+                            }
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Save',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },

@@ -6,7 +6,9 @@ import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
+import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
@@ -18,196 +20,230 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
       init: TakeOrderController(),
       assignId: true,
       builder: (controller) {
-        return Scaffold(
-          backgroundColor: ColorConstants.bgColor,
-          body: Column(
-            children: [
-              Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      controller.scrollToTop();
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(
-                        12,
-                      ).copyWith(top: MediaQuery.of(context).padding.top + 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: ColorConstants.getShadow2,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Take Order",
-                          style: TextStyle(fontSize: 20, color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 12,
-                    top: MediaQuery.of(context).padding.top + 8,
-                    child: InkWell(
-                      hoverColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
+        CartScreenController? cartController;
+        if (Get.isRegistered<CartScreenController>()) {
+          cartController = Get.find<CartScreenController>();
+        }
+
+        return PopScope(
+          canPop: cartController == null || cartController.cartItems.isEmpty,
+          onPopInvoked: (didPop) {
+            if (!didPop &&
+                cartController != null &&
+                cartController.cartItems.isNotEmpty) {
+              _showCancelOrderDialog(context, cartController);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: ColorConstants.bgColor,
+            body: Column(
+              children: [
+                Stack(
+                  children: [
+                    GestureDetector(
                       onTap: () {
-                        Get.back();
+                        controller.scrollToTop();
                       },
                       child: Container(
-                        alignment: Alignment.center,
-                        height: MySize.getHeight(30),
-                        width: MySize.getHeight(30),
-                        decoration: BoxDecoration(
-                          color: ColorConstants.primaryColor.withValues(
-                            alpha: 0.10,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12).copyWith(
+                          top: MediaQuery.of(context).padding.top + 12,
                         ),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: ColorConstants.primaryColor,
-                          size: MySize.getHeight(20),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 15,
-                    top: MediaQuery.of(context).padding.top - 5,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ColorConstants.primaryColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        "10",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 25,
-                    top: MediaQuery.of(context).padding.top + 8,
-                    child: InkWell(
-                      hoverColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      onTap: () {
-                        Get.toNamed(Routes.CART_SCREEN);
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: MySize.getHeight(30),
-                        width: MySize.getHeight(30),
-                        decoration: BoxDecoration(
-                          color: ColorConstants.primaryColor.withValues(
-                            alpha: 0.10,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.shopping_cart_outlined,
-                          color: ColorConstants.primaryColor,
-                          size: MySize.getHeight(20),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Obx(
-                () => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: controller.isCategorySticky.value ? null : 0,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
-                    child:
-                        controller.isCategorySticky.value
-                            ? _buildSearchAndCategoryBox(
-                              controller,
-                              categoryController:
-                                  controller.stickyCategoryScrollController,
-                            )
-                            : const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isLoading.value) {
-                    return Center(
-                      child: Container(
-                        width: 60,
-                        height: 60,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
                           boxShadow: ColorConstants.getShadow2,
                         ),
                         child: Center(
-                          child: CupertinoActivityIndicator(
-                            radius: 12,
-                            color: ColorConstants.primaryColor,
+                          child: Text(
+                            "Take Order",
+                            style: TextStyle(fontSize: 20, color: Colors.black),
                           ),
                         ),
                       ),
-                    );
-                  }
+                    ),
+                    Positioned(
+                      left: 12,
+                      top: MediaQuery.of(context).padding.top + 8,
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          CartScreenController? cartController;
+                          if (Get.isRegistered<CartScreenController>()) {
+                            cartController = Get.find<CartScreenController>();
+                          }
+                          if (cartController == null ||
+                              cartController.cartItems.isEmpty) {
+                            Get.back();
+                          } else {
+                            _showCancelOrderDialog(context, cartController);
+                          }
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: MySize.getHeight(30),
+                          width: MySize.getHeight(30),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor.withValues(
+                              alpha: 0.10,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: ColorConstants.primaryColor,
+                            size: MySize.getHeight(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 15,
+                      top: MediaQuery.of(context).padding.top - 5,
+                      child: Obx(() {
+                        if (controller.cartItemsCount.value == 0) {
+                          return const SizedBox.shrink();
+                        }
 
-                  final visibleCategories =
-                      controller.categories
-                          .where(
-                            (cat) => controller.filteredGroupedItems
-                                .containsKey(cat),
-                          )
-                          .toList();
-
-                  if (visibleCategories.isEmpty) {
-                    return const Center(child: Text('No items found'));
-                  }
-
-                  return ScrollablePositionedList.builder(
-                    itemScrollController: controller.itemScrollController,
-                    itemPositionsListener: controller.itemPositionsListener,
-                    itemCount: visibleCategories.length + 2,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return _buildPickupDeliverySelector(controller);
-                      }
-                      if (index == 1) {
-                        return _buildSearchAndCategoryBox(
-                          controller,
-                          categoryController:
-                              controller.categoryScrollController,
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            controller.cartItemsCount.value.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         );
-                      }
+                      }),
+                    ),
+                    Positioned(
+                      right: 25,
+                      top: MediaQuery.of(context).padding.top + 8,
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          Get.toNamed(Routes.CART_SCREEN);
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: MySize.getHeight(30),
+                          width: MySize.getHeight(30),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor.withValues(
+                              alpha: 0.10,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.shopping_cart_outlined,
+                            color: ColorConstants.primaryColor,
+                            size: MySize.getHeight(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Obx(
+                  () => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    height: controller.isCategorySticky.value ? null : 0,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
+                      child:
+                          controller.isCategorySticky.value
+                              ? _buildSearchAndCategoryBox(
+                                controller,
+                                categoryController:
+                                    controller.stickyCategoryScrollController,
+                              )
+                              : const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return Center(
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: ColorConstants.getShadow2,
+                          ),
+                          child: Center(
+                            child: CupertinoActivityIndicator(
+                              radius: 12,
+                              color: ColorConstants.primaryColor,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
 
-                      final category = visibleCategories[index - 2];
-                      final items = controller.filteredGroupedItems[category];
-                      if (items == null || items.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return _buildCategorySection(controller, category, items);
-                    },
-                  );
-                }),
-              ),
-            ],
+                    final visibleCategories =
+                        controller.categories
+                            .where(
+                              (cat) => controller.filteredGroupedItems
+                                  .containsKey(cat),
+                            )
+                            .toList();
+
+                    if (visibleCategories.isEmpty) {
+                      return const Center(child: Text('No items found'));
+                    }
+
+                    return ScrollablePositionedList.builder(
+                      itemScrollController: controller.itemScrollController,
+                      itemPositionsListener: controller.itemPositionsListener,
+                      itemCount: visibleCategories.length + 2,
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return _buildPickupDeliverySelector(controller);
+                        }
+                        if (index == 1) {
+                          return _buildSearchAndCategoryBox(
+                            controller,
+                            categoryController:
+                                controller.categoryScrollController,
+                          );
+                        }
+
+                        final category = visibleCategories[index - 2];
+                        final items = controller.filteredGroupedItems[category];
+                        if (items == null || items.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildCategorySection(
+                          controller,
+                          category,
+                          items,
+                        );
+                      },
+                    );
+                  }),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -441,17 +477,42 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              child: Text(
-                item["product_name"],
-                maxLines: 2,
-                style: TextStyle(
-                  overflow: TextOverflow.ellipsis,
-                  fontSize: MySize.getHeight(12),
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
+            Row(
+              children: [
+                if (itemObject?.itemNumber != null &&
+                    itemObject!.itemNumber!.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    margin: EdgeInsets.only(right: MySize.getWidth(6)),
+                    decoration: BoxDecoration(
+                      color: ColorConstants.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      itemObject.itemNumber!,
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(10),
+                        fontWeight: FontWeight.bold,
+                        color: ColorConstants.primaryColor,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: Text(
+                    item["product_name"],
+                    maxLines: 2,
+                    style: TextStyle(
+                      overflow: TextOverflow.ellipsis,
+                      fontSize: MySize.getHeight(12),
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
             Divider(color: Colors.grey.shade300, height: 20),
             Row(
@@ -488,7 +549,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     price = item["amount"] ?? '0';
                   }
                   return Text(
-                    " ₹ $price",
+                    CurrencyFormatter.formatPrice(price),
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.black87,
@@ -577,5 +638,97 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     }
 
     return images;
+  }
+
+  void _showCancelOrderDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: ColorConstants.bgColor),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Cancel Order?',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Are you sure you want to exit? This will clear the cart and remove all orders.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Close',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          controller.clearCart();
+                          Navigator.of(context).pop();
+                          Get.back();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
