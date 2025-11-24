@@ -291,6 +291,8 @@ class CartScreenController extends GetxController {
 
   // Get grouped taxes with their amounts
   // Returns a map where key is "taxName (taxPercent%)" and value is the total tax amount
+  // Different tax types will show as separate lines
+  // Same tax types from different items will be grouped together
   Map<String, double> get groupedTaxes {
     Map<String, double> taxMap = {};
 
@@ -300,14 +302,16 @@ class CartScreenController extends GetxController {
 
       // Get taxes for this item
       if (item.taxes != null && item.taxes!.isNotEmpty) {
-        // Calculate tax for each tax type
+        // Calculate tax for each tax type in this item
         for (var tax in item.taxes!) {
           if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
             try {
               double taxPercent = double.parse(tax.taxPercent!);
               String taxName = tax.taxName ?? 'Tax';
 
-              // Create key for grouping (tax name + percentage)
+              // Create unique key for grouping (tax name + percentage)
+              // Same tax name and percentage will be grouped together
+              // Different tax types will have different keys and show separately
               String taxKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
 
               // Since tax is included in price, extract it
@@ -315,7 +319,8 @@ class CartScreenController extends GetxController {
               double taxForThisItem =
                   itemPrice * (taxPercent / (100 + taxPercent));
 
-              // Add to map (sum if same tax type exists)
+              // Add to map (sum if same tax type exists in multiple items)
+              // If different tax types, they will have different keys
               taxMap[taxKey] =
                   (taxMap[taxKey] ?? 0.0) + (taxForThisItem * quantity);
             } catch (e) {

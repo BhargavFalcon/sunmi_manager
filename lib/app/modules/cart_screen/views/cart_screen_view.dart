@@ -588,8 +588,12 @@ class CartScreenView extends GetWidget<CartScreenController> {
                         if (groupedTaxes.isEmpty) {
                           return const SizedBox.shrink();
                         }
+                        // Sort taxes by name for consistent display
+                        final sortedTaxes = groupedTaxes.entries.toList()
+                          ..sort((a, b) => a.key.compareTo(b.key));
+                        
                         return Column(
-                          children: groupedTaxes.entries.map((entry) {
+                          children: sortedTaxes.map((entry) {
                             return Column(
                               children: [
                                 SizedBox(height: MySize.getHeight(2)),
