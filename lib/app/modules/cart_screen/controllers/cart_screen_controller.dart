@@ -221,7 +221,28 @@ class CartScreenController extends GetxController {
 
   // Discount methods
   void setDiscount(double value, String type) {
-    discountValue.value = value;
+    // Validate discount - cannot exceed sub total
+    if (value <= 0) {
+      discountValue.value = 0.0;
+      discountType.value = type;
+      return;
+    }
+
+    double maxDiscount = 0.0;
+    if (type == 'Fixed') {
+      // For fixed discount, max is sub total
+      maxDiscount = totalPrice;
+    } else {
+      // For percent discount, max is 100%
+      maxDiscount = 100.0;
+    }
+
+    // Limit discount to maximum allowed
+    if (value > maxDiscount) {
+      discountValue.value = maxDiscount;
+    } else {
+      discountValue.value = value;
+    }
     discountType.value = type;
   }
 
@@ -266,6 +287,55 @@ class CartScreenController extends GetxController {
 
   void setOrderType(String orderType) {
     currentOrderType.value = orderType;
+  }
+
+  // Get grouped taxes with their amounts
+  // Returns a map where key is "taxName (taxPercent%)" and value is the total tax amount
+  Map<String, double> get groupedTaxes {
+    Map<String, double> taxMap = {};
+
+    for (var item in cartItems) {
+      double itemPrice = item.cartTotalPrice ?? 0.0;
+      int quantity = item.quantity.value;
+
+      // Get taxes for this item
+      if (item.taxes != null && item.taxes!.isNotEmpty) {
+        // Calculate tax for each tax type
+        for (var tax in item.taxes!) {
+          if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
+            try {
+              double taxPercent = double.parse(tax.taxPercent!);
+              String taxName = tax.taxName ?? 'Tax';
+
+              // Create key for grouping (tax name + percentage)
+              String taxKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
+
+              // Since tax is included in price, extract it
+              // Formula: tax = price * (taxPercent / (100 + taxPercent))
+              double taxForThisItem =
+                  itemPrice * (taxPercent / (100 + taxPercent));
+
+              // Add to map (sum if same tax type exists)
+              taxMap[taxKey] =
+                  (taxMap[taxKey] ?? 0.0) + (taxForThisItem * quantity);
+            } catch (e) {
+              // If parsing fails, skip this tax
+            }
+          }
+        }
+      }
+    }
+
+    return taxMap;
+  }
+
+  // Get total tax amount (calculated from each item's taxes)
+  double get totalTax {
+    double totalTaxAmount = 0.0;
+    groupedTaxes.forEach((key, value) {
+      totalTaxAmount += value;
+    });
+    return totalTaxAmount;
   }
 
   // Get final total

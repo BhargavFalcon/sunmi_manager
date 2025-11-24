@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
-import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/cart_screen_controller.dart';
@@ -514,7 +513,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   ],
                                 ),
                                 Text(
-                                  "- ${CurrencyFormatter.formatPriceFromDouble(controller.discountType.value == 'Fixed' ? controller.discountValue.value : (controller.totalPrice * controller.discountValue.value) / 100)}",
+                                  "- ${CurrencyFormatter.formatPriceFromDouble(controller.discountAmount)}",
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(14),
                                     fontWeight: FontWeight.w500,
@@ -582,6 +581,44 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               ],
                             ),
                           ],
+                        );
+                      }),
+                      Obx(() {
+                        final groupedTaxes = controller.groupedTaxes;
+                        if (groupedTaxes.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: groupedTaxes.entries.map((entry) {
+                            return Column(
+                              children: [
+                                SizedBox(height: MySize.getHeight(2)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${entry.key} incl.",
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      CurrencyFormatter.formatPriceFromDouble(
+                                        entry.value,
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }).toList(),
                         );
                       }),
                       SizedBox(height: MySize.getHeight(2)),
@@ -889,10 +926,35 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 double.tryParse(discountValueController.text) ??
                                 0.0;
                             if (value > 0) {
-                              controller.setDiscount(
-                                value,
-                                discountTypeController.value,
-                              );
+                              // Validate discount before setting
+                              if (discountTypeController.value == 'Fixed') {
+                                // For fixed discount, check if it exceeds sub total
+                                if (value > controller.totalPrice) {
+                                  // Show error or limit to sub total
+                                  controller.setDiscount(
+                                    controller.totalPrice,
+                                    discountTypeController.value,
+                                  );
+                                } else {
+                                  controller.setDiscount(
+                                    value,
+                                    discountTypeController.value,
+                                  );
+                                }
+                              } else {
+                                // For percent discount, check if it exceeds 100%
+                                if (value > 100.0) {
+                                  controller.setDiscount(
+                                    100.0,
+                                    discountTypeController.value,
+                                  );
+                                } else {
+                                  controller.setDiscount(
+                                    value,
+                                    discountTypeController.value,
+                                  );
+                                }
+                              }
                             }
                             Navigator.of(context).pop();
                           },
