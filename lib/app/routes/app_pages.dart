@@ -21,6 +21,8 @@ import '../modules/order_screen/bindings/order_screen_binding.dart';
 import '../modules/order_screen/views/order_screen_view.dart';
 import '../modules/reservation_screen/bindings/reservation_screen_binding.dart';
 import '../modules/reservation_screen/views/reservation_screen_view.dart';
+import '../modules/table_screen/bindings/table_screen_binding.dart';
+import '../modules/table_screen/views/table_screen_view.dart';
 import '../modules/take_order_screen/bindings/take_order_binding.dart';
 import '../modules/take_order_screen/views/take_order_view.dart';
 
@@ -102,6 +104,11 @@ class AppPages {
       page: () => const CartScreenView(),
       binding: CartScreenBinding(),
       middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: _Paths.TABLE_SCREEN,
+      page: () => const TableScreenView(),
+      binding: TableScreenBinding(),
     ),
   ];
 }

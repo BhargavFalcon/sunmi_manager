@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/modules/dashboard_screen/views/dashboard_screen_view.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
+import 'package:managerapp/app/modules/table_screen/views/table_screen_view.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -22,6 +23,7 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
         onPageChanged: controller.onPageChanged,
         children: [
           DashboardScreenView(),
+          TableScreenView(),
           OrderScreenView(),
           ReservationScreenView(),
           // InventoryScreenView(),
@@ -86,16 +88,22 @@ class _CustomBottomNavBar extends StatelessWidget {
                     onTap: () => onTabChange(0),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.order,
-                    label: "Order",
+                    icon: ImageConstant.tableReservation,
+                    label: "Table",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.tableReservation,
-                    label: "Reservation",
+                    icon: ImageConstant.order,
+                    label: "Order",
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
+                  ),
+                  _NavBarItem(
+                    icon: ImageConstant.tableReservation,
+                    label: "Reservation",
+                    isSelected: selectedIndex == 3,
+                    onTap: () => onTabChange(3),
                   ),
                   // _NavBarItem(
                   //   icon: ImageConstant.inventory,
