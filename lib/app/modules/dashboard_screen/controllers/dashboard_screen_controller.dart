@@ -142,6 +142,7 @@ class DashboardScreenController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         networkClient.removeAuthToken();
         box.remove(ArgumentConstant.loginModelKey);
+        box.remove(ArgumentConstant.menuItemsKey);
         Get.offAllNamed(Routes.LOGIN_SCREEN);
       }
     } on ApiException catch (e) {
@@ -151,6 +152,7 @@ class DashboardScreenController extends GetxController {
       isLoading.value = false;
       networkClient.removeAuthToken();
       box.remove(ArgumentConstant.loginModelKey);
+      box.remove(ArgumentConstant.menuItemsKey);
       Get.offAllNamed(Routes.LOGIN_SCREEN);
     }
   }

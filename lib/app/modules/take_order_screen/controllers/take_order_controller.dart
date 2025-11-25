@@ -12,6 +12,7 @@ import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
+import '../../../model/tableModel.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
 
@@ -46,9 +47,19 @@ class TakeOrderController extends GetxController {
   RxInt cartItemsCount = 0.obs;
   bool _cartListenerSet = false;
 
+  // Table from arguments
+  final Rx<Tables?> selectedTable = Rx<Tables?>(null);
+
+  // Getter to check if table exists
+  bool get hasTable => selectedTable.value != null;
+
+  // Get offset for category index calculation (number of items before categories)
+  int get categoryOffset => hasTable ? 1 : 2;
+
   @override
   void onInit() {
     super.onInit();
+    _fetchTableFromArguments();
     loadMenuItemsFromStorage();
     _updateCartCount();
 
@@ -57,6 +68,16 @@ class TakeOrderController extends GetxController {
     });
 
     itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
+  }
+
+  void _fetchTableFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      final table = arguments[ArgumentConstant.tableKey];
+      if (table != null && table is Tables) {
+        selectedTable.value = table;
+      }
+    }
   }
 
   // Update cart count
@@ -203,7 +224,7 @@ class TakeOrderController extends GetxController {
     final filteredItems = filteredGroupedItems;
     final visibleCategories =
         categories.where((cat) => filteredItems.containsKey(cat)).toList();
-    final categoryIndex = mostVisible.first.index - 2;
+    final categoryIndex = mostVisible.first.index - categoryOffset;
 
     if (categoryIndex >= 0 && categoryIndex < visibleCategories.length) {
       final newCategory = visibleCategories[categoryIndex];
@@ -216,7 +237,7 @@ class TakeOrderController extends GetxController {
       }
     }
 
-    isCategorySticky.value = mostVisible.first.index > 1;
+    isCategorySticky.value = mostVisible.first.index > (categoryOffset - 1);
   }
 
   void _scrollCategoryToCenter(String category) {
@@ -298,7 +319,7 @@ class TakeOrderController extends GetxController {
     isAutoScrolling.value = true;
     try {
       await itemScrollController.scrollTo(
-        index: categoryIndex + 2,
+        index: categoryIndex + categoryOffset,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
@@ -347,19 +368,32 @@ class TakeOrderController extends GetxController {
 
       // Get base price
       String basePrice = '0';
+      
       if (selectedVariation != null) {
-        if (selectedOrderType.value == 'Pickup') {
-          basePrice =
-              selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
+        if (hasTable) {
+          // If table is selected, use only base price
+          basePrice = selectedVariation.price ?? '0';
         } else {
-          basePrice =
-              selectedVariation.takeAwayPrice ?? selectedVariation.price ?? '0';
+          // If no table, use price based on order type
+          if (selectedOrderType.value == 'Pickup') {
+            basePrice =
+                selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
+          } else {
+            basePrice =
+                selectedVariation.takeAwayPrice ?? selectedVariation.price ?? '0';
+          }
         }
       } else {
-        if (selectedOrderType.value == 'Pickup') {
-          basePrice = item.onlinePrice ?? item.price ?? '0';
+        if (hasTable) {
+          // If table is selected, use only base price
+          basePrice = item.price ?? '0';
         } else {
-          basePrice = item.takeAwayPrice ?? item.price ?? '0';
+          // If no table, use price based on order type
+          if (selectedOrderType.value == 'Pickup') {
+            basePrice = item.onlinePrice ?? item.price ?? '0';
+          } else {
+            basePrice = item.takeAwayPrice ?? item.price ?? '0';
+          }
         }
       }
 
@@ -670,10 +704,17 @@ class TakeOrderController extends GetxController {
                   SizedBox(height: MySize.getHeight(8)),
                   ...variations.map((variation) {
                     String price = '0';
-                    if (selectedOrderType.value == 'Pickup') {
-                      price = variation.onlinePrice ?? variation.price ?? '0';
+                    
+                    if (hasTable) {
+                      // If table is selected, show only base price
+                      price = variation.price ?? '0';
                     } else {
-                      price = variation.takeAwayPrice ?? variation.price ?? '0';
+                      // If no table, show price based on order type
+                      if (selectedOrderType.value == 'Pickup') {
+                        price = variation.onlinePrice ?? variation.price ?? '0';
+                      } else {
+                        price = variation.takeAwayPrice ?? variation.price ?? '0';
+                      }
                     }
 
                     String formattedPrice = CurrencyFormatter.formatPrice(

@@ -212,34 +212,42 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       return const Center(child: Text('No items found'));
                     }
 
-                    return ScrollablePositionedList.builder(
-                      itemScrollController: controller.itemScrollController,
-                      itemPositionsListener: controller.itemPositionsListener,
-                      itemCount: visibleCategories.length + 2,
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return _buildPickupDeliverySelector(controller);
-                        }
-                        if (index == 1) {
-                          return _buildSearchAndCategoryBox(
-                            controller,
-                            categoryController:
-                                controller.categoryScrollController,
-                          );
-                        }
+                    return Obx(() {
+                      final itemCount = controller.hasTable
+                          ? visibleCategories.length + 1
+                          : visibleCategories.length + 2;
+                      
+                      return ScrollablePositionedList.builder(
+                        itemScrollController: controller.itemScrollController,
+                        itemPositionsListener: controller.itemPositionsListener,
+                        itemCount: itemCount,
+                        itemBuilder: (context, index) {
+                          if (!controller.hasTable && index == 0) {
+                            return _buildPickupDeliverySelector(controller);
+                          }
+                          final searchIndex = controller.hasTable ? 0 : 1;
+                          if (index == searchIndex) {
+                            return _buildSearchAndCategoryBox(
+                              controller,
+                              categoryController:
+                                  controller.categoryScrollController,
+                            );
+                          }
 
-                        final category = visibleCategories[index - 2];
-                        final items = controller.filteredGroupedItems[category];
-                        if (items == null || items.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return _buildCategorySection(
-                          controller,
-                          category,
-                          items,
-                        );
-                      },
-                    );
+                          final categoryIndex = controller.hasTable ? index - 1 : index - 2;
+                          final category = visibleCategories[categoryIndex];
+                          final items = controller.filteredGroupedItems[category];
+                          if (items == null || items.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return _buildCategorySection(
+                            controller,
+                            category,
+                            items,
+                          );
+                        },
+                      );
+                    });
                   }),
                 ),
               ],
@@ -538,12 +546,19 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 ),
                 Obx(() {
                   String price = '0';
+                  
                   if (itemObject != null) {
-                    if (controller.selectedOrderType.value == 'Pickup') {
-                      price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+                    if (controller.hasTable) {
+                      // If table is selected, show only base price
+                      price = itemObject.price ?? '0';
                     } else {
-                      price =
-                          itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                      // If no table, show price based on order type
+                      if (controller.selectedOrderType.value == 'Pickup') {
+                        price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+                      } else {
+                        price =
+                            itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                      }
                     }
                   } else {
                     price = item["amount"] ?? '0';

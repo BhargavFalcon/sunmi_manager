@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../constants/api_constants.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/tableModel.dart';
+import '../../../routes/app_pages.dart';
 
 class TableScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -52,5 +53,12 @@ class TableScreenController extends GetxController {
         update();
       }
     }
+  }
+
+  void navigateToTakeOrderScreen(Tables table) {
+    Get.toNamed(
+      Routes.TAKE_ORDER_SCREEN,
+      arguments: {ArgumentConstant.tableKey: table},
+    );
   }
 }

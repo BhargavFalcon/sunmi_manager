@@ -283,16 +283,90 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                   ? ColorConstants.tableGreen
                                                   : Colors.grey;
 
+                                          final isGreenTable =
+                                              availableStatus == 'available' &&
+                                              isActive;
+
                                           return Positioned(
                                             left: left,
                                             top: top,
-                                            child:
-                                                isOval
-                                                    ? ClipOval(
-                                                      child: Container(
+                                            child: GestureDetector(
+                                              onTap:
+                                                  isGreenTable
+                                                      ? () {
+                                                        controller
+                                                            .navigateToTakeOrderScreen(
+                                                              table,
+                                                            );
+                                                      }
+                                                      : null,
+                                              child:
+                                                  isOval
+                                                      ? ClipOval(
+                                                        child: Container(
+                                                          width: width,
+                                                          height: height,
+                                                          color: tableColor,
+                                                          child: Center(
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  table.tableCode ??
+                                                                      '${table.id}',
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        MySize.getHeight(
+                                                                          14,
+                                                                        ),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                  ),
+                                                                ),
+                                                                if (table
+                                                                        .seatingCapacity !=
+                                                                    null)
+                                                                  Text(
+                                                                    '${table.seatingCapacity} Seat(s)',
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          MySize.getHeight(
+                                                                            10,
+                                                                          ),
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                  ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                      : Container(
                                                         width: width,
                                                         height: height,
-                                                        color: tableColor,
+                                                        decoration: BoxDecoration(
+                                                          color: tableColor,
+                                                          shape:
+                                                              isCircle
+                                                                  ? BoxShape
+                                                                      .circle
+                                                                  : BoxShape
+                                                                      .rectangle,
+                                                          borderRadius:
+                                                              isCircle
+                                                                  ? null
+                                                                  : BorderRadius.circular(
+                                                                    4,
+                                                                  ),
+                                                        ),
                                                         child: Center(
                                                           child: Column(
                                                             mainAxisAlignment:
@@ -303,10 +377,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                 table.tableCode ??
                                                                     '${table.id}',
                                                                 style: TextStyle(
-                                                                  fontSize:
-                                                                      MySize.getHeight(
-                                                                        14,
-                                                                      ),
+                                                                  fontSize: 14,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold,
@@ -334,63 +405,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                           ),
                                                         ),
                                                       ),
-                                                    )
-                                                    : Container(
-                                                      width: width,
-                                                      height: height,
-                                                      decoration: BoxDecoration(
-                                                        color: tableColor,
-                                                        shape:
-                                                            isCircle
-                                                                ? BoxShape
-                                                                    .circle
-                                                                : BoxShape
-                                                                    .rectangle,
-                                                        borderRadius:
-                                                            isCircle
-                                                                ? null
-                                                                : BorderRadius.circular(
-                                                                  4,
-                                                                ),
-                                                      ),
-                                                      child: Center(
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            Text(
-                                                              table.tableCode ??
-                                                                  '${table.id}',
-                                                              style: TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                            ),
-                                                            if (table
-                                                                    .seatingCapacity !=
-                                                                null)
-                                                              Text(
-                                                                '${table.seatingCapacity} Seat(s)',
-                                                                style: TextStyle(
-                                                                  fontSize: MySize
-                                                                      .getHeight(
-                                                                        10,
-                                                                      ),
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                ),
-                                                              ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
+                                            ),
                                           );
                                         }).toList(),
                                   ),
