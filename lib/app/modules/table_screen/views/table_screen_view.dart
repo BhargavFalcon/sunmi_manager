@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/model/tableModel.dart';
 
 import '../controllers/table_screen_controller.dart';
 
@@ -85,10 +86,10 @@ class TableScreenView extends GetWidget<TableScreenController> {
                               controller.selectedAreaIndex.value = index;
                             },
                             child: Container(
-                              margin: EdgeInsets.only(right: 16),
+                              margin: EdgeInsets.only(right: 12),
                               padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
+                                horizontal: 14,
+                                vertical: 6,
                               ),
                               decoration: BoxDecoration(
                                 color:
@@ -286,6 +287,9 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                           final isGreenTable =
                                               availableStatus == 'available' &&
                                               isActive;
+                                          final isBlueTable =
+                                              availableStatus == 'running' &&
+                                              isActive;
 
                                           return Positioned(
                                             left: left,
@@ -298,6 +302,14 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                             .navigateToTakeOrderScreen(
                                                               table,
                                                             );
+                                                      }
+                                                      : isBlueTable
+                                                      ? () {
+                                                        _showRunningTablePopup(
+                                                          context,
+                                                          controller,
+                                                          table,
+                                                        );
                                                       }
                                                       : null,
                                               child:
@@ -465,4 +477,146 @@ class DottedBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+void _showRunningTablePopup(
+  BuildContext context,
+  TableScreenController controller,
+  Tables table,
+) {
+  final activeOrder = table.activeOrder;
+  final orderNumber = activeOrder?.orderNumber ?? 0;
+  final orderTotal = '€0.00'; // You may need to fetch this from order details
+
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '1 (Order #$orderNumber)',
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(16),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: MySize.getHeight(4)),
+                        Text(
+                          orderTotal,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(18),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.close,
+                        size: MySize.getHeight(20),
+                        color: ColorConstants.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: MySize.getHeight(20)),
+              _buildActionButton(
+                icon: Icons.edit_note,
+                label: 'Continue to order',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  controller.navigateToTakeOrderScreen(table);
+                },
+              ),
+              SizedBox(height: MySize.getHeight(12)),
+              _buildActionButton(
+                icon: Icons.payment,
+                label: 'Pay',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // TODO: Implement pay functionality
+                },
+              ),
+              SizedBox(height: MySize.getHeight(12)),
+              _buildActionButton(
+                icon: Icons.table_restaurant,
+                label: 'Change table',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // TODO: Implement change table functionality
+                },
+              ),
+              SizedBox(height: MySize.getHeight(12)),
+              _buildActionButton(
+                icon: Icons.cancel_outlined,
+                label: 'Cancel order',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // TODO: Implement cancel order functionality
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildActionButton({
+  required IconData icon,
+  required String label,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    hoverColor: Colors.transparent,
+    focusColor: Colors.transparent,
+    highlightColor: Colors.transparent,
+    splashColor: Colors.transparent,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: MySize.getHeight(20), color: Colors.black87),
+          SizedBox(width: MySize.getWidth(12)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: MySize.getHeight(14),
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

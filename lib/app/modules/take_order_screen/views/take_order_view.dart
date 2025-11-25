@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
@@ -137,7 +138,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         highlightColor: Colors.transparent,
                         splashColor: Colors.transparent,
                         onTap: () {
-                          Get.toNamed(Routes.CART_SCREEN);
+                          final arguments = controller.hasTable
+                              ? {ArgumentConstant.tableKey: controller.selectedTable.value}
+                              : null;
+                          Get.toNamed(Routes.CART_SCREEN, arguments: arguments);
                         },
                         child: Container(
                           alignment: Alignment.center,

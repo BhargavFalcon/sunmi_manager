@@ -88,7 +88,7 @@ class _CustomBottomNavBar extends StatelessWidget {
                     onTap: () => onTabChange(0),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.tableReservation,
+                    icon: ImageConstant.table,
                     label: "Table",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),

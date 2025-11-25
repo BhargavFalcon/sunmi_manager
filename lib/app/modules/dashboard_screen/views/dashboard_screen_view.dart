@@ -312,102 +312,109 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Obx(() => Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: ColorConstants.bgColor),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Logout',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Are you sure you want to logout?',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: controller.isLoading.value
-                            ? null
-                            : () {
-                                Navigator.of(context).pop();
-                              },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(color: Colors.black),
+        return Obx(
+          () => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: ColorConstants.bgColor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Logout',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Are you sure you want to logout?',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap:
+                              controller.isLoading.value
+                                  ? null
+                                  : () {
+                                    Navigator.of(context).pop();
+                                  },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: controller.isLoading.value
-                            ? null
-                            : () {
-                                Navigator.of(context).pop();
-                                controller.logout();
-                              },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: controller.isLoading.value
-                                ? Colors.grey
-                                : ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: controller.isLoading.value
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap:
+                              controller.isLoading.value
+                                  ? null
+                                  : () {
+                                    Navigator.of(context).pop();
+                                    controller.logout();
+                                  },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color:
+                                  controller.isLoading.value
+                                      ? Colors.grey
+                                      : ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child:
+                                  controller.isLoading.value
+                                      ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                      : const Text(
+                                        'Logout',
+                                        style: TextStyle(color: Colors.white),
                                       ),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Logout',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ));
+        );
       },
     );
   }
@@ -502,7 +509,9 @@ class DashboardScreenView extends GetWidget<DashboardScreenController> {
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          CurrencyFormatter.formatPriceFromDouble(value.toDouble()),
+                          CurrencyFormatter.formatPriceFromDouble(
+                            value.toDouble(),
+                          ),
                           style: const TextStyle(fontSize: 10),
                         );
                       },

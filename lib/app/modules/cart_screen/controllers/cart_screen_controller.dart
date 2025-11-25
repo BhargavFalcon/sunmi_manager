@@ -1,10 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../data/NetworkClient.dart';
+import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/RestaurantDetailsModel.dart';
+import '../../../model/tableModel.dart' as tableModel;
+import '../../../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
+import '../../../routes/app_pages.dart';
 
 class CartScreenController extends GetxController {
+  final networkClient = NetworkClient();
+
   // Cart items list - using Items model directly
   RxList<Items> cartItems = <Items>[].obs;
 
@@ -15,11 +23,297 @@ class CartScreenController extends GetxController {
   // Tax included flag
   RxBool isTaxIncluded = false.obs;
 
+  // Table from arguments
+  final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
+
+  // Getter to check if table exists
+  bool get hasTable => selectedTable.value != null;
+
+  // Pax (number of people) - editable
+  final RxInt pax = 1.obs;
+  final TextEditingController paxController = TextEditingController();
+
+  // Table areas list
+  final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
+
   @override
   void onInit() {
     super.onInit();
+    fetchTableFromArguments();
+    fetchTablesAreas();
     _checkTaxIncluded();
     _syncOrderTypeFromCartItems();
+  }
+
+  void fetchTableFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      final table = arguments[ArgumentConstant.tableKey];
+      if (table != null && table is tableModel.Tables) {
+        selectedTable.value = table;
+        // Set initial pax to table capacity
+        final capacity = table.seatingCapacity ?? 1;
+        pax.value = capacity;
+        paxController.text = capacity.toString();
+      } else {
+        // Clear table if not in arguments
+        selectedTable.value = null;
+        pax.value = 1;
+        paxController.text = '1';
+      }
+    } else {
+      // Clear table if no arguments
+      selectedTable.value = null;
+      pax.value = 1;
+      paxController.text = '1';
+    }
+  }
+
+  void updatePax(int value) {
+    if (value > 0) {
+      pax.value = value;
+      paxController.text = value.toString();
+    }
+  }
+
+  Future<void> fetchTablesAreas() async {
+    // Clear existing list before fetching
+    tableAreasList.clear();
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.tablesAreasEndpoint,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          final tableModelData = tableModel.TableModel.fromJson(
+            response.data as Map<String, dynamic>,
+          );
+          if (tableModelData.data != null) {
+            tableAreasList.assignAll(tableModelData.data!);
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching table areas: $e');
+    }
+  }
+
+  Future<void> submitOrder({bool createPayment = false}) async {
+    try {
+      // Validate required fields
+      if (!hasTable) {
+        Get.snackbar(
+          'Error',
+          'Please select a table',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      if (cartItems.isEmpty) {
+        Get.snackbar(
+          'Error',
+          'Cart is empty',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Get user id from login model
+      int? waiterId;
+      try {
+        final loginData = box.read(ArgumentConstant.loginModelKey);
+        if (loginData != null && loginData is Map<String, dynamic>) {
+          final loginModel = LoginModel.fromJson(loginData);
+          waiterId = loginModel.data?.user?.id;
+        }
+      } catch (e) {
+        print('Error getting user id: $e');
+      }
+
+      if (waiterId == null) {
+        Get.snackbar(
+          'Error',
+          'User not found. Please login again',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Get table id
+      final tableId = selectedTable.value?.id;
+      if (tableId == null) {
+        Get.snackbar(
+          'Error',
+          'Table not found',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Format date_time in ISO format
+      final dateTime = DateTime.now().toUtc().toIso8601String();
+
+      // Map cart items to API format
+      final List<Map<String, dynamic>> itemsList = [];
+      for (var item in cartItems) {
+        final itemData = <String, dynamic>{
+          'menu_item_id': item.id,
+          'quantity': item.quantity.value,
+        };
+
+        // Add variation id if exists
+        if (item.selectedVariation != null) {
+          itemData['menu_item_variation_id'] = item.selectedVariation!.id;
+        }
+
+        // Add modifier option ids if exists
+        if (item.selectedExtras != null && item.selectedExtras!.isNotEmpty) {
+          final optionIds =
+              item.selectedExtras!
+                  .where((option) => option.id != null)
+                  .map((option) => option.id!)
+                  .toList();
+          if (optionIds.isNotEmpty) {
+            itemData['modifier_option_ids'] = optionIds;
+          }
+        }
+
+        // Add note if exists
+        if (item.cartNote != null && item.cartNote!.isNotEmpty) {
+          itemData['note'] = item.cartNote;
+        }
+
+        itemsList.add(itemData);
+      }
+
+      // Prepare request body
+      final requestBody = <String, dynamic>{
+        'order_type': 'dine_in',
+        'table_id': tableId,
+        'waiter_id': waiterId,
+        'number_of_pax': pax.value,
+        'items': itemsList,
+        'date_time': dateTime,
+      };
+
+      // Add discount if applied
+      if (discountValue.value > 0) {
+        requestBody['discount_type'] = discountType.value.toLowerCase();
+        requestBody['discount_value'] = discountValue.value.toString();
+      }
+
+      // Call Order API
+      final response = await networkClient.post(
+        ArgumentConstant.ordersEndpoint,
+        data: requestBody,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Extract order_id from response
+        String? orderId;
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          final responseData = response.data as Map<String, dynamic>;
+          if (responseData['data'] != null &&
+              responseData['data'] is Map<String, dynamic>) {
+            final data = responseData['data'] as Map<String, dynamic>;
+            // Prefer UUID, fallback to ID
+            orderId = data['uuid']?.toString() ?? data['id']?.toString();
+          } else {
+            // Fallback to direct keys
+            orderId =
+                responseData['order_id']?.toString() ??
+                responseData['uuid']?.toString() ??
+                responseData['id']?.toString();
+          }
+        }
+
+        if (createPayment && orderId != null) {
+          await _createPayment(orderId);
+        } else {
+          cartItems.clear();
+          Get.snackbar(
+            'Success',
+            'Order submitted successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+          Future.delayed(const Duration(milliseconds: 100), () {
+            try {
+              final mainHomeController = Get.find<MainHomeScreenController>();
+              mainHomeController.changeTab(1);
+            } catch (e) {
+              print('Main home controller not found: $e');
+            }
+          });
+        }
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to submit order',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print('Error submitting order: $e');
+      Get.snackbar(
+        'Error',
+        'Error submitting order: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> _createPayment(String orderId) async {
+    try {
+      final paymentBody = {
+        'order_id': orderId,
+        'amount': finalTotal.toStringAsFixed(2),
+        'payment_method': 'cash',
+      };
+
+      // Call Payment API
+      final paymentResponse = await networkClient.post(
+        ArgumentConstant.paymentsEndpoint,
+        data: paymentBody,
+      );
+
+      if (paymentResponse.statusCode == 200 ||
+          paymentResponse.statusCode == 201) {
+        cartItems.clear();
+        Get.snackbar(
+          'Success',
+          'Order and payment completed successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          try {
+            final mainHomeController = Get.find<MainHomeScreenController>();
+            mainHomeController.changeTab(1);
+          } catch (e) {
+            print('Main home controller not found: $e');
+          }
+        });
+      } else {
+        Get.snackbar(
+          'Error',
+          'Order created but payment failed',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print('Error creating payment: $e');
+      Get.snackbar(
+        'Error',
+        'Order created but payment error: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   void _checkTaxIncluded() {
@@ -64,10 +358,15 @@ class CartScreenController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    // Fetch table arguments again in onReady to ensure fresh data
+    fetchTableFromArguments();
+    // Refresh table areas list every time screen is opened
+    fetchTablesAreas();
   }
 
   @override
   void onClose() {
+    paxController.dispose();
     super.onClose();
   }
 

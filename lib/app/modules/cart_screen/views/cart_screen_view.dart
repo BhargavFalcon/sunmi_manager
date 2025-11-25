@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 
@@ -16,8 +17,12 @@ class CartScreenView extends GetWidget<CartScreenController> {
   Widget build(BuildContext context) {
     return GetBuilder<CartScreenController>(
       assignId: true,
+      init: CartScreenController(),
       builder: (controller) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.fetchTableFromArguments();
+          // Refresh table areas list every time screen is opened
+          controller.fetchTablesAreas();
           if (controller.cartItems.isNotEmpty) {
             controller.syncOrderTypeFromCartItems();
           }
@@ -76,6 +81,122 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   ),
                 ],
               ),
+              Obx(() {
+                if (!controller.hasTable) {
+                  return const SizedBox.shrink();
+                }
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Pax',
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(14),
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(width: MySize.getWidth(12)),
+                      Container(
+                        width: MySize.getWidth(60),
+                        height: MySize.getHeight(36),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: controller.paxController,
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(3),
+                          ],
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(14),
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            final intValue = int.tryParse(value);
+                            if (intValue != null && intValue > 0) {
+                              controller.updatePax(intValue);
+                            } else if (value.isEmpty) {
+                              controller.pax.value = 1;
+                            }
+                          },
+                        ),
+                      ),
+                      Spacer(),
+                      Image.asset(
+                        ImageConstant.table,
+                        width: MySize.getWidth(24),
+                        height: MySize.getHeight(24),
+                        color: ColorConstants.primaryColor,
+                        fit: BoxFit.contain,
+                      ),
+                      SizedBox(width: MySize.getWidth(5)),
+                      Text(
+                        controller.selectedTable.value!.tableCode ?? '',
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(14),
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(width: MySize.getWidth(12)),
+                      InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          _showAvailableTablesBottomSheet(context, controller);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.settings_outlined,
+                            size: MySize.getHeight(18),
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               Expanded(
                 child: Obx(() {
                   if (controller.cartItems.isEmpty) {
@@ -589,40 +710,43 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           return const SizedBox.shrink();
                         }
                         // Sort taxes by name for consistent display
-                        final sortedTaxes = groupedTaxes.entries.toList()
-                          ..sort((a, b) => a.key.compareTo(b.key));
-                        
+                        final sortedTaxes =
+                            groupedTaxes.entries.toList()
+                              ..sort((a, b) => a.key.compareTo(b.key));
+
                         return Column(
-                          children: sortedTaxes.map((entry) {
-                            return Column(
-                              children: [
-                                SizedBox(height: MySize.getHeight(2)),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children:
+                              sortedTaxes.map((entry) {
+                                return Column(
                                   children: [
-                                    Text(
-                                      "${entry.key} incl.",
-                                      style: TextStyle(
-                                        fontSize: MySize.getHeight(14),
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    Text(
-                                      CurrencyFormatter.formatPriceFromDouble(
-                                        entry.value,
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: MySize.getHeight(14),
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black,
-                                      ),
+                                    SizedBox(height: MySize.getHeight(2)),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${entry.key} incl.",
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.formatPriceFromDouble(
+                                            entry.value,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                                );
+                              }).toList(),
                         );
                       }),
                       SizedBox(height: MySize.getHeight(2)),
@@ -683,7 +807,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           SizedBox(width: MySize.getWidth(8)),
                           Expanded(
                             child: InkWell(
-                              onTap: () {},
+                              onTap: () {
+                                controller.submitOrder();
+                              },
                               child: Container(
                                 alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(
@@ -707,7 +833,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           SizedBox(width: MySize.getWidth(8)),
                           Expanded(
                             child: InkWell(
-                              onTap: () {},
+                              onTap: () {
+                                controller.submitOrder(createPayment: true);
+                              },
                               child: Container(
                                 alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(
@@ -738,6 +866,286 @@ class CartScreenView extends GetWidget<CartScreenController> {
           ),
         );
       },
+    );
+  }
+
+  void _showAvailableTablesBottomSheet(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (_) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            builder:
+                (_, scrollController) => Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.bgColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Available Tables',
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(18),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Icon(
+                                Icons.close,
+                                size: MySize.getHeight(24),
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Obx(() {
+                          if (controller.tableAreasList.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'No tables available',
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            controller: scrollController,
+                            padding: const EdgeInsets.all(16),
+                            itemCount: controller.tableAreasList.length,
+                            itemBuilder: (context, areaIndex) {
+                              final area = controller.tableAreasList[areaIndex];
+                              // Filter only available tables
+                              final availableTables =
+                                  area.tables
+                                      ?.where(
+                                        (table) =>
+                                            table.availableStatus
+                                                    ?.toLowerCase() ==
+                                                'available' &&
+                                            table.status?.toLowerCase() ==
+                                                'active',
+                                      )
+                                      .toList() ??
+                                  [];
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Text(
+                                      area.name ?? 'Unnamed Area',
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(16),
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  if (availableTables.isEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 20,
+                                      ),
+                                      child: Text(
+                                        'No available tables',
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(12),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    GridView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                            crossAxisSpacing: 12,
+                                            mainAxisSpacing: 12,
+                                            childAspectRatio: 1.2,
+                                          ),
+                                      itemCount: availableTables.length,
+                                      itemBuilder: (context, tableIndex) {
+                                        final table =
+                                            availableTables[tableIndex];
+                                        final isSelected =
+                                            controller
+                                                .selectedTable
+                                                .value
+                                                ?.id ==
+                                            table.id;
+
+                                        return InkWell(
+                                          onTap: () {
+                                            controller.selectedTable.value =
+                                                table;
+                                            // Update pax to table capacity
+                                            final capacity =
+                                                table.seatingCapacity ?? 1;
+                                            controller.pax.value = capacity;
+                                            controller.paxController.text =
+                                                capacity.toString();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color:
+                                                    isSelected
+                                                        ? ColorConstants
+                                                            .primaryColor
+                                                        : Colors.grey.shade300,
+                                                width: isSelected ? 2 : 1,
+                                              ),
+                                              boxShadow:
+                                                  isSelected
+                                                      ? [
+                                                        BoxShadow(
+                                                          color: ColorConstants
+                                                              .primaryColor
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                          blurRadius: 4,
+                                                          spreadRadius: 1,
+                                                        ),
+                                                      ]
+                                                      : null,
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        ColorConstants
+                                                            .tableGreen,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    table.tableCode ??
+                                                        '${table.id}',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MySize.getHeight(12),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: MySize.getHeight(4),
+                                                ),
+                                                Text(
+                                                  '${table.seatingCapacity ?? 0} Seat(s)',
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      10,
+                                                    ),
+                                                    color: Colors.grey.shade700,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  SizedBox(height: MySize.getHeight(20)),
+                                ],
+                              );
+                            },
+                          );
+                        }),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
     );
   }
 

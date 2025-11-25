@@ -12,46 +12,80 @@ class TableScreenController extends GetxController {
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
   final horizontalScrollController = ScrollController();
+  bool _isFetching = false;
+  Worker? _selectedAreaWorker;
 
   @override
   void onInit() {
     super.onInit();
     fetchTablesAreas();
-    selectedAreaIndex.listen((_) {
+    _selectedAreaWorker = ever(selectedAreaIndex, (_) {
       resetScroll();
     });
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    // Refresh tables every time screen becomes active
+    fetchTablesAreas();
+  }
+
   void resetScroll() {
-    if (verticalScrollController.hasClients) {
-      verticalScrollController.jumpTo(0);
+    if (!verticalScrollController.hasClients ||
+        !horizontalScrollController.hasClients) {
+      return;
     }
-    if (horizontalScrollController.hasClients) {
-      horizontalScrollController.jumpTo(0);
+
+    try {
+      if (verticalScrollController.hasClients) {
+        verticalScrollController.jumpTo(0);
+      }
+      if (horizontalScrollController.hasClients) {
+        horizontalScrollController.jumpTo(0);
+      }
+    } catch (e) {
+      // Controller might be disposed, ignore
+      print('Error resetting scroll: $e');
     }
   }
 
   @override
   void onClose() {
-    verticalScrollController.dispose();
-    horizontalScrollController.dispose();
+    _selectedAreaWorker?.dispose();
+    if (verticalScrollController.hasClients) {
+      verticalScrollController.dispose();
+    }
+    if (horizontalScrollController.hasClients) {
+      horizontalScrollController.dispose();
+    }
     super.onClose();
   }
 
   Future<void> fetchTablesAreas() async {
-    isLoading.value = true;
-    final response = await networkClient.get(
-      ArgumentConstant.tablesAreasEndpoint,
-    );
-    isLoading.value = false;
+    // Prevent multiple simultaneous API calls
+    if (_isFetching) return;
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      if (response.data != null && response.data is Map<String, dynamic>) {
-        tableModel.value = TableModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
-        update();
+    _isFetching = true;
+    isLoading.value = true;
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.tablesAreasEndpoint,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          tableModel.value = TableModel.fromJson(
+            response.data as Map<String, dynamic>,
+          );
+          update();
+        }
       }
+    } catch (e) {
+      print('Error fetching tables: $e');
+    } finally {
+      isLoading.value = false;
+      _isFetching = false;
     }
   }
 
