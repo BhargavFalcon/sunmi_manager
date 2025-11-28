@@ -90,6 +90,7 @@ class TakeOrderController extends GetxController {
       final order = arguments[ArgumentConstant.orderKey];
       if (order != null && order is orderModel.GetOrderModel) {
         currentOrder.value = order;
+        // Order items will be added to cart in _processMenuItems after menu items are loaded
       }
     }
   }
@@ -173,6 +174,11 @@ class TakeOrderController extends GetxController {
 
     if (categories.isNotEmpty && selectedCategory.value.isEmpty) {
       selectedCategory.value = categories.first;
+    }
+
+    // Add order items to cart after menu items are processed
+    if (currentOrder.value != null) {
+      _addOrderItemsToCart();
     }
   }
 
@@ -1411,6 +1417,194 @@ class TakeOrderController extends GetxController {
     }
 
     return images;
+  }
+
+  void _addOrderItemsToCart() {
+    if (currentOrder.value?.data?.items == null ||
+        currentOrder.value!.data!.items!.isEmpty ||
+        menuItems.isEmpty) {
+      return;
+    }
+
+    try {
+      final cartController =
+          Get.isRegistered<CartScreenController>()
+              ? Get.find<CartScreenController>()
+              : Get.put(CartScreenController(), permanent: true);
+
+      final orderItems = currentOrder.value!.data!.items!;
+      final orderType = currentOrder.value!.data!.orderType ?? 'Pickup';
+
+      for (var orderItem in orderItems) {
+        if (orderItem.isDeleted == true ||
+            orderItem.isVariationDeleted == true) {
+          continue;
+        }
+
+        Items? menuItem;
+        try {
+          menuItem = menuItems.firstWhere(
+            (item) => item.itemName == orderItem.itemName,
+          );
+        } catch (e) {
+          continue;
+        }
+
+        final cartItem = Items(
+          id: menuItem.id,
+          itemName: menuItem.itemName,
+          itemNumber: menuItem.itemNumber,
+          description: menuItem.description,
+          imageUrl: menuItem.imageUrl,
+          type: menuItem.type,
+          inStock: menuItem.inStock,
+          price: menuItem.price,
+          onlinePrice: menuItem.onlinePrice,
+          takeAwayPrice: menuItem.takeAwayPrice,
+          category: menuItem.category,
+          variations: menuItem.variations,
+          modifierGroups: menuItem.modifierGroups,
+          variationsCount: menuItem.variationsCount,
+          modifierGroupsCount: menuItem.modifierGroupsCount,
+          taxes: menuItem.taxes,
+        );
+
+        Variations? selectedVariation;
+        if (orderItem.variationName != null &&
+            orderItem.variationName!.isNotEmpty &&
+            cartItem.variations != null) {
+          try {
+            selectedVariation = cartItem.variations!.firstWhere(
+              (v) =>
+                  v.variation?.toLowerCase() ==
+                  orderItem.variationName!.toLowerCase(),
+            );
+          } catch (e) {
+            selectedVariation = null;
+          }
+        }
+
+        List<Options>? selectedExtras;
+        if (orderItem.modifiers != null &&
+            orderItem.modifiers!.isNotEmpty &&
+            cartItem.modifierGroups != null) {
+          selectedExtras = [];
+          for (var orderModifier in orderItem.modifiers!) {
+            for (var modifierGroup in cartItem.modifierGroups!) {
+              if (modifierGroup.options != null) {
+                try {
+                  final option = modifierGroup.options!.firstWhere(
+                    (opt) =>
+                        opt.id == orderModifier.id ||
+                        opt.name?.toLowerCase() ==
+                            orderModifier.name?.toLowerCase(),
+                  );
+                  final selectedOption = Options(
+                    id: option.id,
+                    name: option.name,
+                    price: orderModifier.price ?? option.price,
+                    isAvailable: option.isAvailable,
+                  );
+                  selectedOption.isSelected.value = true;
+                  selectedExtras.add(selectedOption);
+                  break;
+                } catch (e) {}
+              }
+            }
+          }
+        }
+
+        String basePrice = '0';
+        if (selectedVariation != null) {
+          basePrice =
+              hasTable
+                  ? (selectedVariation.price ?? '0')
+                  : (orderType == 'Pickup'
+                      ? (selectedVariation.onlinePrice ??
+                          selectedVariation.price ??
+                          '0')
+                      : (selectedVariation.takeAwayPrice ??
+                          selectedVariation.price ??
+                          '0'));
+        } else {
+          basePrice =
+              hasTable
+                  ? (cartItem.price ?? '0')
+                  : (orderType == 'Pickup'
+                      ? (cartItem.onlinePrice ?? cartItem.price ?? '0')
+                      : (cartItem.takeAwayPrice ?? cartItem.price ?? '0'));
+        }
+
+        double extrasPrice = 0.0;
+        if (selectedExtras != null && selectedExtras.isNotEmpty) {
+          for (var extra in selectedExtras) {
+            extrasPrice += double.tryParse(extra.price ?? '0') ?? 0.0;
+          }
+        }
+
+        final totalPrice = (double.tryParse(basePrice) ?? 0.0) + extrasPrice;
+
+        cartItem.cartItemId =
+            '${cartItem.id}_${selectedVariation?.id ?? 'no_var'}_${DateTime.now().millisecondsSinceEpoch}';
+        cartItem.selectedVariation = selectedVariation;
+        cartItem.selectedExtras =
+            selectedExtras?.isNotEmpty == true ? selectedExtras : null;
+        cartItem.quantity.value = orderItem.quantity ?? 1;
+        cartItem.cartTotalPrice = totalPrice;
+        cartItem.cartOrderType = orderType;
+        cartItem.cartNote = '';
+        cartItem.cartNoteDraft = '';
+        cartItem.cartEditingNote = false;
+
+        final existingItem = cartController.findExistingCartItem(cartItem);
+        if (existingItem != null) {
+          existingItem.quantity.value =
+              existingItem.quantity.value + cartItem.quantity.value;
+          cartController.cartItems.refresh();
+        } else {
+          cartController.addToCart(cartItem);
+        }
+      }
+
+      _updateCartCount();
+      _applyOrderDiscount(cartController);
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to load order items: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  void _applyOrderDiscount(CartScreenController cartController) {
+    try {
+      final orderTotals = currentOrder.value?.data?.totals;
+      if (orderTotals == null) return;
+
+      final discountAmount = (orderTotals.discountAmount ?? 0).toDouble();
+      if (discountAmount <= 0) return;
+
+      final subTotal = double.tryParse(orderTotals.subTotal ?? '0') ?? 0.0;
+      final total = subTotal > 0 ? subTotal : cartController.totalPrice;
+
+      if (total <= 0) {
+        cartController.setDiscount(discountAmount, 'Fixed');
+        return;
+      }
+
+      final discountPercent = (discountAmount / total) * 100;
+      final roundedPercent = discountPercent.round();
+      final isPercentDiscount = (discountPercent - roundedPercent).abs() < 0.1;
+
+      if (isPercentDiscount && roundedPercent > 0 && roundedPercent <= 100) {
+        cartController.setDiscount(roundedPercent.toDouble(), 'Percent');
+      } else {
+        cartController.setDiscount(discountAmount, 'Fixed');
+      }
+    } catch (e) {
+      print('Error applying discount: $e');
+    }
   }
 
   @override

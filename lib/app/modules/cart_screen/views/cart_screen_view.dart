@@ -834,7 +834,10 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                controller.submitOrder(createPayment: true, status: 'billed');
+                                controller.submitOrder(
+                                  createPayment: true,
+                                  status: 'billed',
+                                );
                               },
                               child: Container(
                                 alignment: Alignment.center,

@@ -165,14 +165,16 @@ class ActiveOrder {
   String? uuid;
   int? orderNumber;
   String? status;
+  double? total;
 
-  ActiveOrder({this.id, this.uuid, this.orderNumber, this.status});
+  ActiveOrder({this.id, this.uuid, this.orderNumber, this.status, this.total});
 
   ActiveOrder.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     uuid = json['uuid'];
     orderNumber = json['order_number'];
     status = json['status'];
+    total = json['total'] != null ? (json['total'] is double ? json['total'] : (json['total'] as num).toDouble()) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -181,6 +183,7 @@ class ActiveOrder {
     data['uuid'] = this.uuid;
     data['order_number'] = this.orderNumber;
     data['status'] = this.status;
+    data['total'] = this.total;
     return data;
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../data/NetworkClient.dart';
@@ -100,7 +99,10 @@ class CartScreenController extends GetxController {
     }
   }
 
-  Future<void> submitOrder({bool createPayment = false, String status = 'kot'}) async {
+  Future<void> submitOrder({
+    bool createPayment = false,
+    String status = 'kot',
+  }) async {
     try {
       if (!hasTable) {
         Get.snackbar(

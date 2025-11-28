@@ -9,6 +9,7 @@ import '../../../routes/app_pages.dart';
 class TableScreenController extends GetxController {
   final networkClient = NetworkClient();
   final isLoading = false.obs;
+  final isNavigatingToOrder = false.obs;
   final tableModel = Rx<TableModel?>(null);
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
@@ -93,6 +94,7 @@ class TableScreenController extends GetxController {
   Future<void> navigateToTakeOrderScreen(Tables table) async {
     // Check if table has active order
     if (table.activeOrder != null && table.activeOrder!.uuid != null) {
+      isNavigatingToOrder.value = true;
       try {
         // Fetch order details without showing loader
         final orderUuid = table.activeOrder!.uuid!;
@@ -132,6 +134,8 @@ class TableScreenController extends GetxController {
           Routes.TAKE_ORDER_SCREEN,
           arguments: {ArgumentConstant.tableKey: table},
         );
+      } finally {
+        isNavigatingToOrder.value = false;
       }
     } else {
       // No active order, navigate normally
