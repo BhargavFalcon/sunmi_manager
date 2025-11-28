@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -13,6 +11,7 @@ import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/tableModel.dart';
+import '../../../model/getorderModel.dart' as orderModel;
 import '../../../utils/currency_formatter.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
 
@@ -50,6 +49,10 @@ class TakeOrderController extends GetxController {
   // Table from arguments
   final Rx<Tables?> selectedTable = Rx<Tables?>(null);
 
+  // Order from arguments
+  final Rx<orderModel.GetOrderModel?> currentOrder =
+      Rx<orderModel.GetOrderModel?>(null);
+
   // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
 
@@ -60,6 +63,7 @@ class TakeOrderController extends GetxController {
   void onInit() {
     super.onInit();
     _fetchTableFromArguments();
+    _fetchOrderFromArguments();
     loadMenuItemsFromStorage();
     _updateCartCount();
 
@@ -76,6 +80,16 @@ class TakeOrderController extends GetxController {
       final table = arguments[ArgumentConstant.tableKey];
       if (table != null && table is Tables) {
         selectedTable.value = table;
+      }
+    }
+  }
+
+  void _fetchOrderFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      final order = arguments[ArgumentConstant.orderKey];
+      if (order != null && order is orderModel.GetOrderModel) {
+        currentOrder.value = order;
       }
     }
   }
@@ -368,7 +382,7 @@ class TakeOrderController extends GetxController {
 
       // Get base price
       String basePrice = '0';
-      
+
       if (selectedVariation != null) {
         if (hasTable) {
           // If table is selected, use only base price
@@ -380,7 +394,9 @@ class TakeOrderController extends GetxController {
                 selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
           } else {
             basePrice =
-                selectedVariation.takeAwayPrice ?? selectedVariation.price ?? '0';
+                selectedVariation.takeAwayPrice ??
+                selectedVariation.price ??
+                '0';
           }
         }
       } else {
@@ -704,7 +720,7 @@ class TakeOrderController extends GetxController {
                   SizedBox(height: MySize.getHeight(8)),
                   ...variations.map((variation) {
                     String price = '0';
-                    
+
                     if (hasTable) {
                       // If table is selected, show only base price
                       price = variation.price ?? '0';
@@ -713,7 +729,8 @@ class TakeOrderController extends GetxController {
                       if (selectedOrderType.value == 'Pickup') {
                         price = variation.onlinePrice ?? variation.price ?? '0';
                       } else {
-                        price = variation.takeAwayPrice ?? variation.price ?? '0';
+                        price =
+                            variation.takeAwayPrice ?? variation.price ?? '0';
                       }
                     }
 

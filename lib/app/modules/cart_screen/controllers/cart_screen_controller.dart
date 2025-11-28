@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../data/NetworkClient.dart';
@@ -99,9 +100,8 @@ class CartScreenController extends GetxController {
     }
   }
 
-  Future<void> submitOrder({bool createPayment = false}) async {
+  Future<void> submitOrder({bool createPayment = false, String status = 'kot'}) async {
     try {
-      // Validate required fields
       if (!hasTable) {
         Get.snackbar(
           'Error',
@@ -120,7 +120,6 @@ class CartScreenController extends GetxController {
         return;
       }
 
-      // Get user id from login model
       int? waiterId;
       try {
         final loginData = box.read(ArgumentConstant.loginModelKey);
@@ -141,7 +140,6 @@ class CartScreenController extends GetxController {
         return;
       }
 
-      // Get table id
       final tableId = selectedTable.value?.id;
       if (tableId == null) {
         Get.snackbar(
@@ -152,10 +150,6 @@ class CartScreenController extends GetxController {
         return;
       }
 
-      // Format date_time in ISO format
-      final dateTime = DateTime.now().toUtc().toIso8601String();
-
-      // Map cart items to API format
       final List<Map<String, dynamic>> itemsList = [];
       for (var item in cartItems) {
         final itemData = <String, dynamic>{
@@ -163,12 +157,10 @@ class CartScreenController extends GetxController {
           'quantity': item.quantity.value,
         };
 
-        // Add variation id if exists
         if (item.selectedVariation != null) {
           itemData['menu_item_variation_id'] = item.selectedVariation!.id;
         }
 
-        // Add modifier option ids if exists
         if (item.selectedExtras != null && item.selectedExtras!.isNotEmpty) {
           final optionIds =
               item.selectedExtras!
@@ -180,7 +172,6 @@ class CartScreenController extends GetxController {
           }
         }
 
-        // Add note if exists
         if (item.cartNote != null && item.cartNote!.isNotEmpty) {
           itemData['note'] = item.cartNote;
         }
@@ -195,7 +186,7 @@ class CartScreenController extends GetxController {
         'waiter_id': waiterId,
         'number_of_pax': pax.value,
         'items': itemsList,
-        'date_time': dateTime,
+        'status': status,
       };
 
       // Add discount if applied

@@ -808,7 +808,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                controller.submitOrder();
+                                controller.submitOrder(status: 'kot');
                               },
                               child: Container(
                                 alignment: Alignment.center,
@@ -834,7 +834,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                controller.submitOrder(createPayment: true);
+                                controller.submitOrder(createPayment: true, status: 'billed');
                               },
                               child: Container(
                                 alignment: Alignment.center,

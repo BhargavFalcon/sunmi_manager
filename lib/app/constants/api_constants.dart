@@ -11,6 +11,8 @@ class ArgumentConstant {
   static const restaurantDetailsKey = "restaurant_details";
   static const tablesAreasEndpoint = "api/v1/pos/tables/areas";
   static const tableKey = "table";
-  static const ordersEndpoint = "api/v1/pos/orders";
+  static const ordersEndpoint = "api/v1/pos/orders/dine-in";
+  static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const paymentsEndpoint = "api/v1/pos/payments";
+  static const orderKey = "order";
 }

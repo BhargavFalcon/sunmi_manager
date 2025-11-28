@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../constants/api_constants.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/tableModel.dart';
+import '../../../model/getorderModel.dart' as orderModel;
 import '../../../routes/app_pages.dart';
 
 class TableScreenController extends GetxController {
@@ -89,10 +90,55 @@ class TableScreenController extends GetxController {
     }
   }
 
-  void navigateToTakeOrderScreen(Tables table) {
-    Get.toNamed(
-      Routes.TAKE_ORDER_SCREEN,
-      arguments: {ArgumentConstant.tableKey: table},
-    );
+  Future<void> navigateToTakeOrderScreen(Tables table) async {
+    // Check if table has active order
+    if (table.activeOrder != null && table.activeOrder!.uuid != null) {
+      try {
+        // Fetch order details without showing loader
+        final orderUuid = table.activeOrder!.uuid!;
+        final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid);
+        final response = await networkClient.get(endpoint);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data != null && response.data is Map<String, dynamic>) {
+            final order = orderModel.GetOrderModel.fromJson(
+              response.data as Map<String, dynamic>,
+            );
+            // Navigate with both table and order
+            Get.toNamed(
+              Routes.TAKE_ORDER_SCREEN,
+              arguments: {
+                ArgumentConstant.tableKey: table,
+                ArgumentConstant.orderKey: order,
+              },
+            );
+            return;
+          }
+        }
+        // If API call fails, navigate without order
+        Get.toNamed(
+          Routes.TAKE_ORDER_SCREEN,
+          arguments: {ArgumentConstant.tableKey: table},
+        );
+      } catch (e) {
+        print('Error fetching order: $e');
+        Get.snackbar(
+          'Error',
+          'Failed to load order details',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        // Navigate without order on error
+        Get.toNamed(
+          Routes.TAKE_ORDER_SCREEN,
+          arguments: {ArgumentConstant.tableKey: table},
+        );
+      }
+    } else {
+      // No active order, navigate normally
+      Get.toNamed(
+        Routes.TAKE_ORDER_SCREEN,
+        arguments: {ArgumentConstant.tableKey: table},
+      );
+    }
   }
 }
