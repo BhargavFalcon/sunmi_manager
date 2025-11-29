@@ -7,6 +7,7 @@ import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/RestaurantDetailsModel.dart';
 import '../../../model/tableModel.dart' as tableModel;
+import '../../../model/getorderModel.dart' as orderModel;
 import '../../../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
 import '../../../routes/app_pages.dart';
 
@@ -25,6 +26,9 @@ class CartScreenController extends GetxController {
 
   // Table from arguments
   final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
+
+  // Existing order (when coming from Continue to order)
+  String? existingOrderId;
 
   // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
@@ -49,6 +53,8 @@ class CartScreenController extends GetxController {
     final arguments = Get.arguments;
     if (arguments != null && arguments is Map) {
       final table = arguments[ArgumentConstant.tableKey];
+      final order = arguments[ArgumentConstant.orderKey];
+
       if (table != null && table is tableModel.Tables) {
         selectedTable.value = table;
         // Set initial pax to table capacity
@@ -60,6 +66,11 @@ class CartScreenController extends GetxController {
         selectedTable.value = null;
         pax.value = 1;
         paxController.text = '1';
+      }
+
+      if (order != null && order is orderModel.GetOrderModel) {
+        existingOrderId = order.data?.uuid?.toString() ??
+            order.data?.id?.toString();
       }
     } else {
       // Clear table if no arguments
@@ -181,43 +192,65 @@ class CartScreenController extends GetxController {
         itemsList.add(itemData);
       }
 
-      // Prepare request body
-      final requestBody = <String, dynamic>{
-        'order_type': 'dine_in',
-        'table_id': tableId,
-        'waiter_id': waiterId,
-        'number_of_pax': pax.value,
-        'items': itemsList,
-        'status': status,
-      };
+      final bool isExistingOrder = existingOrderId != null &&
+          existingOrderId!.isNotEmpty;
 
-      // Add discount if applied
-      if (discountValue.value > 0) {
-        requestBody['discount_type'] = discountType.value.toLowerCase();
-        requestBody['discount_value'] = discountValue.value.toString();
+      Map<String, dynamic> requestBody;
+      String endpoint;
+
+      if (isExistingOrder) {
+        // Add items to existing order
+        requestBody = {
+          'items': itemsList,
+        };
+        endpoint = ArgumentConstant.addOrderItemsEndpoint.replaceAll(
+          ':order_uuid',
+          existingOrderId!,
+        );
+      } else {
+        // Create new order
+        requestBody = {
+          'order_type': 'dine_in',
+          'table_id': tableId,
+          'waiter_id': waiterId,
+          'number_of_pax': pax.value,
+          'items': itemsList,
+          'status': status,
+        };
+
+        // Add discount if applied
+        if (discountValue.value > 0) {
+          requestBody['discount_type'] = discountType.value.toLowerCase();
+          requestBody['discount_value'] = discountValue.value.toString();
+        }
+
+        endpoint = ArgumentConstant.ordersEndpoint;
       }
 
-      // Call Order API
+      // Call Order API (create or append items)
       final response = await networkClient.post(
-        ArgumentConstant.ordersEndpoint,
+        endpoint,
         data: requestBody,
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Extract order_id from response
-        String? orderId;
-        if (response.data != null && response.data is Map<String, dynamic>) {
-          final responseData = response.data as Map<String, dynamic>;
-          if (responseData['data'] != null &&
-              responseData['data'] is Map<String, dynamic>) {
-            final data = responseData['data'] as Map<String, dynamic>;
-            // Prefer UUID, fallback to ID
-            orderId = data['uuid']?.toString() ?? data['id']?.toString();
-          } else {
-            // Fallback to direct keys
-            orderId =
-                responseData['order_id']?.toString() ??
-                responseData['uuid']?.toString() ??
-                responseData['id']?.toString();
+        // Extract order_id from response (for new orders) or use existing
+        String? orderId = existingOrderId;
+
+        if (!isExistingOrder) {
+          if (response.data != null && response.data is Map<String, dynamic>) {
+            final responseData = response.data as Map<String, dynamic>;
+            if (responseData['data'] != null &&
+                responseData['data'] is Map<String, dynamic>) {
+              final data = responseData['data'] as Map<String, dynamic>;
+              // Prefer UUID, fallback to ID
+              orderId = data['uuid']?.toString() ?? data['id']?.toString();
+            } else {
+              // Fallback to direct keys
+              orderId =
+                  responseData['order_id']?.toString() ??
+                  responseData['uuid']?.toString() ??
+                  responseData['id']?.toString();
+            }
           }
         }
 

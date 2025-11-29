@@ -1582,7 +1582,9 @@ class TakeOrderController extends GetxController {
       final orderTotals = currentOrder.value?.data?.totals;
       if (orderTotals == null) return;
 
-      final discountAmount = (orderTotals.discountAmount ?? 0).toDouble();
+      final discountAmountString = orderTotals.discountAmount ?? '0';
+      final discountAmount =
+          double.tryParse(discountAmountString.replaceAll(',', '.')) ?? 0.0;
       if (discountAmount <= 0) return;
 
       final subTotal = double.tryParse(orderTotals.subTotal ?? '0') ?? 0.0;

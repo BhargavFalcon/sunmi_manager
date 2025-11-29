@@ -44,30 +44,31 @@ class Data {
   String? createdAt;
   String? updatedAt;
 
-  Data(
-      {this.uuid,
-        this.id,
-        this.orderNumber,
-        this.dateTime,
-        this.status,
-        this.orderStatus,
-        this.orderType,
-        this.branchId,
-        this.table,
-        this.waiter,
-        this.currency,
-        this.currencyId,
-        this.currencyConfig,
-        this.items,
-        this.kots,
-        this.totals,
-        this.numberOfPax,
-        this.taxModeAtOrder,
-        this.taxInclusiveAtOrder,
-        this.distributionFee,
-        this.isWithinRadius,
-        this.createdAt,
-        this.updatedAt});
+  Data({
+    this.uuid,
+    this.id,
+    this.orderNumber,
+    this.dateTime,
+    this.status,
+    this.orderStatus,
+    this.orderType,
+    this.branchId,
+    this.table,
+    this.waiter,
+    this.currency,
+    this.currencyId,
+    this.currencyConfig,
+    this.items,
+    this.kots,
+    this.totals,
+    this.numberOfPax,
+    this.taxModeAtOrder,
+    this.taxInclusiveAtOrder,
+    this.distributionFee,
+    this.isWithinRadius,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     uuid = json['uuid'];
@@ -80,14 +81,16 @@ class Data {
     branchId = json['branch_id'];
     table = json['table'] != null ? new Table.fromJson(json['table']) : null;
     waiter =
-    json['waiter'] != null ? new Waiter.fromJson(json['waiter']) : null;
-    currency = json['currency'] != null
-        ? new Currency.fromJson(json['currency'])
-        : null;
+        json['waiter'] != null ? new Waiter.fromJson(json['waiter']) : null;
+    currency =
+        json['currency'] != null
+            ? new Currency.fromJson(json['currency'])
+            : null;
     currencyId = json['currency_id'];
-    currencyConfig = json['currency_config'] != null
-        ? new CurrencyConfig.fromJson(json['currency_config'])
-        : null;
+    currencyConfig =
+        json['currency_config'] != null
+            ? new CurrencyConfig.fromJson(json['currency_config'])
+            : null;
     if (json['items'] != null) {
       items = <Items>[];
       json['items'].forEach((v) {
@@ -101,7 +104,7 @@ class Data {
       });
     }
     totals =
-    json['totals'] != null ? new Totals.fromJson(json['totals']) : null;
+        json['totals'] != null ? new Totals.fromJson(json['totals']) : null;
     numberOfPax = json['number_of_pax'];
     taxModeAtOrder = json['tax_mode_at_order'];
     taxInclusiveAtOrder = json['tax_inclusive_at_order'];
@@ -204,14 +207,15 @@ class Currency {
   String? thousandSeparator;
   String? decimalSeparator;
 
-  Currency(
-      {this.id,
-        this.currencyCode,
-        this.currencySymbol,
-        this.currencyPosition,
-        this.noOfDecimal,
-        this.thousandSeparator,
-        this.decimalSeparator});
+  Currency({
+    this.id,
+    this.currencyCode,
+    this.currencySymbol,
+    this.currencyPosition,
+    this.noOfDecimal,
+    this.thousandSeparator,
+    this.decimalSeparator,
+  });
 
   Currency.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -244,13 +248,14 @@ class CurrencyConfig {
   String? thousandSeparator;
   String? decimalSeparator;
 
-  CurrencyConfig(
-      {this.code,
-        this.symbol,
-        this.position,
-        this.decimalPlaces,
-        this.thousandSeparator,
-        this.decimalSeparator});
+  CurrencyConfig({
+    this.code,
+    this.symbol,
+    this.position,
+    this.decimalPlaces,
+    this.thousandSeparator,
+    this.decimalSeparator,
+  });
 
   CurrencyConfig.fromJson(Map<String, dynamic> json) {
     code = json['code'];
@@ -289,21 +294,22 @@ class Items {
   bool? isVariationDeleted;
   String? variationName;
 
-  Items(
-      {this.id,
-        this.itemName,
-        this.itemNumber,
-        this.modifiers,
-        this.quantity,
-        this.price,
-        this.amount,
-        this.formattedAmount,
-        this.taxAmount,
-        this.taxPercentage,
-        this.taxBreakup,
-        this.isDeleted,
-        this.isVariationDeleted,
-        this.variationName});
+  Items({
+    this.id,
+    this.itemName,
+    this.itemNumber,
+    this.modifiers,
+    this.quantity,
+    this.price,
+    this.amount,
+    this.formattedAmount,
+    this.taxAmount,
+    this.taxPercentage,
+    this.taxBreakup,
+    this.isDeleted,
+    this.isVariationDeleted,
+    this.variationName,
+  });
 
   Items.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -321,9 +327,10 @@ class Items {
     formattedAmount = json['formatted_amount'];
     taxAmount = json['tax_amount'];
     taxPercentage = json['tax_percentage'];
-    taxBreakup = json['tax_breakup'] != null
-        ? new TaxBreakup.fromJson(json['tax_breakup'])
-        : null;
+    taxBreakup =
+        json['tax_breakup'] != null
+            ? new TaxBreakup.fromJson(json['tax_breakup'])
+            : null;
     isDeleted = json['is_deleted'];
     isVariationDeleted = json['is_variation_deleted'];
     variationName = json['variation_name'];
@@ -383,9 +390,10 @@ class TaxBreakup {
 
   TaxBreakup.fromJson(Map<String, dynamic> json) {
     vAT = json['VAT'] != null ? new VAT.fromJson(json['VAT']) : null;
-    vATAlcohol = json['VAT Alcohol'] != null
-        ? new VAT.fromJson(json['VAT Alcohol'])
-        : null;
+    vATAlcohol =
+        json['VAT Alcohol'] != null
+            ? new VAT.fromJson(json['VAT Alcohol'])
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -443,25 +451,26 @@ class Kots {
 
 class Totals {
   String? subTotal;
-  int? discountAmount;
+  String? discountAmount;
   String? totalTaxAmount;
   String? tipAmount;
   String? deliveryFee;
   String? total;
   String? amountPaid;
 
-  Totals(
-      {this.subTotal,
-        this.discountAmount,
-        this.totalTaxAmount,
-        this.tipAmount,
-        this.deliveryFee,
-        this.total,
-        this.amountPaid});
+  Totals({
+    this.subTotal,
+    this.discountAmount,
+    this.totalTaxAmount,
+    this.tipAmount,
+    this.deliveryFee,
+    this.total,
+    this.amountPaid,
+  });
 
   Totals.fromJson(Map<String, dynamic> json) {
     subTotal = json['sub_total'];
-    discountAmount = json['discount_amount'];
+    discountAmount = json['discount_amount'].toString();
     totalTaxAmount = json['total_tax_amount'];
     tipAmount = json['tip_amount'];
     deliveryFee = json['delivery_fee'];

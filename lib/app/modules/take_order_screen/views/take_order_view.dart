@@ -138,10 +138,22 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         highlightColor: Colors.transparent,
                         splashColor: Colors.transparent,
                         onTap: () {
-                          final arguments = controller.hasTable
-                              ? {ArgumentConstant.tableKey: controller.selectedTable.value}
-                              : null;
-                          Get.toNamed(Routes.CART_SCREEN, arguments: arguments);
+                          final Map<String, dynamic> arguments = {};
+
+                          if (controller.hasTable) {
+                            arguments[ArgumentConstant.tableKey] =
+                                controller.selectedTable.value;
+                          }
+
+                          if (controller.currentOrder.value != null) {
+                            arguments[ArgumentConstant.orderKey] =
+                                controller.currentOrder.value;
+                          }
+
+                          Get.toNamed(
+                            Routes.CART_SCREEN,
+                            arguments: arguments.isEmpty ? null : arguments,
+                          );
                         },
                         child: Container(
                           alignment: Alignment.center,
@@ -217,10 +229,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     }
 
                     return Obx(() {
-                      final itemCount = controller.hasTable
-                          ? visibleCategories.length + 1
-                          : visibleCategories.length + 2;
-                      
+                      final itemCount =
+                          controller.hasTable
+                              ? visibleCategories.length + 1
+                              : visibleCategories.length + 2;
+
                       return ScrollablePositionedList.builder(
                         itemScrollController: controller.itemScrollController,
                         itemPositionsListener: controller.itemPositionsListener,
@@ -238,9 +251,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             );
                           }
 
-                          final categoryIndex = controller.hasTable ? index - 1 : index - 2;
+                          final categoryIndex =
+                              controller.hasTable ? index - 1 : index - 2;
                           final category = visibleCategories[categoryIndex];
-                          final items = controller.filteredGroupedItems[category];
+                          final items =
+                              controller.filteredGroupedItems[category];
                           if (items == null || items.isEmpty) {
                             return const SizedBox.shrink();
                           }
@@ -550,7 +565,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 ),
                 Obx(() {
                   String price = '0';
-                  
+
                   if (itemObject != null) {
                     if (controller.hasTable) {
                       // If table is selected, show only base price
@@ -558,7 +573,8 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     } else {
                       // If no table, show price based on order type
                       if (controller.selectedOrderType.value == 'Pickup') {
-                        price = itemObject.onlinePrice ?? itemObject.price ?? '0';
+                        price =
+                            itemObject.onlinePrice ?? itemObject.price ?? '0';
                       } else {
                         price =
                             itemObject.takeAwayPrice ?? itemObject.price ?? '0';

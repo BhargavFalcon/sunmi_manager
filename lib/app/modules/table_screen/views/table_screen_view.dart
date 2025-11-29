@@ -313,6 +313,20 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                       'running' &&
                                                   isActive;
 
+                                              final activeOrder =
+                                                  table.activeOrder;
+                                              final activeOrderTotal =
+                                                  activeOrder?.total;
+                                              final formattedActiveTotal =
+                                                  (isBlueTable &&
+                                                          activeOrderTotal !=
+                                                              null)
+                                                      ? CurrencyFormatter
+                                                          .formatPriceFromDouble(
+                                                          activeOrderTotal,
+                                                        )
+                                                      : null;
+
                                               return Positioned(
                                                 left: left,
                                                 top: top,
@@ -334,8 +348,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                             );
                                                           }
                                                           : null,
-                                                  child:
-                                                      isOval
+                                                  child: isOval
                                                           ? ClipOval(
                                                             child: Container(
                                                               width: width,
@@ -350,24 +363,70 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                     Text(
                                                                       table.tableCode ??
                                                                           '${table.id}',
-                                                                      style: TextStyle(
+                                                                      style:
+                                                                          TextStyle(
                                                                         fontSize:
                                                                             MySize.getHeight(
-                                                                              14,
-                                                                            ),
+                                                                          14,
+                                                                        ),
                                                                         fontWeight:
                                                                             FontWeight.bold,
-                                                                        color:
-                                                                            Colors.white,
+                                                                        color: Colors
+                                                                            .white,
                                                                       ),
                                                                     ),
-                                                                    if (table
+                                                                    if (formattedActiveTotal !=
+                                                                        null)
+                                                                      Container(
+                                                                        margin:
+                                                                            const EdgeInsets.only(
+                                                                          top:
+                                                                              4,
+                                                                        ),
+                                                                        padding:
+                                                                            const EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              10,
+                                                                          vertical:
+                                                                              4,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: Colors
+                                                                              .black
+                                                                              .withOpacity(
+                                                                            0.7,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(
+                                                                            16,
+                                                                          ),
+                                                                        ),
+                                                                        child:
+                                                                            Text(
+                                                                          formattedActiveTotal,
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                MySize.getHeight(
+                                                                              12,
+                                                                            ),
+                                                                            fontWeight:
+                                                                                FontWeight.w600,
+                                                                            color:
+                                                                                Colors.white,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    else if (table
                                                                             .seatingCapacity !=
                                                                         null)
                                                                       Text(
                                                                         '${table.seatingCapacity} Seat(s)',
-                                                                        style: TextStyle(
-                                                                          fontSize: MySize.getHeight(
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              MySize.getHeight(
                                                                             10,
                                                                           ),
                                                                           color:
@@ -406,29 +465,73 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                   Text(
                                                                     table.tableCode ??
                                                                         '${table.id}',
-                                                                    style: TextStyle(
+                                                                    style:
+                                                                        TextStyle(
                                                                       fontSize:
                                                                           14,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold,
-                                                                      color:
-                                                                          Colors
-                                                                              .white,
+                                                                      color: Colors
+                                                                          .white,
                                                                     ),
                                                                   ),
-                                                                  if (table
+                                                                  if (formattedActiveTotal !=
+                                                                      null)
+                                                                    Container(
+                                                                      margin:
+                                                                          const EdgeInsets.only(
+                                                                        top: 4,
+                                                                      ),
+                                                                      padding:
+                                                                          const EdgeInsets
+                                                                              .symmetric(
+                                                                        horizontal:
+                                                                            10,
+                                                                        vertical:
+                                                                            4,
+                                                                      ),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: Colors
+                                                                            .black
+                                                                            .withOpacity(
+                                                                          0.7,
+                                                                        ),
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                          16,
+                                                                        ),
+                                                                      ),
+                                                                      child:
+                                                                          Text(
+                                                                        formattedActiveTotal,
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              MySize.getHeight(
+                                                                            12,
+                                                                          ),
+                                                                          fontWeight:
+                                                                              FontWeight.w600,
+                                                                          color:
+                                                                              Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  else if (table
                                                                           .seatingCapacity !=
                                                                       null)
                                                                     Text(
                                                                       '${table.seatingCapacity} Seat(s)',
-                                                                      style: TextStyle(
+                                                                      style:
+                                                                          TextStyle(
                                                                         fontSize:
                                                                             MySize.getHeight(
-                                                                              10,
-                                                                            ),
-                                                                        color:
-                                                                            Colors.white,
+                                                                          10,
+                                                                        ),
+                                                                        color: Colors
+                                                                            .white,
                                                                       ),
                                                                     ),
                                                                 ],

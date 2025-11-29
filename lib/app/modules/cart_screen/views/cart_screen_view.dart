@@ -849,7 +849,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  "Submit & Bill",
+                                  "Bill & Payment",
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(14),
                                     fontWeight: FontWeight.w500,
