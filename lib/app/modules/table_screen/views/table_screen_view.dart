@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/tableModel.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
@@ -321,10 +322,9 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                   (isBlueTable &&
                                                           activeOrderTotal !=
                                                               null)
-                                                      ? CurrencyFormatter
-                                                          .formatPriceFromDouble(
-                                                          activeOrderTotal,
-                                                        )
+                                                      ? CurrencyFormatter.formatPriceFromDouble(
+                                                        activeOrderTotal,
+                                                      )
                                                       : null;
 
                                               return Positioned(
@@ -348,7 +348,8 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                             );
                                                           }
                                                           : null,
-                                                  child: isOval
+                                                  child:
+                                                      isOval
                                                           ? ClipOval(
                                                             child: Container(
                                                               width: width,
@@ -363,52 +364,42 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                     Text(
                                                                       table.tableCode ??
                                                                           '${table.id}',
-                                                                      style:
-                                                                          TextStyle(
+                                                                      style: TextStyle(
                                                                         fontSize:
                                                                             MySize.getHeight(
-                                                                          14,
-                                                                        ),
+                                                                              14,
+                                                                            ),
                                                                         fontWeight:
                                                                             FontWeight.bold,
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            Colors.white,
                                                                       ),
                                                                     ),
                                                                     if (formattedActiveTotal !=
                                                                         null)
                                                                       Container(
-                                                                        margin:
-                                                                            const EdgeInsets.only(
+                                                                        margin: const EdgeInsets.only(
                                                                           top:
                                                                               4,
                                                                         ),
-                                                                        padding:
-                                                                            const EdgeInsets.symmetric(
+                                                                        padding: const EdgeInsets.symmetric(
                                                                           horizontal:
                                                                               10,
                                                                           vertical:
                                                                               4,
                                                                         ),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color: Colors
-                                                                              .black
-                                                                              .withOpacity(
+                                                                        decoration: BoxDecoration(
+                                                                          color: Colors.black.withOpacity(
                                                                             0.7,
                                                                           ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(
+                                                                          borderRadius: BorderRadius.circular(
                                                                             16,
                                                                           ),
                                                                         ),
-                                                                        child:
-                                                                            Text(
+                                                                        child: Text(
                                                                           formattedActiveTotal,
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                MySize.getHeight(
+                                                                          style: TextStyle(
+                                                                            fontSize: MySize.getHeight(
                                                                               12,
                                                                             ),
                                                                             fontWeight:
@@ -423,10 +414,8 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                         null)
                                                                       Text(
                                                                         '${table.seatingCapacity} Seat(s)',
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
-                                                                              MySize.getHeight(
+                                                                        style: TextStyle(
+                                                                          fontSize: MySize.getHeight(
                                                                             10,
                                                                           ),
                                                                           color:
@@ -465,15 +454,15 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                   Text(
                                                                     table.tableCode ??
                                                                         '${table.id}',
-                                                                    style:
-                                                                        TextStyle(
+                                                                    style: TextStyle(
                                                                       fontSize:
                                                                           14,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold,
-                                                                      color: Colors
-                                                                          .white,
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
                                                                     ),
                                                                   ),
                                                                   if (formattedActiveTotal !=
@@ -481,35 +470,30 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                     Container(
                                                                       margin:
                                                                           const EdgeInsets.only(
-                                                                        top: 4,
-                                                                      ),
-                                                                      padding:
-                                                                          const EdgeInsets
-                                                                              .symmetric(
+                                                                            top:
+                                                                                4,
+                                                                          ),
+                                                                      padding: const EdgeInsets.symmetric(
                                                                         horizontal:
                                                                             10,
                                                                         vertical:
                                                                             4,
                                                                       ),
-                                                                      decoration:
-                                                                          BoxDecoration(
+                                                                      decoration: BoxDecoration(
                                                                         color: Colors
                                                                             .black
                                                                             .withOpacity(
-                                                                          0.7,
-                                                                        ),
+                                                                              0.7,
+                                                                            ),
                                                                         borderRadius:
                                                                             BorderRadius.circular(
-                                                                          16,
-                                                                        ),
+                                                                              16,
+                                                                            ),
                                                                       ),
-                                                                      child:
-                                                                          Text(
+                                                                      child: Text(
                                                                         formattedActiveTotal,
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
-                                                                              MySize.getHeight(
+                                                                        style: TextStyle(
+                                                                          fontSize: MySize.getHeight(
                                                                             12,
                                                                           ),
                                                                           fontWeight:
@@ -524,14 +508,13 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                       null)
                                                                     Text(
                                                                       '${table.seatingCapacity} Seat(s)',
-                                                                      style:
-                                                                          TextStyle(
+                                                                      style: TextStyle(
                                                                         fontSize:
                                                                             MySize.getHeight(
-                                                                          10,
-                                                                        ),
-                                                                        color: Colors
-                                                                            .white,
+                                                                              10,
+                                                                            ),
+                                                                        color:
+                                                                            Colors.white,
                                                                       ),
                                                                     ),
                                                                 ],
@@ -686,10 +669,12 @@ void _showRunningTablePopup(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.close,
-                        size: MySize.getHeight(20),
-                        color: ColorConstants.primaryColor,
+                      child: Image.asset(
+                        ImageConstant.close,
+                        width: MySize.getHeight(20),
+                        height: MySize.getHeight(20),
+                        fit: BoxFit.contain,
+                        color: Colors.red,
                       ),
                     ),
                   ),
@@ -697,7 +682,7 @@ void _showRunningTablePopup(
               ),
               SizedBox(height: MySize.getHeight(20)),
               _buildActionButton(
-                icon: Icons.edit_note,
+                imagePath: ImageConstant.continueOrder,
                 label: 'Continue to order',
                 onTap: () {
                   Navigator.of(context).pop();
@@ -706,7 +691,7 @@ void _showRunningTablePopup(
               ),
               SizedBox(height: MySize.getHeight(12)),
               _buildActionButton(
-                icon: Icons.payment,
+                imagePath: ImageConstant.pay,
                 label: 'Pay',
                 onTap: () {
                   Navigator.of(context).pop();
@@ -715,7 +700,7 @@ void _showRunningTablePopup(
               ),
               SizedBox(height: MySize.getHeight(12)),
               _buildActionButton(
-                icon: Icons.table_restaurant,
+                imagePath: ImageConstant.changeTable,
                 label: 'Change table',
                 onTap: () {
                   Navigator.of(context).pop();
@@ -724,11 +709,24 @@ void _showRunningTablePopup(
               ),
               SizedBox(height: MySize.getHeight(12)),
               _buildActionButton(
-                icon: Icons.cancel_outlined,
+                imagePath: ImageConstant.close,
                 label: 'Cancel order',
+                textColor: Colors.red,
+                imageColor: Colors.red,
                 onTap: () {
                   Navigator.of(context).pop();
                   // TODO: Implement cancel order functionality
+                },
+              ),
+              SizedBox(height: MySize.getHeight(12)),
+              _buildActionButton(
+                imagePath: ImageConstant.delete,
+                label: 'Delete order',
+                textColor: Colors.red,
+                imageColor: Colors.red,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // TODO: Implement delete order functionality
                 },
               ),
             ],
@@ -740,9 +738,12 @@ void _showRunningTablePopup(
 }
 
 Widget _buildActionButton({
-  required IconData icon,
+  String? imagePath,
+  IconData? icon,
   required String label,
   required VoidCallback onTap,
+  Color? textColor,
+  Color? imageColor,
 }) {
   return InkWell(
     onTap: onTap,
@@ -759,14 +760,27 @@ Widget _buildActionButton({
       ),
       child: Row(
         children: [
-          Icon(icon, size: MySize.getHeight(20), color: Colors.black87),
+          if (imagePath != null)
+            Image.asset(
+              imagePath,
+              width: MySize.getHeight(20),
+              height: MySize.getHeight(20),
+              fit: BoxFit.contain,
+              color: imageColor ?? Colors.black87,
+            )
+          else if (icon != null)
+            Icon(
+              icon,
+              size: MySize.getHeight(20),
+              color: imageColor ?? Colors.black87,
+            ),
           SizedBox(width: MySize.getWidth(12)),
           Text(
             label,
             style: TextStyle(
               fontSize: MySize.getHeight(14),
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: textColor ?? Colors.black87,
             ),
           ),
         ],

@@ -16,4 +16,9 @@ class ImageConstant {
   static const nonVeg = "${imagePath}non-veg.png";
   static const hot = "${imagePath}hot.png";
   static const drink = "${imagePath}drink.png";
+  static const changeTable = "${imagePath}change-table.png";
+  static const close = "${imagePath}close.png";
+  static const continueOrder = "${imagePath}continue-order.png";
+  static const pay = "${imagePath}pay.png";
+  static const delete = "${imagePath}delete.png";
 }

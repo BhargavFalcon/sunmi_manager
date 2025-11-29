@@ -69,8 +69,8 @@ class CartScreenController extends GetxController {
       }
 
       if (order != null && order is orderModel.GetOrderModel) {
-        existingOrderId = order.data?.uuid?.toString() ??
-            order.data?.id?.toString();
+        existingOrderId =
+            order.data?.uuid?.toString() ?? order.data?.id?.toString();
       }
     } else {
       // Clear table if no arguments
@@ -192,17 +192,15 @@ class CartScreenController extends GetxController {
         itemsList.add(itemData);
       }
 
-      final bool isExistingOrder = existingOrderId != null &&
-          existingOrderId!.isNotEmpty;
+      final bool isExistingOrder =
+          existingOrderId != null && existingOrderId!.isNotEmpty;
 
       Map<String, dynamic> requestBody;
       String endpoint;
 
       if (isExistingOrder) {
         // Add items to existing order
-        requestBody = {
-          'items': itemsList,
-        };
+        requestBody = {'items': itemsList};
         endpoint = ArgumentConstant.addOrderItemsEndpoint.replaceAll(
           ':order_uuid',
           existingOrderId!,
@@ -228,10 +226,7 @@ class CartScreenController extends GetxController {
       }
 
       // Call Order API (create or append items)
-      final response = await networkClient.post(
-        endpoint,
-        data: requestBody,
-      );
+      final response = await networkClient.post(endpoint, data: requestBody);
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Extract order_id from response (for new orders) or use existing
         String? orderId = existingOrderId;
