@@ -494,7 +494,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                         formattedActiveTotal,
                                                                         style: TextStyle(
                                                                           fontSize: MySize.getHeight(
-                                                                            12,
+                                                                            10,
                                                                           ),
                                                                           fontWeight:
                                                                               FontWeight.w600,
@@ -511,7 +511,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                       style: TextStyle(
                                                                         fontSize:
                                                                             MySize.getHeight(
-                                                                              10,
+                                                                              12,
                                                                             ),
                                                                         color:
                                                                             Colors.white,
