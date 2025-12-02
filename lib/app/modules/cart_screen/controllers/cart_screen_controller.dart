@@ -29,6 +29,7 @@ class CartScreenController extends GetxController {
 
   // Existing order (when coming from Continue to order)
   String? existingOrderId;
+  orderModel.GetOrderModel? existingOrder;
 
   // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
@@ -39,6 +40,9 @@ class CartScreenController extends GetxController {
 
   // Table areas list
   final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
+
+  // Loading state for order submission
+  final RxBool isSubmittingOrder = false.obs;
 
   @override
   void onInit() {
@@ -69,6 +73,7 @@ class CartScreenController extends GetxController {
       }
 
       if (order != null && order is orderModel.GetOrderModel) {
+        existingOrder = order;
         existingOrderId =
             order.data?.uuid?.toString() ?? order.data?.id?.toString();
       }
@@ -119,7 +124,7 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Please select a table',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -128,10 +133,13 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Cart is empty',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
+
+      // Show loader
+      isSubmittingOrder.value = true;
 
       int? waiterId;
       try {
@@ -148,7 +156,7 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'User not found. Please login again',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -158,48 +166,91 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Table not found',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
-      }
-
-      final List<Map<String, dynamic>> itemsList = [];
-      for (var item in cartItems) {
-        final itemData = <String, dynamic>{
-          'menu_item_id': item.id,
-          'quantity': item.quantity.value,
-        };
-
-        if (item.selectedVariation != null) {
-          itemData['menu_item_variation_id'] = item.selectedVariation!.id;
-        }
-
-        if (item.selectedExtras != null && item.selectedExtras!.isNotEmpty) {
-          final optionIds =
-              item.selectedExtras!
-                  .where((option) => option.id != null)
-                  .map((option) => option.id!)
-                  .toList();
-          if (optionIds.isNotEmpty) {
-            itemData['modifier_option_ids'] = optionIds;
-          }
-        }
-
-        if (item.cartNote != null && item.cartNote!.isNotEmpty) {
-          itemData['note'] = item.cartNote;
-        }
-
-        itemsList.add(itemData);
       }
 
       final bool isExistingOrder =
           existingOrderId != null && existingOrderId!.isNotEmpty;
 
+      final List<Map<String, dynamic>> itemsList = [];
+
+      if (isExistingOrder && existingOrder != null) {
+        // For existing orders, use kot_item_id only if cart item already has it
+        // (meaning it came from the existing order)
+        // Items added from menu won't have cartKotItemId and will be added as new items
+        for (var cartItem in cartItems) {
+          final itemData = <String, dynamic>{
+            'menu_item_id': cartItem.id,
+            'quantity': cartItem.quantity.value,
+          };
+
+          if (cartItem.selectedVariation != null) {
+            itemData['menu_item_variation_id'] = cartItem.selectedVariation!.id;
+          }
+
+          if (cartItem.selectedExtras != null &&
+              cartItem.selectedExtras!.isNotEmpty) {
+            final optionIds =
+                cartItem.selectedExtras!
+                    .where((option) => option.id != null)
+                    .map((option) => option.id!)
+                    .toList();
+            if (optionIds.isNotEmpty) {
+              itemData['modifier_option_ids'] = optionIds;
+            }
+          }
+
+          if (cartItem.cartNote != null && cartItem.cartNote!.isNotEmpty) {
+            itemData['note'] = cartItem.cartNote;
+          }
+
+          // Add kot_item_id only if cart item has it (loaded from existing order)
+          // Items added from menu won't have cartKotItemId and will be added as new items
+          if (cartItem.cartKotItemId != null) {
+            itemData['kot_item_id'] = cartItem.cartKotItemId;
+          }
+          // If no cartKotItemId, it's a new item added from menu (no kot_item_id)
+
+          itemsList.add(itemData);
+        }
+      } else {
+        // For new orders, build items list normally
+        for (var item in cartItems) {
+          final itemData = <String, dynamic>{
+            'menu_item_id': item.id,
+            'quantity': item.quantity.value,
+          };
+
+          if (item.selectedVariation != null) {
+            itemData['menu_item_variation_id'] = item.selectedVariation!.id;
+          }
+
+          if (item.selectedExtras != null && item.selectedExtras!.isNotEmpty) {
+            final optionIds =
+                item.selectedExtras!
+                    .where((option) => option.id != null)
+                    .map((option) => option.id!)
+                    .toList();
+            if (optionIds.isNotEmpty) {
+              itemData['modifier_option_ids'] = optionIds;
+            }
+          }
+
+          if (item.cartNote != null && item.cartNote!.isNotEmpty) {
+            itemData['note'] = item.cartNote;
+          }
+
+          itemsList.add(itemData);
+        }
+      }
+
       Map<String, dynamic> requestBody;
       String endpoint;
 
       if (isExistingOrder) {
-        // Add items to existing order
+        // Sync items to existing order
         requestBody = {'items': itemsList};
         endpoint = ArgumentConstant.addOrderItemsEndpoint.replaceAll(
           ':order_uuid',
@@ -226,7 +277,11 @@ class CartScreenController extends GetxController {
       }
 
       // Call Order API (create or append items)
-      final response = await networkClient.post(endpoint, data: requestBody);
+      // Use PUT for sync endpoint, POST for new orders
+      final response =
+          isExistingOrder
+              ? await networkClient.put(endpoint, data: requestBody)
+              : await networkClient.post(endpoint, data: requestBody);
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Extract order_id from response (for new orders) or use existing
         String? orderId = existingOrderId;
@@ -256,7 +311,7 @@ class CartScreenController extends GetxController {
           Get.snackbar(
             'Success',
             'Order submitted successfully',
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );
@@ -274,7 +329,7 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Failed to submit order',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -282,13 +337,17 @@ class CartScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Error submitting order: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
+    } finally {
+      // Hide loader
+      isSubmittingOrder.value = false;
     }
   }
 
   Future<void> _createPayment(String orderId) async {
     try {
+      // Keep loader visible during payment
       final paymentBody = {
         'order_id': orderId,
         'amount': finalTotal.toStringAsFixed(2),
@@ -307,7 +366,7 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Success',
           'Order and payment completed successfully',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
@@ -324,7 +383,7 @@ class CartScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Order created but payment failed',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -332,7 +391,7 @@ class CartScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Order created but payment error: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -454,15 +513,26 @@ class CartScreenController extends GetxController {
 
   // Add item to cart (with duplicate check)
   void addToCart(Items item) {
-    final existingItem = findExistingCartItem(item);
+    // Check if this is an existing order
+    final bool isExistingOrder =
+        existingOrderId != null && existingOrderId!.isNotEmpty;
 
-    if (existingItem != null) {
-      // Same item exists - increase quantity
-      existingItem.quantity.value = existingItem.quantity.value + 1;
-      cartItems.refresh();
-    } else {
-      // New item - add to cart
+    // For existing orders, always add as new item (don't merge with existing items)
+    if (isExistingOrder) {
+      // Always add as new item - don't check for duplicates
       cartItems.add(item);
+    } else {
+      // For new orders, check for duplicates and merge if found
+      final existingItem = findExistingCartItem(item);
+
+      if (existingItem != null) {
+        // Same item exists - increase quantity
+        existingItem.quantity.value = existingItem.quantity.value + 1;
+        cartItems.refresh();
+      } else {
+        // New item - add to cart
+        cartItems.add(item);
+      }
     }
 
     // Sync order type from the item (restaurant settings based)

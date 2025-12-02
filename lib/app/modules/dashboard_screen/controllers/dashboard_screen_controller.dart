@@ -147,7 +147,7 @@ class DashboardScreenController extends GetxController {
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
     } catch (e) {
       isLoading.value = false;
       networkClient.removeAuthToken();

@@ -209,20 +209,20 @@ class TakeOrderController extends GetxController {
             Get.snackbar(
               'Error',
               'Failed to parse menu items: ${e.toString()}',
-              snackPosition: SnackPosition.BOTTOM,
+              snackPosition: SnackPosition.TOP,
             );
           }
         }
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
     } catch (e) {
       isLoading.value = false;
       Get.snackbar(
         'Error',
         'Something went wrong. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -480,9 +480,16 @@ class TakeOrderController extends GetxController {
       cartItem.cartNoteDraft = '';
       cartItem.cartEditingNote = false;
 
-      // Check if same item already exists
-      final existingItem = cartController.findExistingCartItem(cartItem);
-      final isDuplicate = existingItem != null;
+      // Check if this is an existing order
+      final bool isExistingOrder = currentOrder.value != null;
+
+      // For existing orders, always treat as new item (don't check for duplicates)
+      // For new orders, check for duplicates
+      bool isDuplicate = false;
+      if (!isExistingOrder) {
+        final existingItem = cartController.findExistingCartItem(cartItem);
+        isDuplicate = existingItem != null;
+      }
 
       cartController.addToCart(cartItem);
 
@@ -506,14 +513,14 @@ class TakeOrderController extends GetxController {
       Get.snackbar(
         'Success',
         message,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
       Get.snackbar(
         'Error',
         'Failed to add item to cart: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -1555,8 +1562,56 @@ class TakeOrderController extends GetxController {
         cartItem.cartNote = '';
         cartItem.cartNoteDraft = '';
         cartItem.cartEditingNote = false;
+        // Store kot_item_id for items loaded from existing order
+        cartItem.cartKotItemId = orderItem.kotItemId;
 
-        final existingItem = cartController.findExistingCartItem(cartItem);
+        // For existing order items, also check cartKotItemId when finding duplicates
+        // Items with same menu item but different kot_item_id should not be merged
+        Items? existingItem;
+        if (cartItem.cartKotItemId != null) {
+          // Find item with same menu item, variation, extras AND same kot_item_id
+          for (var item in cartController.cartItems) {
+            if (item.id != cartItem.id) continue;
+
+            // Check variation
+            final existingVariationId = item.selectedVariation?.id;
+            final newVariationId = cartItem.selectedVariation?.id;
+            if (existingVariationId != newVariationId) continue;
+
+            // Check extras
+            final existingExtras = item.selectedExtras;
+            final newExtras = cartItem.selectedExtras;
+            bool extrasMatch = false;
+            if ((existingExtras == null || existingExtras.isEmpty) &&
+                (newExtras == null || newExtras.isEmpty)) {
+              extrasMatch = true;
+            } else if (existingExtras != null &&
+                newExtras != null &&
+                existingExtras.length == newExtras.length) {
+              final existingExtrasIds =
+                  existingExtras.map((e) => e.id).toList()..sort();
+              final newExtrasIds = newExtras.map((e) => e.id).toList()..sort();
+              extrasMatch = true;
+              for (int i = 0; i < existingExtrasIds.length; i++) {
+                if (existingExtrasIds[i] != newExtrasIds[i]) {
+                  extrasMatch = false;
+                  break;
+                }
+              }
+            }
+            if (!extrasMatch) continue;
+
+            // Check kot_item_id - must match for items from existing order
+            if (item.cartKotItemId == cartItem.cartKotItemId) {
+              existingItem = item;
+              break;
+            }
+          }
+        } else {
+          // If no kot_item_id, use regular findExistingCartItem
+          existingItem = cartController.findExistingCartItem(cartItem);
+        }
+
         if (existingItem != null) {
           existingItem.quantity.value =
               existingItem.quantity.value + cartItem.quantity.value;
@@ -1572,7 +1627,7 @@ class TakeOrderController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to load order items: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }

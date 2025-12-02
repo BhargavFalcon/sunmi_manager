@@ -35,7 +35,7 @@ class LoginScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Please enter your email',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -44,7 +44,7 @@ class LoginScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Please enter your password',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -91,40 +91,40 @@ class LoginScreenController extends GetxController {
                 Get.snackbar(
                   'Error',
                   'Failed to save authentication token',
-                  snackPosition: SnackPosition.BOTTOM,
+                  snackPosition: SnackPosition.TOP,
                 );
               }
             } else {
               Get.snackbar(
                 'Error',
                 'Token not found in response',
-                snackPosition: SnackPosition.BOTTOM,
+                snackPosition: SnackPosition.TOP,
               );
             }
           } catch (e) {
             Get.snackbar(
               'Error',
               'Failed to parse login response: ${e.toString()}',
-              snackPosition: SnackPosition.BOTTOM,
+              snackPosition: SnackPosition.TOP,
             );
           }
         } else {
           Get.snackbar(
             'Error',
             'Invalid response format',
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
         }
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
     } catch (e) {
       isLoading.value = false;
       Get.snackbar(
         'Error',
         'Something went wrong. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }

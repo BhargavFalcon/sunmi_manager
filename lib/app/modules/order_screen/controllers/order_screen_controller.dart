@@ -134,7 +134,7 @@ class OrderScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to select date range: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

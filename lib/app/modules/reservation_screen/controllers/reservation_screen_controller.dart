@@ -271,7 +271,7 @@ class ReservationScreenController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to select date range: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -365,7 +365,7 @@ class ReservationScreenController extends GetxController {
       Get.snackbar(
         'Validation Error',
         'Please fill all required fields correctly',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade700,
       );
@@ -376,7 +376,7 @@ class ReservationScreenController extends GetxController {
       Get.snackbar(
         'Time Slot Required',
         'Please select a time slot',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.orange.shade100,
         colorText: Colors.orange.shade700,
       );
@@ -401,7 +401,7 @@ class ReservationScreenController extends GetxController {
     Get.snackbar(
       'Success',
       'Reservation created successfully!',
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.green.shade100,
       colorText: Colors.green.shade700,
     );

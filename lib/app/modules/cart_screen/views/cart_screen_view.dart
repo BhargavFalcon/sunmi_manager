@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
@@ -30,15 +31,17 @@ class CartScreenView extends GetWidget<CartScreenController> {
 
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
-          body: Column(
+          body: Stack(
             children: [
+              Column(
+                children: [
               Stack(
                 children: [
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(
                       12,
-                    ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                    ).copyWith(top: MediaQuery.of(context).padding.top + 12,bottom: MySize.getHeight(15),),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       boxShadow: ColorConstants.getShadow2,
@@ -46,7 +49,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     child: Center(
                       child: Text(
                         "Cart",
-                        style: TextStyle(fontSize: 20, color: Colors.black),
+                        style: TextStyle(fontSize: MySize.getHeight(16), color: Colors.black),
                       ),
                     ),
                   ),
@@ -864,6 +867,36 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     ],
                   ),
                 );
+              }),
+                ],
+              ),
+              Obx(() {
+                if (controller.isSubmittingOrder.value) {
+                  return Container(
+                    color: Colors.black.withOpacity(0.2),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CupertinoActivityIndicator(
+                          radius: 12,
+                          color: ColorConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox.shrink();
               }),
             ],
           ),

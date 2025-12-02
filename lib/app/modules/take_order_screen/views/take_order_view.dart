@@ -40,6 +40,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             body: Column(
               children: [
                 Stack(
+                  clipBehavior: Clip.none,
                   children: [
                     GestureDetector(
                       onTap: () {
@@ -49,6 +50,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12).copyWith(
                           top: MediaQuery.of(context).padding.top + 12,
+                          bottom: MySize.getHeight(15),
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -57,7 +59,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         child: Center(
                           child: Text(
                             "Take Order",
-                            style: TextStyle(fontSize: 20, color: Colors.black),
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(16),
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),
@@ -102,7 +107,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     ),
                     Positioned(
                       right: 15,
-                      top: MediaQuery.of(context).padding.top - 5,
+                      top: MediaQuery.of(context).padding.top + 2,
                       child: Obx(() {
                         if (controller.cartItemsCount.value == 0) {
                           return const SizedBox.shrink();
@@ -122,7 +127,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             controller.cartItemsCount.value.toString(),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -694,16 +699,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Cancel Order?',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Are you sure you want to exit? This will clear the cart and remove all orders.',
                   textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: MySize.getHeight(12)),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: MySize.getHeight(20)),
                 Row(
                   children: [
                     Expanded(
@@ -721,10 +730,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Close',
-                              style: TextStyle(color: Colors.black),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: MySize.getHeight(12),
+                              ),
                             ),
                           ),
                         ),
@@ -748,10 +760,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             color: ColorConstants.primaryColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Cancel',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: MySize.getHeight(12),
+                              ),
                             ),
                           ),
                         ),

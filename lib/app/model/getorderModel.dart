@@ -293,6 +293,7 @@ class Items {
   bool? isDeleted;
   bool? isVariationDeleted;
   String? variationName;
+  int? kotItemId;
 
   Items({
     this.id,
@@ -309,6 +310,7 @@ class Items {
     this.isDeleted,
     this.isVariationDeleted,
     this.variationName,
+    this.kotItemId,
   });
 
   Items.fromJson(Map<String, dynamic> json) {
@@ -334,6 +336,7 @@ class Items {
     isDeleted = json['is_deleted'];
     isVariationDeleted = json['is_variation_deleted'];
     variationName = json['variation_name'];
+    kotItemId = json['kot_item_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -356,6 +359,7 @@ class Items {
     data['is_deleted'] = this.isDeleted;
     data['is_variation_deleted'] = this.isVariationDeleted;
     data['variation_name'] = this.variationName;
+    data['kot_item_id'] = this.kotItemId;
     return data;
   }
 }

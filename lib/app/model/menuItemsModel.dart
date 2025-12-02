@@ -77,6 +77,7 @@ class Items {
   String? cartNote;
   String? cartNoteDraft;
   bool cartEditingNote = false;
+  int? cartKotItemId; // Store kot_item_id for items loaded from existing order
 
   Items({
     this.id,

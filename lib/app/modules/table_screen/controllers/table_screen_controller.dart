@@ -127,7 +127,7 @@ class TableScreenController extends GetxController {
         Get.snackbar(
           'Error',
           'Failed to load order details',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         // Navigate without order on error
         Get.toNamed(
