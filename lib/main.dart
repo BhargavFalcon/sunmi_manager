@@ -3,12 +3,19 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
 
 final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  await Get.putAsync(() async {
+    final pusherService = PusherService();
+    await pusherService.init();
+    return pusherService;
+  });
+
   runApp(
     GetMaterialApp(
       debugShowCheckedModeBanner: false,
