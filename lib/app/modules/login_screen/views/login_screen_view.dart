@@ -14,14 +14,19 @@ class LoginScreenView extends GetView<LoginScreenController> {
     MySize().init(context);
     return Scaffold(
       backgroundColor: ColorConstants.bgColor,
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0).copyWith(top: 200),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0).copyWith(top: 200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -191,6 +196,6 @@ class LoginScreenView extends GetView<LoginScreenController> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
