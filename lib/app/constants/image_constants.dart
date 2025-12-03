@@ -10,6 +10,8 @@ class ImageConstant {
   static const delivery = "${imagePath}delivery.png";
   static const dinein = "${imagePath}dinein.png";
   static const pickup = "${imagePath}Pickup.png";
+  static const pickup_all = "${imagePath}pickup_all.png";
+  static const delivery_all = "${imagePath}delivery_all.png";
   static const bottomLogo = "${imagePath}bottomLogo.png";
   static const veg = "${imagePath}veg.png";
   static const halal = "${imagePath}halal.png";
@@ -21,4 +23,5 @@ class ImageConstant {
   static const continueOrder = "${imagePath}continue-order.png";
   static const pay = "${imagePath}pay.png";
   static const delete = "${imagePath}delete.png";
+  static const allOrders = "${imagePath}all-orders.png";
 }

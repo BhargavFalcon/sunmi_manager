@@ -12,6 +12,13 @@ class ColorConstants {
   static const Color tableBlue = Color(0xFF3F82F8);
   static const Color red = Color(0xFFF44336);
 
+  // Order Status Colors
+  static const Color statusPaid = Color(0xFF175B47);
+  static const Color statusBilled = Color(0xFF1E429F);
+  static const Color statusCanceled = Color(0xFF9B1C1B);
+  static const Color statusKot = Color(0xFF723B13);
+  static const Color statusPaymentDue = Color(0xFF9B1C1B);
+
   static List<BoxShadow> get getShadow {
     return [
       BoxShadow(
