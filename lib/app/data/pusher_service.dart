@@ -3,7 +3,6 @@ import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
 
-  // Pusher Configuration
   static const String appId = "1952389";
   static const String key = "976a2c01b088eeeb0342";
   static const String cluster = "eu";
@@ -11,7 +10,7 @@ class PusherService {
   Future<void> initPusher() async {
     try {
       await pusher.init(
-        apiKey: key, // Use 'key' not 'appId'
+        apiKey: key,
         cluster: cluster,
         onConnectionStateChange: (currentState, previousState) {
           print("Connection state: $currentState");
