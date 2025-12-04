@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
+import 'package:managerapp/app/data/pusher_service.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
 import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
@@ -85,6 +86,13 @@ class LoginScreenController extends GetxController {
                 final restaurantId = loginModel.data?.user?.restaurantId;
                 if (restaurantId != null) {
                   await fetchRestaurantDetails(restaurantId);
+                }
+                // Subscribe to new-order-created Pusher channel
+                try {
+                  final pusherService = Get.find<PusherService>();
+                  await pusherService.subscribeToOrders();
+                } catch (e) {
+                  print('Error subscribing to Pusher channel: $e');
                 }
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {

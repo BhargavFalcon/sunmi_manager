@@ -84,23 +84,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                 width: 1.0,
                                               ),
                                               borderRadius:
-                                              BorderRadius.circular(8),
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .spaceBetween,
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Expanded(
                                                   child: Text(
                                                     controller
                                                         .getDropdownDisplayText(),
                                                     overflow:
-                                                    TextOverflow.ellipsis,
+                                                        TextOverflow.ellipsis,
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       fontWeight:
-                                                      FontWeight.w500,
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ),
@@ -114,29 +114,29 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       );
                                     },
                                     menuChildren:
-                                    controller.dateOptions.map((option) {
-                                      return MenuItemButton(
-                                        onPressed: () {
-                                          controller.updateDateOption(
-                                            option,
-                                          );
-                                          if (option == 'Custom Date') {
-                                            Future.delayed(
-                                              const Duration(
-                                                milliseconds: 10,
-                                              ),
+                                        controller.dateOptions.map((option) {
+                                          return MenuItemButton(
+                                            onPressed: () {
+                                              controller.updateDateOption(
+                                                option,
+                                              );
+                                              if (option == 'Custom Date') {
+                                                Future.delayed(
+                                                  const Duration(
+                                                    milliseconds: 10,
+                                                  ),
                                                   () {
-                                                controller
-                                                    .showCustomDateRangePickerPop(
-                                                  context,
+                                                    controller
+                                                        .showCustomDateRangePickerPop(
+                                                          context,
+                                                        );
+                                                  },
                                                 );
-                                              },
-                                            );
-                                          }
-                                        },
-                                        child: Text(option),
-                                      );
-                                    }).toList(),
+                                              }
+                                            },
+                                            child: Text(option),
+                                          );
+                                        }).toList(),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -163,12 +163,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                 width: 1.0,
                                               ),
                                               borderRadius:
-                                              BorderRadius.circular(8),
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .spaceBetween,
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   controller
@@ -185,16 +185,16 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       );
                                     },
                                     menuChildren:
-                                    controller.orderFilterOptions.map((
-                                        option,
+                                        controller.orderFilterOptions.map((
+                                          option,
                                         ) {
-                                      return MenuItemButton(
-                                        onPressed:
-                                            () => controller
-                                            .updateOrderFilter(option),
-                                        child: Text(option),
-                                      );
-                                    }).toList(),
+                                          return MenuItemButton(
+                                            onPressed:
+                                                () => controller
+                                                    .updateOrderFilter(option),
+                                            child: Text(option),
+                                          );
+                                        }).toList(),
                                   ),
                                 ),
                               ],
@@ -220,17 +220,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                     ),
                                     child: Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                                          MainAxisAlignment.spaceAround,
                                       children: [
                                         _buildOrderTypeButton(
                                           icon: ImageConstant.allOrders,
                                           label: 'All Orders',
                                           isSelected:
-                                          selectedType == 'All Orders',
+                                              selectedType == 'All Orders',
                                           onTap:
                                               () => controller.updateOrderType(
-                                            'All Orders',
-                                          ),
+                                                'All Orders',
+                                              ),
                                         ),
                                         _buildOrderTypeButton(
                                           icon: ImageConstant.dinein,
@@ -238,8 +238,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                           isSelected: selectedType == 'Dine In',
                                           onTap:
                                               () => controller.updateOrderType(
-                                            'Dine In',
-                                          ),
+                                                'Dine In',
+                                              ),
                                         ),
                                         _buildOrderTypeButton(
                                           icon: ImageConstant.pickup,
@@ -247,18 +247,18 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                           isSelected: selectedType == 'Pickup',
                                           onTap:
                                               () => controller.updateOrderType(
-                                            'Pickup',
-                                          ),
+                                                'Pickup',
+                                              ),
                                         ),
                                         _buildOrderTypeButton(
                                           icon: ImageConstant.delivery,
                                           label: 'Delivery',
                                           isSelected:
-                                          selectedType == 'Delivery',
+                                              selectedType == 'Delivery',
                                           onTap:
                                               () => controller.updateOrderType(
-                                            'Delivery',
-                                          ),
+                                                'Delivery',
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -290,9 +290,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                               header: CustomHeader(
                                 height: 60.0,
                                 builder: (
-                                    BuildContext context,
-                                    RefreshStatus? mode,
-                                    ) {
+                                  BuildContext context,
+                                  RefreshStatus? mode,
+                                ) {
                                   Widget body;
                                   if (mode == RefreshStatus.idle) {
                                     body = const SizedBox.shrink();
@@ -337,9 +337,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             header: CustomHeader(
                               height: 60.0,
                               builder: (
-                                  BuildContext context,
-                                  RefreshStatus? mode,
-                                  ) {
+                                BuildContext context,
+                                RefreshStatus? mode,
+                              ) {
                                 Widget body;
                                 if (mode == RefreshStatus.idle) {
                                   body = const SizedBox.shrink();
@@ -372,9 +372,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             ),
                             footer: CustomFooter(
                               builder: (
-                                  BuildContext context,
-                                  LoadStatus? mode,
-                                  ) {
+                                BuildContext context,
+                                LoadStatus? mode,
+                              ) {
                                 Widget body;
                                 if (mode == LoadStatus.idle) {
                                   body = const SizedBox.shrink();
@@ -452,10 +452,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   void _showOrderBottomSheet(
-      BuildContext context,
-      OrderScreenController controller,
-      orderModel.Orders order,
-      ) {
+    BuildContext context,
+    OrderScreenController controller,
+    orderModel.Orders order,
+  ) {
     showModalBottomSheet(
       context: context,
       isDismissible: true,
@@ -466,88 +466,88 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       builder:
           (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.85,
-        builder:
-            (_, scrollController) => Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: ColorConstants.bgColor,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16),
-            ),
-            boxShadow: ColorConstants.getShadow2,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+            expand: false,
+            initialChildSize: 0.85,
+            builder:
+                (_, scrollController) => Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.bgColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Image.asset(
-                                ImageConstant.order,
-                                height: 24,
-                                width: 24,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Image.asset(
+                                        ImageConstant.order,
+                                        height: 24,
+                                        width: 24,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Order #386 (Dine In)',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Order #386 (Dine In)',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(height: 8),
+                              _buildOrderItemsTable(),
+                              const SizedBox(height: 8),
+                              _buildPriceSummary(),
+                              const SizedBox(height: 16),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: ColorConstants.grey600,
+                                    ),
+                                    boxShadow: ColorConstants.getShadow2,
+                                  ),
+                                  child: const Text(
+                                    'Cancle',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                    ),
+                                  ),
                                 ),
                               ),
+                              const SizedBox(height: 16),
                             ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      _buildOrderItemsTable(),
-                      const SizedBox(height: 8),
-                      _buildPriceSummary(),
-                      const SizedBox(height: 16),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: ColorConstants.grey600,
-                            ),
-                            boxShadow: ColorConstants.getShadow2,
-                          ),
-                          child: const Text(
-                            'Cancle',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                            ),
-                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -696,17 +696,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children:
-                  details
-                      .map(
-                        (detail) => Text(
-                      detail,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  )
-                      .toList(),
+                      details
+                          .map(
+                            (detail) => Text(
+                              detail,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          )
+                          .toList(),
                 ),
             ],
           ),
@@ -775,12 +775,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   Widget _buildPriceRow(
-      String label,
-      String value, {
-        bool isBold = false,
-        bool isSecondary = false,
-        Color? valueColor,
-      }) {
+    String label,
+    String value, {
+    bool isBold = false,
+    bool isSecondary = false,
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -880,27 +880,27 @@ class OrderCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child:
-                  order.orderType?.toLowerCase() == 'pickup'
-                      ? Image.asset(
-                    ImageConstant.pickup_all,
-                    width: MySize.getHeight(20),
-                    height: MySize.getHeight(20),
-                  )
-                      : order.orderType?.toLowerCase() == 'delivery'
-                      ? Image.asset(
-                    ImageConstant.delivery_all,
-                    color: ColorConstants.primaryColor,
-                    width: MySize.getHeight(20),
-                    height: MySize.getHeight(20),
-                  )
-                      : Text(
-                    tableCode,
-                    style: TextStyle(
-                      color: ColorConstants.primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: MySize.getHeight(12),
-                    ),
-                  ),
+                      order.orderType?.toLowerCase() == 'pickup'
+                          ? Image.asset(
+                            ImageConstant.pickup_all,
+                            width: MySize.getHeight(20),
+                            height: MySize.getHeight(20),
+                          )
+                          : order.orderType?.toLowerCase() == 'delivery'
+                          ? Image.asset(
+                            ImageConstant.delivery_all,
+                            color: ColorConstants.primaryColor,
+                            width: MySize.getHeight(20),
+                            height: MySize.getHeight(20),
+                          )
+                          : Text(
+                            tableCode,
+                            style: TextStyle(
+                              color: ColorConstants.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: MySize.getHeight(12),
+                            ),
+                          ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

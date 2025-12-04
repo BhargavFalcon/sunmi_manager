@@ -10,11 +10,9 @@ final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  await Get.putAsync(() async {
-    final pusherService = PusherService();
-    await pusherService.init();
-    return pusherService;
-  });
+  final pusherService = PusherService();
+  await pusherService.initPusher();
+  await pusherService.subscribeToOrders();
 
   runApp(
     GetMaterialApp(
