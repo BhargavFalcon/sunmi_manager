@@ -25,13 +25,24 @@ class PusherService {
     }
   }
 
-  Future<void> subscribeToOrders() async {
-    await pusher.subscribe(
-      channelName: "new-order-created.43",
-      onEvent: (event) {
-        print("Received event: ${event.eventName}");
-        print("Data: ${event.data}");
-      },
-    );
+  Future<void> subscribeToOrders(int? restaurantId) async {
+    if (restaurantId == null) {
+      print("❌ Cannot subscribe: Restaurant ID is null");
+      return;
+    }
+
+    final channelName = "new-order-created.$restaurantId";
+
+    try {
+      await pusher.subscribe(
+        channelName: channelName,
+        onEvent: (event) {
+          print("✅ Received Pusher event: ${event.eventName}");
+          print("📦 Event Data: ${event.data}");
+        },
+      );
+    } catch (e) {
+      print("❌ Error subscribing to channel $channelName: $e");
+    }
   }
 }

@@ -12,7 +12,6 @@ void main() async {
   await GetStorage.init();
   final pusherService = PusherService();
   await pusherService.initPusher();
-  await pusherService.subscribeToOrders();
 
   runApp(
     GetMaterialApp(
