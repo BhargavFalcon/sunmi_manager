@@ -695,7 +695,7 @@ void _showRunningTablePopup(
                 label: 'Pay',
                 onTap: () {
                   Navigator.of(context).pop();
-                  // TODO: Implement pay functionality
+                  controller.createPayment(table);
                 },
               ),
               SizedBox(height: MySize.getHeight(12)),
@@ -704,7 +704,7 @@ void _showRunningTablePopup(
                 label: 'Change table',
                 onTap: () {
                   Navigator.of(context).pop();
-                  // TODO: Implement change table functionality
+                  _showAvailableTablesBottomSheet(context, controller, table);
                 },
               ),
               SizedBox(height: MySize.getHeight(12)),
@@ -726,7 +726,11 @@ void _showRunningTablePopup(
                 imageColor: Colors.red,
                 onTap: () {
                   Navigator.of(context).pop();
-                  // TODO: Implement delete order functionality
+                  _showDeleteOrderConfirmationDialog(
+                    context,
+                    controller,
+                    table,
+                  );
                 },
               ),
             ],
@@ -786,5 +790,442 @@ Widget _buildActionButton({
         ],
       ),
     ),
+  );
+}
+
+void _showDeleteOrderConfirmationDialog(
+  BuildContext context,
+  TableScreenController controller,
+  Tables table,
+) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Image.asset(
+                    ImageConstant.warning,
+                    width: MySize.getHeight(24),
+                    height: MySize.getHeight(24),
+                    fit: BoxFit.contain,
+                  ),
+                  SizedBox(width: MySize.getWidth(12)),
+                  Expanded(
+                    child: Text(
+                      'Delete Order',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(18),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: MySize.getHeight(16)),
+              Text(
+                'Are you sure you want to delete the order?',
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: MySize.getHeight(12)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200, width: 1),
+                ),
+                child: Text(
+                  'This action cannot be undone. The order and all related data will be removed permanently.',
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(12),
+                    color: Colors.red.shade700,
+                  ),
+                ),
+              ),
+              SizedBox(height: MySize.getHeight(20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(20),
+                        vertical: MySize.getHeight(10),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      backgroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(14),
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: MySize.getWidth(12)),
+                  Obx(() {
+                    final isDeleting = controller.isDeletingOrder.value;
+                    return TextButton(
+                      onPressed:
+                          isDeleting
+                              ? null
+                              : () {
+                                Navigator.of(context).pop();
+                                controller.deleteOrder(table);
+                              },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(20),
+                          vertical: MySize.getHeight(10),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.red.shade300),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                      child:
+                          isDeleting
+                              ? SizedBox(
+                                width: MySize.getWidth(16),
+                                height: MySize.getHeight(16),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : Text(
+                                'Delete Order',
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                    );
+                  }),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void _showAvailableTablesBottomSheet(
+  BuildContext context,
+  TableScreenController controller,
+  Tables currentTable,
+) {
+  showModalBottomSheet(
+    context: context,
+    isDismissible: true,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder:
+        (bottomSheetContext) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.85,
+          builder:
+              (_, scrollController) => Builder(
+                builder:
+                    (builderContext) => Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: ColorConstants.bgColor,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        boxShadow: ColorConstants.getShadow2,
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Available Tables',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(18),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () => Get.back(),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: MySize.getHeight(24),
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Obx(() {
+                              final tableAreas =
+                                  controller.tableModel.value?.data ?? [];
+
+                              if (tableAreas.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    'No tables available',
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(14),
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return ListView.builder(
+                                controller: scrollController,
+                                padding: const EdgeInsets.all(16),
+                                itemCount: tableAreas.length,
+                                itemBuilder: (context, areaIndex) {
+                                  final area = tableAreas[areaIndex];
+                                  // Filter only available tables
+                                  final availableTables =
+                                      area.tables
+                                          ?.where(
+                                            (table) =>
+                                                table.availableStatus
+                                                        ?.toLowerCase() ==
+                                                    'available' &&
+                                                table.status?.toLowerCase() ==
+                                                    'active',
+                                          )
+                                          .toList() ??
+                                      [];
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: Text(
+                                          area.name ?? 'Unnamed Area',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(16),
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      if (availableTables.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 20,
+                                          ),
+                                          child: Text(
+                                            'No available tables',
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(12),
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        )
+                                      else
+                                        GridView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 3,
+                                                crossAxisSpacing: 12,
+                                                mainAxisSpacing: 12,
+                                                childAspectRatio: 1.2,
+                                              ),
+                                          itemCount: availableTables.length,
+                                          itemBuilder: (context, tableIndex) {
+                                            final table =
+                                                availableTables[tableIndex];
+                                            final isCurrentTable =
+                                                currentTable.id == table.id;
+
+                                            return Obx(() {
+                                              final isChanging =
+                                                  controller
+                                                      .isChangingTable
+                                                      .value;
+                                              return GestureDetector(
+                                                onTap:
+                                                    isChanging || isCurrentTable
+                                                        ? null
+                                                        : () async {
+                                                          if (table.id !=
+                                                              null) {
+                                                            await controller
+                                                                .changeOrderTable(
+                                                                  currentTable,
+                                                                  table.id!,
+                                                                );
+                                                            // Close bottom sheet after API call completes
+                                                            Get.back();
+                                                          }
+                                                        },
+                                                child: Opacity(
+                                                  opacity:
+                                                      isChanging &&
+                                                              !isCurrentTable
+                                                          ? 0.5
+                                                          : 1.0,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                      border: Border.all(
+                                                        color:
+                                                            isCurrentTable
+                                                                ? ColorConstants
+                                                                    .primaryColor
+                                                                : Colors
+                                                                    .grey
+                                                                    .shade300,
+                                                        width:
+                                                            isCurrentTable
+                                                                ? 2
+                                                                : 1,
+                                                      ),
+                                                      boxShadow:
+                                                          isCurrentTable
+                                                              ? [
+                                                                BoxShadow(
+                                                                  color: ColorConstants
+                                                                      .primaryColor
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.2,
+                                                                      ),
+                                                                  blurRadius: 4,
+                                                                  spreadRadius:
+                                                                      1,
+                                                                ),
+                                                              ]
+                                                              : null,
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8,
+                                                                vertical: 4,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                ColorConstants
+                                                                    .tableGreen,
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  4,
+                                                                ),
+                                                          ),
+                                                          child: Text(
+                                                            table.tableCode ??
+                                                                '${table.id}',
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    12,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height:
+                                                              MySize.getHeight(
+                                                                4,
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          '${table.seatingCapacity ?? 0} Seat(s)',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                MySize.getHeight(
+                                                                  10,
+                                                                ),
+                                                            color:
+                                                                Colors
+                                                                    .grey
+                                                                    .shade700,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            });
+                                          },
+                                        ),
+                                      SizedBox(height: MySize.getHeight(20)),
+                                    ],
+                                  );
+                                },
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                    ),
+              ),
+        ),
   );
 }

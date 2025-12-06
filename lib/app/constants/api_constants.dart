@@ -13,6 +13,8 @@ class ArgumentConstant {
   static const tableKey = "table";
   static const ordersEndpoint = "api/v1/pos/orders/dine-in";
   static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
+  static const deleteOrderEndpoint = "api/v1/pos/orders/:order_uuid";
+  static const changeOrderTableEndpoint = "api/v1/pos/orders/:order_uuid/table";
   static const addOrderItemsEndpoint =
       "api/v1/pos/orders/:order_uuid/items/sync";
   static const paymentsEndpoint = "api/v1/pos/payments";

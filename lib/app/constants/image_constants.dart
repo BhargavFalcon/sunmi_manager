@@ -24,4 +24,5 @@ class ImageConstant {
   static const pay = "${imagePath}pay.png";
   static const delete = "${imagePath}delete.png";
   static const allOrders = "${imagePath}all-orders.png";
+  static const warning = "${imagePath}warning.png";
 }

@@ -10,6 +10,9 @@ class TableScreenController extends GetxController {
   final networkClient = NetworkClient();
   final isLoading = false.obs;
   final isNavigatingToOrder = false.obs;
+  final isDeletingOrder = false.obs;
+  final isChangingTable = false.obs;
+  final isProcessingPayment = false.obs;
   final tableModel = Rx<TableModel?>(null);
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
@@ -98,7 +101,10 @@ class TableScreenController extends GetxController {
       try {
         // Fetch order details without showing loader
         final orderUuid = table.activeOrder!.uuid!;
-        final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid);
+        final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
+          ':order_uuid',
+          orderUuid,
+        );
         final response = await networkClient.get(endpoint);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -143,6 +149,207 @@ class TableScreenController extends GetxController {
         Routes.TAKE_ORDER_SCREEN,
         arguments: {ArgumentConstant.tableKey: table},
       );
+    }
+  }
+
+  Future<void> deleteOrder(Tables table) async {
+    if (table.activeOrder == null || table.activeOrder!.uuid == null) {
+      Get.snackbar(
+        'Error',
+        'No active order found to delete',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    isDeletingOrder.value = true;
+    try {
+      final orderUuid = table.activeOrder!.uuid!;
+      final endpoint = ArgumentConstant.deleteOrderEndpoint.replaceAll(
+        ':order_uuid',
+        orderUuid,
+      );
+
+      final response = await networkClient.delete(endpoint);
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        Get.snackbar(
+          'Success',
+          'Order deleted successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        // Refresh tables to reflect the deletion
+        await fetchTablesAreas();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to delete order',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error deleting order: $e');
+      String errorMessage = 'Failed to delete order';
+      if (e is ApiException) {
+        errorMessage = e.message;
+      }
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isDeletingOrder.value = false;
+    }
+  }
+
+  Future<void> changeOrderTable(Tables currentTable, int newTableId) async {
+    if (currentTable.activeOrder == null ||
+        currentTable.activeOrder!.uuid == null) {
+      Get.snackbar(
+        'Error',
+        'No active order found to change table',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    isChangingTable.value = true;
+    try {
+      final orderUuid = currentTable.activeOrder!.uuid!;
+      final endpoint = ArgumentConstant.changeOrderTableEndpoint.replaceAll(
+        ':order_uuid',
+        orderUuid,
+      );
+
+      final requestBody = {'table_id': newTableId};
+
+      final response = await networkClient.patch(endpoint, data: requestBody);
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        Get.snackbar(
+          'Success',
+          'Table changed successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        // Refresh tables to reflect the change
+        await fetchTablesAreas();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to change table',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error changing table: $e');
+      String errorMessage = 'Failed to change table';
+      if (e is ApiException) {
+        errorMessage = e.message;
+      }
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isChangingTable.value = false;
+    }
+  }
+
+  Future<void> createPayment(Tables table) async {
+    if (table.activeOrder == null || table.activeOrder!.uuid == null) {
+      Get.snackbar(
+        'Error',
+        'No active order found to process payment',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final orderUuid = table.activeOrder!.uuid!;
+    final orderTotal = table.activeOrder!.total ?? 0.0;
+
+    if (orderTotal <= 0) {
+      Get.snackbar(
+        'Error',
+        'Order total is invalid',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    isProcessingPayment.value = true;
+    try {
+      final paymentBody = {
+        'order_id': orderUuid,
+        'amount': orderTotal.toStringAsFixed(2),
+        'payment_method': 'cash',
+      };
+
+      final response = await networkClient.post(
+        ArgumentConstant.paymentsEndpoint,
+        data: paymentBody,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar(
+          'Success',
+          'Payment processed successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        // Refresh tables to reflect the payment
+        await fetchTablesAreas();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to process payment',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error processing payment: $e');
+      String errorMessage = 'Failed to process payment';
+      if (e is ApiException) {
+        errorMessage = e.message;
+      }
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isProcessingPayment.value = false;
     }
   }
 }
