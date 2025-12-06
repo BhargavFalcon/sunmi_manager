@@ -331,9 +331,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           return SmartRefresher(
                             controller: controller.refreshController,
                             enablePullDown: true,
-                            enablePullUp: true,
+                            enablePullUp: false,
                             onRefresh: controller.onRefresh,
-                            onLoading: controller.onLoading,
                             header: CustomHeader(
                               height: 60.0,
                               builder: (
@@ -370,40 +369,26 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 );
                               },
                             ),
-                            footer: CustomFooter(
-                              builder: (
-                                BuildContext context,
-                                LoadStatus? mode,
-                              ) {
-                                Widget body;
-                                if (mode == LoadStatus.idle) {
-                                  body = const SizedBox.shrink();
-                                } else if (mode == LoadStatus.loading) {
-                                  body = const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: CupertinoActivityIndicator(
-                                      color: ColorConstants.primaryColor,
-                                    ),
-                                  );
-                                } else if (mode == LoadStatus.failed) {
-                                  body = const Text("Load Failed!Click retry!");
-                                } else if (mode == LoadStatus.canLoading) {
-                                  body = const SizedBox.shrink();
-                                } else {
-                                  body = const SizedBox.shrink();
-                                }
-                                return SizedBox(
-                                  height: 55.0,
-                                  child: Center(child: body),
-                                );
-                              },
-                            ),
                             child: ListView.separated(
+                              controller: controller.scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
                               padding: EdgeInsets.zero,
-                              itemCount: controller.allOrders.length,
+                              itemCount:
+                                  controller.allOrders.length +
+                                  (controller.isLoadingMore.value ? 1 : 0),
                               separatorBuilder:
                                   (_, __) => const SizedBox(height: 10),
                               itemBuilder: (context, index) {
+                                if (index == controller.allOrders.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: CupertinoActivityIndicator(
+                                        color: ColorConstants.primaryColor,
+                                      ),
+                                    ),
+                                  );
+                                }
                                 final order = controller.allOrders[index];
                                 return InkWell(
                                   hoverColor: Colors.transparent,
