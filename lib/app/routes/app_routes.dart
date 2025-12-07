@@ -14,6 +14,8 @@ abstract class Routes {
   static const LOGIN_SCREEN = _Paths.LOGIN_SCREEN;
   static const CART_SCREEN = _Paths.CART_SCREEN;
   static const TABLE_SCREEN = _Paths.TABLE_SCREEN;
+  static const SETTING_SCREEN = _Paths.SETTING_SCREEN;
+  static const PRINTER_SCREEN = _Paths.PRINTER_SCREEN;
 }
 
 abstract class _Paths {
@@ -29,4 +31,6 @@ abstract class _Paths {
   static const LOGIN_SCREEN = '/login-screen';
   static const CART_SCREEN = '/cart-screen';
   static const TABLE_SCREEN = '/table-screen';
+  static const SETTING_SCREEN = '/setting-screen';
+  static const PRINTER_SCREEN = '/printer-screen';
 }

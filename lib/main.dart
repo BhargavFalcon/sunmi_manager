@@ -5,11 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
+import 'app/services/printer_service.dart';
 
 final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+
+  // Initialize services
+  Get.put(PrinterService(), permanent: true);
   final pusherService = PusherService();
   await pusherService.initPusher();
 

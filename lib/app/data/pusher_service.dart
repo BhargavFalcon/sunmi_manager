@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:get/get.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
+import '../services/printer_service.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -12,22 +15,53 @@ class PusherService {
       await pusher.init(
         apiKey: key,
         cluster: cluster,
-        onConnectionStateChange: (currentState, previousState) {
-          print("Connection state: $currentState");
-        },
-        onError: (message, code, e) {
-          print("Error: $message");
-        },
+        onConnectionStateChange: (currentState, previousState) {},
+        onError: (message, code, e) {},
       );
       await pusher.connect();
+    } catch (e) {}
+  }
+
+  bool _isValidEventData(dynamic data) {
+    if (data == null) {
+      return false;
+    }
+
+    final dataString = data.toString().trim();
+
+    if (dataString.isEmpty) {
+      return false;
+    }
+
+    if (dataString == '{}') {
+      return false;
+    }
+
+    try {
+      final decoded = jsonDecode(dataString);
+
+      if (decoded is Map) {
+        if (decoded.isEmpty) {
+          return false;
+        }
+        return true;
+      }
+
+      if (decoded is List) {
+        if (decoded.isEmpty) {
+          return false;
+        }
+        return true;
+      }
+
+      return true;
     } catch (e) {
-      print("Pusher init error: $e");
+      return dataString.isNotEmpty;
     }
   }
 
   Future<void> subscribeToOrders(int? restaurantId) async {
     if (restaurantId == null) {
-      print("❌ Cannot subscribe: Restaurant ID is null");
       return;
     }
 
@@ -37,12 +71,20 @@ class PusherService {
       await pusher.subscribe(
         channelName: channelName,
         onEvent: (event) {
-          print("✅ Received Pusher event: ${event.eventName}");
-          print("📦 Event Data: ${event.data}");
+          if (_isValidEventData(event.data)) {
+            _handleTestPrint();
+          }
         },
       );
-    } catch (e) {
-      print("❌ Error subscribing to channel $channelName: $e");
-    }
+    } catch (e) {}
+  }
+
+  void _handleTestPrint() {
+    try {
+      if (Get.isRegistered<PrinterService>()) {
+        final printerService = Get.find<PrinterService>();
+        printerService.printTestReceipt();
+      }
+    } catch (e) {}
   }
 }

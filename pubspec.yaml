@@ -47,6 +47,8 @@ dependencies:
   get_storage: ^2.1.1
   pusher_channels_flutter: ^2.2.1
   pull_to_refresh: ^2.0.0
+  print_bluetooth_thermal: ^1.1.7
+  flutter_esc_pos_utils: ^1.0.1
 
 dev_dependencies:
   flutter_test:
