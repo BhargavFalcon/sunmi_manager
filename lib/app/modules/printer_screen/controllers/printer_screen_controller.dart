@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import '../../../services/printer_service.dart';
+import '../../../constants/api_constants.dart';
 
 class PrinterScreenController extends GetxController {
   late PrinterService printerService;
@@ -12,13 +13,68 @@ class PrinterScreenController extends GetxController {
   final availableDevices = <BluetoothInfo>[].obs;
   final isConnected = false.obs;
 
+  // Printer Settings
+  final autoPrint = true.obs;
+  final numberOfCopies = 1.obs;
+  final printerWidth = '80mm'.obs;
+  final printerWidthOptions = ['58mm', '80mm', '112mm'];
+
   @override
   void onInit() {
     super.onInit();
     printerService = Get.find<PrinterService>();
     _loadSavedPrinter();
+    _loadSettings();
     _checkConnection();
     _syncWithService();
+  }
+
+  void _loadSettings() {
+    try {
+      autoPrint.value = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+      numberOfCopies.value =
+          box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+      printerWidth.value = box.read(ArgumentConstant.printerWidthKey) ?? '80mm';
+    } catch (e) {
+      print('Error loading printer settings: $e');
+    }
+  }
+
+  void saveSettings() {
+    try {
+      box.write(ArgumentConstant.printerAutoPrintKey, autoPrint.value);
+      box.write(
+        ArgumentConstant.printerNumberOfCopiesKey,
+        numberOfCopies.value,
+      );
+      box.write(ArgumentConstant.printerWidthKey, printerWidth.value);
+    } catch (e) {
+      print('Error saving printer settings: $e');
+    }
+  }
+
+  void toggleAutoPrint() {
+    autoPrint.value = !autoPrint.value;
+    saveSettings();
+  }
+
+  void incrementCopies() {
+    if (numberOfCopies.value < 5) {
+      numberOfCopies.value++;
+      saveSettings();
+    }
+  }
+
+  void decrementCopies() {
+    if (numberOfCopies.value > 1) {
+      numberOfCopies.value--;
+      saveSettings();
+    }
+  }
+
+  void setPrinterWidth(String width) {
+    printerWidth.value = width;
+    saveSettings();
   }
 
   void _syncWithService() {
@@ -48,8 +104,16 @@ class PrinterScreenController extends GetxController {
     try {
       if (connectedDevice.value != null) {
         final isPaired = await PrintBluetoothThermal.connectionStatus;
-        isConnected.value = isPaired;
-        printerService.isConnected.value = isPaired;
+        if (!isPaired) {
+          // Try to reconnect if not connected
+          final result = await PrintBluetoothThermal.connect(
+            macPrinterAddress: connectedDevice.value!.macAdress,
+          );
+          isConnected.value = result;
+        } else {
+          isConnected.value = true;
+        }
+        printerService.isConnected.value = isConnected.value;
       }
     } catch (e) {
       print('Error checking connection: $e');
@@ -116,45 +180,20 @@ class PrinterScreenController extends GetxController {
       final bool? bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       if (bluetoothEnabled == false) {
-        if (Get.context != null) {
-          Get.snackbar(
-            'Bluetooth Disabled',
-            'Please enable Bluetooth to scan for devices',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        }
         isScanning.value = false;
         return;
       }
 
       final List<BluetoothInfo> allDevices =
-          await PrintBluetoothThermal.pairedBluetooths ?? [];
+          await PrintBluetoothThermal.pairedBluetooths;
 
       // Filter only printer devices
       final List<BluetoothInfo> printerDevices =
           allDevices.where((device) => _isPrinterDevice(device)).toList();
 
       availableDevices.value = printerDevices;
-
-      if (printerDevices.isEmpty && Get.context != null) {
-        Get.snackbar(
-          'No Printers Found',
-          'No paired Bluetooth printers found. Please pair a printer first.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
     } catch (e) {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Error',
-          'Failed to scan for devices: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
+      // Error handled silently
     } finally {
       isScanning.value = false;
     }
@@ -174,37 +213,9 @@ class PrinterScreenController extends GetxController {
 
         // Save printer to service
         await printerService.saveConnectedDevice(device);
-
-        if (Get.context != null) {
-          Get.snackbar(
-            'Connected',
-            'Successfully connected to ${device.name}',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
-        }
-      } else {
-        if (Get.context != null) {
-          Get.snackbar(
-            'Connection Failed',
-            'Failed to connect to ${device.name}',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        }
       }
     } catch (e) {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Error',
-          'Connection error: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
+      // Error handled silently
     } finally {
       isLoading.value = false;
     }
@@ -219,115 +230,81 @@ class PrinterScreenController extends GetxController {
         connectedDevice.value = null;
         isConnected.value = false;
         await printerService.clearConnectedDevice();
-
-        if (Get.context != null) {
-          Get.snackbar(
-            'Disconnected',
-            'Printer disconnected successfully',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-        }
       }
     } catch (e) {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Error',
-          'Failed to disconnect: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
+      // Error handled silently
     } finally {
       isLoading.value = false;
     }
   }
 
+  PaperSize _getPaperSize() {
+    switch (printerWidth.value) {
+      case '58mm':
+        return PaperSize.mm58;
+      case '72mm':
+        return PaperSize.mm72;
+      case '80mm':
+      default:
+        return PaperSize.mm80;
+    }
+  }
+
   Future<void> printTestReceipt() async {
     if (!isConnected.value || connectedDevice.value == null) {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Not Connected',
-          'Please connect to a printer first',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-      }
       return;
     }
 
     try {
       isLoading.value = true;
 
-      // Create ESC/POS commands
       final profile = await CapabilityProfile.load();
-      final generator = Generator(PaperSize.mm80, profile);
+      final paperSize = _getPaperSize();
+      final generator = Generator(paperSize, profile);
 
-      List<int> bytes = [];
+      List<int> allBytes = [];
 
-      // Header
-      bytes += generator.text(
-        'Test Print',
-        styles: PosStyles(align: PosAlign.center, bold: true),
-      );
-      bytes += generator.text(
-        'DineMatrics Manager',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.hr();
+      // Print multiple copies
+      for (int i = 0; i < numberOfCopies.value; i++) {
+        List<int> bytes = [];
 
-      // Test content
-      bytes += generator.text(
-        'This is a test print',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.text(
-        'Date: ${DateTime.now().toString().split('.')[0]}',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.hr();
-
-      // Footer
-      bytes += generator.text(
-        'Thank you!',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.feed(2);
-      bytes += generator.cut();
-
-      // Print
-      final result = await PrintBluetoothThermal.writeBytes(bytes);
-
-      if (Get.context != null) {
-        if (result == true) {
-          Get.snackbar(
-            'Success',
-            'Test print sent successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
-        } else {
-          Get.snackbar(
-            'Failed',
-            'Failed to send print',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        }
-      }
-    } catch (e) {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Error',
-          'Print error: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        bytes += generator.text(
+          'Test Print',
+          styles: PosStyles(align: PosAlign.center, bold: true),
         );
+        bytes += generator.text(
+          'DineMatrics Manager',
+          styles: PosStyles(align: PosAlign.center),
+        );
+        bytes += generator.hr();
+
+        bytes += generator.text(
+          'This is a test print',
+          styles: PosStyles(align: PosAlign.center),
+        );
+        bytes += generator.text(
+          'Date: ${DateTime.now().toString().split('.')[0]}',
+          styles: PosStyles(align: PosAlign.center),
+        );
+        bytes += generator.text(
+          'Copy: ${i + 1} of ${numberOfCopies.value}',
+          styles: PosStyles(align: PosAlign.center),
+        );
+        bytes += generator.hr();
+
+        bytes += generator.text(
+          'Thank you!',
+          styles: PosStyles(align: PosAlign.center),
+        );
+        bytes += generator.feed(2);
+        bytes += generator.cut();
+
+        allBytes.addAll(bytes);
       }
+
+      await PrintBluetoothThermal.writeBytes(allBytes);
+    } catch (e) {
+      // Print error handled silently
     } finally {
       isLoading.value = false;
     }

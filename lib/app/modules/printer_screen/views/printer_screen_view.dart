@@ -72,6 +72,35 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Test Print Button
+                      Obx(() {
+                        if (controller.isConnected.value &&
+                            controller.connectedDevice.value != null) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed:
+                                  controller.isLoading.value
+                                      ? null
+                                      : () => controller.printTestReceipt(),
+                              icon: Icon(Icons.print),
+                              label: Text('Test Print'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: ColorConstants.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                            ),
+                          );
+                        }
+                        return SizedBox.shrink();
+                      }),
+                      SizedBox(height: 16),
+
                       // Connected Printer Card
                       Obx(() {
                         if (controller.isConnected.value &&
@@ -168,37 +197,167 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed:
-                                        controller.isLoading.value
-                                            ? null
-                                            : () =>
-                                                controller.printTestReceipt(),
-                                    icon: Icon(Icons.print),
-                                    label: Text('Test Print'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          ColorConstants.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 14,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                           );
                         }
                         return SizedBox.shrink();
                       }),
+                      SizedBox(height: 16),
+
+                      // Printer Settings Section
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: ColorConstants.getShadow2,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Printer Settings',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+
+                            // Auto-print Toggle
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Auto-print',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Obx(() {
+                                  return Switch(
+                                    value: controller.autoPrint.value,
+                                    onChanged:
+                                        (value) => controller.toggleAutoPrint(),
+                                    activeColor: ColorConstants.primaryColor,
+                                  );
+                                }),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+
+                            // Number of Copies
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Number of copies',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Obx(() {
+                                      return IconButton(
+                                        onPressed:
+                                            controller.numberOfCopies.value > 1
+                                                ? () =>
+                                                    controller.decrementCopies()
+                                                : null,
+                                        icon: Icon(Icons.remove_circle_outline),
+                                        color:
+                                            controller.numberOfCopies.value > 1
+                                                ? ColorConstants.primaryColor
+                                                : Colors.grey,
+                                      );
+                                    }),
+                                    Obx(() {
+                                      return Container(
+                                        width: 40,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '${controller.numberOfCopies.value}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                    Obx(() {
+                                      return IconButton(
+                                        onPressed:
+                                            controller.numberOfCopies.value < 5
+                                                ? () =>
+                                                    controller.incrementCopies()
+                                                : null,
+                                        icon: Icon(Icons.add_circle_outline),
+                                        color:
+                                            controller.numberOfCopies.value < 5
+                                                ? ColorConstants.primaryColor
+                                                : Colors.grey,
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+
+                            // Printer Width Dropdown
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Printer width',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Obx(() {
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: ColorConstants.primaryColor,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: DropdownButton<String>(
+                                      value: controller.printerWidth.value,
+                                      underline: SizedBox(),
+                                      items:
+                                          controller.printerWidthOptions.map((
+                                            String width,
+                                          ) {
+                                            return DropdownMenuItem<String>(
+                                              value: width,
+                                              child: Text(width),
+                                            );
+                                          }).toList(),
+                                      onChanged: (String? newValue) {
+                                        if (newValue != null) {
+                                          controller.setPrinterWidth(newValue);
+                                        }
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 16),
 
                       // Bluetooth Devices Section

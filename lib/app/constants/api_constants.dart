@@ -20,4 +20,10 @@ class ArgumentConstant {
   static const paymentsEndpoint = "api/v1/pos/payments";
   static const allOrdersEndpoint = "api/v1/pos/orders";
   static const orderKey = "order";
+
+  // Printer Settings Keys
+  static const printerAutoPrintKey = "printer_auto_print";
+  static const printerNumberOfCopiesKey = "printer_number_of_copies";
+  static const printerWidthKey = "printer_width";
+  static const savedPrinterDeviceKey = "saved_printer_device";
 }

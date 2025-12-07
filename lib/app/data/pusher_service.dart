@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:managerapp/main.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import '../services/printer_service.dart';
+import '../constants/api_constants.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -71,6 +73,7 @@ class PusherService {
       await pusher.subscribe(
         channelName: channelName,
         onEvent: (event) {
+          print("Event Data: ${event.data}");
           if (_isValidEventData(event.data)) {
             _handleTestPrint();
           }
@@ -81,7 +84,8 @@ class PusherService {
 
   void _handleTestPrint() {
     try {
-      if (Get.isRegistered<PrinterService>()) {
+      final autoPrint = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+      if (autoPrint && Get.isRegistered<PrinterService>()) {
         final printerService = Get.find<PrinterService>();
         printerService.printTestReceipt();
       }
