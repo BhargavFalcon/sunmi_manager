@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import '../../../services/printer_service.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
 
 class PrinterScreenController extends GetxController {
   late PrinterService printerService;
@@ -27,6 +29,38 @@ class PrinterScreenController extends GetxController {
     _loadSettings();
     _checkConnection();
     _syncWithService();
+    _checkBluetoothStatus();
+    _autoScan();
+  }
+
+  Future<void> _autoScan() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    await scanForDevices();
+  }
+
+  Future<void> _checkBluetoothStatus() async {
+    try {
+      final bool bluetoothEnabled =
+          await PrintBluetoothThermal.bluetoothEnabled;
+      if (bluetoothEnabled == false) {
+        isConnected.value = false;
+        connectedDevice.value = null;
+        printerService.isConnected.value = false;
+        safeGetSnackbar(
+          'Bluetooth Disabled',
+          'Please enable Bluetooth to use printer features',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else {
+        await _checkConnection();
+      }
+    } catch (e) {
+      isConnected.value = false;
+      connectedDevice.value = null;
+      printerService.isConnected.value = false;
+    }
   }
 
   void _loadSettings() {
@@ -181,6 +215,16 @@ class PrinterScreenController extends GetxController {
           await PrintBluetoothThermal.bluetoothEnabled;
       if (bluetoothEnabled == false) {
         isScanning.value = false;
+        isConnected.value = false;
+        connectedDevice.value = null;
+        printerService.isConnected.value = false;
+        safeGetSnackbar(
+          'Bluetooth Disabled',
+          'Please enable Bluetooth to scan for printers',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
         return;
       }
 
@@ -210,12 +254,35 @@ class PrinterScreenController extends GetxController {
       if (result == true) {
         connectedDevice.value = device;
         isConnected.value = true;
+        printerService.isConnected.value = true;
 
         // Save printer to service
         await printerService.saveConnectedDevice(device);
+
+        safeGetSnackbar(
+          'Success',
+          'Printer connected successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        safeGetSnackbar(
+          'Error',
+          'Failed to connect to printer',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
-      // Error handled silently
+      safeGetSnackbar(
+        'Error',
+        'Failed to connect to printer',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }

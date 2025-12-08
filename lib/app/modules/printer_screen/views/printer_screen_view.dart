@@ -76,134 +76,146 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                       Obx(() {
                         if (controller.isConnected.value &&
                             controller.connectedDevice.value != null) {
-                          return SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed:
-                                  controller.isLoading.value
-                                      ? null
-                                      : () => controller.printTestReceipt(),
-                              icon: Icon(Icons.print),
-                              label: Text('Test Print'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: ColorConstants.primaryColor,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                          return Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      controller.isLoading.value
+                                          ? null
+                                          : () => controller.printTestReceipt(),
+                                  icon: Icon(Icons.print),
+                                  label: Text('Test Print'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        ColorConstants.primaryColor,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                  ),
                                 ),
-                                elevation: 0,
                               ),
-                            ),
+                              SizedBox(height: 16),
+                            ],
                           );
                         }
                         return SizedBox.shrink();
                       }),
-                      SizedBox(height: 16),
 
                       // Connected Printer Card
                       Obx(() {
                         if (controller.isConnected.value &&
                             controller.connectedDevice.value != null) {
-                          return Container(
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: ColorConstants.getShadow2,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                          return Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                      size: 24,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Connected Printer',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            controller
-                                                .connectedDevice
-                                                .value!
-                                                .name,
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            controller
-                                                .connectedDevice
-                                                .value!
-                                                .macAdress,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.close,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        Get.dialog(
-                                          AlertDialog(
-                                            title: Text('Disconnect Printer'),
-                                            content: Text(
-                                              'Are you sure you want to disconnect?',
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Get.back(),
-                                                child: Text('Cancel'),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: Colors.green,
+                                          size: 24,
+                                        ),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Connected Printer',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
                                               ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Get.back();
-                                                  controller.disconnectDevice();
-                                                },
-                                                child: Text(
-                                                  'Disconnect',
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                  ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                controller
+                                                    .connectedDevice
+                                                    .value!
+                                                    .name,
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                controller
+                                                    .connectedDevice
+                                                    .value!
+                                                    .macAdress,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
                                                 ),
                                               ),
                                             ],
                                           ),
-                                        );
-                                      },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            Get.dialog(
+                                              AlertDialog(
+                                                title: Text(
+                                                  'Disconnect Printer',
+                                                ),
+                                                content: Text(
+                                                  'Are you sure you want to disconnect?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Get.back(),
+                                                    child: Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Get.back();
+                                                      controller
+                                                          .disconnectDevice();
+                                                    },
+                                                    child: Text(
+                                                      'Disconnect',
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              SizedBox(height: 16),
+                            ],
                           );
                         }
                         return SizedBox.shrink();
                       }),
-                      SizedBox(height: 16),
 
                       // Printer Settings Section
                       Container(
