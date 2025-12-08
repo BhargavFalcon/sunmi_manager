@@ -252,12 +252,17 @@ class PrinterScreenController extends GetxController {
       );
 
       if (result == true) {
+        printerService.connectedDevice = device;
+        printerService.isConnected.value = true;
+
         connectedDevice.value = device;
         isConnected.value = true;
-        printerService.isConnected.value = true;
 
         // Save printer to service
         await printerService.saveConnectedDevice(device);
+
+        // Force UI update
+        update();
 
         safeGetSnackbar(
           'Success',
