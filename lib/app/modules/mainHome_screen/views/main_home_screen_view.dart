@@ -99,7 +99,7 @@ class _CustomBottomNavBar extends StatelessWidget {
                   ),
                   _NavBarItem(
                     icon: ImageConstant.table,
-                    label: "Dine-In",
+                    label: "Dine In",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),

@@ -37,7 +37,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                     ),
                     child: Center(
                       child: Text(
-                        "Dine-In",
+                        "Dine In",
                         style: TextStyle(
                           fontSize: MySize.getHeight(20),
                           color: Colors.black,
