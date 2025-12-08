@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 
@@ -287,7 +288,7 @@ class OrderScreenController extends GetxController {
         onCancelClick: () {},
       );
     } catch (e) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'Failed to select date range: ${e.toString()}',
         snackPosition: SnackPosition.TOP,

@@ -1,9 +1,14 @@
 import 'package:get/get.dart';
+import '../../../../main.dart';
+import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
+import '../../../data/NetworkClient.dart';
+import '../../../routes/app_pages.dart';
 
 class SettingScreenController extends GetxController {
-  //TODO: Implement SettingScreenController
+  final networkClient = NetworkClient();
+  final isLoading = false.obs;
 
-  final count = 0.obs;
   @override
   void onInit() {
     super.onInit();
@@ -19,5 +24,31 @@ class SettingScreenController extends GetxController {
     super.onClose();
   }
 
-  void increment() => count.value++;
+  Future<void> logout() async {
+    try {
+      isLoading.value = true;
+
+      final response = await networkClient.post(
+        ArgumentConstant.logoutEndpoint,
+      );
+
+      isLoading.value = false;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        networkClient.removeAuthToken();
+        box.remove(ArgumentConstant.loginModelKey);
+        box.remove(ArgumentConstant.menuItemsKey);
+        Get.offAllNamed(Routes.LOGIN_SCREEN);
+      }
+    } on ApiException catch (e) {
+      isLoading.value = false;
+      safeGetSnackbar('Error', e.message, snackPosition: SnackPosition.TOP);
+    } catch (e) {
+      isLoading.value = false;
+      networkClient.removeAuthToken();
+      box.remove(ArgumentConstant.loginModelKey);
+      box.remove(ArgumentConstant.menuItemsKey);
+      Get.offAllNamed(Routes.LOGIN_SCREEN);
+    }
+  }
 }

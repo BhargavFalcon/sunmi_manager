@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import '../../../constants/sizeConstant.dart';
 
 class ReservationScreenController extends GetxController {
   // Text Editing Controllers
@@ -268,7 +269,7 @@ class ReservationScreenController extends GetxController {
         onCancelClick: () {},
       );
     } catch (e) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'Failed to select date range: ${e.toString()}',
         snackPosition: SnackPosition.TOP,
@@ -362,7 +363,7 @@ class ReservationScreenController extends GetxController {
     bool phoneValid = validatePhone(customerPhoneController.text);
 
     if (!nameValid || !phoneValid) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Validation Error',
         'Please fill all required fields correctly',
         snackPosition: SnackPosition.TOP,
@@ -373,7 +374,7 @@ class ReservationScreenController extends GetxController {
     }
 
     if (selectedTimeSlot.value.isEmpty) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Time Slot Required',
         'Please select a time slot',
         snackPosition: SnackPosition.TOP,
@@ -398,7 +399,7 @@ class ReservationScreenController extends GetxController {
     reservations.add(newReservation);
 
     // Show success message
-    Get.snackbar(
+    safeGetSnackbar(
       'Success',
       'Reservation created successfully!',
       snackPosition: SnackPosition.TOP,

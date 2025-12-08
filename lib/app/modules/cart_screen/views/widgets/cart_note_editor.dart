@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
-import 'package:managerapp/app/constants/sizeConstant.dart';
 import '../../controllers/cart_screen_controller.dart';
 
 class CartNoteEditor extends StatefulWidget {
@@ -62,7 +61,7 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
             child: TextField(
               controller: _controller,
               autofocus: true,
-              style: TextStyle(fontSize: MySize.getHeight(12)),
+              style: const TextStyle(fontSize: 13.0),
               decoration: const InputDecoration(
                 hintText:
                     'Special Instructions? (e.g., no onions, extra spicy)',

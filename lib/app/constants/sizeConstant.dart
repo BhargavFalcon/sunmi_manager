@@ -344,6 +344,62 @@ getSnackBar({
   );
 }
 
+/// Safe wrapper for Get.snackbar that handles overlay errors
+/// This function ensures the overlay is ready before showing snackbar
+/// Use this instead of direct Get.snackbar to avoid overlay errors
+///
+/// Example:
+/// ```dart
+/// safeGetSnackbar(
+///   'Error',
+///   'Something went wrong',
+///   snackPosition: SnackPosition.TOP,
+/// );
+/// ```
+void safeGetSnackbar(
+  String title,
+  String message, {
+  SnackPosition snackPosition = SnackPosition.TOP,
+  Duration duration = const Duration(seconds: 2),
+  Color? backgroundColor,
+  Color? colorText,
+}) {
+  // Use addPostFrameCallback to ensure overlay is ready
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    try {
+      final context = Get.context;
+      if (context != null && context.mounted) {
+        // Check if overlay exists
+        try {
+          Overlay.of(context);
+          // Overlay exists, safe to use Get.snackbar
+          Get.snackbar(
+            title,
+            message,
+            snackPosition: snackPosition,
+            duration: duration,
+            backgroundColor: backgroundColor,
+            colorText: colorText,
+          );
+          return;
+        } catch (_) {
+          // Overlay not available, use ScaffoldMessenger as fallback
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$title: $message'),
+              backgroundColor: backgroundColor ?? Colors.red,
+              duration: duration,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Silent failure - just print for debugging
+      print('Error showing snackbar: $title - $message');
+    }
+  });
+}
+
 void showDarkCupertinoErrorDialog(
   BuildContext context,
   String message, {

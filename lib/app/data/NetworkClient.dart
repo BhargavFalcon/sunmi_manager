@@ -45,10 +45,18 @@ class NetworkClient {
       InterceptorsWrapper(
         onError: (error, handler) {
           // Handle 401 Unauthorized - redirect to login
+          // Skip redirect if already on login screen or if it's a login request
           if (error.response?.statusCode == 401) {
-            removeAuthToken();
-            // Import Get for navigation
-            Get.offAllNamed(Routes.LOGIN_SCREEN);
+            final requestPath = error.requestOptions.path;
+            final isLoginRequest = requestPath.contains(
+              ArgumentConstant.loginEndpoint,
+            );
+            final isOnLoginScreen = Get.currentRoute == Routes.LOGIN_SCREEN;
+
+            if (!isOnLoginScreen && !isLoginRequest) {
+              removeAuthToken();
+              Get.offAllNamed(Routes.LOGIN_SCREEN);
+            }
           }
           return handler.next(error);
         },

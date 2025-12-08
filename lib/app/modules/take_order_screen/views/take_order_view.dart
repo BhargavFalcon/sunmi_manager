@@ -68,44 +68,44 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       ),
                     ),
                     if (controller.hasTable)
-                    Positioned(
-                      left: 12,
-                      top: MediaQuery.of(context).padding.top + 8,
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          CartScreenController? cartController;
-                          if (Get.isRegistered<CartScreenController>()) {
-                            cartController = Get.find<CartScreenController>();
-                          }
-                          if (cartController == null ||
-                              cartController.cartItems.isEmpty) {
-                            Get.back();
-                          } else {
-                            _showCancelOrderDialog(context, cartController);
-                          }
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: MySize.getHeight(30),
-                          width: MySize.getHeight(30),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor.withValues(
-                              alpha: 0.10,
+                      Positioned(
+                        left: 12,
+                        top: MediaQuery.of(context).padding.top + 8,
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            CartScreenController? cartController;
+                            if (Get.isRegistered<CartScreenController>()) {
+                              cartController = Get.find<CartScreenController>();
+                            }
+                            if (cartController == null ||
+                                cartController.cartItems.isEmpty) {
+                              Get.back();
+                            } else {
+                              _showCancelOrderDialog(context, cartController);
+                            }
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: MySize.getHeight(30),
+                            width: MySize.getHeight(30),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor.withValues(
+                                alpha: 0.10,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: ColorConstants.primaryColor,
-                            size: MySize.getHeight(20),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: ColorConstants.primaryColor,
+                              size: MySize.getHeight(20),
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     Positioned(
                       right: 15,
                       top: MediaQuery.of(context).padding.top + 2,
@@ -135,50 +135,55 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         );
                       }),
                     ),
-                    Positioned(
-                      right: 25,
-                      top: MediaQuery.of(context).padding.top + 8,
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          final Map<String, dynamic> arguments = {};
+                    Obx(() {
+                      if (controller.cartItemsCount.value == 0) {
+                        return const SizedBox.shrink();
+                      }
+                      return Positioned(
+                        right: 25,
+                        top: MediaQuery.of(context).padding.top + 8,
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            final Map<String, dynamic> arguments = {};
 
-                          if (controller.hasTable) {
-                            arguments[ArgumentConstant.tableKey] =
-                                controller.selectedTable.value;
-                          }
+                            if (controller.hasTable) {
+                              arguments[ArgumentConstant.tableKey] =
+                                  controller.selectedTable.value;
+                            }
 
-                          if (controller.currentOrder.value != null) {
-                            arguments[ArgumentConstant.orderKey] =
-                                controller.currentOrder.value;
-                          }
+                            if (controller.currentOrder.value != null) {
+                              arguments[ArgumentConstant.orderKey] =
+                                  controller.currentOrder.value;
+                            }
 
-                          Get.toNamed(
-                            Routes.CART_SCREEN,
-                            arguments: arguments.isEmpty ? null : arguments,
-                          );
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: MySize.getHeight(30),
-                          width: MySize.getHeight(30),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor.withValues(
-                              alpha: 0.10,
+                            Get.toNamed(
+                              Routes.CART_SCREEN,
+                              arguments: arguments.isEmpty ? null : arguments,
+                            );
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: MySize.getHeight(30),
+                            width: MySize.getHeight(30),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor.withValues(
+                                alpha: 0.10,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.shopping_cart_outlined,
-                            color: ColorConstants.primaryColor,
-                            size: MySize.getHeight(20),
+                            child: Icon(
+                              Icons.shopping_cart_outlined,
+                              color: ColorConstants.primaryColor,
+                              size: MySize.getHeight(20),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
                 ),
                 Obx(

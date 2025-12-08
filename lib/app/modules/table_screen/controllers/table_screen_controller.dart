@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/tableModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
@@ -130,7 +131,7 @@ class TableScreenController extends GetxController {
         );
       } catch (e) {
         print('Error fetching order: $e');
-        Get.snackbar(
+        safeGetSnackbar(
           'Error',
           'Failed to load order details',
           snackPosition: SnackPosition.TOP,
@@ -154,7 +155,7 @@ class TableScreenController extends GetxController {
 
   Future<void> deleteOrder(Tables table) async {
     if (table.activeOrder == null || table.activeOrder!.uuid == null) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'No active order found to delete',
         snackPosition: SnackPosition.TOP,
@@ -177,7 +178,7 @@ class TableScreenController extends GetxController {
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204) {
-        Get.snackbar(
+        safeGetSnackbar(
           'Success',
           'Order deleted successfully',
           snackPosition: SnackPosition.TOP,
@@ -187,7 +188,7 @@ class TableScreenController extends GetxController {
         // Refresh tables to reflect the deletion
         await fetchTablesAreas();
       } else {
-        Get.snackbar(
+        safeGetSnackbar(
           'Error',
           'Failed to delete order',
           snackPosition: SnackPosition.TOP,
@@ -201,7 +202,7 @@ class TableScreenController extends GetxController {
       if (e is ApiException) {
         errorMessage = e.message;
       }
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         errorMessage,
         snackPosition: SnackPosition.TOP,
@@ -216,7 +217,7 @@ class TableScreenController extends GetxController {
   Future<void> changeOrderTable(Tables currentTable, int newTableId) async {
     if (currentTable.activeOrder == null ||
         currentTable.activeOrder!.uuid == null) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'No active order found to change table',
         snackPosition: SnackPosition.TOP,
@@ -241,7 +242,7 @@ class TableScreenController extends GetxController {
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204) {
-        Get.snackbar(
+        safeGetSnackbar(
           'Success',
           'Table changed successfully',
           snackPosition: SnackPosition.TOP,
@@ -251,7 +252,7 @@ class TableScreenController extends GetxController {
         // Refresh tables to reflect the change
         await fetchTablesAreas();
       } else {
-        Get.snackbar(
+        safeGetSnackbar(
           'Error',
           'Failed to change table',
           snackPosition: SnackPosition.TOP,
@@ -265,7 +266,7 @@ class TableScreenController extends GetxController {
       if (e is ApiException) {
         errorMessage = e.message;
       }
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         errorMessage,
         snackPosition: SnackPosition.TOP,
@@ -279,7 +280,7 @@ class TableScreenController extends GetxController {
 
   Future<void> createPayment(Tables table) async {
     if (table.activeOrder == null || table.activeOrder!.uuid == null) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'No active order found to process payment',
         snackPosition: SnackPosition.TOP,
@@ -293,7 +294,7 @@ class TableScreenController extends GetxController {
     final orderTotal = table.activeOrder!.total ?? 0.0;
 
     if (orderTotal <= 0) {
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         'Order total is invalid',
         snackPosition: SnackPosition.TOP,
@@ -317,7 +318,7 @@ class TableScreenController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar(
+        safeGetSnackbar(
           'Success',
           'Payment processed successfully',
           snackPosition: SnackPosition.TOP,
@@ -327,7 +328,7 @@ class TableScreenController extends GetxController {
         // Refresh tables to reflect the payment
         await fetchTablesAreas();
       } else {
-        Get.snackbar(
+        safeGetSnackbar(
           'Error',
           'Failed to process payment',
           snackPosition: SnackPosition.TOP,
@@ -341,7 +342,7 @@ class TableScreenController extends GetxController {
       if (e is ApiException) {
         errorMessage = e.message;
       }
-      Get.snackbar(
+      safeGetSnackbar(
         'Error',
         errorMessage,
         snackPosition: SnackPosition.TOP,

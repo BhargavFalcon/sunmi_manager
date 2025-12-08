@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../routes/app_pages.dart';
 import '../../../model/chartModel.dart';
@@ -127,34 +128,6 @@ class DashboardScreenController extends GetxController {
     chartData.assignAll(
       fakeJson.map((e) => ChartDataModel.fromJson(e)).toList(),
     );
-  }
-
-  Future<void> logout() async {
-    try {
-      isLoading.value = true;
-
-      final response = await networkClient.post(
-        ArgumentConstant.logoutEndpoint,
-      );
-
-      isLoading.value = false;
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        networkClient.removeAuthToken();
-        box.remove(ArgumentConstant.loginModelKey);
-        box.remove(ArgumentConstant.menuItemsKey);
-        Get.offAllNamed(Routes.LOGIN_SCREEN);
-      }
-    } on ApiException catch (e) {
-      isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
-    } catch (e) {
-      isLoading.value = false;
-      networkClient.removeAuthToken();
-      box.remove(ArgumentConstant.loginModelKey);
-      box.remove(ArgumentConstant.menuItemsKey);
-      Get.offAllNamed(Routes.LOGIN_SCREEN);
-    }
   }
 }
 
