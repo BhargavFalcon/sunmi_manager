@@ -121,20 +121,10 @@ class CartScreenController extends GetxController {
   }) async {
     try {
       if (!hasTable) {
-        Get.snackbar(
-          'Error',
-          'Please select a table',
-          snackPosition: SnackPosition.TOP,
-        );
         return;
       }
 
       if (cartItems.isEmpty) {
-        Get.snackbar(
-          'Error',
-          'Cart is empty',
-          snackPosition: SnackPosition.TOP,
-        );
         return;
       }
 
@@ -153,21 +143,11 @@ class CartScreenController extends GetxController {
       }
 
       if (waiterId == null) {
-        Get.snackbar(
-          'Error',
-          'User not found. Please login again',
-          snackPosition: SnackPosition.TOP,
-        );
         return;
       }
 
       final tableId = selectedTable.value?.id;
       if (tableId == null) {
-        Get.snackbar(
-          'Error',
-          'Table not found',
-          snackPosition: SnackPosition.TOP,
-        );
         return;
       }
 
@@ -308,13 +288,6 @@ class CartScreenController extends GetxController {
           await _createPayment(orderId);
         } else {
           cartItems.clear();
-          Get.snackbar(
-            'Success',
-            'Order submitted successfully',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
           Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
           Future.delayed(const Duration(milliseconds: 100), () {
             try {
@@ -325,20 +298,9 @@ class CartScreenController extends GetxController {
             }
           });
         }
-      } else {
-        Get.snackbar(
-          'Error',
-          'Failed to submit order',
-          snackPosition: SnackPosition.TOP,
-        );
       }
     } catch (e) {
       print('Error submitting order: $e');
-      Get.snackbar(
-        'Error',
-        'Error submitting order: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-      );
     } finally {
       // Hide loader
       isSubmittingOrder.value = false;
@@ -363,13 +325,6 @@ class CartScreenController extends GetxController {
       if (paymentResponse.statusCode == 200 ||
           paymentResponse.statusCode == 201) {
         cartItems.clear();
-        Get.snackbar(
-          'Success',
-          'Order and payment completed successfully',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
         Future.delayed(const Duration(milliseconds: 100), () {
           try {
@@ -379,20 +334,9 @@ class CartScreenController extends GetxController {
             print('Main home controller not found: $e');
           }
         });
-      } else {
-        Get.snackbar(
-          'Error',
-          'Order created but payment failed',
-          snackPosition: SnackPosition.TOP,
-        );
       }
     } catch (e) {
       print('Error creating payment: $e');
-      Get.snackbar(
-        'Error',
-        'Order created but payment error: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-      );
     }
   }
 

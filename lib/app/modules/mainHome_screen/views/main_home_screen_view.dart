@@ -6,6 +6,7 @@ import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
 import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
 import 'package:managerapp/app/modules/table_screen/views/table_screen_view.dart';
+import 'package:managerapp/app/modules/take_order_screen/views/take_order_view.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -23,9 +24,10 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: controller.onPageChanged,
         children: [
-          DashboardScreenView(),
-          TableScreenView(),
+          // DashboardScreenView(),
           OrderScreenView(),
+          TableScreenView(),
+          TakeOrderView(),
           ReservationScreenView(),
           SettingScreenView(),
           // InventoryScreenView(),
@@ -83,21 +85,27 @@ class _CustomBottomNavBar extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  // _NavBarItem(
+                  //   icon: ImageConstant.dashboard,
+                  //   label: "Home",
+                  //   isSelected: selectedIndex == 0,
+                  //   onTap: () => onTabChange(0),
+                  // ),
                   _NavBarItem(
-                    icon: ImageConstant.dashboard,
-                    label: "Home",
+                    icon: ImageConstant.order,
+                    label: "All Orders",
                     isSelected: selectedIndex == 0,
                     onTap: () => onTabChange(0),
                   ),
                   _NavBarItem(
                     icon: ImageConstant.table,
-                    label: "Table",
+                    label: "Dine-In",
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.order,
-                    label: "Order",
+                    icon: ImageConstant.takeOrder,
+                    label: "Take Order",
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),

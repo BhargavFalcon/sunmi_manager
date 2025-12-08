@@ -32,19 +32,25 @@ class LoginScreenController extends GetxController {
 
   Future<void> login() async {
     if (emailController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your email',
-        snackPosition: SnackPosition.TOP,
+      Get.showSnackbar(
+        GetSnackBar(
+          title: "Error",
+          message: "Please enter your email",
+          duration: Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+        ),
       );
       return;
     }
 
     if (passwordController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your password',
-        snackPosition: SnackPosition.TOP,
+      Get.showSnackbar(
+        GetSnackBar(
+          title: "Error",
+          message: "Please enter your password",
+          duration: Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+        ),
       );
       return;
     }
@@ -87,43 +93,65 @@ class LoginScreenController extends GetxController {
                 }
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
-                Get.snackbar(
-                  'Error',
-                  'Failed to save authentication token',
-                  snackPosition: SnackPosition.TOP,
+                Get.showSnackbar(
+                  GetSnackBar(
+                    title: "Error",
+                    message: "Failed to save authentication token",
+                    duration: Duration(seconds: 2),
+                    snackPosition: SnackPosition.TOP,
+                  ),
                 );
               }
             } else {
-              Get.snackbar(
-                'Error',
-                'Token not found in response',
-                snackPosition: SnackPosition.TOP,
+              Get.showSnackbar(
+                GetSnackBar(
+                  title: "Error",
+                  message: "Token not found in response",
+                  duration: Duration(seconds: 2),
+                  snackPosition: SnackPosition.TOP,
+                ),
               );
             }
           } catch (e) {
-            Get.snackbar(
-              'Error',
-              'Failed to parse login response: ${e.toString()}',
-              snackPosition: SnackPosition.TOP,
+            Get.showSnackbar(
+              GetSnackBar(
+                title: "Error",
+                message: "Failed to parse login response: ${e.toString()}",
+                duration: Duration(seconds: 2),
+                snackPosition: SnackPosition.TOP,
+              ),
             );
           }
         } else {
-          Get.snackbar(
-            'Error',
-            'Invalid response format',
-            snackPosition: SnackPosition.TOP,
+          Get.showSnackbar(
+            GetSnackBar(
+              title: "Error",
+              message: "Invalid response format",
+              duration: Duration(seconds: 2),
+              snackPosition: SnackPosition.TOP,
+            ),
           );
         }
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
+      Get.showSnackbar(
+        GetSnackBar(
+          title: "Error",
+          message: e.message,
+          duration: Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+        ),
+      );
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Something went wrong. Please try again.',
-        snackPosition: SnackPosition.TOP,
+      Get.showSnackbar(
+        GetSnackBar(
+          title: "Error",
+          message: "Something went wrong. Please try again.",
+          duration: Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+        ),
       );
     }
   }

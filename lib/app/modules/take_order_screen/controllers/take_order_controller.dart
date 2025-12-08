@@ -205,25 +205,17 @@ class TakeOrderController extends GetxController {
               _processMenuItems();
               saveMenuItemsToStorage(itemMenu.data!.items!);
             }
-          } catch (e) {
-            Get.snackbar(
-              'Error',
-              'Failed to parse menu items: ${e.toString()}',
-              snackPosition: SnackPosition.TOP,
-            );
+          } catch (_) {
+            // Error parsing menu items - silently fail
           }
         }
       }
-    } on ApiException catch (e) {
+    } on ApiException catch (_) {
       isLoading.value = false;
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.TOP);
-    } catch (e) {
+      // Error loading menu items - silently fail
+    } catch (_) {
       isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Something went wrong. Please try again.',
-        snackPosition: SnackPosition.TOP,
-      );
+      // Error loading menu items - silently fail
     }
   }
 
@@ -480,48 +472,12 @@ class TakeOrderController extends GetxController {
       cartItem.cartNoteDraft = '';
       cartItem.cartEditingNote = false;
 
-      // Check if this is an existing order
-      final bool isExistingOrder = currentOrder.value != null;
-
-      // For existing orders, always treat as new item (don't check for duplicates)
-      // For new orders, check for duplicates
-      bool isDuplicate = false;
-      if (!isExistingOrder) {
-        final existingItem = cartController.findExistingCartItem(cartItem);
-        isDuplicate = existingItem != null;
-      }
-
       cartController.addToCart(cartItem);
 
       // Update cart count
       _updateCartCount();
-
-      // Show success message
-      String message = item.itemName ?? 'Item';
-      if (selectedVariation != null) {
-        message += ' - ${selectedVariation.variation}';
-      }
-      if (extrasList.isNotEmpty) {
-        message += ' with ${extrasList.length} extra(s)';
-      }
-      if (isDuplicate) {
-        message += ' quantity increased';
-      } else {
-        message += ' added to cart';
-      }
-
-      Get.snackbar(
-        'Success',
-        message,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 2),
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to add item to cart: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-      );
+    } catch (_) {
+      // Error adding item to cart - silently fail
     }
   }
 
@@ -1623,12 +1579,8 @@ class TakeOrderController extends GetxController {
 
       _updateCartCount();
       _applyOrderDiscount(cartController);
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load order items: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-      );
+    } catch (_) {
+      // Error loading order items - silently fail
     }
   }
 

@@ -67,6 +67,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         ),
                       ),
                     ),
+                    if (controller.hasTable)
                     Positioned(
                       left: 12,
                       top: MediaQuery.of(context).padding.top + 8,

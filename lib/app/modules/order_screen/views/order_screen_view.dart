@@ -35,7 +35,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
                 child: Center(
                   child: Text(
-                    "Order",
+                    "All Orders",
                     style: TextStyle(fontSize: 20, color: Colors.black),
                   ),
                 ),
@@ -70,7 +70,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                     ),
                                     builder: (context, controllerMenu, child) {
                                       return GestureDetector(
-                                        onTap: () => controllerMenu.open(),
+                                        onTap: () {
+                                          if (controllerMenu.isOpen) {
+                                            controllerMenu.close();
+                                          } else {
+                                            controllerMenu.open();
+                                          }
+                                        },
                                         child: Obx(() {
                                           return Container(
                                             padding: const EdgeInsets.symmetric(
@@ -149,7 +155,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                     ),
                                     builder: (context, controllerMenu, child) {
                                       return GestureDetector(
-                                        onTap: () => controllerMenu.open(),
+                                        onTap: () {
+                                          if (controllerMenu.isOpen) {
+                                            controllerMenu.close();
+                                          } else {
+                                            controllerMenu.open();
+                                          }
+                                        },
                                         child: Obx(() {
                                           return Container(
                                             padding: const EdgeInsets.symmetric(
@@ -414,22 +426,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
               ),
             ],
-          ),
-          floatingActionButton: InkWell(
-            hoverColor: Colors.transparent,
-            focusColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            splashColor: Colors.transparent,
-            onTap: () => Get.toNamed(Routes.TAKE_ORDER_SCREEN),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: ColorConstants.primaryColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: ColorConstants.getShadow2,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            ),
           ),
         );
       },
