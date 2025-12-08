@@ -41,7 +41,7 @@ class PrinterService extends GetxService {
           final result = await PrintBluetoothThermal.connect(
             macPrinterAddress: connectedDevice!.macAdress,
           );
-          isConnected.value = result ;
+          isConnected.value = result;
         } else {
           isConnected.value = true;
         }
@@ -67,6 +67,26 @@ class PrinterService extends GetxService {
     box.remove(ArgumentConstant.savedPrinterDeviceKey);
   }
 
+  PaperSize _getPaperSize() {
+    try {
+      final printerWidth = box.read(ArgumentConstant.printerWidthKey) ?? '80mm';
+      switch (printerWidth) {
+        case '58mm':
+          return PaperSize.mm58;
+        case '72mm':
+          return PaperSize.mm72;
+        case '112mm':
+          // 112mm is not a standard ESC/POS size, fallback to mm80
+          return PaperSize.mm80;
+        case '80mm':
+        default:
+          return PaperSize.mm80;
+      }
+    } catch (e) {
+      return PaperSize.mm80; // Default fallback
+    }
+  }
+
   Future<void> printTestReceipt() async {
     if (!isConnected.value || connectedDevice == null) {
       print('⚠️ Printer not connected, cannot print');
@@ -76,7 +96,8 @@ class PrinterService extends GetxService {
     try {
       // Create ESC/POS commands
       final profile = await CapabilityProfile.load();
-      final generator = Generator(PaperSize.mm80, profile);
+      final paperSize = _getPaperSize();
+      final generator = Generator(paperSize, profile);
 
       List<int> bytes = [];
 

@@ -19,7 +19,7 @@ class PrinterScreenController extends GetxController {
   final autoPrint = true.obs;
   final numberOfCopies = 1.obs;
   final printerWidth = '80mm'.obs;
-  final printerWidthOptions = ['58mm', '80mm', '112mm'];
+  final printerWidthOptions = ['58mm', '72mm', '80mm'];
 
   @override
   void onInit() {
@@ -317,6 +317,7 @@ class PrinterScreenController extends GetxController {
       case '72mm':
         return PaperSize.mm72;
       case '80mm':
+        return PaperSize.mm80;
       default:
         return PaperSize.mm80;
     }
