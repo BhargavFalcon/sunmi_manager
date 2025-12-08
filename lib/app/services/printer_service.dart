@@ -41,7 +41,7 @@ class PrinterService extends GetxService {
           final result = await PrintBluetoothThermal.connect(
             macPrinterAddress: connectedDevice!.macAdress,
           );
-          isConnected.value = result ?? false;
+          isConnected.value = result ;
         } else {
           isConnected.value = true;
         }
