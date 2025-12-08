@@ -26,4 +26,9 @@ class ArgumentConstant {
   static const printerNumberOfCopiesKey = "printer_number_of_copies";
   static const printerWidthKey = "printer_width";
   static const savedPrinterDeviceKey = "saved_printer_device";
+
+  // App Settings Keys
+  static const hapticFeedbackKey = "haptic_feedback_enabled";
+  static const beepSoundKey = "beep_sound_enabled";
+  static const selectedLanguageKey = "selected_language";
 }

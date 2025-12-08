@@ -30,7 +30,6 @@ void main() async {
         hoverColor: Colors.transparent,
       ),
       builder: (context, child) {
-        // Ensure MaterialApp overlay is ready for Get.snackbar
         return MediaQuery(
           data: MediaQuery.of(context),
           child: child ?? const SizedBox.shrink(),
