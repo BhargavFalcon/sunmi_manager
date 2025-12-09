@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/image_constants.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
@@ -14,6 +16,7 @@ import '../../../routes/app_pages.dart';
 
 class CartScreenController extends GetxController {
   final networkClient = NetworkClient();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   // Cart items list - using Items model directly
   RxList<Items> cartItems = <Items>[].obs;
@@ -392,6 +395,7 @@ class CartScreenController extends GetxController {
   @override
   void onClose() {
     paxController.dispose();
+    _audioPlayer.dispose();
     super.onClose();
   }
 
@@ -484,6 +488,12 @@ class CartScreenController extends GetxController {
     final hapticEnabled = box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
     if (hapticEnabled) {
       HapticFeedback.heavyImpact();
+    }
+
+    // Trigger beep sound if enabled
+    final beepSoundEnabled = box.read(ArgumentConstant.beepSoundKey) ?? true;
+    if (beepSoundEnabled) {
+      _playBeepSound();
     }
 
     // Sync order type from the item (restaurant settings based)
@@ -687,5 +697,15 @@ class CartScreenController extends GetxController {
   // Get final total
   double get finalTotal {
     return subTotalAfterDiscount;
+  }
+
+  // Play beep sound
+  Future<void> _playBeepSound() async {
+    try {
+      // AssetSource automatically looks in assets directory, so don't include assets/ prefix
+      await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'));
+    } catch (e) {
+      print('Error playing beep sound: $e');
+    }
   }
 }

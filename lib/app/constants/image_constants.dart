@@ -1,5 +1,6 @@
 class ImageConstant {
-  static const imagePath = "Assets/Images/";
+  static const imagePath = "assets/Images/";
+
   static const dashboard = "${imagePath}dashboard.png";
   static const tableReservation = "${imagePath}table-reservation.png";
 
@@ -26,4 +27,6 @@ class ImageConstant {
   static const allOrders = "${imagePath}all-orders.png";
   static const warning = "${imagePath}warning.png";
   static const takeOrder = "${imagePath}takeOrder.png";
+
+
 }
