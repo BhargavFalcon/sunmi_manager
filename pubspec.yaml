@@ -49,6 +49,7 @@ dependencies:
   pull_to_refresh: ^2.0.0
   print_bluetooth_thermal: ^1.1.7
   flutter_esc_pos_utils: ^1.0.1
+  wakelock_plus: ^1.4.0
 
 dev_dependencies:
   flutter_test:

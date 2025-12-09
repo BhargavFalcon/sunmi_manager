@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
@@ -10,6 +11,7 @@ import 'app/services/printer_service.dart';
 final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  WakelockPlus.enable();
   await GetStorage.init();
 
   // Initialize services

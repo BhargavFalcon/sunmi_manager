@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
@@ -477,6 +478,12 @@ class CartScreenController extends GetxController {
         // New item - add to cart
         cartItems.add(item);
       }
+    }
+
+    // Trigger haptic feedback if enabled
+    final hapticEnabled = box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
+    if (hapticEnabled) {
+      HapticFeedback.heavyImpact();
     }
 
     // Sync order type from the item (restaurant settings based)
