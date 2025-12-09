@@ -5,7 +5,10 @@ import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/tableModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
+import '../../../model/AllOrdersModel.dart';
+import '../../../model/cancelResonModel.dart' as cancelReasonModel;
 import '../../../routes/app_pages.dart';
+import 'package:flutter/material.dart';
 
 class TableScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -14,6 +17,9 @@ class TableScreenController extends GetxController {
   final isDeletingOrder = false.obs;
   final isChangingTable = false.obs;
   final isProcessingPayment = false.obs;
+  final isCancelingOrder = false.obs;
+  final isFetchingCancelReasons = false.obs;
+  final cancelReasons = <cancelReasonModel.Data>[].obs;
   final tableModel = Rx<TableModel?>(null);
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
@@ -351,6 +357,112 @@ class TableScreenController extends GetxController {
       );
     } finally {
       isProcessingPayment.value = false;
+    }
+  }
+
+  Future<void> fetchCancelReasons() async {
+    if (isFetchingCancelReasons.value) return;
+
+    isFetchingCancelReasons.value = true;
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.cancelReasonsEndpoint,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data != null) {
+          final cancelReasonModelResponse = cancelReasonModel
+              .CancelReasonModel.fromJson(
+            response.data as Map<String, dynamic>,
+          );
+
+          if (cancelReasonModelResponse.success == true &&
+              cancelReasonModelResponse.data != null) {
+            // Filter only order cancellation reasons (cancelOrder == true)
+            cancelReasons.value =
+                cancelReasonModelResponse.data!
+                    .where((reason) => reason.cancelOrder == true)
+                    .toList();
+          } else {
+            cancelReasons.value = [];
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching cancel reasons: $e');
+    } finally {
+      isFetchingCancelReasons.value = false;
+    }
+  }
+
+  Future<void> cancelOrder(
+    Tables table,
+    int cancelReasonId,
+    String? additionalComment,
+  ) async {
+    if (table.activeOrder == null || table.activeOrder!.uuid == null) {
+      safeGetSnackbar(
+        'Error',
+        'No active order found to cancel',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    isCancelingOrder.value = true;
+    try {
+      final orderUuid = table.activeOrder!.uuid!;
+      final endpoint = ArgumentConstant.cancelOrderEndpoint.replaceAll(
+        ':order_uuid',
+        orderUuid,
+      );
+
+      final requestBody = {
+        'cancel_reason_id': cancelReasonId,
+        if (additionalComment != null && additionalComment.isNotEmpty)
+          'comment': additionalComment,
+      };
+
+      final response = await networkClient.post(endpoint, data: requestBody);
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        safeGetSnackbar(
+          'Success',
+          'Order cancelled successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        // Refresh tables to reflect the cancellation
+        await fetchTablesAreas();
+      } else {
+        safeGetSnackbar(
+          'Error',
+          'Failed to cancel order',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error cancelling order: $e');
+      String errorMessage = 'Failed to cancel order';
+      if (e is ApiException) {
+        errorMessage = e.message;
+      }
+      safeGetSnackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isCancelingOrder.value = false;
     }
   }
 }

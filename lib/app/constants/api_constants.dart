@@ -19,6 +19,8 @@ class ArgumentConstant {
       "api/v1/pos/orders/:order_uuid/items/sync";
   static const paymentsEndpoint = "api/v1/pos/payments";
   static const allOrdersEndpoint = "api/v1/pos/orders";
+  static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
+  static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
   static const orderKey = "order";
 
   // Printer Settings Keys

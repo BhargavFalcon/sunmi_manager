@@ -6,6 +6,8 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/model/tableModel.dart';
+import 'package:managerapp/app/model/cancelResonModel.dart'
+    as cancelReasonModel;
 import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/table_screen_controller.dart';
@@ -715,7 +717,7 @@ void _showRunningTablePopup(
                 imageColor: Colors.red,
                 onTap: () {
                   Navigator.of(context).pop();
-                  // TODO: Implement cancel order functionality
+                  _showCancelOrderDialog(context, controller, table);
                 },
               ),
               SizedBox(height: MySize.getHeight(12)),
@@ -936,6 +938,385 @@ void _showDeleteOrderConfirmationDialog(
             ],
           ),
         ),
+      );
+    },
+  );
+}
+
+void _showCancelOrderDialog(
+  BuildContext context,
+  TableScreenController controller,
+  Tables table,
+) {
+  // Fetch cancel reasons when dialog opens
+  controller.fetchCancelReasons();
+
+  // State variables for the dialog - using ValueNotifier for proper state management
+  final selectedCancelReason = ValueNotifier<cancelReasonModel.Data?>(null);
+  final TextEditingController commentController = TextEditingController();
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              constraints: BoxConstraints(
+                maxWidth: 500,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with icons and title
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.red.shade700,
+                          size: MySize.getHeight(20),
+                        ),
+                        SizedBox(width: MySize.getWidth(12)),
+                        Expanded(
+                          child: Text(
+                            'Cancel Order',
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(20),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: MySize.getHeight(12)),
+                    // Main description
+                    Text(
+                      'This will cancel the order and delete any associated payments. Are you sure you want to proceed?',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(14),
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(16)),
+                    // Warning box
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.orange.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange.shade700,
+                            size: MySize.getHeight(20),
+                          ),
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'This will cancel the order and delete any associated payments. Are you sure you want to proceed?',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    color: Colors.orange.shade900,
+                                  ),
+                                ),
+                                SizedBox(height: MySize.getHeight(8)),
+                                Text(
+                                  'Select Cancel Reason',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    color: Colors.orange.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(20)),
+                    // Select Cancel Reason dropdown
+                    Text(
+                      'Select Cancel Reason',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(14),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(8)),
+                    Obx(() {
+                      if (controller.isFetchingCancelReasons.value) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: MySize.getWidth(16),
+                                height: MySize.getHeight(16),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants.primaryColor,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: MySize.getWidth(12)),
+                              Text(
+                                'Loading reasons...',
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(14),
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ValueListenableBuilder<cancelReasonModel.Data?>(
+                          valueListenable: selectedCancelReason,
+                          builder: (context, selectedValue, _) {
+                            return DropdownButtonHideUnderline(
+                              child: DropdownButton<cancelReasonModel.Data>(
+                                isExpanded: true,
+                                value: selectedValue,
+                                hint: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Text(
+                                    'Select Cancel Reason',
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(14),
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                icon: Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                items: [
+                                  // Default "Select Cancel Reason" option
+                                  DropdownMenuItem<cancelReasonModel.Data>(
+                                    value: null,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
+                                      child: Text(
+                                        'Select Cancel Reason',
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(14),
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Actual cancel reasons from API
+                                  ...controller.cancelReasons.map((reason) {
+                                    return DropdownMenuItem<
+                                      cancelReasonModel.Data
+                                    >(
+                                      value: reason,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Text(
+                                          reason.reason ?? '',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (cancelReasonModel.Data? newValue) {
+                                  selectedCancelReason.value = newValue;
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }),
+                    SizedBox(height: MySize.getHeight(20)),
+                    // Additional Comment field
+                    Text(
+                      'Additional Comment (Optional)',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(14),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(8)),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: TextField(
+                        controller: commentController,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Additional Comment (Optional)',
+                          hintStyle: TextStyle(
+                            fontSize: MySize.getHeight(14),
+                            color: Colors.grey.shade600,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(14),
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(24)),
+                    // Action buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            selectedCancelReason.dispose();
+                            commentController.dispose();
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(24),
+                              vertical: MySize.getHeight(12),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            backgroundColor: Colors.white,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: MySize.getWidth(12)),
+                        Obx(() {
+                          final isCanceling = controller.isCancelingOrder.value;
+                          return ValueListenableBuilder<
+                            cancelReasonModel.Data?
+                          >(
+                            valueListenable: selectedCancelReason,
+                            builder: (context, selectedValue, _) {
+                              return TextButton(
+                                onPressed:
+                                    isCanceling || selectedValue == null
+                                        ? null
+                                        : () {
+                                          controller.cancelOrder(
+                                            table,
+                                            selectedValue.id!,
+                                            commentController.text
+                                                    .trim()
+                                                    .isEmpty
+                                                ? null
+                                                : commentController.text.trim(),
+                                          );
+                                          selectedCancelReason.dispose();
+                                          commentController.dispose();
+                                          Navigator.of(context).pop();
+                                        },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: MySize.getWidth(24),
+                                    vertical: MySize.getHeight(12),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                  disabledBackgroundColor: Colors.grey.shade300,
+                                ),
+                                child:
+                                    isCanceling
+                                        ? SizedBox(
+                                          width: MySize.getWidth(16),
+                                          height: MySize.getHeight(16),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        )
+                                        : Text(
+                                          'Cancel Order',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                              );
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       );
     },
   );

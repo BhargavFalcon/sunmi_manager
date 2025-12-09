@@ -673,8 +673,18 @@ class CancelReason {
   CancelReason.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     reason = json['reason'];
-    cancelOrder = json['cancel_order'];
-    cancelKot = json['cancel_kot'];
+    // Handle both boolean and int for cancel_order
+    if (json['cancel_order'] is bool) {
+      cancelOrder = (json['cancel_order'] as bool) ? 1 : 0;
+    } else {
+      cancelOrder = json['cancel_order'];
+    }
+    // Handle both boolean and int for cancel_kot
+    if (json['cancel_kot'] is bool) {
+      cancelKot = (json['cancel_kot'] as bool) ? 1 : 0;
+    } else {
+      cancelKot = json['cancel_kot'];
+    }
   }
 
   Map<String, dynamic> toJson() {
