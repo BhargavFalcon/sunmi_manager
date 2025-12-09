@@ -51,6 +51,7 @@ dependencies:
   flutter_esc_pos_utils: ^1.0.1
   wakelock_plus: ^1.4.0
   audioplayers: ^6.0.0
+  image: ^4.1.7
 
 dev_dependencies:
   flutter_test:

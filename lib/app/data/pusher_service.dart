@@ -75,20 +75,47 @@ class PusherService {
         onEvent: (event) {
           print("Event Data: ${event.data}");
           if (_isValidEventData(event.data)) {
-            _handleTestPrint();
+            _handleOrderEvent(event.data);
           }
         },
       );
-    } catch (e) {}
+    } catch (e) {
+      print('Error subscribing to orders: $e');
+    }
   }
 
-  void _handleTestPrint() {
+  void _handleOrderEvent(dynamic eventData) {
     try {
       final autoPrint = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      if (autoPrint && Get.isRegistered<PrinterService>()) {
-        final printerService = Get.find<PrinterService>();
-        printerService.printTestReceipt();
+      if (!autoPrint || !Get.isRegistered<PrinterService>()) {
+        return;
       }
-    } catch (e) {}
+
+      // Parse the event data
+      String dataString = eventData.toString().trim();
+      final decoded = jsonDecode(dataString);
+
+      // Extract order data
+      if (decoded is Map<String, dynamic>) {
+        final order = decoded['order'];
+        if (order is Map<String, dynamic>) {
+          final imageUrl = order['image_url'] as String?;
+
+          if (imageUrl != null && imageUrl.isNotEmpty) {
+            print('📸 Found image URL in order: $imageUrl');
+            final printerService = Get.find<PrinterService>();
+            printerService.printImageFromUrl(imageUrl);
+          } else {
+            print('⚠️ No image_url found in order data');
+          }
+        } else {
+          print('⚠️ Order data is not a valid map');
+        }
+      } else {
+        print('⚠️ Event data is not a valid map');
+      }
+    } catch (e) {
+      print('❌ Error handling order event: $e');
+    }
   }
 }

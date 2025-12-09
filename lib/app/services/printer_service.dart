@@ -1,7 +1,10 @@
+import 'dart:typed_data';
 import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:image/image.dart' as img;
+import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 
 class PrinterService extends GetxService {
@@ -75,10 +78,8 @@ class PrinterService extends GetxService {
           return PaperSize.mm58;
         case '72mm':
           return PaperSize.mm72;
-        case '112mm':
-          // 112mm is not a standard ESC/POS size, fallback to mm80
-          return PaperSize.mm80;
         case '80mm':
+          return PaperSize.mm80;
         default:
           return PaperSize.mm80;
       }
@@ -87,13 +88,38 @@ class PrinterService extends GetxService {
     }
   }
 
-  Future<void> printTestReceipt() async {
+  Future<void> printImageFromUrl(String imageUrl) async {
     if (!isConnected.value || connectedDevice == null) {
-      print('⚠️ Printer not connected, cannot print');
+      print('⚠️ Printer not connected, cannot print image');
       return;
     }
 
     try {
+      print('📥 Downloading image from URL: $imageUrl');
+
+      // Download image using Dio
+      final dio = Dio();
+      final response = await dio.get<Uint8List>(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (response.statusCode != 200 || response.data == null) {
+        print('❌ Failed to download image: ${response.statusCode}');
+        return;
+      }
+
+      print('✅ Image downloaded successfully');
+
+      // Decode the image
+      final image = img.decodeImage(response.data!);
+      if (image == null) {
+        print('❌ Failed to decode image');
+        return;
+      }
+
+      print('✅ Image decoded successfully');
+
       // Create ESC/POS commands
       final profile = await CapabilityProfile.load();
       final paperSize = _getPaperSize();
@@ -101,33 +127,8 @@ class PrinterService extends GetxService {
 
       List<int> bytes = [];
 
-      // Header
-      bytes += generator.text(
-        'Test Print',
-        styles: PosStyles(align: PosAlign.center, bold: true),
-      );
-      bytes += generator.text(
-        'DineMatrics Manager',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.hr();
-
-      // Test content
-      bytes += generator.text(
-        'This is a test print',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.text(
-        'Date: ${DateTime.now().toString().split('.')[0]}',
-        styles: PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.hr();
-
-      // Footer
-      bytes += generator.text(
-        'Thank you!',
-        styles: PosStyles(align: PosAlign.center),
-      );
+      // Add image to print bytes
+      bytes += generator.image(image);
       bytes += generator.feed(2);
       bytes += generator.cut();
 
@@ -135,12 +136,12 @@ class PrinterService extends GetxService {
       final result = await PrintBluetoothThermal.writeBytes(bytes);
 
       if (result == true) {
-        print('✅ Test print sent successfully');
+        print('✅ Image print sent successfully');
       } else {
-        print('❌ Failed to send print');
+        print('❌ Failed to send image print');
       }
     } catch (e) {
-      print('❌ Print error: $e');
+      print('❌ Image print error: $e');
     }
   }
 }
