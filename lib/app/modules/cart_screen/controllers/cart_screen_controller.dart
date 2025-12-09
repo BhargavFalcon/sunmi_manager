@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/image_constants.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
@@ -484,9 +483,12 @@ class CartScreenController extends GetxController {
       }
     }
 
-    // Trigger haptic feedback if enabled
+    // Trigger haptic feedback if enabled - maximum intensity
     final hapticEnabled = box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
     if (hapticEnabled) {
+      // Use strongest haptic feedback - vibrate
+      HapticFeedback.vibrate();
+      // Also add heavy impact for extra intensity
       HapticFeedback.heavyImpact();
     }
 
@@ -702,8 +704,7 @@ class CartScreenController extends GetxController {
   // Play beep sound
   Future<void> _playBeepSound() async {
     try {
-      // AssetSource automatically looks in assets directory, so don't include assets/ prefix
-      await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'));
+      await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'), volume: 0.2);
     } catch (e) {
       print('Error playing beep sound: $e');
     }
