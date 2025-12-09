@@ -128,8 +128,7 @@ class PrinterService extends GetxService {
       List<int> bytes = [];
 
       // Add image to print bytes
-      bytes += generator.image(image);
-      bytes += generator.feed(2);
+      bytes += generator.image(image,align: PosAlign.center);
       bytes += generator.cut();
 
       // Print
