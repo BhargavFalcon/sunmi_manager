@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:managerapp/app/modules/dashboard_screen/views/dashboard_screen_view.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
 import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
@@ -81,7 +80,7 @@ class _CustomBottomNavBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -207,14 +206,17 @@ class _NavBarItemState extends State<_NavBarItem>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return InkWell(
+          onTap: widget.onTap,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: ColorConstants.primaryColor.withValues(
                 alpha: 0.1 * _backgroundAnimation.value,
@@ -259,9 +261,9 @@ class _NavBarItemState extends State<_NavBarItem>
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
