@@ -1,10 +1,10 @@
 import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image/image.dart' as img;
-import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 
 class PrinterService extends GetxService {
@@ -70,24 +70,6 @@ class PrinterService extends GetxService {
     box.remove(ArgumentConstant.savedPrinterDeviceKey);
   }
 
-  PaperSize _getPaperSize() {
-    try {
-      final printerWidth = box.read(ArgumentConstant.printerWidthKey) ?? '80mm';
-      switch (printerWidth) {
-        case '58mm':
-          return PaperSize.mm58;
-        case '72mm':
-          return PaperSize.mm72;
-        case '80mm':
-          return PaperSize.mm80;
-        default:
-          return PaperSize.mm80;
-      }
-    } catch (e) {
-      return PaperSize.mm80; // Default fallback
-    }
-  }
-
   Future<void> printImageFromUrl(String imageUrl) async {
     if (!isConnected.value || connectedDevice == null) {
       print('⚠️ Printer not connected, cannot print image');
@@ -118,18 +100,20 @@ class PrinterService extends GetxService {
         return;
       }
 
-      print('✅ Image decoded successfully');
+      final resizedImage = img.copyResize(
+        image,
+        width: 384,
+        maintainAspect: true,
+        interpolation: img.Interpolation.cubic,
+      );
 
-      // Create ESC/POS commands
       final profile = await CapabilityProfile.load();
-      final paperSize = _getPaperSize();
-      final generator = Generator(paperSize, profile);
+      final generator = Generator(PaperSize.mm80, profile);
 
-      List<int> bytes = [];
-
-      // Add image to print bytes
-      bytes += generator.image(image,align: PosAlign.center);
-      bytes += generator.cut();
+      final bytes = <int>[
+        ...generator.image(resizedImage, align: PosAlign.center),
+        ...generator.cut(),
+      ];
 
       // Print
       final result = await PrintBluetoothThermal.writeBytes(bytes);
