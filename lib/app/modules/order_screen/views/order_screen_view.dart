@@ -10,6 +10,7 @@ import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
+import '../../../services/printer_service.dart';
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -572,29 +573,140 @@ class OrderScreenView extends GetView<OrderScreenController> {
             const SizedBox(height: 8),
             _buildPriceSummary(orderData),
             const SizedBox(height: 16),
-            InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: ColorConstants.grey600),
-                  boxShadow: ColorConstants.getShadow2,
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: ColorConstants.getShadow2,
+                      ),
+                      child: const Text(
+                        'Close',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Text(
-                  'Close',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.black),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: ColorConstants.getShadow2,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.print,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Print',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
             const SizedBox(height: 16),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handlePrintOrder(
+    BuildContext context,
+    orderDetailsModel.Data orderData,
+  ) async {
+    try {
+      // Check if PrinterService is registered
+      if (!Get.isRegistered<PrinterService>()) {
+        safeGetSnackbar(
+          'Printer Not Available',
+          'Printer service is not available. Please configure printer in settings.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      final printerService = Get.find<PrinterService>();
+
+      // Check if printer is connected
+      if (!printerService.isConnected.value) {
+        safeGetSnackbar(
+          'Printer Not Connected',
+          'Please connect a printer first in settings.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Try to get print URL from order data
+      // Note: You may need to add image_url field to the order model or fetch it from API
+      // For now, we'll show a message that print functionality needs image_url
+      safeGetSnackbar(
+        'Print Feature',
+        'Print functionality will be available once print URL is configured.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+
+      // TODO: Uncomment when image_url is available in order data
+      // if (orderData.imageUrl != null && orderData.imageUrl!.isNotEmpty) {
+      //   await printerService.printImageFromUrl(orderData.imageUrl!);
+      //   safeGetSnackbar(
+      //     'Print Sent',
+      //     'Order print has been sent to printer.',
+      //     snackPosition: SnackPosition.TOP,
+      //     backgroundColor: Colors.green,
+      //     colorText: Colors.white,
+      //   );
+      // } else {
+      //   safeGetSnackbar(
+      //     'Print URL Not Available',
+      //     'Print URL is not available for this order.',
+      //     snackPosition: SnackPosition.TOP,
+      //     backgroundColor: Colors.orange,
+      //     colorText: Colors.white,
+      //   );
+      // }
+    } catch (e) {
+      safeGetSnackbar(
+        'Print Error',
+        'Failed to print order: ${e.toString()}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   String _formatOrderType(String? orderType) {
