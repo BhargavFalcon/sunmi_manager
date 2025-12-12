@@ -609,11 +609,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.print,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                        const Icon(Icons.print, color: Colors.white, size: 18),
                         const SizedBox(width: 6),
                         const Text(
                           'Print',
