@@ -6,6 +6,7 @@ import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
+import '../../../model/getorderModel.dart' as orderModel;
 
 class OrderScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -15,6 +16,9 @@ class OrderScreenController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool isNavigatingToOrder = false.obs;
+  final RxBool isLoadingOrderDetails = false.obs;
+  final Rx<orderModel.GetOrderModel?> orderDetails =
+      Rx<orderModel.GetOrderModel?>(null);
   final RxList<Orders> allOrders = <Orders>[].obs;
   Pagination? pagination;
   int currentPage = 1;
@@ -164,6 +168,28 @@ class OrderScreenController extends GetxController {
   Future<void> onRefresh() async {
     currentPage = 1;
     await fetchAllOrders();
+  }
+
+  Future<void> fetchOrderDetails(String orderUuid) async {
+    isLoadingOrderDetails.value = true;
+    orderDetails.value = null;
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final orderDetailsModel = orderModel.GetOrderModel.fromJson(
+          response.data,
+        );
+        if (orderDetailsModel.success == true) {
+          orderDetails.value = orderDetailsModel;
+        }
+      }
+    } catch (e) {
+      orderDetails.value = null;
+    } finally {
+      isLoadingOrderDetails.value = false;
+    }
   }
 
   @override

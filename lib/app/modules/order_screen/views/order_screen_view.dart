@@ -9,6 +9,7 @@ import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
+import '../../../model/getorderModel.dart' as orderDetailsModel;
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -445,11 +446,31 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  void _showOrderBottomSheet(
+  Future<void> _showOrderBottomSheet(
     BuildContext context,
     OrderScreenController controller,
     orderModel.Orders order,
-  ) {
+  ) async {
+    final orderUuid = order.uuid;
+    if (orderUuid == null || orderUuid.isEmpty) {
+      safeGetSnackbar('Error', 'Order UUID not found');
+      return;
+    }
+
+    try {
+      // Show loader first (like kot flow)
+      controller.isNavigatingToOrder.value = true;
+
+      // Fetch order details
+      await controller.fetchOrderDetails(orderUuid);
+    } finally {
+      // Always hide loader even if error occurs
+      controller.isNavigatingToOrder.value = false;
+    }
+
+    // Show bottom sheet after loader completes
+    if (!context.mounted) return;
+
     showModalBottomSheet(
       context: context,
       isDismissible: true,
@@ -458,94 +479,159 @@ class OrderScreenView extends GetView<OrderScreenController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder:
-          (_) => DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.85,
-            builder:
-                (_, scrollController) => Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: ColorConstants.bgColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    boxShadow: ColorConstants.getShadow2,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Image.asset(
-                                        ImageConstant.order,
-                                        height: 24,
-                                        width: 24,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'Order #386 (Dine In)',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              _buildOrderItemsTable(),
-                              const SizedBox(height: 8),
-                              _buildPriceSummary(),
-                              const SizedBox(height: 16),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: ColorConstants.grey600,
-                                    ),
-                                    boxShadow: ColorConstants.getShadow2,
-                                  ),
-                                  child: const Text(
-                                    'Cancle',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-          ),
+      builder: (_) => _buildBottomSheetContent(context, controller, order),
     );
   }
 
-  Widget _buildOrderItemsTable() {
+  Widget _buildBottomSheetContent(
+    BuildContext context,
+    OrderScreenController controller,
+    orderModel.Orders order,
+  ) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      decoration: BoxDecoration(
+        color: ColorConstants.bgColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        boxShadow: ColorConstants.getShadow2,
+      ),
+      child: Obx(() {
+        final orderDetails = controller.orderDetails.value;
+        final orderData = orderDetails?.data;
+
+        if (orderData == null) {
+          return _buildErrorView(context);
+        }
+
+        return _buildOrderDetailsContent(context, orderData, order);
+      }),
+    );
+  }
+
+  Widget _buildErrorView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+          const SizedBox(height: 16),
+          const Text(
+            'Failed to load order details',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: ColorConstants.primaryColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderDetailsContent(
+    BuildContext context,
+    orderDetailsModel.Data orderData,
+    orderModel.Orders order,
+  ) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset(ImageConstant.order, height: 24, width: 24),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Order #${orderData.orderNumber ?? order.id ?? ''} (${_formatOrderType(orderData.orderType)})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildOrderItemsTable(orderData),
+            const SizedBox(height: 8),
+            _buildPriceSummary(orderData),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: ColorConstants.grey600),
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: const Text(
+                  'Close',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.black),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatOrderType(String? orderType) {
+    if (orderType == null || orderType.isEmpty) {
+      return 'N/A';
+    }
+    switch (orderType.toLowerCase()) {
+      case 'dine_in':
+        return 'Dine In';
+      case 'pickup':
+        return 'Pickup';
+      case 'delivery':
+        return 'Delivery';
+      default:
+        return 'N/A';
+    }
+  }
+
+  Widget _buildOrderItemsTable(orderDetailsModel.Data orderData) {
+    final items = orderData.items ?? [];
+    if (items.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: ColorConstants.getShadow2,
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Text(
+            'No items found',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -605,52 +691,30 @@ class OrderScreenView extends GetView<OrderScreenController> {
               ),
             ],
           ),
-          _buildTableRow(
-            itemName: 'Turkey steak',
-            details: [
-              'M1   Food Type : Regular',
-              'Spice level : Medium',
-              'Test : Test 1',
-            ],
-            qty: '2',
-            price: '€18.90',
-            amount: '€37.80',
-          ),
-          _buildTableRow(
-            itemName: 'Chili con carne (spice)',
-            details: [],
-            qty: '1',
-            price: '€9.90',
-            amount: '€9.90',
-          ),
-          _buildTableRow(
-            itemName: 'Ramazzotti Rosato Tonic',
-            details: [],
-            qty: '1',
-            price: '€6.80',
-            amount: '€6.80',
-          ),
-          _buildTableRow(
-            itemName: 'Vegan vegetable curry / tofu / basmati rice',
-            details: [],
-            qty: '2',
-            price: '€12.90',
-            amount: '€25.80',
-          ),
-          _buildTableRow(
-            itemName: 'Vegan curricid sausage / french fries',
-            details: [],
-            qty: '2',
-            price: '€10.90',
-            amount: '€21.80',
-          ),
-          _buildTableRow(
-            itemName: 'Tenderloin steak (ca. 200g)',
-            details: [],
-            qty: '3',
-            price: '€25.90',
-            amount: '€77.70',
-          ),
+          ...items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final itemNumber = item.itemNumber ?? 'M${index + 1}';
+            final modifiers = item.modifiers ?? [];
+            final details =
+                modifiers
+                    .map(
+                      (m) =>
+                          '${m.name ?? ''}${m.price != null && m.price!.isNotEmpty ? ' : ${m.price}' : ''}',
+                    )
+                    .toList();
+            if (item.variationName != null && item.variationName!.isNotEmpty) {
+              details.insert(0, 'Variation: ${item.variationName}');
+            }
+            return _buildTableRow(
+              itemName: item.itemName ?? 'N/A',
+              details: details,
+              qty: item.quantity?.toString() ?? '0',
+              price: item.price ?? '0',
+              amount: item.formattedAmount ?? item.amount ?? '0',
+              itemNumber: itemNumber,
+            );
+          }).toList(),
         ],
       ),
     );
@@ -662,6 +726,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     required String qty,
     required String price,
     required String amount,
+    String itemNumber = 'M1',
   }) {
     return TableRow(
       decoration: const BoxDecoration(
@@ -673,7 +738,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
         Padding(
           padding: const EdgeInsets.all(8),
           child: Text(
-            'M1',
+            itemNumber,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -712,7 +777,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  Widget _buildPriceSummary() {
+  Widget _buildPriceSummary(orderDetailsModel.Data orderData) {
+    final totals = orderData.totals;
+    final itemsCount = orderData.items?.length ?? 0;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -731,38 +799,41 @@ class OrderScreenView extends GetView<OrderScreenController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Item(s) header only
-          const Text(
-            'Item(s)',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Text(
+            'Item(s)${itemsCount > 0 ? ' ($itemsCount)' : ''}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
 
-          _buildPriceRow('Sub Total:', '\$179.80'),
-          _buildPriceRow(
-            'Food and Drinks Tax:',
-            'Consumption & Excise Tax (11.5%)',
-            isSecondary: true,
-          ),
-          _buildPriceRow('Packaging Tax (0%):', '€19.90'),
-          _buildPriceRow(
-            'Beverage Sales Tax:',
-            'Consumption Tax (19%): €12.9',
-            isSecondary: true,
-          ),
-          _buildPriceRow('Excise Tax (12%):', '€0.80'),
+          if (totals?.subTotal != null)
+            _buildPriceRow('Sub Total:', totals!.subTotal!),
+
+          if (totals?.totalTaxAmount != null &&
+              totals!.totalTaxAmount!.isNotEmpty)
+            _buildPriceRow('Tax:', totals.totalTaxAmount!),
+
+          if (totals?.discountAmount != null &&
+              totals!.discountAmount!.isNotEmpty &&
+              totals.discountAmount != 'null' &&
+              totals.discountAmount != '0' &&
+              totals.discountAmount != '0.0' &&
+              totals.discountAmount != '0.00' &&
+              double.tryParse(totals.discountAmount!) != null &&
+              double.tryParse(totals.discountAmount!)! > 0)
+            _buildPriceRow('Discount:', totals.discountAmount!),
 
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1, thickness: 1, color: Colors.grey),
           ),
 
-          _buildPriceRow(
-            'Total:',
-            '€201.81',
-            isBold: true,
-            valueColor: Colors.red,
-          ),
+          if (totals?.total != null)
+            _buildPriceRow(
+              'Total:',
+              totals!.total!,
+              isBold: true,
+              valueColor: Colors.red,
+            ),
         ],
       ),
     );
