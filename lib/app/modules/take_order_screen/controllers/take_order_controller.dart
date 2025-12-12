@@ -54,6 +54,9 @@ class TakeOrderController extends GetxController {
   final Rx<orderModel.GetOrderModel?> currentOrder =
       Rx<orderModel.GetOrderModel?>(null);
 
+  // Source screen to navigate back after submit
+  String? sourceScreen;
+
   // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
 
@@ -65,6 +68,7 @@ class TakeOrderController extends GetxController {
     super.onInit();
     _fetchTableFromArguments();
     _fetchOrderFromArguments();
+    _fetchSourceScreenFromArguments();
     loadMenuItemsFromStorage();
     _updateCartCount();
 
@@ -93,6 +97,14 @@ class TakeOrderController extends GetxController {
         currentOrder.value = order;
         // Order items will be added to cart in _processMenuItems after menu items are loaded
       }
+    }
+  }
+
+  void _fetchSourceScreenFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      final sourceScreenValue = arguments[ArgumentConstant.sourceScreenKey];
+      sourceScreen = sourceScreenValue is String ? sourceScreenValue : null;
     }
   }
 

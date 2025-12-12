@@ -34,6 +34,9 @@ class CartScreenController extends GetxController {
   String? existingOrderId;
   orderModel.GetOrderModel? existingOrder;
 
+  // Source screen to navigate back after submit
+  String? sourceScreen;
+
   // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
 
@@ -58,34 +61,39 @@ class CartScreenController extends GetxController {
 
   void fetchTableFromArguments() {
     final arguments = Get.arguments;
-    if (arguments != null && arguments is Map) {
-      final table = arguments[ArgumentConstant.tableKey];
-      final order = arguments[ArgumentConstant.orderKey];
-
-      if (table != null && table is tableModel.Tables) {
-        selectedTable.value = table;
-        // Set initial pax to table capacity
-        final capacity = table.seatingCapacity ?? 1;
-        pax.value = capacity;
-        paxController.text = capacity.toString();
-      } else {
-        // Clear table if not in arguments
-        selectedTable.value = null;
-        pax.value = 1;
-        paxController.text = '1';
-      }
-
-      if (order != null && order is orderModel.GetOrderModel) {
-        existingOrder = order;
-        existingOrderId =
-            order.data?.uuid?.toString() ?? order.data?.id?.toString();
-      }
-    } else {
-      // Clear table if no arguments
-      selectedTable.value = null;
-      pax.value = 1;
-      paxController.text = '1';
+    if (arguments == null || arguments is! Map) {
+      _resetTableData();
+      return;
     }
+
+    final sourceScreenValue = arguments[ArgumentConstant.sourceScreenKey];
+    sourceScreen = sourceScreenValue is String ? sourceScreenValue : null;
+
+    final table = arguments[ArgumentConstant.tableKey];
+    final order = arguments[ArgumentConstant.orderKey];
+    existingOrderId = null;
+
+    if (table is tableModel.Tables) {
+      selectedTable.value = table;
+      final capacity = table.seatingCapacity ?? 1;
+      pax.value = capacity;
+      paxController.text = capacity.toString();
+    } else {
+      _resetTableData(clearSourceScreen: false);
+    }
+
+    if (order is orderModel.GetOrderModel) {
+      existingOrder = order;
+      existingOrderId =
+          order.data?.uuid?.toString() ?? order.data?.id?.toString();
+    }
+  }
+
+  void _resetTableData({bool clearSourceScreen = true}) {
+    selectedTable.value = null;
+    pax.value = 1;
+    paxController.text = '1';
+    if (clearSourceScreen) sourceScreen = null;
   }
 
   void updatePax(int value) {
@@ -291,15 +299,7 @@ class CartScreenController extends GetxController {
           await _createPayment(orderId);
         } else {
           cartItems.clear();
-          Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
-          Future.delayed(const Duration(milliseconds: 100), () {
-            try {
-              final mainHomeController = Get.find<MainHomeScreenController>();
-              mainHomeController.changeTab(1);
-            } catch (e) {
-              print('Main home controller not found: $e');
-            }
-          });
+          _navigateBackAfterSubmit();
         }
       }
     } catch (e) {
@@ -328,18 +328,31 @@ class CartScreenController extends GetxController {
       if (paymentResponse.statusCode == 200 ||
           paymentResponse.statusCode == 201) {
         cartItems.clear();
-        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
-        Future.delayed(const Duration(milliseconds: 100), () {
-          try {
-            final mainHomeController = Get.find<MainHomeScreenController>();
-            mainHomeController.changeTab(1);
-          } catch (e) {
-            print('Main home controller not found: $e');
-          }
-        });
+        _navigateBackAfterSubmit();
       }
     } catch (e) {
       print('Error creating payment: $e');
+    }
+  }
+
+  void _navigateBackAfterSubmit() {
+    if (sourceScreen != null && sourceScreen!.isNotEmpty) {
+      if (sourceScreen == Routes.ORDER_SCREEN) {
+        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          try {
+            Get.find<MainHomeScreenController>().changeTab(0);
+          } catch (_) {}
+        });
+      }
+      if (sourceScreen == Routes.TABLE_SCREEN) {
+        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          try {
+            Get.find<MainHomeScreenController>().changeTab(1);
+          } catch (_) {}
+        });
+      }
     }
   }
 

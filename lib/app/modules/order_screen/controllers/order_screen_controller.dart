@@ -1,7 +1,6 @@
 import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -10,14 +9,12 @@ import '../../../model/AllOrdersModel.dart';
 
 class OrderScreenController extends GetxController {
   final networkClient = NetworkClient();
-  final RefreshController refreshController = RefreshController(
-    initialRefresh: false,
-  );
 
   RxString selectedMonth = 'Today'.obs;
   RxString selectedOrderFilter = 'All Orders'.obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
+  final RxBool isNavigatingToOrder = false.obs;
   final RxList<Orders> allOrders = <Orders>[].obs;
   Pagination? pagination;
   int currentPage = 1;
@@ -54,26 +51,37 @@ class OrderScreenController extends GetxController {
     super.onInit();
     _updateDatesByOption('Today');
     scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
     fetchAllOrders();
   }
 
   void _onScroll() {
     if (!scrollController.hasClients) return;
-    final maxScroll = scrollController.position.maxScrollExtent;
-    final currentScroll = scrollController.position.pixels;
-    if (currentScroll >= maxScroll - 200) {
-      if (!isLoadingMore.value && !isLoading.value) {
-        if (pagination == null) {
-          currentPage++;
-          fetchAllOrders(isLoadMore: true);
-        } else {
-          final lastPage = pagination!.lastPage ?? 1;
-          if (currentPage < lastPage) {
+    try {
+      final position = scrollController.position;
+      if (!scrollController.hasClients) return;
+      final maxScroll = position.maxScrollExtent;
+      final currentScroll = position.pixels;
+      if (currentScroll >= maxScroll - 200) {
+        if (!isLoadingMore.value && !isLoading.value) {
+          if (pagination == null) {
             currentPage++;
             fetchAllOrders(isLoadMore: true);
+          } else {
+            final lastPage = pagination!.lastPage ?? 1;
+            if (currentPage < lastPage) {
+              currentPage++;
+              fetchAllOrders(isLoadMore: true);
+            }
           }
         }
       }
+    } catch (e) {
+      return;
     }
   }
 
@@ -143,14 +151,12 @@ class OrderScreenController extends GetxController {
         isLoadingMore.value = false;
       } else {
         isLoading.value = false;
-        refreshController.refreshCompleted();
       }
     } catch (e) {
       if (isLoadMore) {
         isLoadingMore.value = false;
       } else {
         isLoading.value = false;
-        refreshController.refreshFailed();
       }
     }
   }
@@ -162,9 +168,20 @@ class OrderScreenController extends GetxController {
 
   @override
   void onClose() {
-    scrollController.removeListener(_onScroll);
-    scrollController.dispose();
-    refreshController.dispose();
+    try {
+      scrollController.removeListener(_onScroll);
+    } catch (e) {
+      // Ignore if already removed or disposed
+    }
+    Future.microtask(() {
+      try {
+        if (scrollController.hasClients) {
+          scrollController.dispose();
+        }
+      } catch (e) {
+        // Ignore if already disposed
+      }
+    });
     super.onClose();
   }
 

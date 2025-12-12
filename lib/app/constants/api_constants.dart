@@ -10,6 +10,7 @@ class ArgumentConstant {
   static const menuItemsKey = "menu_items";
   static const restaurantDetailsKey = "restaurant_details";
   static const tablesAreasEndpoint = "api/v1/pos/tables/areas";
+  static const tableDetailsEndpoint = "api/v1/pos/tables/:id";
   static const tableKey = "table";
   static const ordersEndpoint = "api/v1/pos/orders/dine-in";
   static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
@@ -22,6 +23,7 @@ class ArgumentConstant {
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
   static const orderKey = "order";
+  static const sourceScreenKey = "source_screen";
 
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";

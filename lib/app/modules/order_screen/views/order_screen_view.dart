@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
+import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
-import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
@@ -16,419 +15,433 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<OrderScreenController>()) {
+      Get.put(OrderScreenController());
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = Get.find<OrderScreenController>();
+      controller.fetchAllOrders();
+    });
     return GetBuilder<OrderScreenController>(
-      init: OrderScreenController(),
       assignId: true,
       builder: (controller) {
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
-          body: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(
-                  12,
-                ).copyWith(top: MediaQuery.of(context).padding.top + 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: ColorConstants.getShadow2,
-                ),
-                child: Center(
-                  child: Text(
-                    "All Orders",
-                    style: TextStyle(fontSize: 20, color: Colors.black),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: ColorConstants.getShadow2,
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: MenuAnchor(
-                                    style: MenuStyle(
-                                      backgroundColor: WidgetStateProperty.all(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                    builder: (context, controllerMenu, child) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (controllerMenu.isOpen) {
-                                            controllerMenu.close();
-                                          } else {
-                                            controllerMenu.open();
-                                          }
-                                        },
-                                        child: Obx(() {
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 10,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(
-                                                color: Colors.grey.shade300,
-                                                width: 1.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    controller
-                                                        .getDropdownDisplayText(),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const Icon(
-                                                  Icons.keyboard_arrow_down,
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      );
-                                    },
-                                    menuChildren:
-                                        controller.dateOptions.map((option) {
-                                          return MenuItemButton(
-                                            onPressed: () {
-                                              controller.updateDateOption(
-                                                option,
-                                              );
-                                              if (option == 'Custom Date') {
-                                                Future.delayed(
-                                                  const Duration(
-                                                    milliseconds: 10,
-                                                  ),
-                                                  () {
-                                                    controller
-                                                        .showCustomDateRangePickerPop(
-                                                          context,
-                                                        );
-                                                  },
-                                                );
-                                              }
-                                            },
-                                            child: Text(option),
-                                          );
-                                        }).toList(),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: MenuAnchor(
-                                    style: MenuStyle(
-                                      backgroundColor: WidgetStateProperty.all(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                    builder: (context, controllerMenu, child) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (controllerMenu.isOpen) {
-                                            controllerMenu.close();
-                                          } else {
-                                            controllerMenu.open();
-                                          }
-                                        },
-                                        child: Obx(() {
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 10,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(
-                                                color: Colors.grey.shade300,
-                                                width: 1.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  controller
-                                                      .selectedOrderFilter
-                                                      .value,
-                                                ),
-                                                const Icon(
-                                                  Icons.keyboard_arrow_down,
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      );
-                                    },
-                                    menuChildren:
-                                        controller.orderFilterOptions.map((
-                                          option,
-                                        ) {
-                                          return MenuItemButton(
-                                            onPressed:
-                                                () => controller
-                                                    .updateOrderFilter(option),
-                                            child: Text(option),
-                                          );
-                                        }).toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Obx(() {
-                              final selectedType =
-                                  controller.selectedOrderType.value;
-                              return Center(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 6,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        _buildOrderTypeButton(
-                                          icon: ImageConstant.allOrders,
-                                          label: 'All Orders',
-                                          isSelected:
-                                              selectedType == 'All Orders',
-                                          onTap:
-                                              () => controller.updateOrderType(
-                                                'All Orders',
-                                              ),
-                                        ),
-                                        _buildOrderTypeButton(
-                                          icon: ImageConstant.dinein,
-                                          label: 'Dine In',
-                                          isSelected: selectedType == 'Dine In',
-                                          onTap:
-                                              () => controller.updateOrderType(
-                                                'Dine In',
-                                              ),
-                                        ),
-                                        _buildOrderTypeButton(
-                                          icon: ImageConstant.pickup,
-                                          label: 'Pickup',
-                                          isSelected: selectedType == 'Pickup',
-                                          onTap:
-                                              () => controller.updateOrderType(
-                                                'Pickup',
-                                              ),
-                                        ),
-                                        _buildOrderTypeButton(
-                                          icon: ImageConstant.delivery,
-                                          label: 'Delivery',
-                                          isSelected:
-                                              selectedType == 'Delivery',
-                                          onTap:
-                                              () => controller.updateOrderType(
-                                                'Delivery',
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ],
+          body: Obx(() {
+            return Stack(
+              children: [
+                Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(
+                        12,
+                      ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: ColorConstants.getShadow2,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "All Orders",
+                          style: TextStyle(fontSize: 20, color: Colors.black),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: Obx(() {
-                          if (controller.isLoading.value &&
-                              controller.allOrders.isEmpty) {
-                            return const Center(
-                              child: CupertinoActivityIndicator(
-                                color: ColorConstants.primaryColor,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: ColorConstants.getShadow2,
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  width: 1.0,
+                                ),
                               ),
-                            );
-                          }
-                          if (controller.allOrders.isEmpty &&
-                              !controller.isLoading.value) {
-                            return SmartRefresher(
-                              controller: controller.refreshController,
-                              enablePullDown: true,
-                              enablePullUp: false,
-                              onRefresh: controller.onRefresh,
-                              header: CustomHeader(
-                                height: 60.0,
-                                builder: (
-                                  BuildContext context,
-                                  RefreshStatus? mode,
-                                ) {
-                                  Widget body;
-                                  if (mode == RefreshStatus.idle) {
-                                    body = const SizedBox.shrink();
-                                  } else if (mode == RefreshStatus.refreshing) {
-                                    body = const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 16.0,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: MenuAnchor(
+                                          style: MenuStyle(
+                                            backgroundColor:
+                                                WidgetStateProperty.all(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                          builder: (
+                                            context,
+                                            controllerMenu,
+                                            child,
+                                          ) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                if (controllerMenu.isOpen) {
+                                                  controllerMenu.close();
+                                                } else {
+                                                  controllerMenu.open();
+                                                }
+                                              },
+                                              child: Obx(() {
+                                                return Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 10,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      width: 1.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          controller
+                                                              .getDropdownDisplayText(),
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      const Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }),
+                                            );
+                                          },
+                                          menuChildren:
+                                              controller.dateOptions.map((
+                                                option,
+                                              ) {
+                                                return MenuItemButton(
+                                                  onPressed: () {
+                                                    controller.updateDateOption(
+                                                      option,
+                                                    );
+                                                    if (option ==
+                                                        'Custom Date') {
+                                                      Future.delayed(
+                                                        const Duration(
+                                                          milliseconds: 10,
+                                                        ),
+                                                        () {
+                                                          controller
+                                                              .showCustomDateRangePickerPop(
+                                                                context,
+                                                              );
+                                                        },
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Text(option),
+                                                );
+                                              }).toList(),
+                                        ),
                                       ),
-                                      child: CupertinoActivityIndicator(
-                                        color: ColorConstants.primaryColor,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: MenuAnchor(
+                                          style: MenuStyle(
+                                            backgroundColor:
+                                                WidgetStateProperty.all(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                          builder: (
+                                            context,
+                                            controllerMenu,
+                                            child,
+                                          ) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                if (controllerMenu.isOpen) {
+                                                  controllerMenu.close();
+                                                } else {
+                                                  controllerMenu.open();
+                                                }
+                                              },
+                                              child: Obx(() {
+                                                return Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 10,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      width: 1.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        controller
+                                                            .selectedOrderFilter
+                                                            .value,
+                                                      ),
+                                                      const Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }),
+                                            );
+                                          },
+                                          menuChildren:
+                                              controller.orderFilterOptions.map(
+                                                (option) {
+                                                  return MenuItemButton(
+                                                    onPressed:
+                                                        () => controller
+                                                            .updateOrderFilter(
+                                                              option,
+                                                            ),
+                                                    child: Text(option),
+                                                  );
+                                                },
+                                              ).toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Obx(() {
+                                    final selectedType =
+                                        controller.selectedOrderType.value;
+                                    return Center(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.0,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 6,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              _buildOrderTypeButton(
+                                                icon: ImageConstant.allOrders,
+                                                label: 'All Orders',
+                                                isSelected:
+                                                    selectedType ==
+                                                    'All Orders',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'All Orders',
+                                                        ),
+                                              ),
+                                              _buildOrderTypeButton(
+                                                icon: ImageConstant.dinein,
+                                                label: 'Dine In',
+                                                isSelected:
+                                                    selectedType == 'Dine In',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'Dine In',
+                                                        ),
+                                              ),
+                                              _buildOrderTypeButton(
+                                                icon: ImageConstant.pickup,
+                                                label: 'Pickup',
+                                                isSelected:
+                                                    selectedType == 'Pickup',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'Pickup',
+                                                        ),
+                                              ),
+                                              _buildOrderTypeButton(
+                                                icon: ImageConstant.delivery,
+                                                label: 'Delivery',
+                                                isSelected:
+                                                    selectedType == 'Delivery',
+                                                onTap:
+                                                    () => controller
+                                                        .updateOrderType(
+                                                          'Delivery',
+                                                        ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     );
-                                  } else if (mode == RefreshStatus.completed) {
-                                    body = const SizedBox.shrink();
-                                  } else if (mode == RefreshStatus.failed) {
-                                    body = const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 16.0,
-                                      ),
-                                      child: Text("Refresh Failed!"),
-                                    );
-                                  } else {
-                                    body = const SizedBox.shrink();
-                                  }
-                                  return Container(
-                                    alignment: Alignment.center,
-                                    child: body,
-                                  );
-                                },
+                                  }),
+                                ],
                               ),
-                              child: const Center(
-                                child: Text('No orders found'),
-                              ),
-                            );
-                          }
-                          return SmartRefresher(
-                            controller: controller.refreshController,
-                            enablePullDown: true,
-                            enablePullUp: false,
-                            onRefresh: controller.onRefresh,
-                            header: CustomHeader(
-                              height: 60.0,
-                              builder: (
-                                BuildContext context,
-                                RefreshStatus? mode,
-                              ) {
-                                Widget body;
-                                if (mode == RefreshStatus.idle) {
-                                  body = const SizedBox.shrink();
-                                } else if (mode == RefreshStatus.refreshing) {
-                                  body = const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 16.0,
-                                    ),
+                            ),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: Obx(() {
+                                if (controller.isLoading.value &&
+                                    controller.allOrders.isEmpty) {
+                                  return const Center(
                                     child: CupertinoActivityIndicator(
                                       color: ColorConstants.primaryColor,
                                     ),
                                   );
-                                } else if (mode == RefreshStatus.completed) {
-                                  body = const SizedBox.shrink();
-                                } else if (mode == RefreshStatus.failed) {
-                                  body = const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 16.0,
-                                    ),
-                                    child: Text("Refresh Failed!"),
-                                  );
-                                } else {
-                                  body = const SizedBox.shrink();
                                 }
-                                return Container(
-                                  alignment: Alignment.center,
-                                  child: body,
-                                );
-                              },
+                                return _buildOrderList(controller, context);
+                              }),
                             ),
-                            child: ListView.separated(
-                              controller: controller.scrollController,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              itemCount:
-                                  controller.allOrders.length +
-                                  (controller.isLoadingMore.value ? 1 : 0),
-                              separatorBuilder:
-                                  (_, __) => const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                if (index == controller.allOrders.length) {
-                                  return const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Center(
-                                      child: CupertinoActivityIndicator(
-                                        color: ColorConstants.primaryColor,
-                                      ),
-                                    ),
-                                  );
-                                }
-                                final order = controller.allOrders[index];
-                                return InkWell(
-                                  hoverColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  splashColor: Colors.transparent,
-                                  onTap: () {
-                                    _showOrderBottomSheet(
-                                      context,
-                                      controller,
-                                      order,
-                                    );
-                                  },
-                                  child: OrderCard(order: order),
-                                );
-                              },
-                            ),
-                          );
-                        }),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
+                if (controller.isNavigatingToOrder.value)
+                  Container(
+                    color: Colors.black.withOpacity(0.2),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CupertinoActivityIndicator(
+                          radius: 12,
+                          color: ColorConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
         );
       },
+    );
+  }
+
+  Widget _buildOrderList(
+    OrderScreenController controller,
+    BuildContext context,
+  ) {
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      color: ColorConstants.primaryColor,
+      child: Obx(() {
+        if (controller.allOrders.isEmpty && !controller.isLoading.value) {
+          return const SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: 400,
+              child: Center(child: Text('No orders found')),
+            ),
+          );
+        }
+        return ListView.separated(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount:
+              controller.allOrders.length +
+              (controller.isLoadingMore.value ? 1 : 0),
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            if (index == controller.allOrders.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(
+                  child: CupertinoActivityIndicator(
+                    color: ColorConstants.primaryColor,
+                  ),
+                ),
+              );
+            }
+            final order = controller.allOrders[index];
+            return InkWell(
+              hoverColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              onTap: () {
+                final isKotStatus = order.status?.toLowerCase() == 'kot';
+                final hasTable = order.table != null && order.table!.id != null;
+                if (isKotStatus && hasTable) {
+                  RunningTableDialog.showRunningTablePopup(
+                    context: context,
+                    tableId: order.table!.id!,
+                    onRefreshTables: () => controller.fetchAllOrders(),
+                    onSetLoader:
+                        (bool show) =>
+                            controller.isNavigatingToOrder.value = show,
+                    sourceScreen: Routes.ORDER_SCREEN,
+                  );
+                } else {
+                  _showOrderBottomSheet(context, controller, order);
+                }
+              },
+              child: OrderCard(order: order),
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -819,16 +832,12 @@ class OrderCard extends StatelessWidget {
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
-    // Get date time
-    final dateTime = order.dateTime ?? order.createdAt ?? '';
-    final formattedDateTime = _formatDateTime(dateTime);
+    final formattedDateTime = order.formattedDateTime;
 
     // Get items count
-    final itemsCount = order.items?.length ?? 0;
+    final itemsCount = order.itemsCount ?? 0;
 
-    // Get total price
-    final totalPrice = order.totals?.total ?? '0';
-    final formattedPrice = CurrencyFormatter.formatPrice(totalPrice);
+    final formattedPrice = order.formattedTotal;
 
     // Get waiter name
     final waiterName = order.waiter?.name ?? '';
@@ -916,7 +925,7 @@ class OrderCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    formattedDateTime,
+                    formattedDateTime ?? '',
                     style: TextStyle(
                       color: ColorConstants.grey600,
                       fontSize: 13,
@@ -934,7 +943,7 @@ class OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  formattedPrice,
+                  formattedPrice ?? '',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -995,37 +1004,6 @@ class OrderCard extends StatelessWidget {
         return Colors.orange;
       default:
         return Colors.grey;
-    }
-  }
-
-  String _formatDateTime(String? dateTime) {
-    if (dateTime == null || dateTime.isEmpty) return '';
-    try {
-      final date = DateTime.parse(dateTime);
-      final months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-      final month = months[date.month - 1];
-      final day = date.day;
-      final year = date.year;
-      final hour = date.hour;
-      final minute = date.minute;
-      final amPm = hour >= 12 ? 'PM' : 'AM';
-      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-      return "$month ${day.toString().padLeft(2, '0')}, $year ${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $amPm";
-    } catch (e) {
-      return dateTime;
     }
   }
 

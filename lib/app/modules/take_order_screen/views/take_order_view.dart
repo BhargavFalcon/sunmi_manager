@@ -160,6 +160,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                   controller.currentOrder.value;
                             }
 
+                            if (controller.sourceScreen != null) {
+                              arguments[ArgumentConstant.sourceScreenKey] =
+                                  controller.sourceScreen;
+                            }
+
                             Get.toNamed(
                               Routes.CART_SCREEN,
                               arguments: arguments.isEmpty ? null : arguments,
