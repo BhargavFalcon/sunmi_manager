@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
 import '../../../services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/color_constant.dart';
 
 class PrinterScreenController extends GetxController {
   late PrinterService printerService;
@@ -16,8 +19,15 @@ class PrinterScreenController extends GetxController {
   final isConnected = false.obs;
   final autoPrint = true.obs;
   final numberOfCopies = 1.obs;
-  final printerWidth = '80mm'.obs;
+  final printerWidth = '58mm'.obs;
   final printerWidthOptions = ['58mm', '72mm', '80mm'];
+
+  // Constants
+  static const _bluetoothInitDelay = Duration(milliseconds: 50);
+  static const _bluetoothEnableDelay = Duration(seconds: 1);
+  static const _bluetoothPollInterval = Duration(milliseconds: 500);
+  static const _bluetoothPollMaxAttempts = 20;
+  static const _methodChannelName = 'com.dinemetrics.manager/bluetooth';
 
   @override
   void onInit() {
@@ -25,7 +35,6 @@ class PrinterScreenController extends GetxController {
     printerService = Get.find<PrinterService>();
     _loadSavedPrinter();
     _loadSettings();
-    _checkConnection();
     _syncWithService();
     _checkBluetoothStatus();
     _autoScan();
@@ -41,24 +50,24 @@ class PrinterScreenController extends GetxController {
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       if (!bluetoothEnabled) {
-        isConnected.value = false;
-        connectedDevice.value = null;
-        printerService.isConnected.value = false;
-        safeGetSnackbar(
+        _resetConnection();
+        _showSnackbar(
           'Bluetooth Disabled',
           'Please enable Bluetooth to use printer features',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
+          Colors.orange,
         );
       } else {
         await _checkConnection();
       }
     } catch (e) {
-      isConnected.value = false;
-      connectedDevice.value = null;
-      printerService.isConnected.value = false;
+      _resetConnection();
     }
+  }
+
+  void _resetConnection() {
+    isConnected.value = false;
+    connectedDevice.value = null;
+    printerService.isConnected.value = false;
   }
 
   void _loadSettings() {
@@ -66,9 +75,9 @@ class PrinterScreenController extends GetxController {
       autoPrint.value = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
       numberOfCopies.value =
           box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
-      printerWidth.value = box.read(ArgumentConstant.printerWidthKey) ?? '80mm';
+      printerWidth.value = box.read(ArgumentConstant.printerWidthKey) ?? '58mm';
     } catch (e) {
-      print('Error loading printer settings: $e');
+      // Silent fail - use defaults
     }
   }
 
@@ -81,7 +90,7 @@ class PrinterScreenController extends GetxController {
       );
       box.write(ArgumentConstant.printerWidthKey, printerWidth.value);
     } catch (e) {
-      print('Error saving printer settings: $e');
+      // Silent fail
     }
   }
 
@@ -127,26 +136,25 @@ class PrinterScreenController extends GetxController {
         isConnected.value = printerService.isConnected.value;
       }
     } catch (e) {
-      print('Error loading saved printer: $e');
+      // Silent fail
     }
   }
 
   Future<void> _checkConnection() async {
     try {
-      if (connectedDevice.value != null) {
-        final isPaired = await PrintBluetoothThermal.connectionStatus;
-        if (!isPaired) {
-          final result = await PrintBluetoothThermal.connect(
-            macPrinterAddress: connectedDevice.value!.macAdress,
-          );
-          isConnected.value = result;
-        } else {
-          isConnected.value = true;
-        }
-        printerService.isConnected.value = isConnected.value;
+      if (connectedDevice.value == null) return;
+
+      final isPaired = await PrintBluetoothThermal.connectionStatus;
+      if (!isPaired) {
+        final result = await PrintBluetoothThermal.connect(
+          macPrinterAddress: connectedDevice.value!.macAdress,
+        );
+        isConnected.value = result;
+      } else {
+        isConnected.value = true;
       }
+      printerService.isConnected.value = isConnected.value;
     } catch (e) {
-      print('Error checking connection: $e');
       isConnected.value = false;
       printerService.isConnected.value = false;
     }
@@ -177,27 +185,24 @@ class PrinterScreenController extends GetxController {
     try {
       isScanning.value = true;
       availableDevices.clear();
+
       final bool? bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       if (bluetoothEnabled == false) {
-        isScanning.value = false;
-        isConnected.value = false;
-        connectedDevice.value = null;
-        printerService.isConnected.value = false;
-        safeGetSnackbar(
+        _resetConnection();
+        _showSnackbar(
           'Bluetooth Disabled',
           'Please enable Bluetooth to scan for printers',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
+          Colors.orange,
         );
         return;
       }
+
       final List<BluetoothInfo> allDevices =
           await PrintBluetoothThermal.pairedBluetooths;
-      availableDevices.value =
-          allDevices.where((device) => _isPrinterDevice(device)).toList();
+      availableDevices.value = allDevices.where(_isPrinterDevice).toList();
     } catch (e) {
+      // Silent fail
     } finally {
       isScanning.value = false;
     }
@@ -216,30 +221,16 @@ class PrinterScreenController extends GetxController {
         isConnected.value = true;
         await printerService.saveConnectedDevice(device);
         update();
-        safeGetSnackbar(
+        _showSnackbar(
           'Success',
           'Printer connected successfully',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          Colors.green,
         );
       } else {
-        safeGetSnackbar(
-          'Error',
-          'Failed to connect to printer',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        _showSnackbar('Error', 'Failed to connect to printer', Colors.red);
       }
     } catch (e) {
-      safeGetSnackbar(
-        'Error',
-        'Failed to connect to printer',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showSnackbar('Error', 'Failed to connect to printer', Colors.red);
     } finally {
       isLoading.value = false;
     }
@@ -255,6 +246,7 @@ class PrinterScreenController extends GetxController {
         await printerService.clearConnectedDevice();
       }
     } catch (e) {
+      // Silent fail
     } finally {
       isLoading.value = false;
     }
@@ -304,17 +296,30 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> printTestReceipt() async {
+    // Check Bluetooth status
+    try {
+      final bool bluetoothEnabled =
+          await PrintBluetoothThermal.bluetoothEnabled;
+      if (!bluetoothEnabled) {
+        _showBluetoothEnableDialog();
+        return;
+      }
+    } catch (e) {
+      _showBluetoothEnableDialog();
+      return;
+    }
+
+    // Check if printer is connected
     if (connectedDevice.value == null) {
-      safeGetSnackbar(
+      _showSnackbar(
         'Printer Not Connected',
         'Please connect a printer first',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
+        Colors.orange,
       );
       return;
     }
 
+    // Ensure connection is active
     try {
       final isPaired = await PrintBluetoothThermal.connectionStatus;
       if (!isPaired) {
@@ -322,24 +327,20 @@ class PrinterScreenController extends GetxController {
           macPrinterAddress: connectedDevice.value!.macAdress,
         );
         if (!reconnectResult) {
-          safeGetSnackbar(
+          _showSnackbar(
             'Connection Failed',
             'Could not connect to printer.',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
+            Colors.red,
           );
           return;
         }
         isConnected.value = true;
       }
     } catch (e) {
-      safeGetSnackbar(
+      _showSnackbar(
         'Connection Error',
         'Error checking printer connection',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        Colors.red,
       );
       return;
     }
@@ -828,33 +829,224 @@ class PrinterScreenController extends GetxController {
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
       if (result == true) {
-        safeGetSnackbar(
-          'Print Sent',
-          'Receipt sent successfully',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        _showSnackbar('Print Sent', 'Receipt sent successfully', Colors.green);
       } else {
-        safeGetSnackbar(
-          'Print Failed',
-          'Failed to send print data',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        _showSnackbar('Print Failed', 'Failed to send print data', Colors.red);
       }
     } catch (e) {
-      print('Print error: $e');
-      safeGetSnackbar(
-        'Print Error',
-        'Error: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      _showSnackbar('Print Error', 'Error: ${e.toString()}', Colors.red);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Helper method for showing snackbars
+  void _showSnackbar(String title, String message, Color backgroundColor) {
+    safeGetSnackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: backgroundColor,
+      colorText: Colors.white,
+    );
+  }
+
+  void _showBluetoothEnableDialog() {
+    Get.dialog(
+      Obx(
+        () => Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: ColorConstants.bgColor),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Bluetooth Disabled',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Bluetooth is currently disabled. Please enable Bluetooth to use the printer.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap:
+                            isLoading.value
+                                ? null
+                                : () {
+                                  Get.back();
+                                },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap:
+                            isLoading.value
+                                ? null
+                                : () async {
+                                  Get.back();
+                                  await _enableBluetooth();
+                                },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color:
+                                isLoading.value
+                                    ? Colors.grey
+                                    : ColorConstants.primaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child:
+                                isLoading.value
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                    : const Text(
+                                      'On Bluetooth',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Future<void> _enableBluetooth() async {
+    try {
+      isLoading.value = true;
+
+      if (!Platform.isAndroid) {
+        _showSnackbar(
+          'Enable Bluetooth',
+          'Please enable Bluetooth from Settings',
+          Colors.orange,
+        );
+        return;
+      }
+
+      try {
+        const platform = MethodChannel(_methodChannelName);
+        final bool? result = await platform.invokeMethod('enableBluetooth');
+
+        if (result == true) {
+          await _handleBluetoothEnabled();
+        } else {
+          await _pollBluetoothStatus();
+        }
+      } on PlatformException {
+        _showSnackbar(
+          'Error',
+          'Failed to enable Bluetooth. Please enable it manually from device settings.',
+          Colors.red,
+        );
+      }
+    } catch (_) {
+      _showSnackbar(
+        'Error',
+        'Failed to enable Bluetooth. Please enable it manually from device settings.',
+        Colors.red,
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _handleBluetoothEnabled() async {
+    await Future.delayed(_bluetoothEnableDelay);
+    final bool? bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
+
+    if (bluetoothEnabled == true) {
+      _showSnackbar(
+        'Bluetooth Enabled',
+        'Bluetooth has been enabled successfully',
+        Colors.green,
+      );
+      await Future.delayed(_bluetoothInitDelay);
+    } else {
+      _showSnackbar(
+        'Bluetooth Enabling',
+        'Bluetooth is being enabled. Please wait...',
+        Colors.orange,
+      );
+    }
+  }
+
+  Future<void> _pollBluetoothStatus() async {
+    _showSnackbar(
+      'Enabling Bluetooth',
+      'Please allow Bluetooth in the dialog that appeared',
+      Colors.orange,
+    );
+
+    bool bluetoothEnabled = false;
+    for (int i = 0; i < _bluetoothPollMaxAttempts; i++) {
+      await Future.delayed(_bluetoothPollInterval);
+      final bool? status = await PrintBluetoothThermal.bluetoothEnabled;
+      if (status == true) {
+        bluetoothEnabled = true;
+        break;
+      }
+    }
+
+    if (bluetoothEnabled) {
+      _showSnackbar(
+        'Bluetooth Enabled',
+        'Bluetooth has been enabled successfully',
+        Colors.green,
+      );
+      await Future.delayed(_bluetoothInitDelay);
+      _loadSavedPrinter();
+      await _autoScan();
+      await _checkConnection();
     }
   }
 }

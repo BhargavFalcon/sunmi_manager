@@ -73,44 +73,31 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Test Print Button
-                        Obx(() {
-                          if (controller.isConnected.value &&
-                              controller.connectedDevice.value != null) {
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed:
-                                        controller.isLoading.value
-                                            ? null
-                                            : () =>
-                                                controller.printTestReceipt(),
-                                    icon: Icon(Icons.print),
-                                    label: Text('Test Print'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          ColorConstants.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 14,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      elevation: 0,
-                                    ),
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed:
+                                    controller.isLoading.value
+                                        ? null
+                                        : () => controller.printTestReceipt(),
+                                icon: Icon(Icons.print),
+                                label: Text('Test Print'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: ColorConstants.primaryColor,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
+                                  elevation: 0,
                                 ),
-                                SizedBox(height: 16),
-                              ],
-                            );
-                          }
-                          return SizedBox.shrink();
-                        }),
-
-                        // Connected Printer Card
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                          ],
+                        ),
                         Obx(() {
                           if (controller.isConnected.value &&
                               controller.connectedDevice.value != null) {
