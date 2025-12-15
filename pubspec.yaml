@@ -48,6 +48,7 @@ dependencies:
   pusher_channels_flutter: ^2.2.1
   print_bluetooth_thermal: ^1.1.7
   flutter_esc_pos_utils: ^1.0.1
+  sunmi_printer_plus: ^4.1.1
   wakelock_plus: ^1.4.0
   audioplayers: ^6.0.0
   image: ^4.1.7

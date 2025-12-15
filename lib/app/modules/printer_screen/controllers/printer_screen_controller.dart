@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import '../../../services/printer_service.dart';
@@ -833,6 +834,244 @@ class PrinterScreenController extends GetxController {
       } else {
         _showSnackbar('Print Failed', 'Failed to send print data', Colors.red);
       }
+    } catch (e) {
+      _showSnackbar('Print Error', 'Error: ${e.toString()}', Colors.red);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> printSunmiTestReceipt() async {
+    try {
+      isLoading.value = true;
+
+      await SunmiPrinter.printText(
+        'Naan Stop',
+        style: SunmiTextStyle(
+          align: SunmiPrintAlign.CENTER,
+          fontSize: 30,
+          bold: true,
+        ),
+      );
+      await SunmiPrinter.lineWrap(5);
+      await SunmiPrinter.printText(
+        'Winkelcentrum Woensel 15625 AA Eindhoven, Netherlandsds',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 22),
+      );
+      await SunmiPrinter.lineWrap(5);
+      await SunmiPrinter.printText(
+        'Phone:626193494',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 22),
+      );
+      await SunmiPrinter.lineWrap(5);
+      await SunmiPrinter.printText(
+        'GST: 24AGHPN',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 22),
+      );
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText(
+        'Order: ORD-0218  13 Dec 2025 06:06 PM',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+      );
+      await SunmiPrinter.lineWrap(3);
+      await SunmiPrinter.printText(
+        'Customer: Bhargav thummar',
+        style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+      );
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText(
+        'Qty   Item Name       Price    Amount',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+      );
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: '1',
+            width: 3,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: 'Naan Imperial (Steak, Egg, Ham, Cheese, Vegetable)',
+            width: 15,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€9,50',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+          SunmiColumn(
+            text: '€9,50',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: '1',
+            width: 3,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: 'Naan Steak',
+            width: 16,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€8,00',
+            width: 6,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+          SunmiColumn(
+            text: '€8,00',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+      await SunmiPrinter.lineWrap(20);
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Sub Total:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€17,50',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Servicekosten:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€0,45',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Boxes:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€1,00',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'VAT (5.00%) incl.',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€0,83',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Total Tax:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€0,83',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Balance Returned:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+          ),
+          SunmiColumn(
+            text: '€0,00',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+          ),
+        ],
+      );
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(4);
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(
+            text: 'Total:',
+            width: 25,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, bold: true),
+          ),
+          SunmiColumn(
+            text: '€18,95',
+            width: 7,
+            style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, bold: true),
+          ),
+        ],
+      );
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText(
+        'Thank you for your visit!',
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+      );
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText(
+        "Amount   Payment Method    Date & Time",
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+      );
+      await SunmiPrinter.printText("--------------------------------");
+      await SunmiPrinter.lineWrap(2);
+      await SunmiPrinter.printText(
+        "€18,95    Cash    13 Dec 2025 05:06 PM",
+        style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+      );
+      await SunmiPrinter.lineWrap(3);
+      await SunmiPrinter.cutPaper();
+
+      _showSnackbar(
+        'Print Sent',
+        'Sunmi receipt sent successfully',
+        Colors.green,
+      );
     } catch (e) {
       _showSnackbar('Print Error', 'Error: ${e.toString()}', Colors.red);
     } finally {

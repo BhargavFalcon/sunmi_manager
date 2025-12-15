@@ -95,6 +95,28 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                 ),
                               ),
                             ),
+                            SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed:
+                                    controller.isLoading.value
+                                        ? null
+                                        : () =>
+                                            controller.printSunmiTestReceipt(),
+                                icon: Icon(Icons.print),
+                                label: Text('Sunmi Test Print'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
                             SizedBox(height: 16),
                           ],
                         ),
@@ -394,14 +416,18 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'Bluetooth Printers',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                  Flexible(
+                                    child: Text(
+                                      'Bluetooth Printers',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  SizedBox(width: 8),
                                   Obx(() {
                                     return ElevatedButton.icon(
                                       onPressed:
@@ -436,6 +462,10 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
                                         ),
                                       ),
                                     );
