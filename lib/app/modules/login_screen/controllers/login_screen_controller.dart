@@ -12,7 +12,12 @@ class LoginScreenController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final isLoading = false.obs;
+  final isPasswordVisible = false.obs;
   final networkClient = NetworkClient();
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
 
   @override
   void onInit() {

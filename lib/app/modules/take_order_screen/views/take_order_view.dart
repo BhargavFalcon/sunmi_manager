@@ -400,8 +400,8 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             ),
           ),
           Container(
-            height: MySize.getHeight(40),
-            padding: const EdgeInsets.only(bottom: 4),
+            height: MySize.getHeight(50),
+            padding: const EdgeInsets.only(bottom: 5),
             child: Obx(() {
               final visibleCategories =
                   controller.categories
@@ -561,53 +561,61 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children:
-                      _getItemTypeImages(itemObject?.type)
-                          .map(
-                            (imagePath) => Padding(
-                              padding: EdgeInsets.only(
-                                right: MySize.getWidth(4),
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        _getItemTypeImages(itemObject?.type)
+                            .map(
+                              (imagePath) => Padding(
+                                padding: EdgeInsets.only(
+                                  right: MySize.getWidth(4),
+                                ),
+                                child: Image.asset(
+                                  imagePath,
+                                  height: MySize.getHeight(15),
+                                  width: MySize.getHeight(15),
+                                ),
                               ),
-                              child: Image.asset(
-                                imagePath,
-                                height: MySize.getHeight(16),
-                                width: MySize.getHeight(16),
-                              ),
-                            ),
-                          )
-                          .toList(),
+                            )
+                            .toList(),
+                  ),
                 ),
-                Obx(() {
-                  String price = '0';
+                Flexible(
+                  child: Obx(() {
+                    String price = '0';
 
-                  if (itemObject != null) {
-                    if (controller.hasTable) {
-                      // If table is selected, show only base price
-                      price = itemObject.price ?? '0';
-                    } else {
-                      // If no table, show price based on order type
-                      if (controller.selectedOrderType.value == 'Pickup') {
-                        price =
-                            itemObject.onlinePrice ?? itemObject.price ?? '0';
+                    if (itemObject != null) {
+                      if (controller.hasTable) {
+                        // If table is selected, show only base price
+                        price = itemObject.price ?? '0';
                       } else {
-                        price =
-                            itemObject.takeAwayPrice ?? itemObject.price ?? '0';
+                        // If no table, show price based on order type
+                        if (controller.selectedOrderType.value == 'Pickup') {
+                          price =
+                              itemObject.onlinePrice ?? itemObject.price ?? '0';
+                        } else {
+                          price =
+                              itemObject.takeAwayPrice ??
+                              itemObject.price ??
+                              '0';
+                        }
                       }
+                    } else {
+                      price = item["amount"] ?? '0';
                     }
-                  } else {
-                    price = item["amount"] ?? '0';
-                  }
-                  return Text(
-                    CurrencyFormatter.formatPrice(price),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  );
-                }),
+                    return Text(
+                      CurrencyFormatter.formatPrice(price),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.end,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }),
+                ),
               ],
             ),
           ],

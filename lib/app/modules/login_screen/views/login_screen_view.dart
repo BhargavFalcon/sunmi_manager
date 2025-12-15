@@ -124,23 +124,54 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(5)),
-                        CupertinoTextField(
-                          controller: controller.passwordController,
-                          padding: const EdgeInsets.all(12),
-                          placeholder: "Password",
-                          placeholderStyle: TextStyle(
-                            color: ColorConstants.grey600,
-                            fontSize: 14,
-                          ),
-                          style: TextStyle(color: Colors.black, fontSize: 14),
-                          obscureText: true,
-                          decoration: BoxDecoration(
-                            color: ColorConstants.bgColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: ColorConstants.grey600,
-                              width: 1,
-                            ),
+                        Obx(
+                          () => Stack(
+                            alignment: Alignment.centerRight,
+                            children: [
+                              CupertinoTextField(
+                                controller: controller.passwordController,
+                                padding: const EdgeInsets.only(
+                                  left: 12,
+                                  top: 12,
+                                  bottom: 12,
+                                  right: 45,
+                                ),
+                                placeholder: "Password",
+                                placeholderStyle: TextStyle(
+                                  color: ColorConstants.grey600,
+                                  fontSize: 14,
+                                ),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                ),
+                                obscureText:
+                                    !controller.isPasswordVisible.value,
+                                decoration: BoxDecoration(
+                                  color: ColorConstants.bgColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: ColorConstants.grey600,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 12,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    controller.togglePasswordVisibility();
+                                  },
+                                  child: Icon(
+                                    controller.isPasswordVisible.value
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: ColorConstants.grey600,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(20)),
@@ -160,7 +191,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                     },
                             child: Container(
                               width: MySize.screenWidth,
-                              height: MySize.getHeight(35),
+                              height: MySize.getHeight(50),
                               decoration: BoxDecoration(
                                 color:
                                     controller.isLoading.value
