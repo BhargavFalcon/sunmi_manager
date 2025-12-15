@@ -7,6 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/services/printer_service.dart';
+import 'app/services/network_connectivity_service.dart';
 
 final box = GetStorage();
 void main() async {
@@ -14,8 +15,8 @@ void main() async {
   WakelockPlus.enable();
   await GetStorage.init();
 
-  // Initialize services
   Get.put(PrinterService(), permanent: true);
+  Get.put(NetworkConnectivityService(), permanent: true);
   final pusherService = PusherService();
   await pusherService.initPusher();
 
