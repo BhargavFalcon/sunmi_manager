@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
@@ -132,14 +133,27 @@ class CartScreenController extends GetxController {
   }) async {
     try {
       if (!hasTable) {
+        safeGetSnackbar(
+          'Error',
+          'Please select a table first',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
       if (cartItems.isEmpty) {
+        safeGetSnackbar(
+          'Error',
+          'Cart is empty. Please add items to cart',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
-      // Show loader
       isSubmittingOrder.value = true;
 
       int? waiterId;
@@ -154,11 +168,27 @@ class CartScreenController extends GetxController {
       }
 
       if (waiterId == null) {
+        safeGetSnackbar(
+          'Error',
+          'Unable to get user information. Please login again',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        isSubmittingOrder.value = false;
         return;
       }
 
       final tableId = selectedTable.value?.id;
       if (tableId == null) {
+        safeGetSnackbar(
+          'Error',
+          'Table information is missing',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        isSubmittingOrder.value = false;
         return;
       }
 
@@ -301,25 +331,44 @@ class CartScreenController extends GetxController {
           cartItems.clear();
           _navigateBackAfterSubmit();
         }
+      } else {
+        safeGetSnackbar(
+          'Error',
+          'Failed to submit order. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
+    } on ApiException catch (e) {
+      safeGetSnackbar(
+        'Error',
+        e.message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } catch (e) {
-      print('Error submitting order: $e');
+      safeGetSnackbar(
+        'Error',
+        'Failed to submit order: ${e.toString()}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
-      // Hide loader
       isSubmittingOrder.value = false;
     }
   }
 
   Future<void> _createPayment(String orderId) async {
     try {
-      // Keep loader visible during payment
       final paymentBody = {
         'order_id': orderId,
         'amount': finalTotal.toStringAsFixed(2),
         'payment_method': 'cash',
       };
 
-      // Call Payment API
       final paymentResponse = await networkClient.post(
         ArgumentConstant.paymentsEndpoint,
         data: paymentBody,
@@ -327,11 +376,41 @@ class CartScreenController extends GetxController {
 
       if (paymentResponse.statusCode == 200 ||
           paymentResponse.statusCode == 201) {
+        safeGetSnackbar(
+          'Success',
+          'Payment created successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
         cartItems.clear();
+        await Future.delayed(const Duration(milliseconds: 500));
         _navigateBackAfterSubmit();
+      } else {
+        safeGetSnackbar(
+          'Error',
+          'Failed to create payment. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
+    } on ApiException catch (e) {
+      safeGetSnackbar(
+        'Error',
+        e.message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } catch (e) {
-      print('Error creating payment: $e');
+      safeGetSnackbar(
+        'Error',
+        'Failed to create payment: ${e.toString()}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -344,15 +423,18 @@ class CartScreenController extends GetxController {
             Get.find<MainHomeScreenController>().changeTab(0);
           } catch (_) {}
         });
-      }
-      if (sourceScreen == Routes.TABLE_SCREEN) {
+      } else if (sourceScreen == Routes.TABLE_SCREEN) {
         Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
         Future.delayed(const Duration(milliseconds: 100), () {
           try {
             Get.find<MainHomeScreenController>().changeTab(1);
           } catch (_) {}
         });
+      } else {
+        Get.back();
       }
+    } else {
+      Get.back();
     }
   }
 

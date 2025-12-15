@@ -341,16 +341,24 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                                           mainAxisSize:
                                                               MainAxisSize.min,
                                                           children: [
-                                                            Text(
-                                                              extra.name ?? '',
-                                                              style: TextStyle(
-                                                                fontSize: 12.0,
-                                                                color:
-                                                                    Colors
-                                                                        .black87,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
+                                                            Flexible(
+                                                              child: Text(
+                                                                extra.name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  color:
+                                                                      Colors
+                                                                          .black87,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                maxLines: 1,
                                                               ),
                                                             ),
                                                             if (extra.price !=
