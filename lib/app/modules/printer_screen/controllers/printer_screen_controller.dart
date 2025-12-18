@@ -6,6 +6,9 @@ import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
+import 'package:image/image.dart' as img;
 import '../../../services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -841,11 +844,51 @@ class PrinterScreenController extends GetxController {
     }
   }
 
+  Future<Uint8List?> _downloadNetworkImage(String imageUrl) async {
+    try {
+      final dio = Dio();
+      final response = await dio.get<Uint8List>(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final image = img.decodeImage(response.data!);
+        if (image != null) {
+          final resizedImage = img.copyResize(
+            image,
+            width: 150,
+            maintainAspect: true,
+            interpolation: img.Interpolation.cubic,
+          );
+          return Uint8List.fromList(img.encodePng(resizedImage));
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error downloading image: $e');
+      return null;
+    }
+  }
+
   Future<void> printSunmiTestReceipt() async {
     try {
       isLoading.value = true;
 
+      const logoUrl =
+          'https://devdinemetrics.675481e78b80457bc1bf676e29b8098a.r2.cloudflarestorage.com/logo/eef336783624389bf9e02306a696117f.png?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=2859767638b8c128376a438c02966539%2F20251218%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20251218T052249Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=c87171b4215eedfeeeda02584499257b3447ae8137bbf3b7c67d9f6843acf85b';
+      const qrCodeUrl =
+          'https://devdinemetrics.675481e78b80457bc1bf676e29b8098a.r2.cloudflarestorage.com/payment_qr_code/a84af006694b3001446e01cf0e47b52a.png?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=2859767638b8c128376a438c02966539%2F20251218%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20251218T052947Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=b24bd850d113abbe7c701274a21deb88df05dd4260b25ab5c570f74869cdecd8';
       for (int i = 0; i < numberOfCopies.value; i++) {
+        final imageData = await _downloadNetworkImage(logoUrl);
+        final qrCodeData = await _downloadNetworkImage(qrCodeUrl);
+        if (imageData != null) {
+          await SunmiPrinter.printImage(
+            imageData,
+            align: SunmiPrintAlign.CENTER,
+          );
+          await SunmiPrinter.lineWrap(10);
+        }
         await SunmiPrinter.printText(
           'Naan Stop',
           style: SunmiTextStyle(
@@ -873,15 +916,30 @@ class PrinterScreenController extends GetxController {
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(2);
         await SunmiPrinter.printText(
-          'Order: ORD-0218  13 Dec 2025 06:06 PM',
-          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+          'Order: ORD-0218   13 Dec 2025 06:06 PM',
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
         );
-        await SunmiPrinter.lineWrap(3);
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printText(
+          'Table no.: 01                  Pax: 2',
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+        );
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printText(
+          'Waiter: John Smith',
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+        );
+        await SunmiPrinter.lineWrap(10);
         await SunmiPrinter.printText(
           'Customer: Bhargav thummar',
           style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
         );
-        await SunmiPrinter.lineWrap(2);
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printText(
+          'Customer Address: 123 Sample Street City, Country ZIP',
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+        );
+        await SunmiPrinter.lineWrap(10);
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(2);
         await SunmiPrinter.printText(
@@ -954,7 +1012,6 @@ class PrinterScreenController extends GetxController {
             ),
           ],
         );
-
         await SunmiPrinter.printRow(
           cols: [
             SunmiColumn(
@@ -1014,7 +1071,6 @@ class PrinterScreenController extends GetxController {
             ),
           ],
         );
-
         await SunmiPrinter.printRow(
           cols: [
             SunmiColumn(
@@ -1031,19 +1087,13 @@ class PrinterScreenController extends GetxController {
         );
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(4);
-        await SunmiPrinter.printRow(
-          cols: [
-            SunmiColumn(
-              text: 'Total:',
-              width: 25,
-              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, bold: true),
-            ),
-            SunmiColumn(
-              text: '€18,95',
-              width: 7,
-              style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, bold: true),
-            ),
-          ],
+        await SunmiPrinter.printText(
+          'Total:                   €18,95',
+          style: SunmiTextStyle(
+            align: SunmiPrintAlign.CENTER,
+            fontSize: 25,
+            bold: true,
+          ),
         );
         await SunmiPrinter.lineWrap(2);
         await SunmiPrinter.printText("--------------------------------");
@@ -1052,7 +1102,22 @@ class PrinterScreenController extends GetxController {
           'Thank you for your visit!',
           style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
         );
-        await SunmiPrinter.lineWrap(2);
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printText(
+          'PAY FROM YOUR PHONE',
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+        );
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printImage(
+          qrCodeData!,
+          align: SunmiPrintAlign.CENTER,
+        );
+        await SunmiPrinter.lineWrap(10);
+        await SunmiPrinter.printText(
+          'Scan the QR code to pay Your Bill',
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+        );
+        await SunmiPrinter.lineWrap(10);
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(2);
         await SunmiPrinter.printText(
@@ -1081,7 +1146,6 @@ class PrinterScreenController extends GetxController {
     }
   }
 
-  // Helper method for showing snackbars
   void _showSnackbar(String title, String message, Color backgroundColor) {
     safeGetSnackbar(
       title,

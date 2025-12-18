@@ -11,6 +11,7 @@ import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../services/printer_service.dart';
+import '../../../utils/currency_formatter.dart';
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -808,7 +809,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 modifiers
                     .map(
                       (m) =>
-                          '${m.name ?? ''}${m.price != null && m.price!.isNotEmpty ? ' : ${m.price}' : ''}',
+                          '${m.name ?? ''}${m.price != null && m.price!.isNotEmpty ? ' : ${CurrencyFormatter.formatPrice(m.price!)}' : ''}',
                     )
                     .toList();
             if (item.variationName != null && item.variationName!.isNotEmpty) {
@@ -818,8 +819,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
               itemName: item.itemName ?? 'N/A',
               details: details,
               qty: item.quantity?.toString() ?? '0',
-              price: item.price ?? '0',
-              amount: item.formattedAmount ?? item.amount ?? '0',
+              price: CurrencyFormatter.formatPrice(item.price ?? '0'),
+              amount: CurrencyFormatter.formatPrice(
+                item.formattedAmount ?? item.amount ?? '0',
+              ),
               itemNumber: itemNumber,
             );
           }).toList(),
@@ -914,11 +917,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
           const SizedBox(height: 12),
 
           if (totals?.subTotal != null)
-            _buildPriceRow('Sub Total:', totals!.subTotal!),
+            _buildPriceRow(
+              'Sub Total:',
+              CurrencyFormatter.formatPrice(totals!.subTotal!),
+            ),
 
           if (totals?.totalTaxAmount != null &&
               totals!.totalTaxAmount!.isNotEmpty)
-            _buildPriceRow('Tax:', totals.totalTaxAmount!),
+            _buildPriceRow(
+              'Tax:',
+              CurrencyFormatter.formatPrice(totals.totalTaxAmount!),
+            ),
 
           if (totals?.discountAmount != null &&
               totals!.discountAmount!.isNotEmpty &&
@@ -928,7 +937,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
               totals.discountAmount != '0.00' &&
               double.tryParse(totals.discountAmount!) != null &&
               double.tryParse(totals.discountAmount!)! > 0)
-            _buildPriceRow('Discount:', totals.discountAmount!),
+            _buildPriceRow(
+              'Discount:',
+              CurrencyFormatter.formatPrice(totals.discountAmount!),
+            ),
 
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
@@ -938,7 +950,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           if (totals?.total != null)
             _buildPriceRow(
               'Total:',
-              totals!.total!,
+              CurrencyFormatter.formatPrice(totals!.total!),
               isBold: true,
               valueColor: Colors.red,
             ),
