@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'package:get/get.dart';
-import 'package:managerapp/main.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
-import '../services/printer_service.dart';
-import '../constants/api_constants.dart';
+import '../model/notificatioModel.dart';
+import '../services/sunmi_invoice_printer_service.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -75,7 +73,19 @@ class PusherService {
         onEvent: (event) {
           print("Event Data: ${event.data}");
           if (_isValidEventData(event.data)) {
-            _handleOrderEvent(event.data);
+            try {
+              final dataString = event.data.toString().trim();
+              final decoded = jsonDecode(dataString);
+              if (decoded is Map<String, dynamic>) {
+                final invoiceModel = InvoiceModel.fromJson(decoded);
+                print(
+                  "Invoice Model Created: ${invoiceModel.order?.formattedOrderNumber}",
+                );
+                _printInvoice(invoiceModel);
+              }
+            } catch (e) {
+              print("Error parsing event data to InvoiceModel: $e");
+            }
           }
         },
       );
@@ -84,38 +94,12 @@ class PusherService {
     }
   }
 
-  void _handleOrderEvent(dynamic eventData) {
+  void _printInvoice(InvoiceModel invoiceModel) {
     try {
-      final autoPrint = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      if (!autoPrint || !Get.isRegistered<PrinterService>()) {
-        return;
-      }
-
-      // Parse the event data
-      String dataString = eventData.toString().trim();
-      final decoded = jsonDecode(dataString);
-
-      // Extract order data
-      if (decoded is Map<String, dynamic>) {
-        final order = decoded['order'];
-        if (order is Map<String, dynamic>) {
-          final imageUrl = order['image_url'] as String?;
-
-          if (imageUrl != null && imageUrl.isNotEmpty) {
-            print('📸 Found image URL in order: $imageUrl');
-            final printerService = Get.find<PrinterService>();
-            printerService.printImageFromUrl(imageUrl);
-          } else {
-            print('⚠️ No image_url found in order data');
-          }
-        } else {
-          print('⚠️ Order data is not a valid map');
-        }
-      } else {
-        print('⚠️ Event data is not a valid map');
-      }
+      final printerService = SunmiInvoicePrinterService();
+      printerService.printInvoice(invoiceModel);
     } catch (e) {
-      print('❌ Error handling order event: $e');
+      print('Error printing invoice: $e');
     }
   }
 }
