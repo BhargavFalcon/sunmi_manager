@@ -1,10 +1,7 @@
-import 'dart:typed_data';
-import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
-import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:image/image.dart' as img;
 import '../constants/api_constants.dart';
 
 class PrinterService extends GetxService {
@@ -31,7 +28,9 @@ class PrinterService extends GetxService {
         }
       }
     } catch (e) {
-      print('Error loading saved printer: $e');
+      if (kDebugMode) {
+        print('Error loading saved printer: $e');
+      }
     }
   }
 
@@ -40,7 +39,6 @@ class PrinterService extends GetxService {
       if (connectedDevice != null) {
         final isPaired = await PrintBluetoothThermal.connectionStatus;
         if (!isPaired) {
-          // Try to reconnect if not connected
           final result = await PrintBluetoothThermal.connect(
             macPrinterAddress: connectedDevice!.macAdress,
           );
@@ -50,7 +48,9 @@ class PrinterService extends GetxService {
         }
       }
     } catch (e) {
-      print('Error checking connection: $e');
+      if (kDebugMode) {
+        print('Error checking connection: $e');
+      }
       isConnected.value = false;
     }
   }
@@ -68,63 +68,5 @@ class PrinterService extends GetxService {
     connectedDevice = null;
     isConnected.value = false;
     box.remove(ArgumentConstant.savedPrinterDeviceKey);
-  }
-
-  Future<void> printImageFromUrl(String imageUrl) async {
-    if (!isConnected.value || connectedDevice == null) {
-      print('⚠️ Printer not connected, cannot print image');
-      return;
-    }
-
-    try {
-      print('📥 Downloading image from URL: $imageUrl');
-
-      // Download image using Dio
-      final dio = Dio();
-      final response = await dio.get<Uint8List>(
-        imageUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      if (response.statusCode != 200 || response.data == null) {
-        print('❌ Failed to download image: ${response.statusCode}');
-        return;
-      }
-
-      print('✅ Image downloaded successfully');
-
-      // Decode the image
-      final image = img.decodeImage(response.data!);
-      if (image == null) {
-        print('❌ Failed to decode image');
-        return;
-      }
-
-      final resizedImage = img.copyResize(
-        image,
-        width: 384,
-        maintainAspect: true,
-        interpolation: img.Interpolation.cubic,
-      );
-
-      final profile = await CapabilityProfile.load();
-      final generator = Generator(PaperSize.mm80, profile);
-
-      final bytes = <int>[
-        ...generator.image(resizedImage, align: PosAlign.center),
-        ...generator.cut(),
-      ];
-
-      // Print
-      final result = await PrintBluetoothThermal.writeBytes(bytes);
-
-      if (result == true) {
-        print('✅ Image print sent successfully');
-      } else {
-        print('❌ Failed to send image print');
-      }
-    } catch (e) {
-      print('❌ Image print error: $e');
-    }
   }
 }
