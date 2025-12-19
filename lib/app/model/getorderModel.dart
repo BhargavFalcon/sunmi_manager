@@ -387,40 +387,38 @@ class Modifiers {
 }
 
 class TaxBreakup {
-  VAT? vAT;
-  VAT? vATAlcohol;
+  Map<String, TaxValue> taxes = {};
 
-  TaxBreakup({this.vAT, this.vATAlcohol});
+  TaxBreakup({Map<String, TaxValue>? taxes}) {
+    if (taxes != null) {
+      this.taxes = taxes;
+    }
+  }
 
   TaxBreakup.fromJson(Map<String, dynamic> json) {
-    vAT = json['VAT'] != null ? new VAT.fromJson(json['VAT']) : null;
-    vATAlcohol =
-        json['VAT Alcohol'] != null
-            ? new VAT.fromJson(json['VAT Alcohol'])
-            : null;
+    json.forEach((key, value) {
+      taxes[key] = TaxValue.fromJson(value);
+    });
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.vAT != null) {
-      data['VAT'] = this.vAT!.toJson();
-    }
-    if (this.vATAlcohol != null) {
-      data['VAT Alcohol'] = this.vATAlcohol!.toJson();
-    }
+    taxes.forEach((key, value) {
+      data[key] = value.toJson();
+    });
     return data;
   }
 }
 
-class VAT {
-  double? amount;
+class TaxValue {
+  String? amount;
   String? percent;
 
-  VAT({this.amount, this.percent});
+  TaxValue({this.amount, this.percent});
 
-  VAT.fromJson(Map<String, dynamic> json) {
-    amount = json['amount'];
-    percent = json['percent'];
+  TaxValue.fromJson(Map<String, dynamic> json) {
+    amount = _parseToString(json['amount']);
+    percent = _parseToString(json['percent']);
   }
 
   Map<String, dynamic> toJson() {
@@ -428,6 +426,12 @@ class VAT {
     data['amount'] = this.amount;
     data['percent'] = this.percent;
     return data;
+  }
+
+  static String? _parseToString(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value;
+    return value.toString();
   }
 }
 

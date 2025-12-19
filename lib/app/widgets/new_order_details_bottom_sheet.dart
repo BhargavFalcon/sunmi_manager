@@ -69,31 +69,31 @@ class NewOrderDetailsBottomSheet {
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               if (order.customer != null && order.customer!.name != null) ...[
                 _buildSectionTitle('Customer'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 _buildInfoRow('Name', order.customer!.name!),
                 if (order.customer!.phoneNumber != null)
                   _buildInfoRow('Phone', order.customer!.phoneNumber!),
                 if (order.deliveryAddress != null)
                   _buildInfoRow('Address', order.deliveryAddress!),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
               _buildSectionTitle('Items'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               _buildOrderItemsTable(order),
-              const SizedBox(height: 16),
-              _buildSectionTitle('Summary'),
               const SizedBox(height: 8),
+              _buildSectionTitle('Summary'),
+              const SizedBox(height: 4),
               _buildPriceSummary(order),
               if (order.payments != null && order.payments!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildSectionTitle('Payments'),
                 const SizedBox(height: 8),
+                _buildSectionTitle('Payments'),
+                const SizedBox(height: 4),
                 _buildPaymentsList(order.payments!),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -271,7 +271,14 @@ class NewOrderDetailsBottomSheet {
             'Delivery Fee',
             CurrencyFormatter.formatPrice(totals.deliveryFee!),
           ),
-        if (totals.tipAmount != null && totals.tipAmount!.isNotEmpty)
+        if (totals.tipAmount != null &&
+            totals.tipAmount!.isNotEmpty &&
+            totals.tipAmount != 'null' &&
+            totals.tipAmount != '0' &&
+            totals.tipAmount != '0.0' &&
+            totals.tipAmount != '0.00' &&
+            double.tryParse(totals.tipAmount!) != null &&
+            double.tryParse(totals.tipAmount!)! > 0)
           _buildSummaryRow(
             'Tip',
             CurrencyFormatter.formatPrice(totals.tipAmount!),

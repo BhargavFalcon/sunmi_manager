@@ -10,8 +10,11 @@ import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
+import '../../../model/RestaurantDetailsModel.dart';
 import '../../../services/printer_service.dart';
 import '../../../utils/currency_formatter.dart';
+import '../../../../main.dart';
+import '../../../constants/api_constants.dart';
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -555,7 +558,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   ) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -755,7 +758,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       child: Table(
         columnWidths: const {
-          0: FlexColumnWidth(0.6),
+          0: FlexColumnWidth(0.7),
           1: FlexColumnWidth(2),
           2: FlexColumnWidth(0.8),
           3: FlexColumnWidth(1),
@@ -769,38 +772,38 @@ class OrderScreenView extends GetView<OrderScreenController> {
             ),
             children: [
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Text(
                   'NO.',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Text(
                   'ITEM NAMES',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Text(
                   'QTY',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Text(
                   'PRICE',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Text(
                   'AMOUNT',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
             ],
@@ -852,20 +855,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           child: Text(
             itemNumber,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 itemName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
               if (details.isNotEmpty)
                 Column(
@@ -886,9 +892,18 @@ class OrderScreenView extends GetView<OrderScreenController> {
             ],
           ),
         ),
-        Padding(padding: const EdgeInsets.all(8), child: Text(qty)),
-        Padding(padding: const EdgeInsets.all(8), child: Text(price)),
-        Padding(padding: const EdgeInsets.all(8), child: Text(amount)),
+        Padding(
+          padding: const EdgeInsets.all(6),
+          child: Text(qty, style: TextStyle(fontSize: 12)),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(6),
+          child: Text(price, style: TextStyle(fontSize: 12)),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(6),
+          child: Text(amount, style: TextStyle(fontSize: 12)),
+        ),
       ],
     );
   }
@@ -896,9 +911,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildPriceSummary(orderDetailsModel.Data orderData) {
     final totals = orderData.totals;
     final itemsCount = orderData.items?.length ?? 0;
+    final taxBreakupMap = _aggregateTaxBreakup(orderData.items ?? []);
+    final additionalCharges = _getAdditionalCharges(orderData, totals);
+    final isTaxIncluded = _isTaxIncluded(orderData);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -916,22 +934,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Item(s)${itemsCount > 0 ? ' ($itemsCount)' : ''}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            'Items${itemsCount > 0 ? ' ($itemsCount)' : ''}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           if (totals?.subTotal != null)
             _buildPriceRow(
               'Sub Total:',
               CurrencyFormatter.formatPrice(totals!.subTotal!),
-            ),
-
-          if (totals?.totalTaxAmount != null &&
-              totals!.totalTaxAmount!.isNotEmpty)
-            _buildPriceRow(
-              'Tax:',
-              CurrencyFormatter.formatPrice(totals.totalTaxAmount!),
             ),
 
           if (totals?.discountAmount != null &&
@@ -944,7 +955,41 @@ class OrderScreenView extends GetView<OrderScreenController> {
               double.tryParse(totals.discountAmount!)! > 0)
             _buildPriceRow(
               'Discount:',
-              CurrencyFormatter.formatPrice(totals.discountAmount!),
+              '-${CurrencyFormatter.formatPrice(totals.discountAmount!)}',
+            ),
+
+          if (additionalCharges.isNotEmpty)
+            ...additionalCharges.map(
+              (charge) => _buildPriceRow(
+                charge['name'] as String,
+                CurrencyFormatter.formatPrice(charge['amount'] as String),
+              ),
+            ),
+
+          if (taxBreakupMap.isNotEmpty)
+            ...taxBreakupMap.entries.map((entry) {
+              final amount = entry.value.amount ?? '0';
+              final formattedAmount = CurrencyFormatter.formatPrice(amount);
+              final percent = entry.value.percent;
+              final taxSuffix = isTaxIncluded ? ' incl.:' : ':';
+              final taxLabel =
+                  percent != null && percent.isNotEmpty
+                      ? '${entry.key} (${percent}%)$taxSuffix'
+                      : '${entry.key}$taxSuffix';
+              return _buildPriceRow(taxLabel, formattedAmount);
+            }),
+
+          if (totals?.tipAmount != null &&
+              totals!.tipAmount!.isNotEmpty &&
+              totals.tipAmount != 'null' &&
+              totals.tipAmount != '0' &&
+              totals.tipAmount != '0.0' &&
+              totals.tipAmount != '0.00' &&
+              double.tryParse(totals.tipAmount!) != null &&
+              double.tryParse(totals.tipAmount!)! > 0)
+            _buildPriceRow(
+              'Tip:',
+              CurrencyFormatter.formatPrice(totals.tipAmount!),
             ),
 
           const Padding(
@@ -964,6 +1009,110 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
+  Map<String, orderDetailsModel.TaxValue> _aggregateTaxBreakup(
+    List<orderDetailsModel.Items> items,
+  ) {
+    final Map<String, Map<String, dynamic>> aggregatedTaxesData = {};
+
+    for (var item in items) {
+      if (item.taxBreakup != null && item.taxBreakup!.taxes.isNotEmpty) {
+        final quantity = item.quantity ?? 1;
+        item.taxBreakup!.taxes.forEach((taxName, taxValue) {
+          final itemTaxAmount =
+              (double.tryParse(taxValue.amount ?? '0') ?? 0.0) * quantity;
+          if (aggregatedTaxesData.containsKey(taxName)) {
+            final existing = aggregatedTaxesData[taxName]!;
+            final existingAmount =
+                double.tryParse(existing['amount'] ?? '0') ?? 0;
+            final totalAmount = existingAmount + itemTaxAmount;
+            aggregatedTaxesData[taxName] = {
+              'amount': totalAmount.toString(),
+              'percent': taxValue.percent,
+            };
+          } else {
+            aggregatedTaxesData[taxName] = {
+              'amount': itemTaxAmount.toString(),
+              'percent': taxValue.percent,
+            };
+          }
+        });
+      }
+    }
+
+    final Map<String, orderDetailsModel.TaxValue> aggregatedTaxes = {};
+    aggregatedTaxesData.forEach((taxName, data) {
+      aggregatedTaxes[taxName] = orderDetailsModel.TaxValue.fromJson(data);
+    });
+
+    return aggregatedTaxes;
+  }
+
+  Branches? _getBranch() {
+    try {
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      if (storedData == null || storedData is! Map<String, dynamic>) {
+        return null;
+      }
+      final restaurantDetails = RestaurantModel.fromJson(storedData);
+      if (restaurantDetails.data?.branches == null ||
+          restaurantDetails.data!.branches!.isEmpty) {
+        return null;
+      }
+      return restaurantDetails.data!.branches!.first;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  List<Map<String, dynamic>> _getAdditionalCharges(
+    orderDetailsModel.Data orderData,
+    orderDetailsModel.Totals? totals,
+  ) {
+    final List<Map<String, dynamic>> charges = [];
+    final branch = _getBranch();
+    if (branch?.additionalCharges == null ||
+        branch!.additionalCharges!.isEmpty) {
+      return charges;
+    }
+
+    final orderType = orderData.orderType?.toLowerCase() ?? '';
+    final subTotal = double.tryParse(totals?.subTotal ?? '0') ?? 0.0;
+
+    for (var charge in branch.additionalCharges!) {
+      if (charge.isEnabled != 1) continue;
+
+      if (charge.orderTypes != null && charge.orderTypes!.isNotEmpty) {
+        final orderTypesLower =
+            charge.orderTypes!.map((type) => type.toLowerCase()).toList();
+        if (!orderTypesLower.contains(orderType)) continue;
+      }
+
+      final rate = double.tryParse(charge.rate ?? '0') ?? 0.0;
+      final type = charge.type?.toLowerCase() ?? 'fixed';
+      final chargeAmount =
+          (type == 'percentage' || type == 'percent')
+              ? (subTotal * rate) / 100
+              : rate;
+
+      if (chargeAmount > 0) {
+        String chargeName = charge.name ?? 'Charge';
+        if (type == 'percentage' || type == 'percent') {
+          chargeName = '$chargeName (${rate.toStringAsFixed(2)}%)';
+        }
+        charges.add({
+          'name': chargeName,
+          'amount': chargeAmount.toStringAsFixed(2),
+        });
+      }
+    }
+    return charges;
+  }
+
+  bool _isTaxIncluded(orderDetailsModel.Data orderData) {
+    final branch = _getBranch();
+    return branch?.taxesIncluded == true;
+  }
+
   Widget _buildPriceRow(
     String label,
     String value, {
@@ -972,21 +1121,21 @@ class OrderScreenView extends GetView<OrderScreenController> {
     Color? valueColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: isSecondary ? 12 : 14,
+              fontSize: 12,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: isSecondary ? 12 : 14,
+              fontSize: 12,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: valueColor ?? Colors.black,
             ),

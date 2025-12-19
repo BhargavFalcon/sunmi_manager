@@ -54,7 +54,6 @@ class Data {
 class Branches {
   int? id;
   int? restaurantId;
-  Null? taxTypeId;
   String? name;
   String? logo;
   String? menuPlaceholderImage;
@@ -74,7 +73,6 @@ class Branches {
   Branches({
     this.id,
     this.restaurantId,
-    this.taxTypeId,
     this.name,
     this.logo,
     this.menuPlaceholderImage,
@@ -95,7 +93,6 @@ class Branches {
   Branches.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     restaurantId = json['restaurant_id'];
-    taxTypeId = json['tax_type_id'];
     name = json['name'];
     logo = json['logo'];
     menuPlaceholderImage = json['menu_placeholder_image'];
@@ -131,7 +128,6 @@ class Branches {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
     data['restaurant_id'] = this.restaurantId;
-    data['tax_type_id'] = this.taxTypeId;
     data['name'] = this.name;
     data['logo'] = this.logo;
     data['menu_placeholder_image'] = this.menuPlaceholderImage;
