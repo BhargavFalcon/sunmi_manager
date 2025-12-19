@@ -65,7 +65,7 @@ class PusherService {
       return;
     }
 
-    final channelName = "new-order-created.$restaurantId";
+    final channelName = "new-invoice-created.$restaurantId";
 
     try {
       await pusher.subscribe(
@@ -79,7 +79,7 @@ class PusherService {
               if (decoded is Map<String, dynamic>) {
                 final invoiceModel = InvoiceModel.fromJson(decoded);
                 print(
-                  "Invoice Model Created: ${invoiceModel.order?.formattedOrderNumber}",
+                  "Invoice Model Created: ${invoiceModel.invoice!.order!.formattedOrderNumber}",
                 );
                 _printInvoice(invoiceModel);
               }
