@@ -11,7 +11,6 @@ import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../model/RestaurantDetailsModel.dart';
-import '../../../services/printer_service.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
@@ -129,7 +128,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                                   .ellipsis,
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 16,
+                                                                fontSize: 12,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w500,
@@ -170,7 +169,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                       );
                                                     }
                                                   },
-                                                  child: Text(option),
+                                                  child: Text(
+                                                    option,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
                                                 );
                                               }).toList(),
                                         ),
@@ -225,6 +229,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                         controller
                                                             .selectedOrderFilter
                                                             .value,
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
                                                       ),
                                                       const Icon(
                                                         Icons
@@ -245,7 +254,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             .updateOrderFilter(
                                                               option,
                                                             ),
-                                                    child: Text(option),
+                                                    child: Text(
+                                                      option,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
                                                   );
                                                 },
                                               ).toList(),
@@ -463,18 +477,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
 
     try {
-      // Show loader first (like kot flow)
       controller.isNavigatingToOrder.value = true;
-
-      // Fetch order details
       await controller.fetchOrderDetails(orderUuid);
     } finally {
-      // Always hide loader even if error occurs
       controller.isNavigatingToOrder.value = false;
     }
 
-    // Show bottom sheet after loader completes
     if (!context.mounted) return;
+
+    final screenHeight = MediaQuery.of(context).size.height;
 
     showModalBottomSheet(
       context: context,
@@ -485,10 +496,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder:
-          (_) => OrderScreenView()._buildBottomSheetContent(
-            context,
+          (builderContext) => OrderScreenView()._buildBottomSheetContent(
+            builderContext,
             controller,
             order,
+            screenHeight,
           ),
     );
   }
@@ -497,11 +509,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
     BuildContext context,
     OrderScreenController controller,
     orderModel.Orders order,
+    double screenHeight,
   ) {
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.9),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -640,78 +651,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
         ),
       ),
     );
-  }
-
-  Future<void> _handlePrintOrder(
-    BuildContext context,
-    orderDetailsModel.Data orderData,
-  ) async {
-    try {
-      // Check if PrinterService is registered
-      if (!Get.isRegistered<PrinterService>()) {
-        safeGetSnackbar(
-          'Printer Not Available',
-          'Printer service is not available. Please configure printer in settings.',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final printerService = Get.find<PrinterService>();
-
-      // Check if printer is connected
-      if (!printerService.isConnected.value) {
-        safeGetSnackbar(
-          'Printer Not Connected',
-          'Please connect a printer first in settings.',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      // Try to get print URL from order data
-      // Note: You may need to add image_url field to the order model or fetch it from API
-      // For now, we'll show a message that print functionality needs image_url
-      safeGetSnackbar(
-        'Print Feature',
-        'Print functionality will be available once print URL is configured.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-      );
-
-      // TODO: Uncomment when image_url is available in order data
-      // if (orderData.imageUrl != null && orderData.imageUrl!.isNotEmpty) {
-      //   await printerService.printImageFromUrl(orderData.imageUrl!);
-      //   safeGetSnackbar(
-      //     'Print Sent',
-      //     'Order print has been sent to printer.',
-      //     snackPosition: SnackPosition.TOP,
-      //     backgroundColor: Colors.green,
-      //     colorText: Colors.white,
-      //   );
-      // } else {
-      //   safeGetSnackbar(
-      //     'Print URL Not Available',
-      //     'Print URL is not available for this order.',
-      //     snackPosition: SnackPosition.TOP,
-      //     backgroundColor: Colors.orange,
-      //     colorText: Colors.white,
-      //   );
-      // }
-    } catch (e) {
-      safeGetSnackbar(
-        'Print Error',
-        'Failed to print order: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
   }
 
   String _formatOrderType(String? orderType) {
@@ -945,17 +884,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
               CurrencyFormatter.formatPrice(totals!.subTotal!),
             ),
 
-          if (totals?.discountAmount != null &&
-              totals!.discountAmount!.isNotEmpty &&
-              totals.discountAmount != 'null' &&
-              totals.discountAmount != '0' &&
-              totals.discountAmount != '0.0' &&
-              totals.discountAmount != '0.00' &&
-              double.tryParse(totals.discountAmount!) != null &&
-              double.tryParse(totals.discountAmount!)! > 0)
+          if (_isValidAmount(totals?.discountAmount))
             _buildPriceRow(
               'Discount:',
-              '-${CurrencyFormatter.formatPrice(totals.discountAmount!)}',
+              '-${CurrencyFormatter.formatPrice(totals!.discountAmount!)}',
             ),
 
           if (additionalCharges.isNotEmpty)
@@ -979,17 +911,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
               return _buildPriceRow(taxLabel, formattedAmount);
             }),
 
-          if (totals?.tipAmount != null &&
-              totals!.tipAmount!.isNotEmpty &&
-              totals.tipAmount != 'null' &&
-              totals.tipAmount != '0' &&
-              totals.tipAmount != '0.0' &&
-              totals.tipAmount != '0.00' &&
-              double.tryParse(totals.tipAmount!) != null &&
-              double.tryParse(totals.tipAmount!)! > 0)
+          if (_isValidAmount(totals?.tipAmount))
             _buildPriceRow(
               'Tip:',
-              CurrencyFormatter.formatPrice(totals.tipAmount!),
+              CurrencyFormatter.formatPrice(totals!.tipAmount!),
             ),
 
           const Padding(
@@ -1113,11 +1038,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return branch?.taxesIncluded == true;
   }
 
+  bool _isValidAmount(String? amount) {
+    if (amount == null ||
+        amount.isEmpty ||
+        amount == 'null' ||
+        amount == '0' ||
+        amount == '0.0' ||
+        amount == '0.00') {
+      return false;
+    }
+    final value = double.tryParse(amount);
+    return value != null && value > 0;
+  }
+
   Widget _buildPriceRow(
     String label,
     String value, {
     bool isBold = false,
-    bool isSecondary = false,
     Color? valueColor,
   }) {
     return Padding(
@@ -1178,13 +1115,8 @@ class OrderCard extends StatelessWidget {
     final formattedStatus = _formatStatusText(status);
 
     final formattedDateTime = order.formattedDateTime;
-
-    // Get items count
     final itemsCount = order.itemsCount ?? 0;
-
     final formattedPrice = order.formattedTotal;
-
-    // Get waiter name
     final waiterName = order.waiter?.name ?? '';
 
     return Container(
@@ -1195,7 +1127,7 @@ class OrderCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300, width: 1.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1204,8 +1136,8 @@ class OrderCard extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+                    horizontal: 10,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
                     color: ColorConstants.primaryColor.withValues(alpha: 0.15),
@@ -1237,7 +1169,7 @@ class OrderCard extends StatelessWidget {
                             ),
                           ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1365,7 +1297,7 @@ class OrderCard extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: 12,
+          fontSize: MySize.getHeight(10),
         ),
       ),
     );
