@@ -7,6 +7,8 @@ import '../services/sunmi_invoice_printer_service.dart';
 import '../widgets/new_order_dialog.dart';
 import '../routes/app_pages.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
+import '../model/notificationModel.dart' as notification;
+import '../widgets/new_order_details_bottom_sheet.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -95,8 +97,11 @@ class PusherService {
 
                 NewOrderDialog.show(
                   orderNumber: orderNumber,
+                  order: notificationModel.order,
                   onViewOrder: () {
-                    Get.toNamed(Routes.ORDER_SCREEN);
+                    if (notificationModel.order != null) {
+                      _showOrderDetailsBottomSheet(notificationModel.order!);
+                    }
                   },
                 );
               }
@@ -124,7 +129,7 @@ class PusherService {
                 print(
                   "Invoice Model Created: ${invoiceModel.invoice!.order!.formattedOrderNumber}",
                 );
-                // _printInvoice(invoiceModel);
+                _printInvoice(invoiceModel);
               }
             } catch (e) {
               print("Error parsing event data to InvoiceModel: $e");
@@ -155,6 +160,14 @@ class PusherService {
       }
     } catch (e) {
       print('Error refreshing order list: $e');
+    }
+  }
+
+  void _showOrderDetailsBottomSheet(notification.Order order) {
+    try {
+      NewOrderDetailsBottomSheet.show(order);
+    } catch (e) {
+      print('Error showing order details: $e');
     }
   }
 }

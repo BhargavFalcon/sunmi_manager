@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:managerapp/app/model/notificationModel.dart';
 
 class NewOrderDialog {
   static final AudioPlayer _audioPlayer = AudioPlayer();
@@ -8,6 +9,7 @@ class NewOrderDialog {
 
   static Future<void> show({
     required String orderNumber,
+    Order? order,
     VoidCallback? onViewOrder,
   }) async {
     if (Get.context == null) return;

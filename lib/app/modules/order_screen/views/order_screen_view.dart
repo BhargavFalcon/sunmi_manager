@@ -437,7 +437,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     sourceScreen: Routes.ORDER_SCREEN,
                   );
                 } else {
-                  _showOrderBottomSheet(context, controller, order);
+                  showOrderBottomSheet(context, controller, order);
                 }
               },
               child: OrderCard(order: order),
@@ -448,7 +448,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  Future<void> _showOrderBottomSheet(
+  static Future<void> showOrderBottomSheet(
     BuildContext context,
     OrderScreenController controller,
     orderModel.Orders order,
@@ -481,7 +481,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => _buildBottomSheetContent(context, controller, order),
+      builder:
+          (_) => OrderScreenView()._buildBottomSheetContent(
+            context,
+            controller,
+            order,
+          ),
     );
   }
 
