@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
-import '../model/notificatioModel.dart';
+import '../model/invoiceModel.dart';
 import '../utils/currency_formatter.dart';
 
 class SunmiInvoicePrinterService {

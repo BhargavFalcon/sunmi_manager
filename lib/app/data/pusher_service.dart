@@ -1,7 +1,12 @@
 import 'dart:convert';
+import 'package:managerapp/app/model/notificationModel.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
-import '../model/notificatioModel.dart';
+import 'package:get/get.dart';
+import '../model/invoiceModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
+import '../widgets/new_order_dialog.dart';
+import '../routes/app_pages.dart';
+import '../modules/order_screen/controllers/order_screen_controller.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -66,6 +71,44 @@ class PusherService {
     }
 
     final channelName = "new-invoice-created.$restaurantId";
+    final orderChannelName = "new-order-created.$restaurantId";
+
+    try {
+      await pusher.subscribe(
+        channelName: orderChannelName,
+        onEvent: (event) async {
+          print("Order Event Data: ${event.data}");
+          if (_isValidEventData(event.data)) {
+            try {
+              final dataString = event.data.toString().trim();
+              final decoded = jsonDecode(dataString);
+              if (decoded is Map<String, dynamic>) {
+                final notificationModel = NotificationModel.fromJson(decoded);
+                print(
+                  " ++++++++++++Notification Model Created: ${notificationModel.order!.formattedOrderNumber}",
+                );
+
+                final orderNumber =
+                    notificationModel.order?.orderNumber?.toString() ?? 'N/A';
+
+                await _refreshOrderList();
+
+                NewOrderDialog.show(
+                  orderNumber: orderNumber,
+                  onViewOrder: () {
+                    Get.toNamed(Routes.ORDER_SCREEN);
+                  },
+                );
+              }
+            } catch (e) {
+              print("Error parsing event data to NotificationModel: $e");
+            }
+          }
+        },
+      );
+    } catch (e) {
+      print('Error subscribing to orders: $e');
+    }
 
     try {
       await pusher.subscribe(
@@ -81,7 +124,7 @@ class PusherService {
                 print(
                   "Invoice Model Created: ${invoiceModel.invoice!.order!.formattedOrderNumber}",
                 );
-                _printInvoice(invoiceModel);
+                // _printInvoice(invoiceModel);
               }
             } catch (e) {
               print("Error parsing event data to InvoiceModel: $e");
@@ -100,6 +143,18 @@ class PusherService {
       printerService.printInvoice(invoiceModel);
     } catch (e) {
       print('Error printing invoice: $e');
+    }
+  }
+
+  Future<void> _refreshOrderList() async {
+    try {
+      if (Get.isRegistered<OrderScreenController>()) {
+        final controller = Get.find<OrderScreenController>();
+        controller.currentPage = 1;
+        await controller.fetchAllOrders();
+      }
+    } catch (e) {
+      print('Error refreshing order list: $e');
     }
   }
 }

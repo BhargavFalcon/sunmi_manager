@@ -5,12 +5,10 @@ class InvoiceModel {
 
   InvoiceModel.fromJson(Map<String, dynamic> json) {
     invoice =
-    json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null;
+        json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null;
   }
 
-  Map<String, dynamic> toJson() => {
-    'invoice': invoice?.toJson(),
-  };
+  Map<String, dynamic> toJson() => {'invoice': invoice?.toJson()};
 }
 
 class Invoice {
@@ -29,25 +27,28 @@ class Invoice {
   String? invoiceUrl;
 
   Invoice.fromJson(Map<String, dynamic> json) {
-    restaurant = json['restaurant'] != null
-        ? Restaurant.fromJson(json['restaurant'])
-        : null;
-    branch =
-    json['branch'] != null ? Branch.fromJson(json['branch']) : null;
+    restaurant =
+        json['restaurant'] != null
+            ? Restaurant.fromJson(json['restaurant'])
+            : null;
+    branch = json['branch'] != null ? Branch.fromJson(json['branch']) : null;
     order = json['order'] != null ? Order.fromJson(json['order']) : null;
-    receiptSettings = json['receipt_settings'] != null
-        ? ReceiptSettings.fromJson(json['receipt_settings'])
-        : null;
-    taxDetails = (json['tax_details'] as List?)
-        ?.map((e) => TaxDetails.fromJson(e))
-        .toList();
+    receiptSettings =
+        json['receipt_settings'] != null
+            ? ReceiptSettings.fromJson(json['receipt_settings'])
+            : null;
+    taxDetails =
+        (json['tax_details'] as List?)
+            ?.map((e) => TaxDetails.fromJson(e))
+            .toList();
     payment =
-    json['payment'] != null ? Payments.fromJson(json['payment']) : null;
+        json['payment'] != null ? Payments.fromJson(json['payment']) : null;
     taxMode = json['tax_mode'];
     taxInclusive = json['tax_inclusive'];
-    currencyConfig = json['currency_config'] != null
-        ? CurrencyConfig.fromJson(json['currency_config'])
-        : null;
+    currencyConfig =
+        json['currency_config'] != null
+            ? CurrencyConfig.fromJson(json['currency_config'])
+            : null;
     restaurantId = json['restaurant_id'];
     pdfUrl = json['pdf_url'];
     imageUrl = json['image_url'];
@@ -101,10 +102,7 @@ class Branch {
     address = json['address'];
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'address': address,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'address': address};
 }
 
 class Order {
@@ -160,18 +158,13 @@ class Order {
     formattedTipAmount = json['formatted_tip_amount'];
     formattedTotalTaxAmount = json['formatted_total_tax_amount'];
     formattedTotal = json['formatted_total'];
-    customer = json['customer'] != null
-        ? Customer.fromJson(json['customer'])
-        : null;
-    items = (json['items'] as List?)
-        ?.map((e) => Items.fromJson(e))
-        .toList();
-    charges = (json['charges'] as List?)
-        ?.map((e) => Charges.fromJson(e))
-        .toList();
-    payments = (json['payments'] as List?)
-        ?.map((e) => Payments.fromJson(e))
-        .toList();
+    customer =
+        json['customer'] != null ? Customer.fromJson(json['customer']) : null;
+    items = (json['items'] as List?)?.map((e) => Items.fromJson(e)).toList();
+    charges =
+        (json['charges'] as List?)?.map((e) => Charges.fromJson(e)).toList();
+    payments =
+        (json['payments'] as List?)?.map((e) => Payments.fromJson(e)).toList();
   }
 
   Map<String, dynamic> toJson() => {
@@ -251,15 +244,17 @@ class Items {
     formattedAmount = json['formatted_amount'];
     itemName = json['item_name'];
     variationName = json['variation_name'];
-    modifiers = (json['modifiers'] as List?)
-        ?.map((e) => Modifiers.fromJson(e))
-        .toList();
+    modifiers =
+        (json['modifiers'] as List?)
+            ?.map((e) => Modifiers.fromJson(e))
+            .toList();
     isDeleted = json['is_deleted'];
     isVariationDeleted = json['is_variation_deleted'];
     taxAmount = json['tax_amount']?.toDouble();
-    taxBreakup = json['tax_breakup'] != null
-        ? TaxBreakup.fromJson(json['tax_breakup'])
-        : null;
+    taxBreakup =
+        json['tax_breakup'] != null
+            ? TaxBreakup.fromJson(json['tax_breakup'])
+            : null;
     createdAt = json['created_at'];
   }
 
@@ -292,11 +287,7 @@ class Modifiers {
     price = json['price'];
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'price': price,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'price': price};
 }
 
 class TaxBreakup {
@@ -327,10 +318,7 @@ class TaxValue {
     percent = json['percent']?.toString();
   }
 
-  Map<String, dynamic> toJson() => {
-    'amount': amount,
-    'percent': percent,
-  };
+  Map<String, dynamic> toJson() => {'amount': amount, 'percent': percent};
 }
 
 class Charges {
