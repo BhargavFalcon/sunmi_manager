@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/model/notificationModel.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
 
 class NewOrderDetailsBottomSheet {
   static void show(Order order) {
@@ -233,32 +234,96 @@ class NewOrderDetailsBottomSheet {
     final totals = order.totals;
     if (totals == null) return const SizedBox();
 
+    final taxBreakupMap = _aggregateTaxBreakup(order.items ?? []);
+
     return Column(
       children: [
         if (totals.subTotal != null)
-          _buildSummaryRow('Sub Total', totals.subTotal!),
+          _buildSummaryRow(
+            'Sub Total',
+            CurrencyFormatter.formatPrice(totals.subTotal!),
+          ),
         if (totals.discountAmount != null && totals.discountAmount!.isNotEmpty)
-          _buildSummaryRow('Discount', totals.discountAmount!),
+          _buildSummaryRow(
+            'Discount',
+            CurrencyFormatter.formatPrice(totals.discountAmount!),
+          ),
         if (order.charges != null && order.charges!.isNotEmpty)
           ...order.charges!.map(
             (charge) => _buildSummaryRow(
               charge.chargeName ?? 'Charge',
-              charge.amount ?? '0',
+              CurrencyFormatter.formatPrice(charge.amount ?? '0'),
             ),
           ),
+        if (taxBreakupMap.isNotEmpty)
+          ...taxBreakupMap.entries.map((entry) {
+            final amount = entry.value.amount ?? '0';
+            final formattedAmount = CurrencyFormatter.formatPrice(amount);
+            return _buildSummaryRow(entry.key, formattedAmount);
+          }),
         if (totals.totalTaxAmount != null && totals.totalTaxAmount!.isNotEmpty)
-          _buildSummaryRow('Tax', totals.totalTaxAmount!),
+          _buildSummaryRow(
+            'Total Tax',
+            CurrencyFormatter.formatPrice(totals.totalTaxAmount!),
+          ),
         if (totals.deliveryFee != null && totals.deliveryFee!.isNotEmpty)
-          _buildSummaryRow('Delivery Fee', totals.deliveryFee!),
+          _buildSummaryRow(
+            'Delivery Fee',
+            CurrencyFormatter.formatPrice(totals.deliveryFee!),
+          ),
         if (totals.tipAmount != null && totals.tipAmount!.isNotEmpty)
-          _buildSummaryRow('Tip', totals.tipAmount!),
+          _buildSummaryRow(
+            'Tip',
+            CurrencyFormatter.formatPrice(totals.tipAmount!),
+          ),
         const Divider(height: 24),
         if (totals.total != null)
-          _buildSummaryRow('Total', totals.total!, isTotal: true),
+          _buildSummaryRow(
+            'Total',
+            CurrencyFormatter.formatPrice(totals.total!),
+            isTotal: true,
+          ),
         if (totals.amountPaid != null && totals.amountPaid!.isNotEmpty)
-          _buildSummaryRow('Amount Paid', totals.amountPaid!),
+          _buildSummaryRow(
+            'Amount Paid',
+            CurrencyFormatter.formatPrice(totals.amountPaid!),
+          ),
       ],
     );
+  }
+
+  static Map<String, TaxValue> _aggregateTaxBreakup(List<Items> items) {
+    final Map<String, Map<String, dynamic>> aggregatedTaxesData = {};
+
+    for (var item in items) {
+      if (item.taxBreakup != null && item.taxBreakup!.taxes.isNotEmpty) {
+        item.taxBreakup!.taxes.forEach((taxName, taxValue) {
+          if (aggregatedTaxesData.containsKey(taxName)) {
+            final existing = aggregatedTaxesData[taxName]!;
+            final existingAmount =
+                double.tryParse(existing['amount'] ?? '0') ?? 0;
+            final newAmount = double.tryParse(taxValue.amount ?? '0') ?? 0;
+            final totalAmount = existingAmount + newAmount;
+            aggregatedTaxesData[taxName] = {
+              'amount': totalAmount.toString(),
+              'percent': taxValue.percent,
+            };
+          } else {
+            aggregatedTaxesData[taxName] = {
+              'amount': taxValue.amount,
+              'percent': taxValue.percent,
+            };
+          }
+        });
+      }
+    }
+
+    final Map<String, TaxValue> aggregatedTaxes = {};
+    aggregatedTaxesData.forEach((taxName, data) {
+      aggregatedTaxes[taxName] = TaxValue.fromJson(data);
+    });
+
+    return aggregatedTaxes;
   }
 
   static Widget _buildSummaryRow(
@@ -304,7 +369,7 @@ class NewOrderDetailsBottomSheet {
                     style: const TextStyle(fontSize: 14),
                   ),
                   Text(
-                    payment.amount ?? '0',
+                    CurrencyFormatter.formatPrice(payment.amount ?? '0'),
                     style: const TextStyle(fontSize: 14),
                   ),
                 ],
