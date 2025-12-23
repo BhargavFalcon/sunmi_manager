@@ -344,18 +344,6 @@ getSnackBar({
   );
 }
 
-/// Safe wrapper for Get.snackbar that handles overlay errors
-/// This function ensures the overlay is ready before showing snackbar
-/// Use this instead of direct Get.snackbar to avoid overlay errors
-///
-/// Example:
-/// ```dart
-/// safeGetSnackbar(
-///   'Error',
-///   'Something went wrong',
-///   snackPosition: SnackPosition.TOP,
-/// );
-/// ```
 void safeGetSnackbar(
   String title,
   String message, {
