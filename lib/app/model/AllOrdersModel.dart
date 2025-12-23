@@ -53,7 +53,7 @@ class Data {
 class Orders {
   int? id;
   String? uuid;
-  int? orderNumber;
+  String? orderNumber;
   String? formattedOrderNumber;
   String? orderType;
   String? status;
@@ -98,17 +98,23 @@ class Orders {
     formattedDateTime = json['formatted_date_time'];
     customer =
         json['customer'] != null
-            ? new Customer.fromJson(json['customer'])
+            ? new Customer.fromJson(json['customer'] is Map ? json['customer'] as Map<String, dynamic> : (json['customer'] is List && json['customer'].isNotEmpty ? json['customer'][0] as Map<String, dynamic> : {}))
             : null;
-    table = json['table'] != null ? new Table.fromJson(json['table']) : null;
+    table = json['table'] != null 
+        ? new Table.fromJson(json['table'] is Map ? json['table'] as Map<String, dynamic> : (json['table'] is List && json['table'].isNotEmpty ? json['table'][0] as Map<String, dynamic> : {}))
+        : null;
     waiter =
-        json['waiter'] != null ? new Customer.fromJson(json['waiter']) : null;
+        json['waiter'] != null
+            ? new Customer.fromJson(json['waiter'] is Map ? json['waiter'] as Map<String, dynamic> : (json['waiter'] is List && json['waiter'].isNotEmpty ? json['waiter'][0] as Map<String, dynamic> : {}))
+            : null;
     itemsCount = json['items_count'];
-    total = json['total'];
-    formattedTotal = json['formatted_total'];
+    total = json['total']?.toString();
+    formattedTotal = json['formatted_total']?.toString();
     currencyId = json['currency_id'];
     coupon =
-        json['coupon'] != null ? new Coupon.fromJson(json['coupon']) : null;
+        json['coupon'] != null
+            ? new Coupon.fromJson(json['coupon'] is Map ? json['coupon'] as Map<String, dynamic> : (json['coupon'] is List && json['coupon'].isNotEmpty ? json['coupon'][0] as Map<String, dynamic> : {}))
+            : null;
   }
 
   Map<String, dynamic> toJson() {
