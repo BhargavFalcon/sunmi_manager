@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;

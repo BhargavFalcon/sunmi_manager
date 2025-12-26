@@ -18,38 +18,21 @@ class CartScreenController extends GetxController {
   final networkClient = NetworkClient();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // Cart items list - using Items model directly
   RxList<Items> cartItems = <Items>[].obs;
-
-  // Discount fields
   RxDouble discountValue = 0.0.obs;
-  RxString discountType = 'Fixed'.obs; // 'Fixed' or 'Percent'
-
-  // Tax included flag
+  RxString discountType = 'Fixed'.obs;
   RxBool isTaxIncluded = false.obs;
-
-  // Table from arguments
   final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
-
-  // Existing order (when coming from Continue to order)
   String? existingOrderId;
   orderModel.GetOrderModel? existingOrder;
-
-  // Source screen to navigate back after submit
   String? sourceScreen;
-
-  // Getter to check if table exists
-  bool get hasTable => selectedTable.value != null;
-
-  // Pax (number of people) - editable
   final RxInt pax = 1.obs;
   final TextEditingController paxController = TextEditingController();
-
-  // Table areas list
   final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
-
-  // Loading state for order submission
   final RxBool isSubmittingOrder = false.obs;
+  RxString currentOrderType = 'Pickup'.obs;
+
+  bool get hasTable => selectedTable.value != null;
 
   @override
   void onInit() {
@@ -86,7 +69,8 @@ class CartScreenController extends GetxController {
     if (order is orderModel.GetOrderModel) {
       existingOrder = order;
       existingOrderId =
-          order.data?.uuid?.toString() ?? order.data?.id?.toString();
+          order.data?.order?.uuid?.toString() ??
+          order.data?.order?.id?.toString();
     }
   }
 
@@ -105,21 +89,18 @@ class CartScreenController extends GetxController {
   }
 
   Future<void> fetchTablesAreas() async {
-    // Clear existing list before fetching
     tableAreasList.clear();
     try {
       final response = await networkClient.get(
         ArgumentConstant.tablesAreasEndpoint,
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data != null && response.data is Map<String, dynamic>) {
-          final tableModelData = tableModel.TableModel.fromJson(
-            response.data as Map<String, dynamic>,
-          );
-          if (tableModelData.data != null) {
-            tableAreasList.assignAll(tableModelData.data!);
-          }
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map<String, dynamic>) {
+        final tableModelData = tableModel.TableModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        if (tableModelData.data != null) {
+          tableAreasList.assignAll(tableModelData.data!);
         }
       }
     } catch (e) {
@@ -195,134 +176,77 @@ class CartScreenController extends GetxController {
       final bool isExistingOrder =
           existingOrderId != null && existingOrderId!.isNotEmpty;
 
-      final List<Map<String, dynamic>> itemsList = [];
+      final itemsList =
+          cartItems.map((item) {
+            final itemData = <String, dynamic>{
+              'menu_item_id': item.id,
+              'quantity': item.quantity.value,
+            };
 
-      if (isExistingOrder && existingOrder != null) {
-        // For existing orders, use kot_item_id only if cart item already has it
-        // (meaning it came from the existing order)
-        // Items added from menu won't have cartKotItemId and will be added as new items
-        for (var cartItem in cartItems) {
-          final itemData = <String, dynamic>{
-            'menu_item_id': cartItem.id,
-            'quantity': cartItem.quantity.value,
-          };
+            if (item.selectedVariation != null) {
+              itemData['menu_item_variation_id'] = item.selectedVariation!.id;
+            }
 
-          if (cartItem.selectedVariation != null) {
-            itemData['menu_item_variation_id'] = cartItem.selectedVariation!.id;
-          }
-
-          if (cartItem.selectedExtras != null &&
-              cartItem.selectedExtras!.isNotEmpty) {
             final optionIds =
-                cartItem.selectedExtras!
-                    .where((option) => option.id != null)
+                item.selectedExtras
+                    ?.where((option) => option.id != null)
                     .map((option) => option.id!)
                     .toList();
-            if (optionIds.isNotEmpty) {
+            if (optionIds != null && optionIds.isNotEmpty) {
               itemData['modifier_option_ids'] = optionIds;
             }
-          }
 
-          if (cartItem.cartNote != null && cartItem.cartNote!.isNotEmpty) {
-            itemData['note'] = cartItem.cartNote;
-          }
-
-          // Add kot_item_id only if cart item has it (loaded from existing order)
-          // Items added from menu won't have cartKotItemId and will be added as new items
-          if (cartItem.cartKotItemId != null) {
-            itemData['kot_item_id'] = cartItem.cartKotItemId;
-          }
-          // If no cartKotItemId, it's a new item added from menu (no kot_item_id)
-
-          itemsList.add(itemData);
-        }
-      } else {
-        // For new orders, build items list normally
-        for (var item in cartItems) {
-          final itemData = <String, dynamic>{
-            'menu_item_id': item.id,
-            'quantity': item.quantity.value,
-          };
-
-          if (item.selectedVariation != null) {
-            itemData['menu_item_variation_id'] = item.selectedVariation!.id;
-          }
-
-          if (item.selectedExtras != null && item.selectedExtras!.isNotEmpty) {
-            final optionIds =
-                item.selectedExtras!
-                    .where((option) => option.id != null)
-                    .map((option) => option.id!)
-                    .toList();
-            if (optionIds.isNotEmpty) {
-              itemData['modifier_option_ids'] = optionIds;
+            if (item.cartNote != null && item.cartNote!.isNotEmpty) {
+              itemData['note'] = item.cartNote;
             }
-          }
 
-          if (item.cartNote != null && item.cartNote!.isNotEmpty) {
-            itemData['note'] = item.cartNote;
-          }
+            if (isExistingOrder && item.cartKotItemId != null) {
+              itemData['kot_item_id'] = item.cartKotItemId;
+            }
 
-          itemsList.add(itemData);
-        }
-      }
+            return itemData;
+          }).toList();
 
-      Map<String, dynamic> requestBody;
-      String endpoint;
+      final requestBody =
+          isExistingOrder
+              ? {'items': itemsList}
+              : {
+                'order_type': 'dine_in',
+                'table_id': tableId,
+                'waiter_id': waiterId,
+                'number_of_pax': pax.value,
+                'items': itemsList,
+                'status': status,
+                if (discountValue.value > 0) ...{
+                  'discount_type': discountType.value.toLowerCase(),
+                  'discount_value': discountValue.value.toString(),
+                },
+              };
 
-      if (isExistingOrder) {
-        // Sync items to existing order
-        requestBody = {'items': itemsList};
-        endpoint = ArgumentConstant.addOrderItemsEndpoint.replaceAll(
-          ':order_uuid',
-          existingOrderId!,
-        );
-      } else {
-        // Create new order
-        requestBody = {
-          'order_type': 'dine_in',
-          'table_id': tableId,
-          'waiter_id': waiterId,
-          'number_of_pax': pax.value,
-          'items': itemsList,
-          'status': status,
-        };
+      final endpoint =
+          isExistingOrder
+              ? ArgumentConstant.addOrderItemsEndpoint.replaceAll(
+                ':order_uuid',
+                existingOrderId!,
+              )
+              : ArgumentConstant.ordersEndpoint;
 
-        // Add discount if applied
-        if (discountValue.value > 0) {
-          requestBody['discount_type'] = discountType.value.toLowerCase();
-          requestBody['discount_value'] = discountValue.value.toString();
-        }
-
-        endpoint = ArgumentConstant.ordersEndpoint;
-      }
-
-      // Call Order API (create or append items)
-      // Use PUT for sync endpoint, POST for new orders
       final response =
           isExistingOrder
               ? await networkClient.put(endpoint, data: requestBody)
               : await networkClient.post(endpoint, data: requestBody);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Extract order_id from response (for new orders) or use existing
         String? orderId = existingOrderId;
 
-        if (!isExistingOrder) {
-          if (response.data != null && response.data is Map<String, dynamic>) {
-            final responseData = response.data as Map<String, dynamic>;
-            if (responseData['data'] != null &&
-                responseData['data'] is Map<String, dynamic>) {
-              final data = responseData['data'] as Map<String, dynamic>;
-              // Prefer UUID, fallback to ID
-              orderId = data['uuid']?.toString() ?? data['id']?.toString();
-            } else {
-              // Fallback to direct keys
-              orderId =
-                  responseData['order_id']?.toString() ??
-                  responseData['uuid']?.toString() ??
-                  responseData['id']?.toString();
-            }
-          }
+        if (!isExistingOrder && response.data is Map<String, dynamic>) {
+          final responseData = response.data as Map<String, dynamic>;
+          final data = responseData['data'] as Map<String, dynamic>?;
+          orderId =
+              data?['uuid']?.toString() ??
+              data?['id']?.toString() ??
+              responseData['order_id']?.toString() ??
+              responseData['uuid']?.toString() ??
+              responseData['id']?.toString();
         }
 
         if (createPayment && orderId != null) {
@@ -461,14 +385,11 @@ class CartScreenController extends GetxController {
 
   void syncOrderTypeFromCartItems() {
     if (cartItems.isNotEmpty) {
-      // Get order type from first cart item
       final firstItem = cartItems.first;
       if (firstItem.cartOrderType != null &&
-          firstItem.cartOrderType!.isNotEmpty) {
-        final orderType = firstItem.cartOrderType!;
-        if (currentOrderType.value != orderType) {
-          currentOrderType.value = orderType;
-        }
+          firstItem.cartOrderType!.isNotEmpty &&
+          currentOrderType.value != firstItem.cartOrderType!) {
+        currentOrderType.value = firstItem.cartOrderType!;
       }
     }
   }
@@ -480,9 +401,7 @@ class CartScreenController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    // Fetch table arguments again in onReady to ensure fresh data
     fetchTableFromArguments();
-    // Refresh table areas list every time screen is opened
     fetchTablesAreas();
   }
 
@@ -493,60 +412,41 @@ class CartScreenController extends GetxController {
     super.onClose();
   }
 
-  // Update quantity for a specific item
   void updateItemQuantity(String cartItemId, int newQuantity) {
-    for (int i = 0; i < cartItems.length; i++) {
-      if (cartItems[i].cartItemId == cartItemId) {
-        cartItems[i].quantity.value = newQuantity;
-        cartItems.refresh();
-        break;
-      }
+    final item = cartItems.firstWhereOrNull(
+      (item) => item.cartItemId == cartItemId,
+    );
+    if (item != null) {
+      item.quantity.value = newQuantity;
+      cartItems.refresh();
     }
   }
 
-  // Remove item from cart
   void removeItem(String cartItemId) {
     cartItems.removeWhere((item) => item.cartItemId == cartItemId);
   }
 
-  // Check if same item already exists in cart
   Items? findExistingCartItem(Items newItem) {
     for (var existingItem in cartItems) {
-      // Check if same item id
       if (existingItem.id != newItem.id) continue;
+      if (existingItem.selectedVariation?.id != newItem.selectedVariation?.id) {
+        continue;
+      }
 
-      // Check if same variation
-      final existingVariationId = existingItem.selectedVariation?.id;
-      final newVariationId = newItem.selectedVariation?.id;
-      if (existingVariationId != newVariationId) continue;
-
-      // Check if same extras
       final existingExtras = existingItem.selectedExtras;
       final newExtras = newItem.selectedExtras;
 
-      // Both null or both empty
       if ((existingExtras == null || existingExtras.isEmpty) &&
           (newExtras == null || newExtras.isEmpty)) {
         return existingItem;
       }
 
-      // Both have extras - check if same
       if (existingExtras != null &&
           newExtras != null &&
           existingExtras.length == newExtras.length) {
-        final existingExtrasIds =
-            existingExtras.map((e) => e.id).toList()..sort();
-        final newExtrasIds = newExtras.map((e) => e.id).toList()..sort();
-
-        bool extrasMatch = true;
-        for (int i = 0; i < existingExtrasIds.length; i++) {
-          if (existingExtrasIds[i] != newExtrasIds[i]) {
-            extrasMatch = false;
-            break;
-          }
-        }
-
-        if (extrasMatch) {
+        final existingIds = existingExtras.map((e) => e.id).toList()..sort();
+        final newIds = newExtras.map((e) => e.id).toList()..sort();
+        if (existingIds.toString() == newIds.toString()) {
           return existingItem;
         }
       }
@@ -554,143 +454,97 @@ class CartScreenController extends GetxController {
     return null;
   }
 
-  // Add item to cart (with duplicate check)
   void addToCart(Items item) {
-    // Check if this is an existing order
-    final bool isExistingOrder =
+    final isExistingOrder =
         existingOrderId != null && existingOrderId!.isNotEmpty;
 
-    // For existing orders, always add as new item (don't merge with existing items)
     if (isExistingOrder) {
-      // Always add as new item - don't check for duplicates
       cartItems.add(item);
     } else {
-      // For new orders, check for duplicates and merge if found
       final existingItem = findExistingCartItem(item);
-
       if (existingItem != null) {
-        // Same item exists - increase quantity
         existingItem.quantity.value = existingItem.quantity.value + 1;
         cartItems.refresh();
       } else {
-        // New item - add to cart
         cartItems.add(item);
       }
     }
 
-    // Trigger haptic feedback if enabled - maximum intensity
-    final hapticEnabled = box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
-    if (hapticEnabled) {
-      // Use strongest haptic feedback - vibrate
+    if (box.read(ArgumentConstant.hapticFeedbackKey) ?? true) {
       HapticFeedback.vibrate();
-      // Also add heavy impact for extra intensity
       HapticFeedback.heavyImpact();
     }
 
-    // Trigger beep sound if enabled
-    final beepSoundEnabled = box.read(ArgumentConstant.beepSoundKey) ?? true;
-    if (beepSoundEnabled) {
+    if (box.read(ArgumentConstant.beepSoundKey) ?? true) {
       _playBeepSound();
     }
 
-    // Sync order type from the item (restaurant settings based)
-    if (item.cartOrderType != null && item.cartOrderType!.isNotEmpty) {
-      final newOrderType = item.cartOrderType!;
-      if (currentOrderType.value != newOrderType) {
-        currentOrderType.value = newOrderType;
-        print('Order type updated to: $newOrderType for additional charges');
-      }
+    if (item.cartOrderType != null &&
+        item.cartOrderType!.isNotEmpty &&
+        currentOrderType.value != item.cartOrderType!) {
+      currentOrderType.value = item.cartOrderType!;
     }
   }
 
-  // Get total price
   double get totalPrice {
-    double total = 0.0;
-    for (var item in cartItems) {
-      double price = item.cartTotalPrice ?? 0.0;
-      int quantity = item.quantity.value;
-      total += (price * quantity);
-    }
-    return total;
+    return cartItems.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item.cartTotalPrice ?? 0.0) * item.quantity.value),
+    );
   }
 
-  // Get total items count
   int get totalItems {
-    int total = 0;
-    for (var item in cartItems) {
-      total += item.quantity.value;
-    }
-    return total;
+    return cartItems.fold<int>(0, (sum, item) => sum + item.quantity.value);
   }
 
-  // --- Notes handling per item ---
+  Items? _findItemById(String cartItemId) {
+    return cartItems.firstWhereOrNull((item) => item.cartItemId == cartItemId);
+  }
+
   void startEditingNote(String cartItemId) {
-    for (int i = 0; i < cartItems.length; i++) {
-      if (cartItems[i].cartItemId == cartItemId) {
-        cartItems[i].cartNoteDraft = cartItems[i].cartNote ?? '';
-        cartItems[i].cartEditingNote = true;
-        cartItems.refresh();
-        break;
-      }
+    final item = _findItemById(cartItemId);
+    if (item != null) {
+      item.cartNoteDraft = item.cartNote ?? '';
+      item.cartEditingNote = true;
+      cartItems.refresh();
     }
   }
 
   void updateNoteDraft(String cartItemId, String value) {
-    for (int i = 0; i < cartItems.length; i++) {
-      if (cartItems[i].cartItemId == cartItemId) {
-        cartItems[i].cartNoteDraft = value;
-        cartItems.refresh();
-        break;
-      }
+    final item = _findItemById(cartItemId);
+    if (item != null) {
+      item.cartNoteDraft = value;
+      cartItems.refresh();
     }
   }
 
   void saveNote(String cartItemId) {
-    for (int i = 0; i < cartItems.length; i++) {
-      if (cartItems[i].cartItemId == cartItemId) {
-        cartItems[i].cartNote = cartItems[i].cartNoteDraft ?? '';
-        cartItems[i].cartEditingNote = false;
-        cartItems.refresh();
-        break;
-      }
+    final item = _findItemById(cartItemId);
+    if (item != null) {
+      item.cartNote = item.cartNoteDraft ?? '';
+      item.cartEditingNote = false;
+      cartItems.refresh();
     }
   }
 
   void cancelEditingNote(String cartItemId) {
-    for (int i = 0; i < cartItems.length; i++) {
-      if (cartItems[i].cartItemId == cartItemId) {
-        cartItems[i].cartNoteDraft = cartItems[i].cartNote ?? '';
-        cartItems[i].cartEditingNote = false;
-        cartItems.refresh();
-        break;
-      }
+    final item = _findItemById(cartItemId);
+    if (item != null) {
+      item.cartNoteDraft = item.cartNote ?? '';
+      item.cartEditingNote = false;
+      cartItems.refresh();
     }
   }
 
-  // Discount methods
   void setDiscount(double value, String type) {
-    // Validate discount - cannot exceed sub total
     if (value <= 0) {
       discountValue.value = 0.0;
       discountType.value = type;
       return;
     }
 
-    double maxDiscount = 0.0;
-    if (type == 'Fixed') {
-      // For fixed discount, max is sub total
-      maxDiscount = totalPrice;
-    } else {
-      // For percent discount, max is 100%
-      maxDiscount = 100.0;
-    }
-
-    // Limit discount to maximum allowed
-    if (value > maxDiscount) {
-      discountValue.value = maxDiscount;
-    } else {
-      discountValue.value = value;
-    }
+    final maxDiscount = type == 'Fixed' ? totalPrice : 100.0;
+    discountValue.value = value > maxDiscount ? maxDiscount : value;
     discountType.value = type;
   }
 
@@ -705,89 +559,77 @@ class CartScreenController extends GetxController {
     discountType.value = 'Fixed';
   }
 
-  // Get discount amount (applied on sub total)
   double get discountAmount {
     if (discountValue.value == 0.0) return 0.0;
 
-    double calculatedDiscount = 0.0;
-    if (discountType.value == 'Fixed') {
-      calculatedDiscount = discountValue.value;
-    } else {
-      // Percent - applied on sub total
-      calculatedDiscount = (totalPrice * discountValue.value) / 100;
-    }
+    final calculatedDiscount =
+        discountType.value == 'Fixed'
+            ? discountValue.value
+            : (totalPrice * discountValue.value) / 100;
 
-    // Discount cannot exceed sub total
-    if (calculatedDiscount > totalPrice) {
-      return totalPrice;
-    }
-    return calculatedDiscount;
+    return calculatedDiscount > totalPrice ? totalPrice : calculatedDiscount;
   }
 
-  // Get sub total after discount (cannot be negative)
   double get subTotalAfterDiscount {
     final result = totalPrice - discountAmount;
     return result < 0 ? 0.0 : result;
   }
 
-  // Get current order type (default to Pickup, can be updated)
-  RxString currentOrderType = 'Pickup'.obs;
-
   void setOrderType(String orderType) {
     currentOrderType.value = orderType;
   }
 
-  // Get grouped taxes with their amounts
-  // Returns a map where key is "taxName (taxPercent%)" and value is the total tax amount
-  // Different tax types will show as separate lines
-  // Same tax types from different items will be grouped together
   Map<String, double> get groupedTaxes {
-    Map<String, double> taxMap = {};
+    if (existingOrder != null) {
+      final orderData =
+          existingOrder!.data?.order ?? existingOrder!.data?.invoice?.order;
+      if (orderData?.taxes != null && orderData!.taxes!.isNotEmpty) {
+        final taxMap = <String, double>{};
+        for (var tax in orderData.taxes!) {
+          final taxAmount =
+              tax.amount is num
+                  ? (tax.amount as num).toDouble()
+                  : double.tryParse(tax.amount?.toString() ?? '0') ?? 0.0;
+          if (taxAmount > 0) {
+            final percent = tax.percent?.toString() ?? '';
+            final taxName = tax.taxName ?? 'Tax';
+            final taxKey =
+                percent.isNotEmpty ? '$taxName (${percent}%)' : taxName;
+            taxMap[taxKey] = taxAmount;
+          }
+        }
+        return taxMap;
+      }
+    }
+
+    final taxMap = <String, double>{};
+    final orderTypeLower = currentOrderType.value.toLowerCase();
+    final taxKey =
+        orderTypeLower == 'dine in'
+            ? 'dine_in'
+            : orderTypeLower == 'pickup'
+            ? 'pickup'
+            : orderTypeLower == 'delivery'
+            ? 'delivery'
+            : 'pickup';
 
     for (var item in cartItems) {
-      double itemPrice = item.cartTotalPrice ?? 0.0;
-      int quantity = item.quantity.value;
+      final itemPrice = item.cartTotalPrice ?? 0.0;
+      final quantity = item.quantity.value;
+      final taxesList = item.taxes?[taxKey];
 
-      // Get taxes for this item based on order type
-      if (item.taxes != null && item.taxes!.isNotEmpty) {
-        // Map order type to tax key
-        String taxKey = 'pickup'; // default
-        if (currentOrderType.value.toLowerCase() == 'dine in') {
-          taxKey = 'dine_in';
-        } else if (currentOrderType.value.toLowerCase() == 'pickup') {
-          taxKey = 'pickup';
-        } else if (currentOrderType.value.toLowerCase() == 'delivery') {
-          taxKey = 'delivery';
-        }
-
-        // Get taxes list for current order type
-        final taxesList = item.taxes![taxKey];
-        if (taxesList != null && taxesList.isNotEmpty) {
-          // Calculate tax for each tax type in this item
-          for (var tax in taxesList) {
-            if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
-              try {
-                double taxPercent = double.parse(tax.taxPercent!);
-                String taxName = tax.taxName ?? 'Tax';
-
-                // Create unique key for grouping (tax name + percentage)
-                // Same tax name and percentage will be grouped together
-                // Different tax types will have different keys and show separately
-                String taxMapKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
-
-                // Since tax is included in price, extract it
-                // Formula: tax = price * (taxPercent / (100 + taxPercent))
-                double taxForThisItem =
-                    itemPrice * (taxPercent / (100 + taxPercent));
-
-                // Add to map (sum if same tax type exists in multiple items)
-                // If different tax types, they will have different keys
-                taxMap[taxMapKey] =
-                    (taxMap[taxMapKey] ?? 0.0) + (taxForThisItem * quantity);
-              } catch (e) {
-                // If parsing fails, skip this tax
-              }
-            }
+      if (taxesList != null && taxesList.isNotEmpty) {
+        for (var tax in taxesList) {
+          if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
+            try {
+              final taxPercent = double.parse(tax.taxPercent!);
+              final taxName = tax.taxName ?? 'Tax';
+              final taxMapKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
+              final taxForThisItem =
+                  itemPrice * (taxPercent / (100 + taxPercent));
+              taxMap[taxMapKey] =
+                  (taxMap[taxMapKey] ?? 0.0) + (taxForThisItem * quantity);
+            } catch (_) {}
           }
         }
       }
@@ -796,21 +638,21 @@ class CartScreenController extends GetxController {
     return taxMap;
   }
 
-  // Get total tax amount (calculated from each item's taxes)
+  List<orderModel.Charges> get orderCharges {
+    if (existingOrder != null) {
+      final orderData =
+          existingOrder!.data?.order ?? existingOrder!.data?.invoice?.order;
+      return orderData?.charges ?? [];
+    }
+    return [];
+  }
+
   double get totalTax {
-    double totalTaxAmount = 0.0;
-    groupedTaxes.forEach((key, value) {
-      totalTaxAmount += value;
-    });
-    return totalTaxAmount;
+    return groupedTaxes.values.fold<double>(0.0, (sum, value) => sum + value);
   }
 
-  // Get final total
-  double get finalTotal {
-    return subTotalAfterDiscount;
-  }
+  double get finalTotal => subTotalAfterDiscount;
 
-  // Play beep sound
   Future<void> _playBeepSound() async {
     try {
       await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'), volume: 0.2);

@@ -520,13 +520,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       child: Obx(() {
         final orderDetails = controller.orderDetails.value;
-        final orderData = orderDetails?.data;
+        final orderData =
+            orderDetails?.data?.order ?? orderDetails?.data?.invoice?.order;
 
-        if (orderData == null) {
+        if (orderData == null || orderDetails?.data == null) {
           return _buildErrorView(context);
         }
 
-        return _buildOrderDetailsContent(context, orderData, order);
+        return _buildOrderDetailsContent(context, orderDetails!.data!, order);
       }),
     );
   }
@@ -567,6 +568,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     orderDetailsModel.Data orderData,
     orderModel.Orders order,
   ) {
+    final orderDetails = orderData.order ?? orderData.invoice?.order;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -579,7 +581,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Order #${orderData.orderNumber ?? order.id ?? ''} (${_formatOrderType(orderData.orderType)})',
+                    'Order #${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -589,6 +591,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
               ],
             ),
             const SizedBox(height: 8),
+            if (orderDetails?.customer != null)
+              _buildCustomerDetails(orderDetails!.customer!),
+            if (orderDetails?.customer != null) const SizedBox(height: 8),
             _buildOrderItemsTable(orderData),
             const SizedBox(height: 8),
             _buildPriceSummary(orderData),
@@ -670,7 +675,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   Widget _buildOrderItemsTable(orderDetailsModel.Data orderData) {
-    final items = orderData.items ?? [];
+    final orderDetails = orderData.order ?? orderData.invoice?.order;
+    final items = orderDetails?.items ?? [];
     if (items.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -762,14 +768,21 @@ class OrderScreenView extends GetView<OrderScreenController> {
             if (item.variationName != null && item.variationName!.isNotEmpty) {
               details.insert(0, 'Variation: ${item.variationName}');
             }
+            final priceStr =
+                item.price is num
+                    ? item.price.toString()
+                    : (item.price?.toString() ?? '0');
+            final amountStr =
+                item.amount is num
+                    ? item.amount.toString()
+                    : (item.formattedAmount ?? item.amount?.toString() ?? '0');
+
             return _buildTableRow(
               itemName: item.itemName ?? 'N/A',
               details: details,
               qty: item.quantity?.toString() ?? '0',
-              price: CurrencyFormatter.formatPrice(item.price ?? '0'),
-              amount: CurrencyFormatter.formatPrice(
-                item.formattedAmount ?? item.amount ?? '0',
-              ),
+              price: CurrencyFormatter.formatPrice(priceStr),
+              amount: CurrencyFormatter.formatPrice(amountStr),
               itemNumber: itemNumber,
             );
           }).toList(),
@@ -848,10 +861,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   Widget _buildPriceSummary(orderDetailsModel.Data orderData) {
-    final totals = orderData.totals;
-    final itemsCount = orderData.items?.length ?? 0;
-    final taxBreakupMap = _aggregateTaxBreakup(orderData.items ?? []);
-    final additionalCharges = _getAdditionalCharges(orderData, totals);
+    final orderDetails = orderData.order ?? orderData.invoice?.order;
+    final totals = orderDetails?.totals;
+    final itemsCount = orderDetails?.items?.length ?? 0;
+    final taxes = orderDetails?.taxes ?? [];
+    final charges = orderDetails?.charges ?? [];
     final isTaxIncluded = _isTaxIncluded(orderData);
 
     return Container(
@@ -881,41 +895,73 @@ class OrderScreenView extends GetView<OrderScreenController> {
           if (totals?.subTotal != null)
             _buildPriceRow(
               'Sub Total:',
-              CurrencyFormatter.formatPrice(totals!.subTotal!),
+              CurrencyFormatter.formatPrice(totals!.subTotal.toString()),
             ),
 
-          if (_isValidAmount(totals?.discountAmount))
-            _buildPriceRow(
-              'Discount:',
-              '-${CurrencyFormatter.formatPrice(totals!.discountAmount!)}',
-            ),
-
-          if (additionalCharges.isNotEmpty)
-            ...additionalCharges.map(
-              (charge) => _buildPriceRow(
-                charge['name'] as String,
-                CurrencyFormatter.formatPrice(charge['amount'] as String),
+          ...() {
+            if (orderDetails?.discountValue == null) return <Widget>[];
+            final discountValue =
+                orderDetails!.discountValue is num
+                    ? (orderDetails.discountValue as num).toDouble()
+                    : double.tryParse(orderDetails.discountValue.toString()) ??
+                        0.0;
+            if (discountValue <= 0) return <Widget>[];
+            return [
+              _buildPriceRow(
+                'Discount:',
+                '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
               ),
-            ),
+            ];
+          }(),
 
-          if (taxBreakupMap.isNotEmpty)
-            ...taxBreakupMap.entries.map((entry) {
-              final amount = entry.value.amount ?? '0';
-              final formattedAmount = CurrencyFormatter.formatPrice(amount);
-              final percent = entry.value.percent;
+          if (charges.isNotEmpty)
+            ...charges.map((charge) {
+              final chargeAmount =
+                  charge.amount is num
+                      ? (charge.amount as num).toDouble()
+                      : double.tryParse(charge.amount?.toString() ?? '0') ??
+                          0.0;
+              if (chargeAmount <= 0) return const SizedBox.shrink();
+              return _buildPriceRow(
+                charge.chargeName ?? 'Charge',
+                CurrencyFormatter.formatPrice(chargeAmount.toString()),
+              );
+            }),
+
+          if (taxes.isNotEmpty)
+            ...taxes.map((tax) {
+              final taxAmount =
+                  tax.amount is num
+                      ? (tax.amount as num).toDouble()
+                      : double.tryParse(tax.amount?.toString() ?? '0') ?? 0.0;
+              if (taxAmount <= 0) return const SizedBox.shrink();
+
+              final formattedAmount = CurrencyFormatter.formatPrice(
+                taxAmount.toString(),
+              );
+              final percent = tax.percent?.toString() ?? '';
               final taxSuffix = isTaxIncluded ? ' incl.:' : ':';
               final taxLabel =
-                  percent != null && percent.isNotEmpty
-                      ? '${entry.key} (${percent}%)$taxSuffix'
-                      : '${entry.key}$taxSuffix';
+                  percent.isNotEmpty
+                      ? '${tax.taxName ?? 'Tax'} (${percent}%)$taxSuffix'
+                      : '${tax.taxName ?? 'Tax'}$taxSuffix';
               return _buildPriceRow(taxLabel, formattedAmount);
             }),
 
-          if (_isValidAmount(totals?.tipAmount))
-            _buildPriceRow(
-              'Tip:',
-              CurrencyFormatter.formatPrice(totals!.tipAmount!),
-            ),
+          ...() {
+            if (totals?.tipAmount == null) return <Widget>[];
+            final tipAmountStr =
+                totals!.tipAmount is num
+                    ? totals.tipAmount.toString()
+                    : (totals.tipAmount?.toString() ?? '0');
+            if (!_isValidAmount(tipAmountStr)) return <Widget>[];
+            return [
+              _buildPriceRow(
+                'Tip:',
+                CurrencyFormatter.formatPrice(tipAmountStr),
+              ),
+            ];
+          }(),
 
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
@@ -925,7 +971,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           if (totals?.total != null)
             _buildPriceRow(
               'Total:',
-              CurrencyFormatter.formatPrice(totals!.total!),
+              CurrencyFormatter.formatPrice(totals!.total.toString()),
               isBold: true,
               valueColor: Colors.red,
             ),
@@ -934,42 +980,76 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  Map<String, orderDetailsModel.TaxValue> _aggregateTaxBreakup(
-    List<orderDetailsModel.Items> items,
-  ) {
-    final Map<String, Map<String, dynamic>> aggregatedTaxesData = {};
+  Widget _buildCustomerDetails(orderDetailsModel.Customer customer) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person, size: 20, color: ColorConstants.primaryColor),
+              const SizedBox(width: 8),
+              const Text(
+                'Customer Details',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (customer.name != null && customer.name!.isNotEmpty)
+            _buildDetailRow('Name', customer.name!),
+          if (customer.email != null && customer.email!.isNotEmpty)
+            _buildDetailRow('Email', customer.email!),
+          if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
+            _buildDetailRow(
+              'Phone',
+              '+${customer.phoneCode ?? ''}${customer.phoneNumber}',
+            ),
+        ],
+      ),
+    );
+  }
 
-    for (var item in items) {
-      if (item.taxBreakup != null && item.taxBreakup!.taxes.isNotEmpty) {
-        final quantity = item.quantity ?? 1;
-        item.taxBreakup!.taxes.forEach((taxName, taxValue) {
-          final itemTaxAmount =
-              (double.tryParse(taxValue.amount ?? '0') ?? 0.0) * quantity;
-          if (aggregatedTaxesData.containsKey(taxName)) {
-            final existing = aggregatedTaxesData[taxName]!;
-            final existingAmount =
-                double.tryParse(existing['amount'] ?? '0') ?? 0;
-            final totalAmount = existingAmount + itemTaxAmount;
-            aggregatedTaxesData[taxName] = {
-              'amount': totalAmount.toString(),
-              'percent': taxValue.percent,
-            };
-          } else {
-            aggregatedTaxesData[taxName] = {
-              'amount': itemTaxAmount.toString(),
-              'percent': taxValue.percent,
-            };
-          }
-        });
-      }
-    }
-
-    final Map<String, orderDetailsModel.TaxValue> aggregatedTaxes = {};
-    aggregatedTaxesData.forEach((taxName, data) {
-      aggregatedTaxes[taxName] = orderDetailsModel.TaxValue.fromJson(data);
-    });
-
-    return aggregatedTaxes;
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Branches? _getBranch() {
@@ -989,51 +1069,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
   }
 
-  List<Map<String, dynamic>> _getAdditionalCharges(
-    orderDetailsModel.Data orderData,
-    orderDetailsModel.Totals? totals,
-  ) {
-    final List<Map<String, dynamic>> charges = [];
-    final branch = _getBranch();
-    if (branch?.additionalCharges == null ||
-        branch!.additionalCharges!.isEmpty) {
-      return charges;
-    }
-
-    final orderType = orderData.orderType?.toLowerCase() ?? '';
-    final subTotal = double.tryParse(totals?.subTotal ?? '0') ?? 0.0;
-
-    for (var charge in branch.additionalCharges!) {
-      if (charge.isEnabled != 1) continue;
-
-      if (charge.orderTypes != null && charge.orderTypes!.isNotEmpty) {
-        final orderTypesLower =
-            charge.orderTypes!.map((type) => type.toLowerCase()).toList();
-        if (!orderTypesLower.contains(orderType)) continue;
-      }
-
-      final rate = double.tryParse(charge.rate ?? '0') ?? 0.0;
-      final type = charge.type?.toLowerCase() ?? 'fixed';
-      final chargeAmount =
-          (type == 'percentage' || type == 'percent')
-              ? (subTotal * rate) / 100
-              : rate;
-
-      if (chargeAmount > 0) {
-        String chargeName = charge.name ?? 'Charge';
-        if (type == 'percentage' || type == 'percent') {
-          chargeName = '$chargeName (${rate.toStringAsFixed(2)}%)';
-        }
-        charges.add({
-          'name': chargeName,
-          'amount': chargeAmount.toStringAsFixed(2),
-        });
-      }
-    }
-    return charges;
-  }
-
   bool _isTaxIncluded(orderDetailsModel.Data orderData) {
+    final invoice = orderData.invoice;
+    if (invoice?.taxInclusive != null) {
+      return invoice!.taxInclusive == true;
+    }
     final branch = _getBranch();
     return branch?.taxesIncluded == true;
   }
@@ -1106,7 +1146,9 @@ class OrderCard extends StatelessWidget {
     final tableCode = order.table?.tableCode ?? 'T${order.table?.id ?? ''}';
 
     final orderNumber =
-        order.orderNumber?.toString() ?? order.id?.toString() ?? '';
+        order.formattedOrderNumber?.toString() ??
+        order.orderNumber?.toString() ??
+        '';
 
     final customerName = order.customer?.name ?? 'test name';
 

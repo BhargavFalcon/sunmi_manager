@@ -1443,8 +1443,9 @@ class TakeOrderController extends GetxController {
   }
 
   void _addOrderItemsToCart() {
-    if (currentOrder.value?.data?.items == null ||
-        currentOrder.value!.data!.items!.isEmpty ||
+    final orderData = currentOrder.value?.data?.order;
+    if (orderData?.items == null ||
+        orderData!.items!.isEmpty ||
         menuItems.isEmpty) {
       return;
     }
@@ -1455,8 +1456,8 @@ class TakeOrderController extends GetxController {
               ? Get.find<CartScreenController>()
               : Get.put(CartScreenController(), permanent: true);
 
-      final orderItems = currentOrder.value!.data!.items!;
-      final orderType = currentOrder.value!.data!.orderType ?? 'Pickup';
+      final orderItems = orderData.items!;
+      final orderType = orderData.orderType ?? 'Pickup';
 
       for (var orderItem in orderItems) {
         if (orderItem.isDeleted == true ||
@@ -1642,30 +1643,29 @@ class TakeOrderController extends GetxController {
 
   void _applyOrderDiscount(CartScreenController cartController) {
     try {
-      final orderTotals = currentOrder.value?.data?.totals;
-      if (orderTotals == null) return;
+      final orderData = currentOrder.value?.data?.order;
+      if (orderData == null) return;
 
-      final discountAmountString = orderTotals.discountAmount ?? '0';
-      final discountAmount =
-          double.tryParse(discountAmountString.replaceAll(',', '.')) ?? 0.0;
-      if (discountAmount <= 0) return;
+      final discountType = orderData.discountType;
+      final discountValue = orderData.discountValue;
 
-      final subTotal = double.tryParse(orderTotals.subTotal ?? '0') ?? 0.0;
-      final total = subTotal > 0 ? subTotal : cartController.totalPrice;
+      if (discountType != null &&
+          discountType.isNotEmpty &&
+          discountValue != null) {
+        final discountValueNum =
+            discountValue is num
+                ? discountValue.toDouble()
+                : double.tryParse(discountValue.toString()) ?? 0.0;
 
-      if (total <= 0) {
-        cartController.setDiscount(discountAmount, 'Fixed');
-        return;
-      }
+        if (discountValueNum > 0) {
+          final discountTypeStr = discountType.toLowerCase();
+          final finalDiscountType =
+              discountTypeStr == 'percent' || discountTypeStr == 'percentage'
+                  ? 'Percent'
+                  : 'Fixed';
 
-      final discountPercent = (discountAmount / total) * 100;
-      final roundedPercent = discountPercent.round();
-      final isPercentDiscount = (discountPercent - roundedPercent).abs() < 0.1;
-
-      if (isPercentDiscount && roundedPercent > 0 && roundedPercent <= 100) {
-        cartController.setDiscount(roundedPercent.toDouble(), 'Percent');
-      } else {
-        cartController.setDiscount(discountAmount, 'Fixed');
+          cartController.setDiscount(discountValueNum, finalDiscountType);
+        }
       }
     } catch (e) {
       print('Error applying discount: $e');

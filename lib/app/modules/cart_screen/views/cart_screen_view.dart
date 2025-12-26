@@ -685,6 +685,51 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             );
                           }),
                           Obx(() {
+                            final charges = controller.orderCharges;
+                            if (charges.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Column(
+                              children: charges.map((charge) {
+                                final chargeAmount = charge.amount is num
+                                    ? (charge.amount as num).toDouble()
+                                    : double.tryParse(charge.amount?.toString() ?? '0') ?? 0.0;
+                                if (chargeAmount <= 0) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Column(
+                                  children: [
+                                    SizedBox(height: 2.0),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          charge.chargeName ?? 'Charge',
+                                          style: TextStyle(
+                                            fontSize: 15.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.formatPriceFromDouble(
+                                            chargeAmount,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 15.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            );
+                          }),
+                          Obx(() {
                             if (!controller.isTaxIncluded.value) {
                               return const SizedBox.shrink();
                             }
