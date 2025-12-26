@@ -148,9 +148,7 @@ class TakeOrderController extends GetxController {
           items.map((item) => item.toJson()).toList();
       final jsonString = json.encode(itemsJson);
       box.write(ArgumentConstant.menuItemsKey, jsonString);
-    } catch (e) {
-      print('Error saving menu items to storage: $e');
-    }
+    } catch (e) {}
   }
 
   void _processMenuItems() {
@@ -210,14 +208,11 @@ class TakeOrderController extends GetxController {
               _processMenuItems();
               saveMenuItemsToStorage(itemMenu.data!.items!);
             }
-          } catch (e) {
-            print('Error parsing menu items: $e');
-          }
+          } catch (e) {}
         }
       }
     } catch (e) {
       isLoading.value = false;
-      print('Error fetching menu items: $e');
     }
   }
 
@@ -337,9 +332,7 @@ class TakeOrderController extends GetxController {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-    } catch (e) {
-      print('Scroll error: $e');
-    }
+    } catch (e) {}
     Future.delayed(
       const Duration(milliseconds: 600),
       () => isAutoScrolling.value = false,
@@ -358,9 +351,7 @@ class TakeOrderController extends GetxController {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-    } catch (e) {
-      print('Scroll to top error: $e');
-    }
+    } catch (e) {}
   }
 
   String _getItemPrice(Items item, Variations? selectedVariation) {
@@ -1538,39 +1529,31 @@ class TakeOrderController extends GetxController {
           }
         }
 
-        String basePrice = '0';
-        if (selectedVariation != null) {
-          if (orderType == 'Pickup') {
-            basePrice =
-                selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
-          } else if (orderType == 'Delivery') {
-            basePrice =
-                selectedVariation.takeAwayPrice ??
-                selectedVariation.price ??
-                '0';
-          } else if (orderType == 'Dine In') {
-            basePrice = selectedVariation.price ?? '0';
-          } else {
-            basePrice = selectedVariation.price ?? '0';
-          }
-        } else {
-          if (orderType == 'Pickup') {
-            basePrice = cartItem.pickupPrice ?? '0';
-          } else if (orderType == 'Delivery') {
-            basePrice = cartItem.deliveryPrice ?? '0';
-          } else if (orderType == 'Dine In') {
-            basePrice = cartItem.dineInPrice ?? '0';
-          } else {
-            basePrice = cartItem.pickupPrice ?? cartItem.deliveryPrice ?? '0';
-          }
-        }
+        final String basePrice =
+            selectedVariation != null
+                ? (orderType == 'Pickup'
+                    ? (selectedVariation.onlinePrice ??
+                        selectedVariation.price ??
+                        '0')
+                    : orderType == 'Delivery'
+                    ? (selectedVariation.takeAwayPrice ??
+                        selectedVariation.price ??
+                        '0')
+                    : selectedVariation.price ?? '0')
+                : (orderType == 'Pickup'
+                    ? (cartItem.pickupPrice ?? '0')
+                    : orderType == 'Delivery'
+                    ? (cartItem.deliveryPrice ?? '0')
+                    : orderType == 'Dine In'
+                    ? (cartItem.dineInPrice ?? '0')
+                    : (cartItem.pickupPrice ?? cartItem.deliveryPrice ?? '0'));
 
-        double extrasPrice = 0.0;
-        if (selectedExtras != null && selectedExtras.isNotEmpty) {
-          for (var extra in selectedExtras) {
-            extrasPrice += double.tryParse(extra.price ?? '0') ?? 0.0;
-          }
-        }
+        final double extrasPrice =
+            selectedExtras?.isNotEmpty == true
+                ? selectedExtras!
+                    .map((e) => double.tryParse(e.price ?? '0') ?? 0.0)
+                    .fold(0.0, (sum, price) => sum + price)
+                : 0.0;
 
         final totalPrice = (double.tryParse(basePrice) ?? 0.0) + extrasPrice;
 
@@ -1598,24 +1581,17 @@ class TakeOrderController extends GetxController {
 
             final existingExtras = item.selectedExtras;
             final newExtras = cartItem.selectedExtras;
-            bool extrasMatch = false;
-            if ((existingExtras == null || existingExtras.isEmpty) &&
-                (newExtras == null || newExtras.isEmpty)) {
-              extrasMatch = true;
-            } else if (existingExtras != null &&
-                newExtras != null &&
-                existingExtras.length == newExtras.length) {
-              final existingExtrasIds =
-                  existingExtras.map((e) => e.id).toList()..sort();
-              final newExtrasIds = newExtras.map((e) => e.id).toList()..sort();
-              extrasMatch = true;
-              for (int i = 0; i < existingExtrasIds.length; i++) {
-                if (existingExtrasIds[i] != newExtrasIds[i]) {
-                  extrasMatch = false;
-                  break;
-                }
-              }
-            }
+            final bool extrasMatch =
+                (existingExtras == null || existingExtras.isEmpty) &&
+                        (newExtras == null || newExtras.isEmpty)
+                    ? true
+                    : existingExtras != null &&
+                        newExtras != null &&
+                        existingExtras.length == newExtras.length
+                    ? (existingExtras.map((e) => e.id).toList()..sort())
+                            .toString() ==
+                        (newExtras.map((e) => e.id).toList()..sort()).toString()
+                    : false;
             if (!extrasMatch) continue;
 
             if (item.cartKotItemId == cartItem.cartKotItemId) {
@@ -1667,9 +1643,7 @@ class TakeOrderController extends GetxController {
           cartController.setDiscount(discountValueNum, finalDiscountType);
         }
       }
-    } catch (e) {
-      print('Error applying discount: $e');
-    }
+    } catch (_) {}
   }
 
   @override

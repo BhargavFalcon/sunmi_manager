@@ -684,51 +684,60 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               ],
                             );
                           }),
-                          Obx(() {
-                            final charges = controller.orderCharges;
-                            if (charges.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Column(
-                              children: charges.map((charge) {
-                                final chargeAmount = charge.amount is num
-                                    ? (charge.amount as num).toDouble()
-                                    : double.tryParse(charge.amount?.toString() ?? '0') ?? 0.0;
-                                if (chargeAmount <= 0) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Column(
-                                  children: [
-                                    SizedBox(height: 2.0),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          charge.chargeName ?? 'Charge',
-                                          style: TextStyle(
-                                            fontSize: 15.0,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
+                          Builder(
+                            builder: (context) {
+                              final charges = controller.orderCharges;
+                              if (charges.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return Column(
+                                children:
+                                    charges.map((charge) {
+                                      final chargeAmount =
+                                          charge.amount is num
+                                              ? (charge.amount as num)
+                                                  .toDouble()
+                                              : double.tryParse(
+                                                    charge.amount?.toString() ??
+                                                        '0',
+                                                  ) ??
+                                                  0.0;
+                                      if (chargeAmount <= 0) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Column(
+                                        children: [
+                                          SizedBox(height: 2.0),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                charge.chargeName ?? 'Charge',
+                                                style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              Text(
+                                                CurrencyFormatter.formatPriceFromDouble(
+                                                  chargeAmount,
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        Text(
-                                          CurrencyFormatter.formatPriceFromDouble(
-                                            chargeAmount,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 15.0,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                );
-                              }).toList(),
-                            );
-                          }),
+                                        ],
+                                      );
+                                    }).toList(),
+                              );
+                            },
+                          ),
                           Obx(() {
                             if (!controller.isTaxIncluded.value) {
                               return const SizedBox.shrink();
@@ -790,50 +799,52 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               ],
                             );
                           }),
-                          Obx(() {
-                            final groupedTaxes = controller.groupedTaxes;
-                            if (groupedTaxes.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            final sortedTaxes =
-                                groupedTaxes.entries.toList()
-                                  ..sort((a, b) => a.key.compareTo(b.key));
+                          Builder(
+                            builder: (context) {
+                              final groupedTaxes = controller.groupedTaxes;
+                              if (groupedTaxes.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              final sortedTaxes =
+                                  groupedTaxes.entries.toList()
+                                    ..sort((a, b) => a.key.compareTo(b.key));
 
-                            return Column(
-                              children:
-                                  sortedTaxes.map((entry) {
-                                    return Column(
-                                      children: [
-                                        SizedBox(height: 2.0),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "${entry.key} incl.",
-                                              style: TextStyle(
-                                                fontSize: 15.0,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black87,
+                              return Column(
+                                children:
+                                    sortedTaxes.map((entry) {
+                                      return Column(
+                                        children: [
+                                          SizedBox(height: 2.0),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "${entry.key} incl.",
+                                                style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
+                                                ),
                                               ),
-                                            ),
-                                            Text(
-                                              CurrencyFormatter.formatPriceFromDouble(
-                                                entry.value,
+                                              Text(
+                                                CurrencyFormatter.formatPriceFromDouble(
+                                                  entry.value,
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                              style: TextStyle(
-                                                fontSize: 15.0,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    );
-                                  }).toList(),
-                            );
-                          }),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    }).toList(),
+                              );
+                            },
+                          ),
                           SizedBox(height: 2.0),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,

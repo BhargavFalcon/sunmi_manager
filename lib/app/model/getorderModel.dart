@@ -440,10 +440,27 @@ class OrderData {
       }
     }
 
-    customer =
-        json['customer'] != null
-            ? new Customer.fromJson(json['customer'])
-            : null;
+    if (json['customer'] != null) {
+      if (json['customer'] is List) {
+        // If customer is a list, take the first item or set to null
+        final customerList = json['customer'] as List;
+        if (customerList.isNotEmpty && customerList[0] is Map) {
+          customer = new Customer.fromJson(
+            customerList[0] as Map<String, dynamic>,
+          );
+        } else {
+          customer = null;
+        }
+      } else if (json['customer'] is Map) {
+        customer = new Customer.fromJson(
+          json['customer'] as Map<String, dynamic>,
+        );
+      } else {
+        customer = null;
+      }
+    } else {
+      customer = null;
+    }
 
     if (json['waiter'] != null) {
       if (json['waiter'] is List) {

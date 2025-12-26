@@ -79,15 +79,18 @@ class RunningTableService {
         ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
       );
       if (_isSuccessStatus(response.statusCode)) {
-        final data = _extractData(response.data);
-        return data != null
-            ? orderModel.GetOrderModel.fromJson(
-              response.data as Map<String, dynamic>,
-            )
-            : null;
+        if (response.data != null) {
+          try {
+            if (response.data is Map<String, dynamic>) {
+              return orderModel.GetOrderModel.fromJson(
+                response.data as Map<String, dynamic>,
+              );
+            }
+          } catch (_) {}
+        }
       }
       return null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
