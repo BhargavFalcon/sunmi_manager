@@ -748,31 +748,45 @@ class CartScreenController extends GetxController {
       double itemPrice = item.cartTotalPrice ?? 0.0;
       int quantity = item.quantity.value;
 
-      // Get taxes for this item
+      // Get taxes for this item based on order type
       if (item.taxes != null && item.taxes!.isNotEmpty) {
-        // Calculate tax for each tax type in this item
-        for (var tax in item.taxes!) {
-          if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
-            try {
-              double taxPercent = double.parse(tax.taxPercent!);
-              String taxName = tax.taxName ?? 'Tax';
+        // Map order type to tax key
+        String taxKey = 'pickup'; // default
+        if (currentOrderType.value.toLowerCase() == 'dine in') {
+          taxKey = 'dine_in';
+        } else if (currentOrderType.value.toLowerCase() == 'pickup') {
+          taxKey = 'pickup';
+        } else if (currentOrderType.value.toLowerCase() == 'delivery') {
+          taxKey = 'delivery';
+        }
 
-              // Create unique key for grouping (tax name + percentage)
-              // Same tax name and percentage will be grouped together
-              // Different tax types will have different keys and show separately
-              String taxKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
+        // Get taxes list for current order type
+        final taxesList = item.taxes![taxKey];
+        if (taxesList != null && taxesList.isNotEmpty) {
+          // Calculate tax for each tax type in this item
+          for (var tax in taxesList) {
+            if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
+              try {
+                double taxPercent = double.parse(tax.taxPercent!);
+                String taxName = tax.taxName ?? 'Tax';
 
-              // Since tax is included in price, extract it
-              // Formula: tax = price * (taxPercent / (100 + taxPercent))
-              double taxForThisItem =
-                  itemPrice * (taxPercent / (100 + taxPercent));
+                // Create unique key for grouping (tax name + percentage)
+                // Same tax name and percentage will be grouped together
+                // Different tax types will have different keys and show separately
+                String taxMapKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
 
-              // Add to map (sum if same tax type exists in multiple items)
-              // If different tax types, they will have different keys
-              taxMap[taxKey] =
-                  (taxMap[taxKey] ?? 0.0) + (taxForThisItem * quantity);
-            } catch (e) {
-              // If parsing fails, skip this tax
+                // Since tax is included in price, extract it
+                // Formula: tax = price * (taxPercent / (100 + taxPercent))
+                double taxForThisItem =
+                    itemPrice * (taxPercent / (100 + taxPercent));
+
+                // Add to map (sum if same tax type exists in multiple items)
+                // If different tax types, they will have different keys
+                taxMap[taxMapKey] =
+                    (taxMap[taxMapKey] ?? 0.0) + (taxForThisItem * quantity);
+              } catch (e) {
+                // If parsing fails, skip this tax
+              }
             }
           }
         }

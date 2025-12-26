@@ -106,89 +106,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           ),
                         ),
                       ),
-                    Positioned(
-                      right: 15,
-                      top: MediaQuery.of(context).padding.top + 2,
-                      child: Obx(() {
-                        if (controller.cartItemsCount.value == 0) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            controller.cartItemsCount.value.toString(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: MySize.getHeight(10),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    Obx(() {
-                      if (controller.cartItemsCount.value == 0) {
-                        return const SizedBox.shrink();
-                      }
-                      return Positioned(
-                        right: 25,
-                        top: MediaQuery.of(context).padding.top + 8,
-                        child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap: () {
-                            final Map<String, dynamic> arguments = {};
-
-                            if (controller.hasTable) {
-                              arguments[ArgumentConstant.tableKey] =
-                                  controller.selectedTable.value;
-                            }
-
-                            if (controller.currentOrder.value != null) {
-                              arguments[ArgumentConstant.orderKey] =
-                                  controller.currentOrder.value;
-                            }
-
-                            if (controller.sourceScreen != null) {
-                              arguments[ArgumentConstant.sourceScreenKey] =
-                                  controller.sourceScreen;
-                            }
-
-                            Get.toNamed(
-                              Routes.CART_SCREEN,
-                              arguments: arguments.isEmpty ? null : arguments,
-                            );
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            height: MySize.getHeight(30),
-                            width: MySize.getHeight(30),
-                            decoration: BoxDecoration(
-                              color: ColorConstants.primaryColor.withValues(
-                                alpha: 0.10,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.shopping_cart_outlined,
-                              color: ColorConstants.primaryColor,
-                              size: MySize.getHeight(20),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
                   ],
                 ),
                 Obx(
@@ -285,6 +202,107 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     });
                   }),
                 ),
+                Obx(() {
+                  final cartCount = controller.cartItemsCount.value;
+                  if (cartCount == 0) {
+                    return const SizedBox.shrink();
+                  }
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MySize.getWidth(4),
+                      vertical: MySize.getHeight(6),
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                _showClearCartDialog(context, cartController);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: MySize.getHeight(12),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF60616E),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Clear',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                final Map<String, dynamic> arguments = {};
+
+                                if (controller.hasTable) {
+                                  arguments[ArgumentConstant.tableKey] =
+                                      controller.selectedTable.value;
+                                }
+
+                                if (controller.currentOrder.value != null) {
+                                  arguments[ArgumentConstant.orderKey] =
+                                      controller.currentOrder.value;
+                                }
+
+                                if (controller.sourceScreen != null) {
+                                  arguments[ArgumentConstant.sourceScreenKey] =
+                                      controller.sourceScreen;
+                                }
+
+                                Get.toNamed(
+                                  Routes.CART_SCREEN,
+                                  arguments:
+                                      arguments.isEmpty ? null : arguments,
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: MySize.getHeight(12),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF0B9F6E),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Next (${cartCount})',
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -400,7 +418,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             ),
           ),
           Container(
-            height: MySize.getHeight(50),
+            height: MySize.getHeight(45),
             padding: const EdgeInsets.only(bottom: 5),
             child: Obx(() {
               final visibleCategories =
@@ -425,16 +443,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       onTap: () => controller.updateCategory(category),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           color:
                               isSelected
                                   ? ColorConstants.primaryColor
                                   : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(30),
                           boxShadow:
                               isSelected
                                   ? [
@@ -573,49 +588,42 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 ),
                                 child: Image.asset(
                                   imagePath,
-                                  height: MySize.getHeight(15),
-                                  width: MySize.getHeight(15),
+                                  height: MySize.getHeight(14),
+                                  width: MySize.getHeight(14),
                                 ),
                               ),
                             )
                             .toList(),
                   ),
                 ),
-                Flexible(
-                  child: Obx(() {
-                    String price = '0';
-
-                    if (itemObject != null) {
-                      if (controller.hasTable) {
-                        // If table is selected, show only base price
-                        price = itemObject.price ?? '0';
-                      } else {
-                        // If no table, show price based on order type
-                        if (controller.selectedOrderType.value == 'Pickup') {
-                          price =
-                              itemObject.onlinePrice ?? itemObject.price ?? '0';
-                        } else {
-                          price =
-                              itemObject.takeAwayPrice ??
-                              itemObject.price ??
-                              '0';
-                        }
-                      }
+                Obx(() {
+                  String price = '0';
+                  if (itemObject != null) {
+                    final orderType = controller.selectedOrderType.value;
+                    if (orderType == 'Pickup') {
+                      price = itemObject.pickupPrice ?? '0';
+                    } else if (orderType == 'Delivery') {
+                      price = itemObject.deliveryPrice ?? '0';
                     } else {
-                      price = item["amount"] ?? '0';
+                      price =
+                          itemObject.pickupPrice ??
+                          itemObject.deliveryPrice ??
+                          '0';
                     }
-                    return Text(
-                      CurrencyFormatter.formatPrice(price),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.end,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  }),
-                ),
+                  } else {
+                    price = item["amount"] ?? '0';
+                  }
+                  return Text(
+                    CurrencyFormatter.formatPrice(price),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
               ],
             ),
           ],
@@ -699,10 +707,19 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     return images;
   }
 
-  void _showCancelOrderDialog(
+  void _showClearCartDialog(
     BuildContext context,
-    CartScreenController controller,
-  ) {
+    CartScreenController? controller, {
+    bool shouldExit = false,
+  }) {
+    if (controller == null) return;
+
+    final title = shouldExit ? 'Cancel Order?' : 'Clear Cart?';
+    final message =
+        shouldExit
+            ? 'Are you sure you want to exit? This will clear the cart and remove all orders.'
+            : 'Are you sure you want to clear the cart? This will remove all items.';
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -719,7 +736,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Cancel Order?',
+                  title,
                   style: TextStyle(
                     fontSize: MySize.getHeight(16),
                     fontWeight: FontWeight.bold,
@@ -727,7 +744,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Are you sure you want to exit? This will clear the cart and remove all orders.',
+                  message,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: MySize.getHeight(12)),
                 ),
@@ -771,7 +788,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         onTap: () {
                           controller.clearCart();
                           Navigator.of(context).pop();
-                          Get.back();
+                          if (shouldExit) {
+                            Get.back();
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -781,7 +800,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           ),
                           child: Center(
                             child: Text(
-                              'Cancel',
+                              'Clear',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: MySize.getHeight(12),
@@ -799,5 +818,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         );
       },
     );
+  }
+
+  void _showCancelOrderDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    _showClearCartDialog(context, controller, shouldExit: true);
   }
 }

@@ -822,32 +822,6 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               Expanded(
                                 child: InkWell(
                                   onTap: () {
-                                    Get.back();
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF374151),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      "Cancel",
-                                      style: TextStyle(
-                                        fontSize: 15.0,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8.0),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
                                     controller.submitOrder(status: 'kot');
                                   },
                                   child: Container(
@@ -860,7 +834,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      "Submit",
+                                      "Place Order",
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         fontWeight: FontWeight.w500,
@@ -885,11 +859,11 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Color(0xFF10B981),
+                                      color: Color(0xFF0B9F6E),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      "Bill & Payment",
+                                      "Bill & Pay",
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         fontWeight: FontWeight.w500,

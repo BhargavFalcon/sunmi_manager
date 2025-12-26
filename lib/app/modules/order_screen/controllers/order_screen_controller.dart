@@ -65,27 +65,22 @@ class OrderScreenController extends GetxController {
 
   void _onScroll() {
     if (!scrollController.hasClients) return;
-    try {
-      final position = scrollController.position;
-      if (!scrollController.hasClients) return;
-      final maxScroll = position.maxScrollExtent;
-      final currentScroll = position.pixels;
-      if (currentScroll >= maxScroll - 200) {
-        if (!isLoadingMore.value && !isLoading.value) {
-          if (pagination == null) {
+    final position = scrollController.position;
+    final maxScroll = position.maxScrollExtent;
+    final currentScroll = position.pixels;
+    if (currentScroll >= maxScroll - 200) {
+      if (!isLoadingMore.value && !isLoading.value) {
+        if (pagination == null) {
+          currentPage++;
+          fetchAllOrders(isLoadMore: true);
+        } else {
+          final lastPage = pagination!.lastPage ?? 1;
+          if (currentPage < lastPage) {
             currentPage++;
             fetchAllOrders(isLoadMore: true);
-          } else {
-            final lastPage = pagination!.lastPage ?? 1;
-            if (currentPage < lastPage) {
-              currentPage++;
-              fetchAllOrders(isLoadMore: true);
-            }
           }
         }
       }
-    } catch (e) {
-      return;
     }
   }
 
@@ -132,36 +127,28 @@ class OrderScreenController extends GetxController {
       queryParams['status'] = statusMap[selectedOrderFilter.value];
     }
 
-    try {
-      final response = await networkClient.get(
-        ArgumentConstant.allOrdersEndpoint,
-        queryParameters: queryParams,
-      );
+    final response = await networkClient.get(
+      ArgumentConstant.allOrdersEndpoint,
+      queryParameters: queryParams,
+    );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final allOrdersModel = AllOrdersModel.fromJson(response.data);
-        if (allOrdersModel.success == true && allOrdersModel.data != null) {
-          final ordersList = allOrdersModel.data!.orders ?? [];
-          if (isLoadMore) {
-            allOrders.addAll(ordersList);
-          } else {
-            allOrders.value = ordersList;
-          }
-          pagination = allOrdersModel.data!.pagination;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final allOrdersModel = AllOrdersModel.fromJson(response.data);
+      if (allOrdersModel.success == true && allOrdersModel.data != null) {
+        final ordersList = allOrdersModel.data!.orders ?? [];
+        if (isLoadMore) {
+          allOrders.addAll(ordersList);
+        } else {
+          allOrders.value = ordersList;
         }
+        pagination = allOrdersModel.data!.pagination;
       }
+    }
 
-      if (isLoadMore) {
-        isLoadingMore.value = false;
-      } else {
-        isLoading.value = false;
-      }
-    } catch (e) {
-      if (isLoadMore) {
-        isLoadingMore.value = false;
-      } else {
-        isLoading.value = false;
-      }
+    if (isLoadMore) {
+      isLoadingMore.value = false;
+    } else {
+      isLoading.value = false;
     }
   }
 
@@ -173,41 +160,26 @@ class OrderScreenController extends GetxController {
   Future<void> fetchOrderDetails(String orderUuid) async {
     isLoadingOrderDetails.value = true;
     orderDetails.value = null;
-    try {
-      final response = await networkClient.get(
-        ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
+    final response = await networkClient.get(
+      ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final orderDetailsModel = orderModel.GetOrderModel.fromJson(
+        response.data,
       );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final orderDetailsModel = orderModel.GetOrderModel.fromJson(
-          response.data,
-        );
-        if (orderDetailsModel.success == true) {
-          orderDetails.value = orderDetailsModel;
-        }
+      if (orderDetailsModel.success == true) {
+        orderDetails.value = orderDetailsModel;
       }
-    } catch (e) {
-      orderDetails.value = null;
-    } finally {
-      isLoadingOrderDetails.value = false;
     }
+    isLoadingOrderDetails.value = false;
   }
 
   @override
   void onClose() {
-    try {
-      scrollController.removeListener(_onScroll);
-    } catch (e) {
-      // Ignore if already removed or disposed
+    scrollController.removeListener(_onScroll);
+    if (scrollController.hasClients) {
+      scrollController.dispose();
     }
-    Future.microtask(() {
-      try {
-        if (scrollController.hasClients) {
-          scrollController.dispose();
-        }
-      } catch (e) {
-        // Ignore if already disposed
-      }
-    });
     super.onClose();
   }
 
@@ -312,33 +284,23 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
-    try {
-      showCustomDateRangePicker(
-        context,
-        dismissible: true,
-        startDate: startDate.value,
-        endDate: endDate.value,
-        minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-        maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
-        backgroundColor: Colors.white,
-        primaryColor: ColorConstants.primaryColor,
-        onApplyClick: (DateTime start, DateTime end) {
-          startDate.value = start;
-          endDate.value = end;
-          selectedMonth.value = 'Custom Date';
-          fetchAllOrders();
-        },
-        onCancelClick: () {},
-      );
-    } catch (e) {
-      safeGetSnackbar(
-        'Error',
-        'Failed to select date range: ${e.toString()}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    showCustomDateRangePicker(
+      context,
+      dismissible: true,
+      startDate: startDate.value,
+      endDate: endDate.value,
+      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+      maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      backgroundColor: Colors.white,
+      primaryColor: ColorConstants.primaryColor,
+      onApplyClick: (DateTime start, DateTime end) {
+        startDate.value = start;
+        endDate.value = end;
+        selectedMonth.value = 'Custom Date';
+        fetchAllOrders();
+      },
+      onCancelClick: () {},
+    );
   }
 
   String formatDate(DateTime date) {

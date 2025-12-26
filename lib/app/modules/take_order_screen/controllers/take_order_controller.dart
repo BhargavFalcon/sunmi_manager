@@ -42,25 +42,20 @@ class TakeOrderController extends GetxController {
 
   final RxMap<int, bool> expandedSections = <int, bool>{}.obs;
   final RxMap<int, Set<int>> selectedOptions = <int, Set<int>>{}.obs;
+  final RxMap<int, bool> modifierErrors = <int, bool>{}.obs;
 
-  // Cart items count
   RxInt cartItemsCount = 0.obs;
   bool _cartListenerSet = false;
 
-  // Table from arguments
   final Rx<Tables?> selectedTable = Rx<Tables?>(null);
 
-  // Order from arguments
   final Rx<orderModel.GetOrderModel?> currentOrder =
       Rx<orderModel.GetOrderModel?>(null);
 
-  // Source screen to navigate back after submit
   String? sourceScreen;
 
-  // Getter to check if table exists
   bool get hasTable => selectedTable.value != null;
 
-  // Get offset for category index calculation (number of items before categories)
   int get categoryOffset => hasTable ? 1 : 2;
 
   @override
@@ -95,7 +90,6 @@ class TakeOrderController extends GetxController {
       final order = arguments[ArgumentConstant.orderKey];
       if (order != null && order is orderModel.GetOrderModel) {
         currentOrder.value = order;
-        // Order items will be added to cart in _processMenuItems after menu items are loaded
       }
     }
   }
@@ -108,13 +102,11 @@ class TakeOrderController extends GetxController {
     }
   }
 
-  // Update cart count
   void _updateCartCount() {
     if (Get.isRegistered<CartScreenController>()) {
       final cartController = Get.find<CartScreenController>();
       cartItemsCount.value = cartController.cartItems.length;
 
-      // Listen to cart changes (only set once)
       if (!_cartListenerSet) {
         ever(cartController.cartItems, (_) {
           cartItemsCount.value = cartController.cartItems.length;
@@ -166,7 +158,7 @@ class TakeOrderController extends GetxController {
 
     for (Items item in menuItems) {
       final categoryName = item.category?.categoryName ?? 'Uncategorized';
-      final amountString = item.price?.toString() ?? '0';
+      final amountString = item.pickupPrice ?? item.deliveryPrice ?? '0';
       final itemData = {
         'product_name': item.itemName ?? '',
         'amount': amountString,
@@ -189,7 +181,6 @@ class TakeOrderController extends GetxController {
       selectedCategory.value = categories.first;
     }
 
-    // Add order items to cart after menu items are processed
     if (currentOrder.value != null) {
       _addOrderItemsToCart();
     }
@@ -218,17 +209,14 @@ class TakeOrderController extends GetxController {
               _processMenuItems();
               saveMenuItemsToStorage(itemMenu.data!.items!);
             }
-          } catch (_) {
-            // Error parsing menu items - silently fail
+          } catch (e) {
+            print('Error parsing menu items: $e');
           }
         }
       }
-    } on ApiException catch (_) {
+    } catch (e) {
       isLoading.value = false;
-      // Error loading menu items - silently fail
-    } catch (_) {
-      isLoading.value = false;
-      // Error loading menu items - silently fail
+      print('Error fetching menu items: $e');
     }
   }
 
@@ -374,85 +362,64 @@ class TakeOrderController extends GetxController {
     }
   }
 
-  // Add item to cart
+  String _getItemPrice(Items item, Variations? selectedVariation) {
+    final orderType = selectedOrderType.value;
+
+    if (selectedVariation != null) {
+      if (orderType == 'Pickup') {
+        return selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
+      } else if (orderType == 'Delivery') {
+        return selectedVariation.takeAwayPrice ??
+            selectedVariation.price ??
+            '0';
+      } else {
+        return selectedVariation.price ?? '0';
+      }
+    } else {
+      if (orderType == 'Pickup') {
+        return item.pickupPrice ?? '0';
+      } else if (orderType == 'Delivery') {
+        return item.deliveryPrice ?? '0';
+      } else {
+        return item.pickupPrice ?? item.deliveryPrice ?? '0';
+      }
+    }
+  }
+
   void addItemToCart(
     Items item, {
     Variations? selectedVariation,
     List<Options>? selectedExtras,
   }) {
     try {
-      // Get or create cart controller
       CartScreenController cartController;
       if (Get.isRegistered<CartScreenController>()) {
         cartController = Get.find<CartScreenController>();
       } else {
-        // Initialize cart controller if not already registered
         Get.put(CartScreenController(), permanent: true);
         cartController = Get.find<CartScreenController>();
       }
 
-      // Get base price
-      String basePrice = '0';
+      final basePrice = _getItemPrice(item, selectedVariation);
 
-      if (selectedVariation != null) {
-        if (hasTable) {
-          // If table is selected, use only base price
-          basePrice = selectedVariation.price ?? '0';
-        } else {
-          // If no table, use price based on order type
-          if (selectedOrderType.value == 'Pickup') {
-            basePrice =
-                selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
-          } else {
-            basePrice =
-                selectedVariation.takeAwayPrice ??
-                selectedVariation.price ??
-                '0';
-          }
-        }
-      } else {
-        if (hasTable) {
-          // If table is selected, use only base price
-          basePrice = item.price ?? '0';
-        } else {
-          // If no table, use price based on order type
-          if (selectedOrderType.value == 'Pickup') {
-            basePrice = item.onlinePrice ?? item.price ?? '0';
-          } else {
-            basePrice = item.takeAwayPrice ?? item.price ?? '0';
-          }
-        }
-      }
-
-      // Calculate extras price
       double extrasPrice = 0.0;
-      List<Map<String, dynamic>> extrasList = [];
       if (selectedExtras != null && selectedExtras.isNotEmpty) {
         for (var extra in selectedExtras) {
           if (extra.isSelected.value) {
-            final extraPrice = double.tryParse(extra.price ?? '0') ?? 0.0;
-            extrasPrice += extraPrice;
-            extrasList.add({
-              'id': extra.id,
-              'name': extra.name,
-              'price': extra.price,
-            });
+            extrasPrice += double.tryParse(extra.price ?? '0') ?? 0.0;
           }
         }
       }
 
-      // Calculate total price
       final basePriceDouble = double.tryParse(basePrice) ?? 0.0;
       final totalPrice = basePriceDouble + extrasPrice;
 
-      // Get selected extras as Options list
       List<Options>? selectedExtrasList;
       if (selectedExtras != null && selectedExtras.isNotEmpty) {
         selectedExtrasList =
             selectedExtras.where((extra) => extra.isSelected.value).toList();
       }
 
-      // Create a copy of the item for cart with cart-specific data
       final cartItem = Items(
         id: item.id,
         itemName: item.itemName,
@@ -461,9 +428,9 @@ class TakeOrderController extends GetxController {
         imageUrl: item.imageUrl,
         type: item.type,
         inStock: item.inStock,
-        price: item.price,
-        onlinePrice: item.onlinePrice,
-        takeAwayPrice: item.takeAwayPrice,
+        dineInPrice: item.dineInPrice,
+        pickupPrice: item.pickupPrice,
+        deliveryPrice: item.deliveryPrice,
         category: item.category,
         variations: item.variations,
         modifierGroups: item.modifierGroups,
@@ -472,7 +439,6 @@ class TakeOrderController extends GetxController {
         taxes: item.taxes,
       );
 
-      // Set cart-specific fields
       cartItem.cartItemId =
           '${item.id}_${selectedVariation?.id ?? 'no_var'}_${DateTime.now().millisecondsSinceEpoch}';
       cartItem.selectedVariation = selectedVariation;
@@ -487,11 +453,8 @@ class TakeOrderController extends GetxController {
 
       cartController.addToCart(cartItem);
 
-      // Update cart count
       _updateCartCount();
-    } catch (_) {
-      // Error adding item to cart - silently fail
-    }
+    } catch (_) {}
   }
 
   void showItemVariationsBottomSheet(Items item) {
@@ -499,13 +462,11 @@ class TakeOrderController extends GetxController {
       if (item.modifierGroups != null && item.modifierGroups!.isNotEmpty) {
         showItemExtrasBottomSheet(item);
       } else {
-        // No variations and no extras - add directly to cart
         addItemToCart(item);
       }
       return;
     }
 
-    // Reset all variations' selected to false
     if (item.variations != null) {
       for (var variation in item.variations!) {
         variation.selected.value = false;
@@ -524,13 +485,14 @@ class TakeOrderController extends GetxController {
   void showItemExtrasBottomSheet(Items item, {Variations? selectedVariation}) {
     expandedSections.clear();
     selectedOptions.clear();
+    modifierErrors.clear();
 
     if (item.modifierGroups != null) {
       for (int i = 0; i < item.modifierGroups!.length; i++) {
         expandedSections[i] = true;
         selectedOptions[i] = <int>{};
+        modifierErrors[i] = false;
 
-        // Reset all options' isSelected to false
         if (item.modifierGroups![i].options != null) {
           for (var option in item.modifierGroups![i].options!) {
             option.isSelected.value = false;
@@ -703,17 +665,13 @@ class TakeOrderController extends GetxController {
                   ...variations.map((variation) {
                     String price = '0';
 
-                    if (hasTable) {
-                      // If table is selected, show only base price
-                      price = variation.price ?? '0';
+                    final orderType = selectedOrderType.value;
+                    if (orderType == 'Pickup') {
+                      price = variation.onlinePrice ?? variation.price ?? '0';
+                    } else if (orderType == 'Delivery') {
+                      price = variation.takeAwayPrice ?? variation.price ?? '0';
                     } else {
-                      // If no table, show price based on order type
-                      if (selectedOrderType.value == 'Pickup') {
-                        price = variation.onlinePrice ?? variation.price ?? '0';
-                      } else {
-                        price =
-                            variation.takeAwayPrice ?? variation.price ?? '0';
-                      }
+                      price = variation.price ?? '0';
                     }
 
                     String formattedPrice = CurrencyFormatter.formatPrice(
@@ -760,54 +718,59 @@ class TakeOrderController extends GetxController {
                           ),
                           Expanded(
                             flex: 1,
-                            child: SizedBox(
-                              height: MySize.getHeight(36),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  // Unselect all other variations in this item
-                                  if (item.variations != null) {
-                                    for (var v in item.variations!) {
-                                      if (v.id != variation.id) {
-                                        v.selected.value = false;
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Obx(
+                                () => GestureDetector(
+                                  onTap: () {
+                                    if (item.variations != null) {
+                                      for (var v in item.variations!) {
+                                        if (v.id != variation.id) {
+                                          v.selected.value = false;
+                                        }
                                       }
                                     }
-                                  }
-                                  // Select current variation
-                                  variation.selected.value = true;
+                                    variation.selected.value = true;
 
-                                  Get.back();
-                                  if (item.modifierGroups != null &&
-                                      item.modifierGroups!.isNotEmpty) {
-                                    showItemExtrasBottomSheet(
-                                      item,
-                                      selectedVariation: variation,
-                                    );
-                                  } else {
-                                    addItemToCart(
-                                      item,
-                                      selectedVariation: variation,
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: ColorConstants.primaryColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      MySize.getHeight(8),
+                                    Get.back();
+                                    if (item.modifierGroups != null &&
+                                        item.modifierGroups!.isNotEmpty) {
+                                      showItemExtrasBottomSheet(
+                                        item,
+                                        selectedVariation: variation,
+                                      );
+                                    } else {
+                                      addItemToCart(
+                                        item,
+                                        selectedVariation: variation,
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    width: MySize.getWidth(20),
+                                    height: MySize.getHeight(20),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color:
+                                            variation.selected.value
+                                                ? ColorConstants.primaryColor
+                                                : Colors.grey.shade400,
+                                        width: MySize.getWidth(2),
+                                      ),
+                                      color:
+                                          variation.selected.value
+                                              ? ColorConstants.primaryColor
+                                              : Colors.transparent,
                                     ),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: MySize.getWidth(12),
-                                    vertical: MySize.getHeight(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Select',
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(11),
-                                    fontWeight: FontWeight.w600,
+                                    child:
+                                        variation.selected.value
+                                            ? Icon(
+                                              Icons.circle,
+                                              color: Colors.white,
+                                              size: MySize.getHeight(8),
+                                            )
+                                            : null,
                                   ),
                                 ),
                               ),
@@ -842,63 +805,7 @@ class TakeOrderController extends GetxController {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(12),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: MySize.getWidth(12)),
-                      SizedBox(
-                        height: MySize.getHeight(40),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Get selected variation if any
-                            Variations? selectedVariation;
-                            if (item.variations != null) {
-                              for (var v in item.variations!) {
-                                if (v.selected.value) {
-                                  selectedVariation = v;
-                                  break;
-                                }
-                              }
-                            }
-
-                            Get.back();
-
-                            // If item has extras, show extras sheet
-                            if (item.modifierGroups != null &&
-                                item.modifierGroups!.isNotEmpty) {
-                              showItemExtrasBottomSheet(
-                                item,
-                                selectedVariation: selectedVariation,
-                              );
-                            } else {
-                              // No extras, add directly to cart
-                              addItemToCart(
-                                item,
-                                selectedVariation: selectedVariation,
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorConstants.primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: MySize.getWidth(24),
-                              vertical: MySize.getHeight(8),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'Save',
+                            'Close',
                             style: TextStyle(
                               fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w600,
@@ -969,7 +876,6 @@ class TakeOrderController extends GetxController {
                     thickness: MySize.getHeight(1),
                   ),
                   SizedBox(height: MySize.getHeight(12)),
-                  // Item Details
                   Row(
                     children: [
                       Row(
@@ -1143,117 +1049,222 @@ class TakeOrderController extends GetxController {
                                 String formattedPrice =
                                     CurrencyFormatter.formatPrice(price);
 
-                                return Obx(
-                                  () => Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: MySize.getWidth(12),
-                                      vertical: MySize.getHeight(10),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors.grey.shade200,
-                                          width: MySize.getWidth(1),
-                                        ),
+                                return Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: MySize.getWidth(12),
+                                    vertical: MySize.getHeight(10),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade200,
+                                        width: MySize.getWidth(1),
                                       ),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            option.name ?? 'Option',
-                                            style: TextStyle(
-                                              fontSize: MySize.getHeight(12),
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Text(
+                                          option.name ?? 'Option',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(12),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
                                           ),
                                         ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text(
-                                            formattedPrice,
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: MySize.getHeight(12),
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: Text(
+                                          formattedPrice,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(12),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
                                           ),
                                         ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                // Unselect all other options in this group first
-                                                for (var opt in options) {
-                                                  if (opt.id != option.id) {
-                                                    opt.isSelected.value =
-                                                        false;
-                                                  }
-                                                }
-                                                // Toggle current option
-                                                option.isSelected.value =
-                                                    !option.isSelected.value;
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Builder(
+                                            builder: (context) {
+                                              final allowMultiple =
+                                                  modifierGroup
+                                                      .allowMultipleSelection ??
+                                                  false;
+                                              return Obx(
+                                                () => GestureDetector(
+                                                  onTap: () {
+                                                    if (!allowMultiple) {
+                                                      for (var opt in options) {
+                                                        if (opt.id !=
+                                                            option.id) {
+                                                          opt.isSelected.value =
+                                                              false;
+                                                        }
+                                                      }
+                                                    }
+                                                    option.isSelected.value =
+                                                        !option
+                                                            .isSelected
+                                                            .value;
 
-                                                // Sync with selectedOptions map
-                                                if (option.isSelected.value) {
-                                                  selectedOptions[index] = {
-                                                    option.id!,
-                                                  };
-                                                } else {
-                                                  selectedOptions[index] =
-                                                      <int>{};
-                                                }
-                                              },
-                                              child: Container(
-                                                width: MySize.getWidth(20),
-                                                height: MySize.getHeight(20),
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color:
-                                                        option.isSelected.value
-                                                            ? ColorConstants
-                                                                .primaryColor
-                                                            : Colors
-                                                                .grey
-                                                                .shade400,
-                                                    width: MySize.getWidth(2),
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        MySize.getHeight(4),
+                                                    if (option
+                                                            .isSelected
+                                                            .value &&
+                                                        modifierErrors[index] ==
+                                                            true) {
+                                                      modifierErrors[index] =
+                                                          false;
+                                                    }
+
+                                                    if (allowMultiple) {
+                                                      final currentSet =
+                                                          selectedOptions[index] ??
+                                                          <int>{};
+                                                      if (option
+                                                          .isSelected
+                                                          .value) {
+                                                        selectedOptions[index] =
+                                                            {
+                                                              ...currentSet,
+                                                              option.id!,
+                                                            };
+                                                      } else {
+                                                        currentSet.remove(
+                                                          option.id,
+                                                        );
+                                                        selectedOptions[index] =
+                                                            currentSet.isEmpty
+                                                                ? <int>{}
+                                                                : currentSet;
+                                                      }
+                                                    } else {
+                                                      selectedOptions[index] =
+                                                          option
+                                                                  .isSelected
+                                                                  .value
+                                                              ? {option.id!}
+                                                              : <int>{};
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    width: MySize.getWidth(20),
+                                                    height: MySize.getHeight(
+                                                      20,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      shape:
+                                                          allowMultiple
+                                                              ? BoxShape
+                                                                  .rectangle
+                                                              : BoxShape.circle,
+                                                      border: Border.all(
+                                                        color:
+                                                            option
+                                                                    .isSelected
+                                                                    .value
+                                                                ? ColorConstants
+                                                                    .primaryColor
+                                                                : Colors
+                                                                    .grey
+                                                                    .shade400,
+                                                        width: MySize.getWidth(
+                                                          2,
+                                                        ),
                                                       ),
-                                                  color:
-                                                      option.isSelected.value
-                                                          ? ColorConstants
-                                                              .primaryColor
-                                                          : Colors.transparent,
+                                                      borderRadius:
+                                                          allowMultiple
+                                                              ? BorderRadius.circular(
+                                                                MySize.getHeight(
+                                                                  4,
+                                                                ),
+                                                              )
+                                                              : null,
+                                                      color:
+                                                          option
+                                                                  .isSelected
+                                                                  .value
+                                                              ? ColorConstants
+                                                                  .primaryColor
+                                                              : Colors
+                                                                  .transparent,
+                                                    ),
+                                                    child:
+                                                        option.isSelected.value
+                                                            ? Icon(
+                                                              allowMultiple
+                                                                  ? Icons.check
+                                                                  : Icons
+                                                                      .circle,
+                                                              color:
+                                                                  Colors.white,
+                                                              size:
+                                                                  allowMultiple
+                                                                      ? MySize.getHeight(
+                                                                        14,
+                                                                      )
+                                                                      : MySize.getHeight(
+                                                                        8,
+                                                                      ),
+                                                            )
+                                                            : null,
+                                                  ),
                                                 ),
-                                                child:
-                                                    option.isSelected.value
-                                                        ? Icon(
-                                                          Icons.check,
-                                                          color: Colors.white,
-                                                          size:
-                                                              MySize.getHeight(
-                                                                14,
-                                                              ),
-                                                        )
-                                                        : null,
-                                              ),
-                                            ),
+                                              );
+                                            },
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               }).toList(),
+                            ],
+                            if (modifierErrors[index] == true) ...[
+                              SizedBox(height: MySize.getHeight(8)),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: MySize.getWidth(12),
+                                  vertical: MySize.getHeight(8),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(4),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.red,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.red,
+                                      size: MySize.getHeight(16),
+                                    ),
+                                    SizedBox(width: MySize.getWidth(8)),
+                                    Expanded(
+                                      child: Text(
+                                        'Please choose at least one option to continue.',
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(12),
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ],
                         ),
@@ -1285,7 +1296,7 @@ class TakeOrderController extends GetxController {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Cancel',
+                            'Close',
                             style: TextStyle(
                               fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.w600,
@@ -1298,28 +1309,57 @@ class TakeOrderController extends GetxController {
                         height: MySize.getHeight(40),
                         child: ElevatedButton(
                           onPressed: () {
-                            // Ensure selectedVariation's selected is true if it exists
                             if (selectedVariation != null) {
                               selectedVariation.selected.value = true;
                             }
 
-                            // Collect all selected extras
+                            final modifierGroups = item.modifierGroups;
+                            if (modifierGroups == null ||
+                                modifierGroups.isEmpty) {
+                              Get.back();
+                              addItemToCart(
+                                item,
+                                selectedVariation: selectedVariation,
+                              );
+                              return;
+                            }
+
                             List<Options> selectedExtras = [];
-                            if (item.modifierGroups != null) {
-                              for (var modifierGroup in item.modifierGroups!) {
-                                if (modifierGroup.options != null) {
-                                  for (var option in modifierGroup.options!) {
-                                    if (option.isSelected.value) {
-                                      selectedExtras.add(option);
-                                    }
-                                  }
+                            modifierErrors.clear();
+                            bool hasError = false;
+
+                            for (int i = 0; i < modifierGroups.length; i++) {
+                              final modifierGroup = modifierGroups[i];
+                              final options = modifierGroup.options;
+
+                              if (options == null || options.isEmpty) {
+                                modifierErrors[i] = false;
+                                continue;
+                              }
+
+                              final groupSelectedOptions =
+                                  options
+                                      .where((opt) => opt.isSelected.value)
+                                      .toList();
+
+                              selectedExtras.addAll(groupSelectedOptions);
+
+                              if (modifierGroup.isRequired == true) {
+                                modifierErrors[i] =
+                                    groupSelectedOptions.isEmpty;
+                                if (modifierErrors[i] == true) {
+                                  hasError = true;
                                 }
+                              } else {
+                                modifierErrors[i] = false;
                               }
                             }
 
-                            Get.back();
+                            if (hasError) {
+                              return;
+                            }
 
-                            // Add item to cart with variation and extras
+                            Get.back();
                             addItemToCart(
                               item,
                               selectedVariation: selectedVariation,
@@ -1434,9 +1474,9 @@ class TakeOrderController extends GetxController {
           imageUrl: menuItem.imageUrl,
           type: menuItem.type,
           inStock: menuItem.inStock,
-          price: menuItem.price,
-          onlinePrice: menuItem.onlinePrice,
-          takeAwayPrice: menuItem.takeAwayPrice,
+          dineInPrice: menuItem.dineInPrice,
+          pickupPrice: menuItem.pickupPrice,
+          deliveryPrice: menuItem.deliveryPrice,
           category: menuItem.category,
           variations: menuItem.variations,
           modifierGroups: menuItem.modifierGroups,
@@ -1492,23 +1532,25 @@ class TakeOrderController extends GetxController {
 
         String basePrice = '0';
         if (selectedVariation != null) {
-          basePrice =
-              hasTable
-                  ? (selectedVariation.price ?? '0')
-                  : (orderType == 'Pickup'
-                      ? (selectedVariation.onlinePrice ??
-                          selectedVariation.price ??
-                          '0')
-                      : (selectedVariation.takeAwayPrice ??
-                          selectedVariation.price ??
-                          '0'));
+          if (orderType == 'Pickup') {
+            basePrice =
+                selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
+          } else if (orderType == 'Delivery') {
+            basePrice =
+                selectedVariation.takeAwayPrice ??
+                selectedVariation.price ??
+                '0';
+          } else {
+            basePrice = selectedVariation.price ?? '0';
+          }
         } else {
-          basePrice =
-              hasTable
-                  ? (cartItem.price ?? '0')
-                  : (orderType == 'Pickup'
-                      ? (cartItem.onlinePrice ?? cartItem.price ?? '0')
-                      : (cartItem.takeAwayPrice ?? cartItem.price ?? '0'));
+          if (orderType == 'Pickup') {
+            basePrice = cartItem.pickupPrice ?? '0';
+          } else if (orderType == 'Delivery') {
+            basePrice = cartItem.deliveryPrice ?? '0';
+          } else {
+            basePrice = cartItem.pickupPrice ?? cartItem.deliveryPrice ?? '0';
+          }
         }
 
         double extrasPrice = 0.0;
@@ -1531,23 +1573,17 @@ class TakeOrderController extends GetxController {
         cartItem.cartNote = '';
         cartItem.cartNoteDraft = '';
         cartItem.cartEditingNote = false;
-        // Store kot_item_id for items loaded from existing order
         cartItem.cartKotItemId = orderItem.kotItemId;
 
-        // For existing order items, also check cartKotItemId when finding duplicates
-        // Items with same menu item but different kot_item_id should not be merged
         Items? existingItem;
         if (cartItem.cartKotItemId != null) {
-          // Find item with same menu item, variation, extras AND same kot_item_id
           for (var item in cartController.cartItems) {
             if (item.id != cartItem.id) continue;
 
-            // Check variation
             final existingVariationId = item.selectedVariation?.id;
             final newVariationId = cartItem.selectedVariation?.id;
             if (existingVariationId != newVariationId) continue;
 
-            // Check extras
             final existingExtras = item.selectedExtras;
             final newExtras = cartItem.selectedExtras;
             bool extrasMatch = false;
@@ -1570,14 +1606,12 @@ class TakeOrderController extends GetxController {
             }
             if (!extrasMatch) continue;
 
-            // Check kot_item_id - must match for items from existing order
             if (item.cartKotItemId == cartItem.cartKotItemId) {
               existingItem = item;
               break;
             }
           }
         } else {
-          // If no kot_item_id, use regular findExistingCartItem
           existingItem = cartController.findExistingCartItem(cartItem);
         }
 
@@ -1592,9 +1626,7 @@ class TakeOrderController extends GetxController {
 
       _updateCartCount();
       _applyOrderDiscount(cartController);
-    } catch (_) {
-      // Error loading order items - silently fail
-    }
+    } catch (_) {}
   }
 
   void _applyOrderDiscount(CartScreenController cartController) {

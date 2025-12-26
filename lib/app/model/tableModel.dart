@@ -107,11 +107,27 @@ class Tables {
     seatingCapacity = json['seating_capacity'];
     status = json['status']?.toString();
     availableStatus = json['available_status']?.toString();
-    area = json['area'] != null ? new Area.fromJson(json['area']) : null;
+    area =
+        json['area'] != null
+            ? new Area.fromJson(
+              json['area'] is Map
+                  ? json['area'] as Map<String, dynamic>
+                  : (json['area'] is List && json['area'].isNotEmpty
+                      ? json['area'][0] as Map<String, dynamic>
+                      : {}),
+            )
+            : null;
     qrCodeUrl = json['qr_code_url']?.toString();
     activeOrder =
         json['active_order'] != null
-            ? new ActiveOrder.fromJson(json['active_order'])
+            ? new ActiveOrder.fromJson(
+              json['active_order'] is Map
+                  ? json['active_order'] as Map<String, dynamic>
+                  : (json['active_order'] is List &&
+                          json['active_order'].isNotEmpty
+                      ? json['active_order'][0] as Map<String, dynamic>
+                      : {}),
+            )
             : null;
   }
 
@@ -174,7 +190,12 @@ class ActiveOrder {
     uuid = json['uuid'];
     orderNumber = json['order_number'];
     status = json['status'];
-    total = json['total'] != null ? (json['total'] is double ? json['total'] : (json['total'] as num).toDouble()) : null;
+    total =
+        json['total'] != null
+            ? (json['total'] is double
+                ? json['total']
+                : (json['total'] as num).toDouble())
+            : null;
   }
 
   Map<String, dynamic> toJson() {
