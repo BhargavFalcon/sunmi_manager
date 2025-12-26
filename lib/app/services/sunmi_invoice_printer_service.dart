@@ -391,6 +391,22 @@ class SunmiInvoicePrinterService {
           }
         }
 
+        if (order.formattedTipAmount != null || order.tipAmount != null) {
+          final tipValue = _formatPrice(
+            order.formattedTipAmount,
+            order.tipAmount is num
+                ? (order.tipAmount as num).toDouble()
+                : double.tryParse(order.tipAmount?.toString() ?? '0'),
+          );
+          if (tipValue.isNotEmpty && tipValue != '0') {
+            await SunmiPrinter.printText(
+              _formatLabelValue('Tip:', tipValue),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+            );
+            await SunmiPrinter.lineWrap(5);
+          }
+        }
+
         if (order.items?.isNotEmpty == true) {
           final aggregatedTaxes = _aggregateTaxes(order.items!);
           for (final entry in aggregatedTaxes.entries) {

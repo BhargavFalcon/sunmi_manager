@@ -11,6 +11,8 @@ import '../../../constants/image_constants.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../model/RestaurantDetailsModel.dart';
+import '../../../model/invoiceModel.dart';
+import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
@@ -624,28 +626,35 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: ColorConstants.getShadow2,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.print, color: Colors.white, size: 18),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'Print',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
+                  child: InkWell(
+                    onTap: () => _printInvoice(orderData),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: ColorConstants.getShadow2,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.print,
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            size: 18,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Print',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -1076,6 +1085,55 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
     final branch = _getBranch();
     return branch?.taxesIncluded == true;
+  }
+
+  void _printInvoice(orderDetailsModel.Data orderData) {
+    try {
+      final invoiceData = orderData.invoice;
+      if (invoiceData == null) {
+        safeGetSnackbar('Error', 'Invoice data not found');
+        return;
+      }
+
+      final invoiceJson = <String, dynamic>{
+        'restaurant': invoiceData.restaurant?.toJson(),
+        'branch': invoiceData.branch?.toJson(),
+        'order': invoiceData.order?.toJson(),
+        'receipt_settings': invoiceData.receiptSettings?.toJson(),
+        'tax_details':
+            invoiceData.taxes
+                ?.map(
+                  (t) => {
+                    'tax_name': t.taxName,
+                    'percent': t.percent,
+                    'amount':
+                        t.amount is num
+                            ? (t.amount as num).toDouble()
+                            : double.tryParse(t.amount?.toString() ?? '0') ??
+                                0.0,
+                  },
+                )
+                .toList(),
+        'payment':
+            invoiceData.order?.payments?.isNotEmpty == true
+                ? invoiceData.order!.payments!.first.toJson()
+                : null,
+        'tax_mode': invoiceData.taxMode,
+        'tax_inclusive': invoiceData.taxInclusive,
+        'currency_config': invoiceData.currencyConfig?.toJson(),
+        'restaurant_id': invoiceData.restaurantId,
+        'pdf_url': invoiceData.pdfUrl,
+        'image_url': invoiceData.imageUrl,
+        'invoice_url': invoiceData.invoiceUrl,
+      };
+
+      final invoice = Invoice.fromJson(invoiceJson);
+      final invoiceModel = InvoiceModel(invoice: invoice);
+      final printerService = SunmiInvoicePrinterService();
+      printerService.printInvoice(invoiceModel);
+    } catch (e) {
+      safeGetSnackbar('Error', 'Failed to print invoice: $e');
+    }
   }
 
   bool _isValidAmount(String? amount) {
