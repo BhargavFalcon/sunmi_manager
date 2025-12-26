@@ -80,6 +80,7 @@ class TakeOrderController extends GetxController {
       final table = arguments[ArgumentConstant.tableKey];
       if (table != null && table is Tables) {
         selectedTable.value = table;
+        selectedOrderType.value = 'Dine In';
       }
     }
   }
@@ -372,6 +373,8 @@ class TakeOrderController extends GetxController {
         return selectedVariation.takeAwayPrice ??
             selectedVariation.price ??
             '0';
+      } else if (orderType == 'Dine In') {
+        return selectedVariation.price ?? '0';
       } else {
         return selectedVariation.price ?? '0';
       }
@@ -380,6 +383,8 @@ class TakeOrderController extends GetxController {
         return item.pickupPrice ?? '0';
       } else if (orderType == 'Delivery') {
         return item.deliveryPrice ?? '0';
+      } else if (orderType == 'Dine In') {
+        return item.dineInPrice ?? '0';
       } else {
         return item.pickupPrice ?? item.deliveryPrice ?? '0';
       }
@@ -670,6 +675,8 @@ class TakeOrderController extends GetxController {
                       price = variation.onlinePrice ?? variation.price ?? '0';
                     } else if (orderType == 'Delivery') {
                       price = variation.takeAwayPrice ?? variation.price ?? '0';
+                    } else if (orderType == 'Dine In') {
+                      price = variation.price ?? '0';
                     } else {
                       price = variation.price ?? '0';
                     }
@@ -1540,6 +1547,8 @@ class TakeOrderController extends GetxController {
                 selectedVariation.takeAwayPrice ??
                 selectedVariation.price ??
                 '0';
+          } else if (orderType == 'Dine In') {
+            basePrice = selectedVariation.price ?? '0';
           } else {
             basePrice = selectedVariation.price ?? '0';
           }
@@ -1548,6 +1557,8 @@ class TakeOrderController extends GetxController {
             basePrice = cartItem.pickupPrice ?? '0';
           } else if (orderType == 'Delivery') {
             basePrice = cartItem.deliveryPrice ?? '0';
+          } else if (orderType == 'Dine In') {
+            basePrice = cartItem.dineInPrice ?? '0';
           } else {
             basePrice = cartItem.pickupPrice ?? cartItem.deliveryPrice ?? '0';
           }

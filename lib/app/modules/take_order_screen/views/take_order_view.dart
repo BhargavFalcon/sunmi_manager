@@ -604,6 +604,8 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       price = itemObject.pickupPrice ?? '0';
                     } else if (orderType == 'Delivery') {
                       price = itemObject.deliveryPrice ?? '0';
+                    } else if (orderType == 'Dine In') {
+                      price = itemObject.dineInPrice ?? '0';
                     } else {
                       price =
                           itemObject.pickupPrice ??
