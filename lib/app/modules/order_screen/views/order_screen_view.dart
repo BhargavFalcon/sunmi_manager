@@ -1026,7 +1026,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
             _buildDetailRow(
               'Phone',
-              '+${customer.phoneCode ?? ''}${customer.phoneNumber}',
+              '${customer.phoneCode ?? ''}${customer.phoneNumber}',
             ),
         ],
       ),
@@ -1088,111 +1088,76 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   void _printInvoice(orderDetailsModel.Data orderData) {
-    try {
-      final invoiceData = orderData.invoice;
-      if (invoiceData == null) {
-        safeGetSnackbar('Error', 'Invoice data not found');
-        return;
-      }
-
-      final invoiceJson = <String, dynamic>{
-        'restaurant': invoiceData.restaurant?.toJson(),
-        'branch': invoiceData.branch?.toJson(),
-        'order': invoiceData.order?.toJson(),
-        'receipt_settings': invoiceData.receiptSettings?.toJson(),
-        'tax_details':
-            invoiceData.taxes
-                ?.map(
-                  (t) => {
-                    'tax_name': t.taxName,
-                    'percent': t.percent,
-                    'amount':
-                        t.amount is num
-                            ? (t.amount as num).toDouble()
-                            : double.tryParse(t.amount?.toString() ?? '0') ??
-                                0.0,
-                  },
-                )
-                .toList(),
-        'payment':
-            invoiceData.order?.payments?.isNotEmpty == true
-                ? invoiceData.order!.payments!.first.toJson()
-                : null,
-        'tax_mode': invoiceData.taxMode,
-        'tax_inclusive': invoiceData.taxInclusive,
-        'currency_config': invoiceData.currencyConfig?.toJson(),
-        'restaurant_id': invoiceData.restaurantId,
-        'pdf_url': invoiceData.pdfUrl,
-        'image_url': invoiceData.imageUrl,
-        'invoice_url': invoiceData.invoiceUrl,
-      };
-
-      final invoice = Invoice.fromJson(invoiceJson);
-      final invoiceModel = InvoiceModel(invoice: invoice);
-      final printerService = SunmiInvoicePrinterService();
-      printerService.printInvoice(invoiceModel);
-    } catch (e) {
-      safeGetSnackbar('Error', 'Failed to print invoice: $e');
+    final invoiceData = orderData.invoice;
+    if (invoiceData == null) {
+      safeGetSnackbar('Error', 'Invoice data not found');
+      return;
     }
-  }
 
-  bool _isValidAmount(String? amount) {
-    if (amount == null ||
-        amount.isEmpty ||
-        amount == 'null' ||
-        amount == '0' ||
-        amount == '0.0' ||
-        amount == '0.00') {
-      return false;
-    }
-    final value = double.tryParse(amount);
-    return value != null && value > 0;
+    final invoiceJson = invoiceData.toJson();
+    final invoice = Invoice.fromJson(invoiceJson);
+    final invoiceModel = InvoiceModel(invoice: invoice);
+    final printerService = SunmiInvoicePrinterService();
+    printerService.printInvoice(invoiceModel);
   }
+}
 
-  Widget _buildPriceRow(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? valueColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
+bool _isValidAmount(String? amount) {
+  if (amount == null ||
+      amount.isEmpty ||
+      amount == 'null' ||
+      amount == '0' ||
+      amount == '0.0' ||
+      amount == '0.00') {
+    return false;
+  }
+  final value = double.tryParse(amount);
+  return value != null && value > 0;
+}
+
+Widget _buildPriceRow(
+  String label,
+  String value, {
+  bool isBold = false,
+  Color? valueColor,
+}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor ?? Colors.black,
-            ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: valueColor ?? Colors.black,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _buildOrderTypeButton({
-    required String icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return _OrderTypeButtonItem(
-      icon: icon,
-      label: label,
-      isSelected: isSelected,
-      onTap: onTap,
-    );
-  }
+Widget _buildOrderTypeButton({
+  required String icon,
+  required String label,
+  required bool isSelected,
+  required VoidCallback onTap,
+}) {
+  return _OrderTypeButtonItem(
+    icon: icon,
+    label: label,
+    isSelected: isSelected,
+    onTap: onTap,
+  );
 }
 
 class OrderCard extends StatelessWidget {

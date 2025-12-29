@@ -35,4 +35,5 @@ class ArgumentConstant {
   static const hapticFeedbackKey = "haptic_feedback_enabled";
   static const beepSoundKey = "beep_sound_enabled";
   static const selectedLanguageKey = "selected_language";
+  static const newShopOrderNotificationsKey = "new_shop_order_notifications_enabled";
 }

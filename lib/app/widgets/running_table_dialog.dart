@@ -63,7 +63,7 @@ class RunningTableService {
       );
       if (_isSuccessStatus(response.statusCode)) {
         final data = _extractData(response.data);
-        if (data != null) return Tables.fromJson(data as Map<String, dynamic>);
+        if (data != null) return Tables.fromJson(data);
       }
       return null;
     } catch (e) {

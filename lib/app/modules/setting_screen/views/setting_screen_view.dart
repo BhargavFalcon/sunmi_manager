@@ -86,6 +86,22 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        Obx(
+                          () => _buildToggleSettingItem(
+                            icon: Icons.notifications,
+                            title: "New Shop Order Notifications",
+                            color: ColorConstants.primaryColor,
+                            value:
+                                controller
+                                    .newShopOrderNotificationsEnabled
+                                    .value,
+                            onToggle:
+                                () =>
+                                    controller
+                                        .toggleNewShopOrderNotifications(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         _buildSettingItem(
                           icon: Icons.print,
                           title: "Printer Settings",

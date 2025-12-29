@@ -15,6 +15,7 @@ class SettingScreenController extends GetxController {
   final isSyncingMenu = false.obs;
   final hapticFeedbackEnabled = true.obs;
   final beepSoundEnabled = true.obs;
+  final newShopOrderNotificationsEnabled = true.obs;
   final selectedLanguage = 'en'.obs;
 
   @override
@@ -27,6 +28,8 @@ class SettingScreenController extends GetxController {
     hapticFeedbackEnabled.value =
         box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
     beepSoundEnabled.value = box.read(ArgumentConstant.beepSoundKey) ?? true;
+    newShopOrderNotificationsEnabled.value =
+        box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
     selectedLanguage.value =
         box.read(ArgumentConstant.selectedLanguageKey) ?? 'en';
   }
@@ -42,6 +45,15 @@ class SettingScreenController extends GetxController {
   void toggleBeepSound() {
     beepSoundEnabled.value = !beepSoundEnabled.value;
     box.write(ArgumentConstant.beepSoundKey, beepSoundEnabled.value);
+  }
+
+  void toggleNewShopOrderNotifications() {
+    newShopOrderNotificationsEnabled.value =
+        !newShopOrderNotificationsEnabled.value;
+    box.write(
+      ArgumentConstant.newShopOrderNotificationsKey,
+      newShopOrderNotificationsEnabled.value,
+    );
   }
 
   void changeLanguage(String languageCode) {

@@ -2,16 +2,18 @@ import 'dart:convert';
 import 'package:managerapp/app/model/notificationModel.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../model/invoiceModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../widgets/new_order_dialog.dart';
-import '../routes/app_pages.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../model/notificationModel.dart' as notification;
 import '../widgets/new_order_details_bottom_sheet.dart';
+import '../constants/api_constants.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
+  final box = GetStorage();
 
   static const String appId = "1952389";
   static const String key = "976a2c01b088eeeb0342";
@@ -95,15 +97,20 @@ class PusherService {
 
                 await _refreshOrderList();
 
-                NewOrderDialog.show(
-                  orderNumber: orderNumber,
-                  order: notificationModel.order,
-                  onViewOrder: () {
-                    if (notificationModel.order != null) {
-                      _showOrderDetailsBottomSheet(notificationModel.order!);
-                    }
-                  },
-                );
+                final notificationsEnabled =
+                    box.read(ArgumentConstant.newShopOrderNotificationsKey) ??
+                    true;
+                if (notificationsEnabled) {
+                  NewOrderDialog.show(
+                    orderNumber: orderNumber,
+                    order: notificationModel.order,
+                    onViewOrder: () {
+                      if (notificationModel.order != null) {
+                        _showOrderDetailsBottomSheet(notificationModel.order!);
+                      }
+                    },
+                  );
+                }
               }
             } catch (e) {
               print("Error parsing event data to NotificationModel: $e");
@@ -129,7 +136,11 @@ class PusherService {
                 print(
                   "Invoice Model Created: ${invoiceModel.invoice!.order!.formattedOrderNumber}",
                 );
-                _printInvoice(invoiceModel);
+                final autoPrintEnabled =
+                    box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+                if (autoPrintEnabled) {
+                  _printInvoice(invoiceModel);
+                }
               }
             } catch (e) {
               print("Error parsing event data to InvoiceModel: $e");
