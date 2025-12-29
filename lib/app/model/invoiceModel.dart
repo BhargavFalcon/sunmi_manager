@@ -236,10 +236,26 @@ class Items {
   String? createdAt;
 
   Items.fromJson(Map<String, dynamic> json) {
-    id = json['id'] is int ? json['id'] : (json['id'] is String ? int.tryParse(json['id']) : null);
-    quantity = json['quantity'] is int ? json['quantity'] : (json['quantity'] is String ? int.tryParse(json['quantity']) : null);
-    price = json['price'] is num ? (json['price'] as num).toDouble() : (json['price'] is String ? double.tryParse(json['price']) : null);
-    amount = json['amount'] is num ? (json['amount'] as num).toDouble() : (json['amount'] is String ? double.tryParse(json['amount']) : null);
+    id =
+        json['id'] is int
+            ? json['id']
+            : (json['id'] is String ? int.tryParse(json['id']) : null);
+    quantity =
+        json['quantity'] is int
+            ? json['quantity']
+            : (json['quantity'] is String
+                ? int.tryParse(json['quantity'])
+                : null);
+    price =
+        json['price'] is num
+            ? (json['price'] as num).toDouble()
+            : (json['price'] is String ? double.tryParse(json['price']) : null);
+    amount =
+        json['amount'] is num
+            ? (json['amount'] as num).toDouble()
+            : (json['amount'] is String
+                ? double.tryParse(json['amount'])
+                : null);
     formattedPrice = json['formatted_price'];
     formattedAmount = json['formatted_amount'];
     itemName = json['item_name'];
@@ -250,7 +266,12 @@ class Items {
             .toList();
     isDeleted = json['is_deleted'];
     isVariationDeleted = json['is_variation_deleted'];
-    taxAmount = json['tax_amount'] is num ? (json['tax_amount'] as num).toDouble() : (json['tax_amount'] is String ? double.tryParse(json['tax_amount']) : null);
+    taxAmount =
+        json['tax_amount'] is num
+            ? (json['tax_amount'] as num).toDouble()
+            : (json['tax_amount'] is String
+                ? double.tryParse(json['tax_amount'])
+                : null);
     taxBreakup =
         json['tax_breakup'] != null
             ? TaxBreakup.fromJson(json['tax_breakup'])

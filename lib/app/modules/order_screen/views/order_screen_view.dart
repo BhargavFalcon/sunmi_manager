@@ -478,13 +478,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
       return;
     }
 
-    try {
-      controller.isNavigatingToOrder.value = true;
-      await controller.fetchOrderDetails(orderUuid);
-    } finally {
-      controller.isNavigatingToOrder.value = false;
-    }
-
     if (!context.mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
@@ -497,13 +490,28 @@ class OrderScreenView extends GetView<OrderScreenController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder:
-          (builderContext) => OrderScreenView()._buildBottomSheetContent(
-            builderContext,
-            controller,
-            order,
-            screenHeight,
-          ),
+      builder: (builderContext) {
+        final draggableController = DraggableScrollableController();
+
+        controller.fetchOrderDetails(orderUuid);
+
+        return DraggableScrollableSheet(
+          controller: draggableController,
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          builder:
+              (context, scrollController) =>
+                  OrderScreenView()._buildBottomSheetContent(
+                    builderContext,
+                    controller,
+                    order,
+                    screenHeight,
+                    scrollController,
+                    draggableController,
+                  ),
+        );
+      },
     );
   }
 
@@ -512,25 +520,64 @@ class OrderScreenView extends GetView<OrderScreenController> {
     OrderScreenController controller,
     orderModel.Orders order,
     double screenHeight,
+    ScrollController scrollController,
+    DraggableScrollableController draggableController,
   ) {
     return Container(
-      constraints: BoxConstraints(maxHeight: screenHeight * 0.9),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: ColorConstants.getShadow2,
       ),
       child: Obx(() {
-        final orderDetails = controller.orderDetails.value;
-        final orderData =
-            orderDetails?.data?.order ?? orderDetails?.data?.invoice?.order;
-
-        if (orderData == null || orderDetails?.data == null) {
-          return _buildErrorView(context);
+        if (controller.isLoadingOrderDetails.value) {
+          return _buildLoadingView();
         }
 
-        return _buildOrderDetailsContent(context, orderDetails!.data!, order);
+        return SingleChildScrollView(
+          controller: scrollController,
+          child: _buildOrderDetailsOrError(context, controller, order),
+        );
       }),
+    );
+  }
+
+  Widget _buildOrderDetailsOrError(
+    BuildContext context,
+    OrderScreenController controller,
+    orderModel.Orders order,
+  ) {
+    final orderDetails = controller.orderDetails.value;
+    final orderData =
+        orderDetails?.data?.order ?? orderDetails?.data?.invoice?.order;
+
+    if (orderData == null || orderDetails?.data == null) {
+      return _buildErrorView(context);
+    }
+
+    return _buildOrderDetailsContent(context, orderDetails!.data!, order);
+  }
+
+  Widget _buildLoadingView() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const CupertinoActivityIndicator(
+          radius: 8,
+          color: ColorConstants.primaryColor,
+        ),
+      ),
     );
   }
 
@@ -1173,7 +1220,7 @@ class OrderCard extends StatelessWidget {
         order.orderNumber?.toString() ??
         '';
 
-    final customerName = order.customer?.name ?? 'test name';
+    final customerName = order.customer?.name ?? '';
 
     final status = order.status ?? 'PAID';
     final statusColor = _getStatusColor(status);
@@ -1247,7 +1294,7 @@ class OrderCard extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
-                      if (order.customer != null)
+                      if (order.customer != null && customerName.isNotEmpty)
                         Text(
                           customerName,
                           style: const TextStyle(
