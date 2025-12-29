@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/cart_screen_controller.dart';
@@ -48,7 +49,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                         ),
                         child: Center(
                           child: Text(
-                            "Cart",
+                            TranslationKeys.cart.tr,
                             style: TextStyle(
                               fontSize: 17.0,
                               color: Colors.black,
@@ -223,7 +224,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               ),
                               SizedBox(height: 16.0),
                               Text(
-                                "Your cart is empty",
+                                TranslationKeys.yourCartIsEmpty.tr,
                                 style: TextStyle(
                                   fontSize: 19.0,
                                   color: Colors.grey.shade600,
@@ -288,7 +289,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            item.itemName ?? "Item Name",
+                                            item.itemName ??
+                                                TranslationKeys.itemName.tr,
                                             style: TextStyle(
                                               fontSize: 15.0,
                                               fontWeight: FontWeight.w600,
@@ -574,7 +576,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      "Add Discount",
+                                      TranslationKeys.addDiscount.tr,
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         fontWeight: FontWeight.w500,
@@ -593,7 +595,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Items",
+                                TranslationKeys.items.tr,
                                 style: TextStyle(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w500,
@@ -615,7 +617,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Sub Total",
+                                TranslationKeys.subTotal.tr,
                                 style: TextStyle(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w500,
@@ -650,8 +652,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         Text(
                                           controller.discountType.value ==
                                                   'Percent'
-                                              ? "Discount (${controller.discountValue.value.toStringAsFixed(0)}%)"
-                                              : "Discount",
+                                              ? "${TranslationKeys.discount.tr} (${controller.discountValue.value.toStringAsFixed(0)}%)"
+                                              : TranslationKeys.discount.tr,
                                           style: TextStyle(
                                             fontSize: 15.0,
                                             fontWeight: FontWeight.w500,
@@ -713,7 +715,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                charge.chargeName ?? 'Charge',
+                                                charge.chargeName ??
+                                                    TranslationKeys.charge.tr,
                                                 style: TextStyle(
                                                   fontSize: 15.0,
                                                   fontWeight: FontWeight.w500,
@@ -774,7 +777,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                               ),
                                               SizedBox(width: 4.0),
                                               Text(
-                                                "Tax Inclusive",
+                                                TranslationKeys.taxInclusive.tr,
                                                 style: TextStyle(
                                                   fontSize: 12.0,
                                                   fontWeight: FontWeight.w500,
@@ -787,7 +790,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                       ],
                                     ),
                                     Text(
-                                      "Tax included in item prices",
+                                      TranslationKeys
+                                          .taxIncludedInItemPrices
+                                          .tr,
                                       style: TextStyle(
                                         fontSize: 12.0,
                                         fontWeight: FontWeight.normal,
@@ -850,7 +855,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Total",
+                                TranslationKeys.total.tr,
                                 style: TextStyle(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.bold,
@@ -890,7 +895,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      "Place Order",
+                                      TranslationKeys.placeOrder.tr,
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         fontWeight: FontWeight.w500,
@@ -1012,7 +1017,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Available Tables',
+                              TranslationKeys.availableTables.tr,
                               style: TextStyle(
                                 fontSize: 19.0,
                                 fontWeight: FontWeight.bold,
@@ -1035,7 +1040,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           if (controller.tableAreasList.isEmpty) {
                             return Center(
                               child: Text(
-                                'No tables available',
+                                TranslationKeys.noTablesAvailable.tr,
                                 style: TextStyle(
                                   fontSize: 15.0,
                                   color: Colors.grey.shade600,
@@ -1069,7 +1074,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: Text(
-                                      area.name ?? 'Unnamed Area',
+                                      area.name ??
+                                          TranslationKeys.unnamedArea.tr,
                                       style: TextStyle(
                                         fontSize: 17.0,
                                         fontWeight: FontWeight.w600,
@@ -1083,7 +1089,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                         bottom: 20,
                                       ),
                                       child: Text(
-                                        'No available tables',
+                                        TranslationKeys.noAvailableTables.tr,
                                         style: TextStyle(
                                           fontSize: 13.0,
                                           color: Colors.grey.shade600,
@@ -1226,7 +1232,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'Cancel',
+                                  TranslationKeys.cancel.tr,
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     fontWeight: FontWeight.w500,
@@ -1273,8 +1279,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Add Discount',
+                  Text(
+                    TranslationKeys.addDiscount.tr,
                     style: TextStyle(
                       fontSize: 21.0,
                       fontWeight: FontWeight.bold,
@@ -1290,7 +1296,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             decimal: true,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Enter Discount Value',
+                            hintText: TranslationKeys.enterDiscountValue.tr,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(
@@ -1372,7 +1378,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   ),
                                 if (discountTypeController.value == 'Fixed')
                                   const SizedBox(width: 8),
-                                const Text('Fixed'),
+                                Text(TranslationKeys.fixed.tr),
                               ],
                             ),
                           ),
@@ -1390,7 +1396,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                   ),
                                 if (discountTypeController.value == 'Percent')
                                   const SizedBox(width: 8),
-                                const Text('Percent'),
+                                Text(TranslationKeys.percent.tr),
                               ],
                             ),
                           ),
@@ -1416,9 +1422,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               color: Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Cancel',
+                                TranslationKeys.cancel.tr,
                                 style: TextStyle(color: Colors.black),
                               ),
                             ),
@@ -1471,9 +1477,9 @@ class CartScreenView extends GetWidget<CartScreenController> {
                               color: ColorConstants.primaryColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Save',
+                                TranslationKeys.save.tr,
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),

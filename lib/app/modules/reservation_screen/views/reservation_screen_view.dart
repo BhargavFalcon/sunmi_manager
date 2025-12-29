@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 
 import '../controllers/reservation_screen_controller.dart';
 
@@ -33,7 +34,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     ),
                     child: Center(
                       child: Text(
-                        "Reservation",
+                        TranslationKeys.reservation.tr,
                         style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
@@ -63,8 +64,8 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                               children: [
                                 const Icon(Icons.add, size: 20),
                                 const SizedBox(width: 6),
-                                const Text(
-                                  "New",
+                                Text(
+                                  TranslationKeys.newReservation.tr,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -155,7 +156,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                             );
                                           }
                                         },
-                                        child: Text(option),
+                                        child: Text(_translateDateOption(option)),
                                       );
                                     }).toList(),
                               ),
@@ -192,9 +193,9 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
-                                              controller
+                                              _translateOrderFilter(controller
                                                   .selectedOrderFilter
-                                                  .value,
+                                                  .value),
                                             ),
                                             const Icon(
                                               Icons.keyboard_arrow_down,
@@ -212,7 +213,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                             () => controller.updateOrderFilter(
                                               option,
                                             ),
-                                        child: Text(option),
+                                        child: Text(_translateOrderFilter(option)),
                                       );
                                     }).toList(),
                               ),
@@ -283,8 +284,8 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: const Text(
-                              "Reservation",
+                            child: Text(
+                              TranslationKeys.reservation.tr,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 18,
@@ -316,7 +317,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                "Select Time Slot",
+                                TranslationKeys.selectTimeSlot.tr,
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 16,
@@ -381,7 +382,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            "Any special request ?",
+                                            TranslationKeys.anySpecialRequest.tr,
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontSize: 16,
@@ -394,7 +395,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       CupertinoTextField(
                                         maxLines: 2,
                                         placeholder:
-                                            "Enter your special request here",
+                                            TranslationKeys.enterYourSpecialRequest.tr,
                                         decoration: BoxDecoration(
                                           color: ColorConstants.bgColor,
                                           borderRadius: BorderRadius.circular(
@@ -432,7 +433,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           Icon(Icons.person_2_rounded),
                                           const SizedBox(width: 8),
                                           Text(
-                                            "Customer Name *",
+                                            "${TranslationKeys.customerName.tr} *",
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontSize: 16,
@@ -443,7 +444,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       ),
                                       const SizedBox(height: 8),
                                       CupertinoTextField(
-                                        placeholder: "Enter name",
+                                        placeholder: TranslationKeys.enterName.tr,
                                         decoration: BoxDecoration(
                                           color: ColorConstants.bgColor,
                                           borderRadius: BorderRadius.circular(
@@ -464,7 +465,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           Icon(Icons.phone_outlined),
                                           const SizedBox(width: 8),
                                           Text(
-                                            "Customer Phone *",
+                                            "${TranslationKeys.customerPhone.tr} *",
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontSize: 16,
@@ -475,7 +476,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       ),
                                       const SizedBox(height: 8),
                                       CupertinoTextField(
-                                        placeholder: "Enter phone number",
+                                        placeholder: TranslationKeys.enterPhoneNumber.tr,
                                         keyboardType: TextInputType.phone,
                                         decoration: BoxDecoration(
                                           color: ColorConstants.bgColor,
@@ -523,7 +524,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                         ),
                                         child: Text(
-                                          "Cancel",
+                                          TranslationKeys.cancel.tr,
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 16,
@@ -542,7 +543,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        "Reserve Now",
+                                        TranslationKeys.reserveNow.tr,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -592,7 +593,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(controller.selectedPerson.value),
+                  Text(_translatePersonOption(controller.selectedPerson.value)),
                   const Icon(Icons.keyboard_arrow_down),
                 ],
               ),
@@ -605,7 +606,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               .map(
                 (option) => MenuItemButton(
                   onPressed: () => controller.selectPerson(option),
-                  child: Text(option),
+                  child: Text(_translatePersonOption(option)),
                 ),
               )
               .toList(),
@@ -687,7 +688,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${item['guests']} Guests',
+                      '${item['guests']} ${TranslationKeys.guests.tr}',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
@@ -723,7 +724,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     ),
                   ),
                   child: Text(
-                    item['status'].toUpperCase(),
+                    _translateStatus(item['status']).toUpperCase(),
                     style: TextStyle(
                       color: controller.getStatusColor(item['status']),
                       fontWeight: FontWeight.w600,
@@ -754,10 +755,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.table_bar_outlined),
                       SizedBox(width: 4),
-                      Text("Assign Table"),
+                      Text(TranslationKeys.assignTable.tr),
                     ],
                   ),
                 ),
@@ -812,7 +813,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                         ),
                         child: Row(
                           children: [
-                            Text(item['status']),
+                            Text(_translateStatus(item['status'])),
                             const SizedBox(width: 4),
                             const Icon(Icons.keyboard_arrow_down),
                           ],
@@ -825,7 +826,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                         return MenuItemButton(
                           onPressed:
                               () => controller.updateStatus(index, status),
-                          child: Text(status),
+                          child: Text(_translateStatus(status)),
                         );
                       }).toList(),
                 ),
@@ -848,5 +849,83 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
         ),
       );
     });
+  }
+
+  String _translateDateOption(String option) {
+    switch (option) {
+      case 'Today':
+        return TranslationKeys.today.tr;
+      case 'Yesterday':
+        return TranslationKeys.yesterday.tr;
+      case 'Last 7 Days':
+        return TranslationKeys.last7Days.tr;
+      case 'Last 30 Days':
+        return TranslationKeys.last30Days.tr;
+      case 'Custom Date':
+        return TranslationKeys.customDate.tr;
+      default:
+        return option;
+    }
+  }
+
+  String _translateOrderFilter(String option) {
+    switch (option) {
+      case 'Pending':
+        return TranslationKeys.pending.tr;
+      case 'Confirmed':
+        return TranslationKeys.confirmed.tr;
+      case 'Cancelled':
+        return TranslationKeys.cancelled.tr;
+      case 'Checked In':
+        return TranslationKeys.checkedIn.tr;
+      case 'No Show':
+        return TranslationKeys.noShow.tr;
+      default:
+        return option;
+    }
+  }
+
+  String _translateStatus(String status) {
+    switch (status) {
+      case 'Pending':
+        return TranslationKeys.pending.tr;
+      case 'Confirmed':
+        return TranslationKeys.confirmed.tr;
+      case 'Cancelled':
+        return TranslationKeys.cancelled.tr;
+      case 'Checked In':
+        return TranslationKeys.checkedIn.tr;
+      case 'No Show':
+        return TranslationKeys.noShow.tr;
+      default:
+        return status;
+    }
+  }
+
+  String _translatePersonOption(String option) {
+    switch (option) {
+      case '1 Person':
+        return TranslationKeys.onePerson.tr;
+      case '2 Persons':
+        return TranslationKeys.twoPersons.tr;
+      case '3 Persons':
+        return TranslationKeys.threePersons.tr;
+      case '4 Persons':
+        return TranslationKeys.fourPersons.tr;
+      case '5 Persons':
+        return TranslationKeys.fivePersons.tr;
+      case '6 Persons':
+        return TranslationKeys.sixPersons.tr;
+      case '7 Persons':
+        return TranslationKeys.sevenPersons.tr;
+      case '8 Persons':
+        return TranslationKeys.eightPersons.tr;
+      case '9 Persons':
+        return TranslationKeys.ninePersons.tr;
+      case '10 Persons':
+        return TranslationKeys.tenPersons.tr;
+      default:
+        return option;
+    }
   }
 }

@@ -13,6 +13,7 @@ import '../../../services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/color_constant.dart';
+import '../../../constants/translation_keys.dart';
 
 class PrinterScreenController extends GetxController {
   late PrinterService printerService;
@@ -56,8 +57,8 @@ class PrinterScreenController extends GetxController {
       if (!bluetoothEnabled) {
         _resetConnection();
         _showSnackbar(
-          'Bluetooth Disabled',
-          'Please enable Bluetooth to use printer features',
+          TranslationKeys.bluetoothDisabled.tr,
+          TranslationKeys.pleaseEnableBluetoothForPrinter.tr,
           Colors.orange,
         );
       } else {
@@ -195,8 +196,8 @@ class PrinterScreenController extends GetxController {
       if (bluetoothEnabled == false) {
         _resetConnection();
         _showSnackbar(
-          'Bluetooth Disabled',
-          'Please enable Bluetooth to scan for printers',
+          TranslationKeys.bluetoothDisabled.tr,
+          TranslationKeys.pleaseEnableBluetoothToScan.tr,
           Colors.orange,
         );
         return;
@@ -226,15 +227,15 @@ class PrinterScreenController extends GetxController {
         await printerService.saveConnectedDevice(device);
         update();
         _showSnackbar(
-          'Success',
-          'Printer connected successfully',
+          TranslationKeys.success.tr,
+          TranslationKeys.printerConnectedSuccessfully.tr,
           Colors.green,
         );
       } else {
-        _showSnackbar('Error', 'Failed to connect to printer', Colors.red);
+        _showSnackbar(TranslationKeys.error.tr, TranslationKeys.failedToConnectPrinter.tr, Colors.red);
       }
     } catch (e) {
-      _showSnackbar('Error', 'Failed to connect to printer', Colors.red);
+      _showSnackbar(TranslationKeys.error.tr, TranslationKeys.failedToConnectPrinter.tr, Colors.red);
     } finally {
       isLoading.value = false;
     }
@@ -316,8 +317,8 @@ class PrinterScreenController extends GetxController {
     // Check if printer is connected
     if (connectedDevice.value == null) {
       _showSnackbar(
-        'Printer Not Connected',
-        'Please connect a printer first',
+        TranslationKeys.printerNotConnected.tr,
+        TranslationKeys.pleaseConnectPrinterFirst.tr,
         Colors.orange,
       );
       return;
@@ -332,8 +333,8 @@ class PrinterScreenController extends GetxController {
         );
         if (!reconnectResult) {
           _showSnackbar(
-            'Connection Failed',
-            'Could not connect to printer.',
+            TranslationKeys.connectionFailed.tr,
+            TranslationKeys.failedToConnectPrinter.tr,
             Colors.red,
           );
           return;
@@ -342,8 +343,8 @@ class PrinterScreenController extends GetxController {
       }
     } catch (e) {
       _showSnackbar(
-        'Connection Error',
-        'Error checking printer connection',
+        TranslationKeys.connectionError.tr,
+        TranslationKeys.errorCheckingConnection.tr,
         Colors.red,
       );
       return;
@@ -441,7 +442,7 @@ class PrinterScreenController extends GetxController {
 
         bytes += generator.row([
           PosColumn(
-            text: 'Qty',
+            text: TranslationKeys.qty.tr,
             width: 2,
             styles: PosStyles(
               align: PosAlign.left,
@@ -452,7 +453,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Item Name',
+            text: TranslationKeys.itemName.tr,
             width: 6,
             styles: PosStyles(
               align: PosAlign.left,
@@ -463,7 +464,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Price',
+            text: TranslationKeys.price.tr,
             width: 2,
             styles: PosStyles(
               align: PosAlign.right,
@@ -474,7 +475,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Amount',
+            text: TranslationKeys.amount.tr,
             width: 2,
             styles: PosStyles(
               align: PosAlign.right,
@@ -672,7 +673,7 @@ class PrinterScreenController extends GetxController {
 
         bytes += generator.row([
           PosColumn(
-            text: 'Total Tax:',
+            text: '${TranslationKeys.totalTax.tr}:',
             width: 8,
             styles: PosStyles(
               align: PosAlign.left,
@@ -695,7 +696,7 @@ class PrinterScreenController extends GetxController {
 
         bytes += generator.row([
           PosColumn(
-            text: 'Balance Returned:',
+            text: '${TranslationKeys.balanceReturned.tr}:',
             width: 8,
             styles: PosStyles(
               align: PosAlign.left,
@@ -721,7 +722,7 @@ class PrinterScreenController extends GetxController {
         // Total (Bold)
         bytes += generator.row([
           PosColumn(
-            text: 'Total:',
+            text: '${TranslationKeys.total.tr}:',
             width: 8,
             styles: PosStyles(
               align: PosAlign.left,
@@ -749,14 +750,14 @@ class PrinterScreenController extends GetxController {
         // Footer - Thank you message
         bytes += _createTextWithEuro(
           generator,
-          'Thank you for your visit!',
+          TranslationKeys.thankYouForVisit.tr,
           align: PosAlign.center,
         );
         bytes += generator.feed(1);
 
         bytes += generator.row([
           PosColumn(
-            text: 'Amount',
+            text: TranslationKeys.amount.tr,
             width: 2,
             styles: PosStyles(
               align: PosAlign.left,
@@ -767,7 +768,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Payment Method',
+            text: TranslationKeys.paymentMethod.tr,
             width: 5,
             styles: PosStyles(
               align: PosAlign.center,
@@ -778,7 +779,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Date & Time',
+            text: TranslationKeys.dateAndTime.tr,
             width: 5,
             styles: PosStyles(
               align: PosAlign.right,
@@ -804,7 +805,7 @@ class PrinterScreenController extends GetxController {
             ),
           ),
           PosColumn(
-            text: 'Cash',
+            text: TranslationKeys.cash.tr,
             width: 3,
             styles: PosStyles(
               align: PosAlign.center,
@@ -833,12 +834,12 @@ class PrinterScreenController extends GetxController {
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
       if (result == true) {
-        _showSnackbar('Print Sent', 'Receipt sent successfully', Colors.green);
+        _showSnackbar(TranslationKeys.printSent.tr, TranslationKeys.receiptSentSuccessfully.tr, Colors.green);
       } else {
-        _showSnackbar('Print Failed', 'Failed to send print data', Colors.red);
+        _showSnackbar(TranslationKeys.printFailed.tr, TranslationKeys.failedToSendPrintData.tr, Colors.red);
       }
     } catch (e) {
-      _showSnackbar('Print Error', 'Error: ${e.toString()}', Colors.red);
+      _showSnackbar(TranslationKeys.printError.tr, '${TranslationKeys.printError.tr}: ${e.toString()}', Colors.red);
     } finally {
       isLoading.value = false;
     }
@@ -866,7 +867,6 @@ class PrinterScreenController extends GetxController {
       }
       return null;
     } catch (e) {
-      print('Error downloading image: $e');
       return null;
     }
   }
@@ -1060,7 +1060,7 @@ class PrinterScreenController extends GetxController {
         await SunmiPrinter.printRow(
           cols: [
             SunmiColumn(
-              text: 'Total Tax:',
+              text: '${TranslationKeys.totalTax.tr}:',
               width: 25,
               style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
             ),
@@ -1074,7 +1074,7 @@ class PrinterScreenController extends GetxController {
         await SunmiPrinter.printRow(
           cols: [
             SunmiColumn(
-              text: 'Balance Returned:',
+              text: '${TranslationKeys.balanceReturned.tr}:',
               width: 25,
               style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
             ),
@@ -1088,7 +1088,7 @@ class PrinterScreenController extends GetxController {
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(4);
         await SunmiPrinter.printText(
-          'Total:                   €18,95',
+          '${TranslationKeys.total.tr}:                   €18,95',
           style: SunmiTextStyle(
             align: SunmiPrintAlign.CENTER,
             fontSize: 25,
@@ -1135,12 +1135,12 @@ class PrinterScreenController extends GetxController {
       }
 
       _showSnackbar(
-        'Print Sent',
-        'Sunmi receipt sent successfully',
+        TranslationKeys.printSent.tr,
+        TranslationKeys.sunmiReceiptSentSuccessfully.tr,
         Colors.green,
       );
     } catch (e) {
-      _showSnackbar('Print Error', 'Error: ${e.toString()}', Colors.red);
+      _showSnackbar(TranslationKeys.printError.tr, '${TranslationKeys.printError.tr}: ${e.toString()}', Colors.red);
     } finally {
       isLoading.value = false;
     }
@@ -1170,13 +1170,13 @@ class PrinterScreenController extends GetxController {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Bluetooth Disabled',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  TranslationKeys.bluetoothDisabled.tr,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Bluetooth is currently disabled. Please enable Bluetooth to use the printer.',
+                Text(
+                  TranslationKeys.pleaseEnableBluetoothForPrinter.tr,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -1200,12 +1200,12 @@ class PrinterScreenController extends GetxController {
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Center(
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(color: Colors.black),
+                            child: Center(
+                              child: Text(
+                                TranslationKeys.cancel.tr,
+                                style: const TextStyle(color: Colors.black),
+                              ),
                             ),
-                          ),
                         ),
                       ),
                     ),
@@ -1246,9 +1246,9 @@ class PrinterScreenController extends GetxController {
                                             ),
                                       ),
                                     )
-                                    : const Text(
-                                      'On Bluetooth',
-                                      style: TextStyle(color: Colors.white),
+                                    : Text(
+                                      TranslationKeys.onBluetooth.tr,
+                                      style: const TextStyle(color: Colors.white),
                                     ),
                           ),
                         ),
@@ -1271,8 +1271,8 @@ class PrinterScreenController extends GetxController {
 
       if (!Platform.isAndroid) {
         _showSnackbar(
-          'Enable Bluetooth',
-          'Please enable Bluetooth from Settings',
+          TranslationKeys.enableBluetooth.tr,
+          TranslationKeys.pleaseEnableBluetoothFromSettings.tr,
           Colors.orange,
         );
         return;
@@ -1289,15 +1289,15 @@ class PrinterScreenController extends GetxController {
         }
       } on PlatformException {
         _showSnackbar(
-          'Error',
-          'Failed to enable Bluetooth. Please enable it manually from device settings.',
+          TranslationKeys.error.tr,
+          TranslationKeys.pleaseEnableBluetoothFromSettings.tr,
           Colors.red,
         );
       }
     } catch (_) {
       _showSnackbar(
-        'Error',
-        'Failed to enable Bluetooth. Please enable it manually from device settings.',
+        TranslationKeys.error.tr,
+        TranslationKeys.pleaseEnableBluetoothFromSettings.tr,
         Colors.red,
       );
     } finally {
@@ -1311,15 +1311,15 @@ class PrinterScreenController extends GetxController {
 
     if (bluetoothEnabled == true) {
       _showSnackbar(
-        'Bluetooth Enabled',
-        'Bluetooth has been enabled successfully',
+        TranslationKeys.bluetoothEnabled.tr,
+        TranslationKeys.bluetoothEnabledSuccessfully.tr,
         Colors.green,
       );
       await Future.delayed(_bluetoothInitDelay);
     } else {
       _showSnackbar(
-        'Bluetooth Enabling',
-        'Bluetooth is being enabled. Please wait...',
+        TranslationKeys.bluetoothEnabling.tr,
+        TranslationKeys.bluetoothEnabling.tr,
         Colors.orange,
       );
     }
@@ -1327,8 +1327,8 @@ class PrinterScreenController extends GetxController {
 
   Future<void> _pollBluetoothStatus() async {
     _showSnackbar(
-      'Enabling Bluetooth',
-      'Please allow Bluetooth in the dialog that appeared',
+      TranslationKeys.enablingBluetooth.tr,
+      TranslationKeys.pleaseAllowBluetoothInDialog.tr,
       Colors.orange,
     );
 
@@ -1344,8 +1344,8 @@ class PrinterScreenController extends GetxController {
 
     if (bluetoothEnabled) {
       _showSnackbar(
-        'Bluetooth Enabled',
-        'Bluetooth has been enabled successfully',
+        TranslationKeys.bluetoothEnabled.tr,
+        TranslationKeys.bluetoothEnabledSuccessfully.tr,
         Colors.green,
       );
       await Future.delayed(_bluetoothInitDelay);

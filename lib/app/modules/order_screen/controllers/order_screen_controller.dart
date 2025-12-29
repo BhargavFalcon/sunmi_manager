@@ -283,23 +283,23 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
-    showCustomDateRangePicker(
-      context,
-      dismissible: true,
-      startDate: startDate.value,
-      endDate: endDate.value,
-      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-      maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
-      backgroundColor: Colors.white,
-      primaryColor: ColorConstants.primaryColor,
-      onApplyClick: (DateTime start, DateTime end) {
-        startDate.value = start;
-        endDate.value = end;
-        selectedMonth.value = 'Custom Date';
-        fetchAllOrders();
-      },
-      onCancelClick: () {},
-    );
+      showCustomDateRangePicker(
+        context,
+        dismissible: true,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+        maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        backgroundColor: Colors.white,
+        primaryColor: ColorConstants.primaryColor,
+        onApplyClick: (DateTime start, DateTime end) {
+          startDate.value = start;
+          endDate.value = end;
+          selectedMonth.value = 'Custom Date';
+          fetchAllOrders();
+        },
+        onCancelClick: () {},
+      );
   }
 
   String formatDate(DateTime date) {

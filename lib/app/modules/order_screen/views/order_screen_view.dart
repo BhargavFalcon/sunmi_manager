@@ -8,6 +8,7 @@ import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../../../constants/image_constants.dart';
+import '../../../constants/translation_keys.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../model/RestaurantDetailsModel.dart';
@@ -50,7 +51,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                       ),
                       child: Center(
                         child: Text(
-                          "All Orders",
+                          TranslationKeys.allOrders.tr,
                           style: TextStyle(fontSize: 20, color: Colors.black),
                         ),
                       ),
@@ -123,8 +124,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                     children: [
                                                       Expanded(
                                                         child: Text(
-                                                          controller
-                                                              .getDropdownDisplayText(),
+                                                          _translateDateOption(
+                                                            controller
+                                                                .getDropdownDisplayText(),
+                                                          ),
                                                           overflow:
                                                               TextOverflow
                                                                   .ellipsis,
@@ -172,7 +175,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                     }
                                                   },
                                                   child: Text(
-                                                    option,
+                                                    _translateDateOption(
+                                                      option,
+                                                    ),
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                     ),
@@ -228,9 +233,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             .spaceBetween,
                                                     children: [
                                                       Text(
-                                                        controller
-                                                            .selectedOrderFilter
-                                                            .value,
+                                                        _translateOrderFilter(
+                                                          controller
+                                                              .selectedOrderFilter
+                                                              .value,
+                                                        ),
                                                         style: const TextStyle(
                                                           fontSize: 12,
                                                           fontWeight:
@@ -257,7 +264,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                               option,
                                                             ),
                                                     child: Text(
-                                                      option,
+                                                      _translateOrderFilter(
+                                                        option,
+                                                      ),
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                       ),
@@ -296,7 +305,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                             children: [
                                               _buildOrderTypeButton(
                                                 icon: ImageConstant.allOrders,
-                                                label: 'All Orders',
+                                                label:
+                                                    TranslationKeys
+                                                        .allOrders
+                                                        .tr,
                                                 isSelected:
                                                     selectedType ==
                                                     'All Orders',
@@ -308,7 +320,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                               ),
                                               _buildOrderTypeButton(
                                                 icon: ImageConstant.dinein,
-                                                label: 'Dine In',
+                                                label:
+                                                    TranslationKeys.dineIn.tr,
                                                 isSelected:
                                                     selectedType == 'Dine In',
                                                 onTap:
@@ -319,7 +332,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                               ),
                                               _buildOrderTypeButton(
                                                 icon: ImageConstant.pickup,
-                                                label: 'Pickup',
+                                                label:
+                                                    TranslationKeys.pickup.tr,
                                                 isSelected:
                                                     selectedType == 'Pickup',
                                                 onTap:
@@ -330,7 +344,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                               ),
                                               _buildOrderTypeButton(
                                                 icon: ImageConstant.delivery,
-                                                label: 'Delivery',
+                                                label:
+                                                    TranslationKeys.delivery.tr,
                                                 isSelected:
                                                     selectedType == 'Delivery',
                                                 onTap:
@@ -409,11 +424,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
       color: ColorConstants.primaryColor,
       child: Obx(() {
         if (controller.allOrders.isEmpty && !controller.isLoading.value) {
-          return const SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
               height: 400,
-              child: Center(child: Text('No orders found')),
+              child: Center(child: Text(TranslationKeys.noOrdersFound.tr)),
             ),
           );
         }
@@ -467,6 +482,50 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
+  String _translateDateOption(String option) {
+    switch (option) {
+      case 'Today':
+        return TranslationKeys.today.tr;
+      case 'Current Week':
+        return TranslationKeys.currentWeek.tr;
+      case 'Last Week':
+        return TranslationKeys.lastWeek.tr;
+      case 'Last 7 Days':
+        return TranslationKeys.last7Days.tr;
+      case 'Current Month':
+        return TranslationKeys.currentMonth.tr;
+      case 'Last Month':
+        return TranslationKeys.lastMonth.tr;
+      case 'Current Year':
+        return TranslationKeys.currentYear.tr;
+      case 'Last Year':
+        return TranslationKeys.lastYear.tr;
+      case 'Custom Date':
+        return TranslationKeys.customDate.tr;
+      default:
+        return option;
+    }
+  }
+
+  String _translateOrderFilter(String option) {
+    switch (option) {
+      case 'All Orders':
+        return TranslationKeys.allOrders.tr;
+      case 'Kitchen':
+        return TranslationKeys.kitchenStatus.tr;
+      case 'Billed':
+        return TranslationKeys.billedStatus.tr;
+      case 'Paid':
+        return TranslationKeys.paidStatus.tr;
+      case 'Canceled':
+        return TranslationKeys.canceledStatus.tr;
+      case 'Payment Due':
+        return TranslationKeys.paymentDueStatus.tr;
+      default:
+        return option;
+    }
+  }
+
   static Future<void> showOrderBottomSheet(
     BuildContext context,
     OrderScreenController controller,
@@ -474,7 +533,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
   ) async {
     final orderUuid = order.uuid;
     if (orderUuid == null || orderUuid.isEmpty) {
-      safeGetSnackbar('Error', 'Order UUID not found');
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.orderUuidNotFound.tr,
+      );
       return;
     }
 
@@ -588,9 +650,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.grey),
           const SizedBox(height: 16),
-          const Text(
-            'Failed to load order details',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+          Text(
+            TranslationKeys.failedToLoadOrderDetails.tr,
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           InkWell(
@@ -601,9 +663,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 color: ColorConstants.primaryColor,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'Close',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+              child: Text(
+                TranslationKeys.close.tr,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ),
@@ -630,7 +692,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Order #${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
+                    '${TranslationKeys.orderNumber.tr}${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -659,10 +721,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: ColorConstants.getShadow2,
                       ),
-                      child: const Text(
-                        'Close',
+                      child: Text(
+                        TranslationKeys.close.tr,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -691,10 +753,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             size: 18,
                           ),
                           const SizedBox(width: 6),
-                          const Text(
-                            'Print',
+                          Text(
+                            TranslationKeys.print.tr,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -720,13 +782,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
     switch (orderType.toLowerCase()) {
       case 'dine_in':
-        return 'Dine In';
+        return TranslationKeys.dineIn.tr;
       case 'pickup':
-        return 'Pickup';
+        return TranslationKeys.pickup.tr;
       case 'delivery':
-        return 'Delivery';
+        return TranslationKeys.delivery.tr;
       default:
-        return 'N/A';
+        return TranslationKeys.na.tr;
     }
   }
 
@@ -742,10 +804,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
-            'No items found',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            TranslationKeys.noItemsFound.tr,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
         ),
       );
@@ -775,35 +837,35 @@ class OrderScreenView extends GetView<OrderScreenController> {
               Padding(
                 padding: EdgeInsets.all(6),
                 child: Text(
-                  'NO.',
+                  TranslationKeys.noHeader.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(6),
                 child: Text(
-                  'ITEM NAMES',
+                  TranslationKeys.itemNames.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(6),
                 child: Text(
-                  'QTY',
+                  TranslationKeys.qty.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(6),
                 child: Text(
-                  'PRICE',
+                  TranslationKeys.priceHeader.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(6),
                 child: Text(
-                  'AMOUNT',
+                  TranslationKeys.amountHeader.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
@@ -943,14 +1005,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Items${itemsCount > 0 ? ' ($itemsCount)' : ''}',
+            '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 8),
 
           if (totals?.subTotal != null)
             _buildPriceRow(
-              'Sub Total:',
+              '${TranslationKeys.subTotal.tr}:',
               CurrencyFormatter.formatPrice(totals!.subTotal.toString()),
             ),
 
@@ -964,7 +1026,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             if (discountValue <= 0) return <Widget>[];
             return [
               _buildPriceRow(
-                'Discount:',
+                '${TranslationKeys.discount.tr}:',
                 '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
               ),
             ];
@@ -979,7 +1041,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           0.0;
               if (chargeAmount <= 0) return const SizedBox.shrink();
               return _buildPriceRow(
-                charge.chargeName ?? 'Charge',
+                charge.chargeName ?? TranslationKeys.charge.tr,
                 CurrencyFormatter.formatPrice(chargeAmount.toString()),
               );
             }),
@@ -996,11 +1058,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 taxAmount.toString(),
               );
               final percent = tax.percent?.toString() ?? '';
-              final taxSuffix = isTaxIncluded ? ' incl.:' : ':';
+              final taxSuffix =
+                  isTaxIncluded ? ' ${TranslationKeys.incl.tr}:' : ':';
               final taxLabel =
                   percent.isNotEmpty
-                      ? '${tax.taxName ?? 'Tax'} (${percent}%)$taxSuffix'
-                      : '${tax.taxName ?? 'Tax'}$taxSuffix';
+                      ? '${tax.taxName ?? TranslationKeys.tax.tr} (${percent}%)$taxSuffix'
+                      : '${tax.taxName ?? TranslationKeys.tax.tr}$taxSuffix';
               return _buildPriceRow(taxLabel, formattedAmount);
             }),
 
@@ -1013,7 +1076,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             if (!_isValidAmount(tipAmountStr)) return <Widget>[];
             return [
               _buildPriceRow(
-                'Tip:',
+                '${TranslationKeys.tip.tr}:',
                 CurrencyFormatter.formatPrice(tipAmountStr),
               ),
             ];
@@ -1026,7 +1089,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
           if (totals?.total != null)
             _buildPriceRow(
-              'Total:',
+              '${TranslationKeys.total.tr}:',
               CurrencyFormatter.formatPrice(totals!.total.toString()),
               isBold: true,
               valueColor: Colors.red,
@@ -1059,20 +1122,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
             children: [
               Icon(Icons.person, size: 20, color: ColorConstants.primaryColor),
               const SizedBox(width: 8),
-              const Text(
-                'Customer Details',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              Text(
+                TranslationKeys.customerDetails.tr,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           if (customer.name != null && customer.name!.isNotEmpty)
-            _buildDetailRow('Name', customer.name!),
+            _buildDetailRow(TranslationKeys.name.tr, customer.name!),
           if (customer.email != null && customer.email!.isNotEmpty)
-            _buildDetailRow('Email', customer.email!),
+            _buildDetailRow(TranslationKeys.email.tr, customer.email!),
           if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
             _buildDetailRow(
-              'Phone',
+              TranslationKeys.phone.tr,
               '${customer.phoneCode ?? ''}${customer.phoneNumber}',
             ),
         ],
@@ -1137,7 +1203,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
   void _printInvoice(orderDetailsModel.Data orderData) {
     final invoiceData = orderData.invoice;
     if (invoiceData == null) {
-      safeGetSnackbar('Error', 'Invoice data not found');
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.invoiceDataNotFound.tr,
+      );
       return;
     }
 
@@ -1222,7 +1291,7 @@ class OrderCard extends StatelessWidget {
 
     final customerName = order.customer?.name ?? '';
 
-    final status = order.status ?? 'PAID';
+    final status = order.status ?? TranslationKeys.paidStatus.tr;
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
@@ -1288,7 +1357,7 @@ class OrderCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "Order #$orderNumber",
+                        "${TranslationKeys.orderNumber.tr}$orderNumber",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -1322,7 +1391,7 @@ class OrderCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "$itemsCount Item(s)",
+                  "$itemsCount ${TranslationKeys.itemsPlural.tr}",
                   style: TextStyle(color: ColorConstants.grey600, fontSize: 13),
                 ),
               ],
@@ -1359,18 +1428,18 @@ class OrderCard extends StatelessWidget {
   String _formatStatusText(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
-        return 'PAID';
+        return TranslationKeys.paidStatus.tr;
       case 'billed':
-        return 'BILLED';
+        return TranslationKeys.billedStatus.tr;
       case 'canceled':
       case 'cancelled':
-        return 'CANCELED';
+        return TranslationKeys.canceledStatus.tr;
       case 'payment_due':
-        return 'PAYMENT DUE';
+        return TranslationKeys.paymentDueStatus.tr;
       case 'kot':
-        return 'KITCHEN';
+        return TranslationKeys.kitchenStatus.tr;
       case 'pending_verification':
-        return 'PENDING VERIFICATION';
+        return TranslationKeys.pendingVerificationStatus.tr;
       default:
         return status.toUpperCase();
     }

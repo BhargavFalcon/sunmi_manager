@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
 import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
@@ -58,7 +59,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         ),
                         child: Center(
                           child: Text(
-                            "Take Order",
+                            TranslationKeys.takeOrder.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(16),
                               color: Colors.black,
@@ -158,7 +159,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             .toList();
 
                     if (visibleCategories.isEmpty) {
-                      return const Center(child: Text('No items found'));
+                      return Center(
+                        child: Text(TranslationKeys.noItemsFound.tr),
+                      );
                     }
 
                     return Obx(() {
@@ -241,7 +244,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  'Clear',
+                                  TranslationKeys.clearCart.tr.replaceAll(
+                                    '?',
+                                    '',
+                                  ),
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(14),
                                     fontWeight: FontWeight.w500,
@@ -338,7 +344,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     Expanded(
                       child: _buildOrderTypeButton(
                         icon: ImageConstant.pickup,
-                        label: 'Pickup',
+                        label: TranslationKeys.pickup.tr,
                         isSelected: selectedType == 'Pickup',
                         onTap: () => controller.updateOrderType('Pickup'),
                       ),
@@ -346,7 +352,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     Expanded(
                       child: _buildOrderTypeButton(
                         icon: ImageConstant.delivery,
-                        label: 'Delivery',
+                        label: TranslationKeys.delivery.tr,
                         isSelected: selectedType == 'Delivery',
                         onTap: () => controller.updateOrderType('Delivery'),
                       ),
@@ -408,7 +414,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
-              placeholder: "Search your menu item here",
+              placeholder: TranslationKeys.searchMenuItems.tr,
               prefix: const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Icon(Icons.search),
@@ -716,11 +722,14 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
   }) {
     if (controller == null) return;
 
-    final title = shouldExit ? 'Cancel Order?' : 'Clear Cart?';
+    final title =
+        shouldExit
+            ? TranslationKeys.cancelOrder.tr
+            : TranslationKeys.clearCart.tr;
     final message =
         shouldExit
-            ? 'Are you sure you want to exit? This will clear the cart and remove all orders.'
-            : 'Are you sure you want to clear the cart? This will remove all items.';
+            ? TranslationKeys.areYouSureExit.tr
+            : TranslationKeys.areYouSureClearCart.tr;
 
     showDialog(
       context: context,
@@ -770,7 +779,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           ),
                           child: Center(
                             child: Text(
-                              'Close',
+                              TranslationKeys.close.tr,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: MySize.getHeight(12),
@@ -802,7 +811,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                           ),
                           child: Center(
                             child: Text(
-                              'Clear',
+                              TranslationKeys.clearCart.tr.replaceAll('?', ''),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: MySize.getHeight(12),

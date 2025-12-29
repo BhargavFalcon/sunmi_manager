@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
@@ -38,7 +39,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                       ),
                       child: Center(
                         child: Text(
-                          "Dine In",
+                          TranslationKeys.dineIn.tr,
                           style: TextStyle(
                             fontSize: MySize.getHeight(20),
                             color: Colors.black,
@@ -185,7 +186,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                       ),
                                       SizedBox(width: 6),
                                       Text(
-                                        'Available',
+                                        TranslationKeys.available.tr,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,
@@ -208,7 +209,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                       ),
                                       SizedBox(width: 6),
                                       Text(
-                                        'Running',
+                                        TranslationKeys.running.tr,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,

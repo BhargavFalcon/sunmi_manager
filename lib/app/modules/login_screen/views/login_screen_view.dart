@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 
 import '../controllers/login_screen_controller.dart';
 
@@ -43,7 +44,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                             style: TextStyle(fontSize: 25, color: Colors.black),
                             children: [
                               TextSpan(
-                                text: 'Dine',
+                                text: TranslationKeys.dine.tr,
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               TextSpan(text: 'metrics'),
@@ -67,7 +68,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          "Login",
+                          TranslationKeys.login.tr,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -80,7 +81,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         ),
                         SizedBox(height: MySize.getHeight(2)),
                         Text(
-                          "Welcome back! Please enter your details.",
+                          TranslationKeys.welcomeBack.tr,
                           style: TextStyle(
                             fontSize: 14,
                             color: ColorConstants.grey600,
@@ -88,7 +89,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         ),
                         SizedBox(height: MySize.getHeight(10)),
                         Text(
-                          "Enter your email or username",
+                          TranslationKeys.enterEmailOrUsername.tr,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.black,
@@ -99,7 +100,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         CupertinoTextField(
                           controller: controller.emailController,
                           padding: const EdgeInsets.all(12),
-                          placeholder: "Email or Username",
+                          placeholder: TranslationKeys.emailOrUsername.tr,
                           placeholderStyle: TextStyle(
                             color: ColorConstants.grey600,
                             fontSize: 14,
@@ -116,7 +117,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         ),
                         SizedBox(height: MySize.getHeight(15)),
                         Text(
-                          "Enter your password",
+                          TranslationKeys.enterPassword.tr,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.black,
@@ -136,7 +137,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                   bottom: 12,
                                   right: 45,
                                 ),
-                                placeholder: "Password",
+                                placeholder: TranslationKeys.password.tr,
                                 placeholderStyle: TextStyle(
                                   color: ColorConstants.grey600,
                                   fontSize: 14,
@@ -214,7 +215,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                           ),
                                         )
                                         : Text(
-                                          "Login",
+                                          TranslationKeys.login.tr,
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: Colors.white,

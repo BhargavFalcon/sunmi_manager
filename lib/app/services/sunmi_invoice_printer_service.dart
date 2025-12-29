@@ -29,7 +29,6 @@ class SunmiInvoicePrinterService {
       }
       return null;
     } catch (e) {
-      print('Error downloading image: $e');
       return null;
     }
   }
@@ -117,7 +116,6 @@ class SunmiInvoicePrinterService {
           int.parse(timeParts[1]),
         );
       } catch (e2) {
-        print('Error parsing date: $dateTimeString - $e2');
         return null;
       }
     }
@@ -192,7 +190,6 @@ class SunmiInvoicePrinterService {
   Future<void> printInvoice(InvoiceModel invoiceModel, {int copies = 1}) async {
     try {
       if (invoiceModel.invoice == null) {
-        print('Error: Invoice data not found');
         return;
       }
 
@@ -202,7 +199,6 @@ class SunmiInvoicePrinterService {
       final order = invoice.order;
 
       if (order == null) {
-        print('Error: Order data not found');
         return;
       }
 
@@ -526,7 +522,6 @@ class SunmiInvoicePrinterService {
         await SunmiPrinter.cutPaper();
       }
     } catch (e) {
-      print('Error printing invoice: $e');
       rethrow;
     }
   }

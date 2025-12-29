@@ -9,6 +9,7 @@ import 'package:managerapp/app/modules/take_order_screen/views/take_order_view.d
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/translation_keys.dart';
 import '../controllers/main_home_screen_controller.dart';
 
 class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
@@ -80,9 +81,9 @@ class _CustomBottomNavBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // _NavBarItem(
                   //   icon: ImageConstant.dashboard,
@@ -92,31 +93,31 @@ class _CustomBottomNavBar extends StatelessWidget {
                   // ),
                   _NavBarItem(
                     icon: ImageConstant.order,
-                    label: "All Orders",
+                    label: TranslationKeys.allOrders.tr,
                     isSelected: selectedIndex == 0,
                     onTap: () => onTabChange(0),
                   ),
                   _NavBarItem(
                     icon: ImageConstant.table,
-                    label: "Dine In",
+                    label: TranslationKeys.dineIn.tr,
                     isSelected: selectedIndex == 1,
                     onTap: () => onTabChange(1),
                   ),
                   _NavBarItem(
                     icon: ImageConstant.takeOrder,
-                    label: "Take Order",
+                    label: TranslationKeys.takeOrder.tr,
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),
                   _NavBarItem(
                     icon: ImageConstant.tableReservation,
-                    label: "Reservation",
+                    label: TranslationKeys.reservation.tr,
                     isSelected: selectedIndex == 3,
                     onTap: () => onTabChange(3),
                   ),
                   _NavBarItem(
                     icon: ImageConstant.setting,
-                    label: "Settings",
+                    label: TranslationKeys.settings.tr,
                     isSelected: selectedIndex == 4,
                     onTap: () => onTabChange(4),
                   ),
@@ -216,7 +217,8 @@ class _NavBarItemState extends State<_NavBarItem>
           hoverColor: Colors.transparent,
           focusColor: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            constraints: const BoxConstraints(minWidth: 0),
             decoration: BoxDecoration(
               color: ColorConstants.primaryColor.withValues(
                 alpha: 0.1 * _backgroundAnimation.value,
@@ -231,6 +233,7 @@ class _NavBarItemState extends State<_NavBarItem>
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ScaleTransition(
                   scale: _scaleAnimation,
@@ -244,21 +247,22 @@ class _NavBarItemState extends State<_NavBarItem>
                     ),
                   ),
                 ),
-                SizeTransition(
-                  axis: Axis.horizontal,
-                  sizeFactor: _fadeAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Text(
-                      widget.label,
-                      style: TextStyle(
-                        fontSize: MySize.getHeight(12),
-                        color: ColorConstants.primaryColor,
-                        fontWeight: FontWeight.bold,
+                if (_fadeAnimation.value > 0)
+                  SizeTransition(
+                    axis: Axis.horizontal,
+                    sizeFactor: _fadeAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Text(
+                        widget.label,
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(12),
+                          color: ColorConstants.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

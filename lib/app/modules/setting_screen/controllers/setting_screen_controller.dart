@@ -5,8 +5,10 @@ import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
+import '../../../utils/language_utils.dart';
 import '../../../routes/app_pages.dart';
 
 class SettingScreenController extends GetxController {
@@ -30,8 +32,7 @@ class SettingScreenController extends GetxController {
     beepSoundEnabled.value = box.read(ArgumentConstant.beepSoundKey) ?? true;
     newShopOrderNotificationsEnabled.value =
         box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
-    selectedLanguage.value =
-        box.read(ArgumentConstant.selectedLanguageKey) ?? 'en';
+    selectedLanguage.value = LanguageUtils.getLanguage();
   }
 
   void toggleHapticFeedback() {
@@ -57,7 +58,9 @@ class SettingScreenController extends GetxController {
   }
 
   void changeLanguage(String languageCode) {
-    // Language functionality disabled
+    selectedLanguage.value = languageCode;
+    box.write(ArgumentConstant.selectedLanguageKey, languageCode);
+    LanguageUtils.updateLocale(languageCode);
   }
 
   Future<void> syncMenu() async {
@@ -68,50 +71,51 @@ class SettingScreenController extends GetxController {
         ArgumentConstant.menuItemsEndpoint,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data != null && response.data is Map<String, dynamic>) {
-          try {
-            final itemMenu = ItemMenu.fromJson(
-              response.data as Map<String, dynamic>,
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map<String, dynamic>) {
+        try {
+          final itemMenu = ItemMenu.fromJson(
+            response.data as Map<String, dynamic>,
+          );
+
+          final items = itemMenu.data?.items;
+          if (items != null && items.isNotEmpty) {
+            final itemsJson = items.map((item) => item.toJson()).toList();
+            box.write(ArgumentConstant.menuItemsKey, json.encode(itemsJson));
+
+            isSyncingMenu.value = false;
+            safeGetSnackbar(
+              TranslationKeys.success.tr,
+              TranslationKeys.menuSyncedSuccessfully.tr,
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
             );
-
-            if (itemMenu.data?.items != null &&
-                itemMenu.data!.items!.isNotEmpty) {
-              final List<Map<String, dynamic>> itemsJson =
-                  itemMenu.data!.items!.map((item) => item.toJson()).toList();
-              final jsonString = json.encode(itemsJson);
-              box.write(ArgumentConstant.menuItemsKey, jsonString);
-
-              isSyncingMenu.value = false;
-              safeGetSnackbar(
-                'Success',
-                'Menu synced successfully',
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-              );
-              return;
-            }
-          } catch (e) {
-            print('Error parsing menu items: $e');
+            return;
           }
+        } catch (e) {
+          // Parse error, continue to show error message
         }
       }
 
       isSyncingMenu.value = false;
       safeGetSnackbar(
-        'Error',
-        'Failed to sync menu',
+        TranslationKeys.error.tr,
+        TranslationKeys.failedToSyncMenu.tr,
         snackPosition: SnackPosition.TOP,
       );
     } on ApiException catch (e) {
       isSyncingMenu.value = false;
-      safeGetSnackbar('Error', e.message, snackPosition: SnackPosition.TOP);
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        e.message,
+        snackPosition: SnackPosition.TOP,
+      );
     } catch (e) {
       isSyncingMenu.value = false;
       safeGetSnackbar(
-        'Error',
-        'Failed to sync menu',
+        TranslationKeys.error.tr,
+        TranslationKeys.failedToSyncMenu.tr,
         snackPosition: SnackPosition.TOP,
       );
     }
@@ -120,28 +124,25 @@ class SettingScreenController extends GetxController {
   Future<void> logout() async {
     try {
       isLoading.value = true;
-
-      final response = await networkClient.post(
-        ArgumentConstant.logoutEndpoint,
-      );
-
-      isLoading.value = false;
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        networkClient.removeAuthToken();
-        box.remove(ArgumentConstant.loginModelKey);
-        box.remove(ArgumentConstant.menuItemsKey);
-        Get.offAllNamed(Routes.LOGIN_SCREEN);
-      }
+      await networkClient.post(ArgumentConstant.logoutEndpoint);
+      _clearUserData();
     } on ApiException catch (e) {
       isLoading.value = false;
-      safeGetSnackbar('Error', e.message, snackPosition: SnackPosition.TOP);
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        e.message,
+        snackPosition: SnackPosition.TOP,
+      );
     } catch (e) {
       isLoading.value = false;
-      networkClient.removeAuthToken();
-      box.remove(ArgumentConstant.loginModelKey);
-      box.remove(ArgumentConstant.menuItemsKey);
-      Get.offAllNamed(Routes.LOGIN_SCREEN);
+      _clearUserData();
     }
+  }
+
+  void _clearUserData() {
+    networkClient.removeAuthToken();
+    box.remove(ArgumentConstant.loginModelKey);
+    box.remove(ArgumentConstant.menuItemsKey);
+    Get.offAllNamed(Routes.LOGIN_SCREEN);
   }
 }

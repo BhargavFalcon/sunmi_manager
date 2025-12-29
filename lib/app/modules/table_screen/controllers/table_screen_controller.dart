@@ -46,8 +46,6 @@ class TableScreenController extends GetxController {
         horizontalScrollController.jumpTo(0);
       }
     } catch (e) {
-      // Controller might be disposed, ignore
-      print('Error resetting scroll: $e');
     }
   }
 
@@ -83,7 +81,6 @@ class TableScreenController extends GetxController {
         }
       }
     } catch (e) {
-      print('Error fetching tables: $e');
     } finally {
       isLoading.value = false;
       _isFetching = false;

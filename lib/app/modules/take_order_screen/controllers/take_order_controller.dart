@@ -9,6 +9,7 @@ import '../../../constants/api_constants.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/tableModel.dart';
@@ -21,7 +22,7 @@ class TakeOrderController extends GetxController {
   final isLoading = false.obs;
   final RxList<Items> menuItems = <Items>[].obs;
 
-  RxString selectedOrderType = 'Pickup'.obs;
+  RxString selectedOrderType = 'Delivery'.obs;
   TextEditingController searchController = TextEditingController();
   ScrollController categoryScrollController = ScrollController();
   ScrollController stickyCategoryScrollController = ScrollController();
@@ -156,7 +157,7 @@ class TakeOrderController extends GetxController {
     categoryIndexMap.clear();
 
     for (Items item in menuItems) {
-      final categoryName = item.category?.categoryName ?? 'Uncategorized';
+      final categoryName = item.category?.categoryName ?? TranslationKeys.uncategorized.tr;
       final amountString = item.pickupPrice ?? item.deliveryPrice ?? '0';
       final itemData = {
         'product_name': item.itemName ?? '',
@@ -540,7 +541,7 @@ class TakeOrderController extends GetxController {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Item Variations',
+                    TranslationKeys.itemVariations.tr,
                     style: TextStyle(
                       fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
@@ -578,7 +579,7 @@ class TakeOrderController extends GetxController {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    item.itemName ?? 'Item',
+                                    item.itemName ?? TranslationKeys.item.tr,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -621,7 +622,7 @@ class TakeOrderController extends GetxController {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'ITEM NAME',
+                            TranslationKeys.itemName.tr.toUpperCase(),
                             style: TextStyle(
                               fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
@@ -633,7 +634,7 @@ class TakeOrderController extends GetxController {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            'PRICE',
+                            TranslationKeys.priceHeader.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
@@ -645,7 +646,7 @@ class TakeOrderController extends GetxController {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            'ACTION',
+                            TranslationKeys.action.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(10),
                               fontWeight: FontWeight.bold,
@@ -695,7 +696,7 @@ class TakeOrderController extends GetxController {
                           Expanded(
                             flex: 2,
                             child: Text(
-                              variation.variation ?? 'Variation',
+                              variation.variation ?? TranslationKeys.variation.tr,
                               style: TextStyle(
                                 fontSize: MySize.getHeight(12),
                                 fontWeight: FontWeight.w600,
@@ -803,7 +804,7 @@ class TakeOrderController extends GetxController {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Close',
+                            TranslationKeys.close.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w600,
@@ -860,7 +861,7 @@ class TakeOrderController extends GetxController {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Item Extras',
+                    TranslationKeys.itemExtras.tr,
                     style: TextStyle(
                       fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
@@ -898,7 +899,7 @@ class TakeOrderController extends GetxController {
                       SizedBox(width: MySize.getWidth(8)),
                       Expanded(
                         child: Text(
-                          item.itemName ?? 'Item',
+                          item.itemName ?? TranslationKeys.item.tr,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -944,7 +945,7 @@ class TakeOrderController extends GetxController {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            modifierGroup.name ?? 'Section',
+                                            modifierGroup.name ?? TranslationKeys.section.tr,
                                             style: TextStyle(
                                               fontSize: MySize.getHeight(14),
                                               fontWeight: FontWeight.bold,
@@ -1003,7 +1004,7 @@ class TakeOrderController extends GetxController {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        'OPTION NAME',
+                                        TranslationKeys.optionName.tr,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(10),
                                           fontWeight: FontWeight.bold,
@@ -1015,7 +1016,7 @@ class TakeOrderController extends GetxController {
                                     Expanded(
                                       flex: 1,
                                       child: Text(
-                                        'PRICE',
+                                        TranslationKeys.priceHeader.tr,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(10),
@@ -1028,7 +1029,7 @@ class TakeOrderController extends GetxController {
                                     Expanded(
                                       flex: 1,
                                       child: Text(
-                                        'SELECT',
+                                        TranslationKeys.select.tr.toUpperCase(),
                                         textAlign: TextAlign.right,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(10),
@@ -1066,7 +1067,7 @@ class TakeOrderController extends GetxController {
                                       Expanded(
                                         flex: 2,
                                         child: Text(
-                                          option.name ?? 'Option',
+                                          option.name ?? TranslationKeys.option.tr,
                                           style: TextStyle(
                                             fontSize: MySize.getHeight(12),
                                             fontWeight: FontWeight.w500,
@@ -1252,7 +1253,7 @@ class TakeOrderController extends GetxController {
                                     SizedBox(width: MySize.getWidth(8)),
                                     Expanded(
                                       child: Text(
-                                        'Please choose at least one option to continue.',
+                                        TranslationKeys.pleaseChooseAtLeastOneOption.tr,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(12),
                                           color: Colors.red,
@@ -1294,7 +1295,7 @@ class TakeOrderController extends GetxController {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Close',
+                            TranslationKeys.close.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(14),
                               fontWeight: FontWeight.w600,
@@ -1382,7 +1383,7 @@ class TakeOrderController extends GetxController {
                             elevation: 0,
                           ),
                           child: Text(
-                            'Save',
+                            TranslationKeys.save.tr,
                             style: TextStyle(
                               fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w600,

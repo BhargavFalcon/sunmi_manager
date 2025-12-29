@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
 import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
@@ -39,8 +40,8 @@ class LoginScreenController extends GetxController {
   Future<void> login() async {
     if (emailController.text.trim().isEmpty) {
       safeGetSnackbar(
-        'Error',
-        'Please enter your email',
+        TranslationKeys.error.tr,
+        TranslationKeys.pleaseEnterEmail.tr,
         snackPosition: SnackPosition.TOP,
       );
       return;
@@ -48,8 +49,8 @@ class LoginScreenController extends GetxController {
 
     if (passwordController.text.trim().isEmpty) {
       safeGetSnackbar(
-        'Error',
-        'Please enter your password',
+        TranslationKeys.error.tr,
+        TranslationKeys.pleaseEnterPassword.tr,
         snackPosition: SnackPosition.TOP,
       );
       return;
@@ -94,41 +95,41 @@ class LoginScreenController extends GetxController {
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
                 safeGetSnackbar(
-                  'Error',
-                  'Failed to save authentication token',
+                  TranslationKeys.error.tr,
+                  TranslationKeys.failedToSaveAuthToken.tr,
                   snackPosition: SnackPosition.TOP,
                 );
               }
             } else {
               safeGetSnackbar(
-                'Error',
-                'Token not found in response',
+                TranslationKeys.error.tr,
+                TranslationKeys.tokenNotFound.tr,
                 snackPosition: SnackPosition.TOP,
               );
             }
           } catch (e) {
             safeGetSnackbar(
-              'Error',
-              'Failed to parse login response: ${e.toString()}',
+              TranslationKeys.error.tr,
+              TranslationKeys.failedToParseLoginResponse.tr,
               snackPosition: SnackPosition.TOP,
             );
           }
         } else {
           safeGetSnackbar(
-            'Error',
-            'Invalid response format',
+            TranslationKeys.error.tr,
+            TranslationKeys.invalidResponseFormat.tr,
             snackPosition: SnackPosition.TOP,
           );
         }
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      safeGetSnackbar('Error', e.message, snackPosition: SnackPosition.TOP);
+      safeGetSnackbar(TranslationKeys.error.tr, e.message, snackPosition: SnackPosition.TOP);
     } catch (e) {
       isLoading.value = false;
       safeGetSnackbar(
-        'Error',
-        'Something went wrong. Please try again.',
+        TranslationKeys.error.tr,
+        TranslationKeys.somethingWentWrong.tr,
         snackPosition: SnackPosition.TOP,
       );
     }
@@ -157,13 +158,10 @@ class LoginScreenController extends GetxController {
               restaurantModel.toJson(),
             );
           } catch (e) {
-            print('Error parsing restaurant details: ${e.toString()}');
           }
         }
       }
     } catch (e) {
-      print('Error fetching restaurant details: ${e.toString()}');
-      // Don't show error to user, just log it
     }
   }
 }

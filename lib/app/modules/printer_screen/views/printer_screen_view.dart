@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import '../controllers/printer_screen_controller.dart';
 
 class PrinterScreenView extends GetWidget<PrinterScreenController> {
@@ -30,7 +31,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                     ),
                     child: Center(
                       child: Text(
-                        "Printer",
+                        TranslationKeys.printerSettings.tr,
                         style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
@@ -83,7 +84,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                         ? null
                                         : () => controller.printTestReceipt(),
                                 icon: Icon(Icons.print),
-                                label: Text('Test Print'),
+                                label: Text(TranslationKeys.testPrint.tr),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: ColorConstants.primaryColor,
                                   foregroundColor: Colors.white,
@@ -105,7 +106,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                         : () =>
                                             controller.printSunmiTestReceipt(),
                                 icon: Icon(Icons.print),
-                                label: Text('Sunmi Test Print'),
+                                label: Text(TranslationKeys.sunmiTestPrint.tr),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.orange,
                                   foregroundColor: Colors.white,
@@ -150,7 +151,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'Connected Printer',
+                                                  TranslationKeys.connectedPrinter.tr,
                                                   style: TextStyle(
                                                     fontSize: 14,
                                                     color: Colors.grey,
@@ -191,16 +192,16 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                               Get.dialog(
                                                 AlertDialog(
                                                   title: Text(
-                                                    'Disconnect Printer',
+                                                    TranslationKeys.disconnectPrinter.tr,
                                                   ),
                                                   content: Text(
-                                                    'Are you sure you want to disconnect?',
+                                                    TranslationKeys.areYouSureDisconnect.tr,
                                                   ),
                                                   actions: [
                                                     TextButton(
                                                       onPressed:
                                                           () => Get.back(),
-                                                      child: Text('Cancel'),
+                                                      child: Text(TranslationKeys.cancel.tr),
                                                     ),
                                                     TextButton(
                                                       onPressed: () {
@@ -209,7 +210,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                                             .disconnectDevice();
                                                       },
                                                       child: Text(
-                                                        'Disconnect',
+                                                        TranslationKeys.disconnect.tr,
                                                         style: TextStyle(
                                                           color: Colors.red,
                                                         ),
@@ -244,7 +245,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                'Printer Settings',
+                                TranslationKeys.printerSettings.tr,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -284,7 +285,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Number of copies',
+                                    TranslationKeys.numberOfCopies.tr,
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.black,
@@ -354,7 +355,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Printer width',
+                                    TranslationKeys.printerWidth.tr,
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.black,
@@ -418,7 +419,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      'Bluetooth Printers',
+                                      TranslationKeys.bluetoothPrinters.tr,
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -451,8 +452,8 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                               : Icon(Icons.bluetooth_searching),
                                       label: Text(
                                         controller.isScanning.value
-                                            ? 'Scanning...'
-                                            : 'Scan',
+                                            ? TranslationKeys.scanning.tr
+                                            : TranslationKeys.scan.tr,
                                       ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
@@ -499,7 +500,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                           ),
                                           SizedBox(height: 12),
                                           Text(
-                                            'No printers found',
+                                            TranslationKeys.noPrintersFound.tr,
                                             style: TextStyle(
                                               color: Colors.grey,
                                               fontSize: 14,
@@ -507,7 +508,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                           ),
                                           SizedBox(height: 8),
                                           Text(
-                                            'Tap Scan to search for Bluetooth printers',
+                                            TranslationKeys.tapScanToSearch.tr,
                                             style: TextStyle(
                                               color: Colors.grey[600],
                                               fontSize: 12,

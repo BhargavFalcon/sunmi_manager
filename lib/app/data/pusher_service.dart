@@ -81,16 +81,12 @@ class PusherService {
       await pusher.subscribe(
         channelName: orderChannelName,
         onEvent: (event) async {
-          print("Order Event Data: ${event.data}");
           if (_isValidEventData(event.data)) {
             try {
               final dataString = event.data.toString().trim();
               final decoded = jsonDecode(dataString);
               if (decoded is Map<String, dynamic>) {
                 final notificationModel = NotificationModel.fromJson(decoded);
-                print(
-                  " ++++++++++++Notification Model Created: ${notificationModel.order!.formattedOrderNumber}",
-                );
 
                 final orderNumber =
                     notificationModel.order?.orderNumber?.toString() ?? 'N/A';
@@ -113,29 +109,23 @@ class PusherService {
                 }
               }
             } catch (e) {
-              print("Error parsing event data to NotificationModel: $e");
             }
           }
         },
       );
     } catch (e) {
-      print('Error subscribing to orders: $e');
     }
 
     try {
       await pusher.subscribe(
         channelName: channelName,
         onEvent: (event) {
-          print("Event Data: ${event.data}");
           if (_isValidEventData(event.data)) {
             try {
               final dataString = event.data.toString().trim();
               final decoded = jsonDecode(dataString);
               if (decoded is Map<String, dynamic>) {
                 final invoiceModel = InvoiceModel.fromJson(decoded);
-                print(
-                  "Invoice Model Created: ${invoiceModel.invoice!.order!.formattedOrderNumber}",
-                );
                 final autoPrintEnabled =
                     box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
                 if (autoPrintEnabled) {
@@ -143,13 +133,11 @@ class PusherService {
                 }
               }
             } catch (e) {
-              print("Error parsing event data to InvoiceModel: $e");
             }
           }
         },
       );
     } catch (e) {
-      print('Error subscribing to orders: $e');
     }
   }
 
@@ -158,7 +146,6 @@ class PusherService {
       final printerService = SunmiInvoicePrinterService();
       printerService.printInvoice(invoiceModel);
     } catch (e) {
-      print('Error printing invoice: $e');
     }
   }
 
@@ -170,7 +157,6 @@ class PusherService {
         await controller.fetchAllOrders();
       }
     } catch (e) {
-      print('Error refreshing order list: $e');
     }
   }
 
@@ -178,7 +164,6 @@ class PusherService {
     try {
       NewOrderDetailsBottomSheet.show(order);
     } catch (e) {
-      print('Error showing order details: $e');
     }
   }
 }

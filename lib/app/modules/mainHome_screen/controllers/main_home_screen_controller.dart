@@ -28,17 +28,9 @@ class MainHomeScreenController extends GetxController {
         if (restaurantId != null) {
           final pusherService = PusherService();
           await pusherService.subscribeToOrders(restaurantId);
-          print(
-            '✅ Subscribed to Pusher channel in MainHomeScreen for restaurant: $restaurantId',
-          );
-        } else {
-          print('⚠️ Restaurant ID not found, cannot subscribe to Pusher');
         }
-      } else {
-        print('⚠️ Login model not found, cannot subscribe to Pusher');
       }
     } catch (e) {
-      print('❌ Error subscribing to Pusher channel: $e');
     }
   }
 
@@ -73,7 +65,6 @@ class MainHomeScreenController extends GetxController {
         final tableController = Get.find<TableScreenController>();
         tableController.fetchTablesAreas();
       } catch (e) {
-        print('Table controller not found: $e');
       }
     }
 
@@ -85,10 +76,8 @@ class MainHomeScreenController extends GetxController {
       if (Get.isRegistered<CartScreenController>()) {
         final cartController = Get.find<CartScreenController>();
         cartController.clearCart();
-        print('✅ Cart cleared when switching to Take Order tab');
       }
     } catch (e) {
-      print('⚠️ Error clearing cart: $e');
     }
   }
 }

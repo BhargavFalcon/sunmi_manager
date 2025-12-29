@@ -147,7 +147,6 @@ class NewOrderDialog {
     try {
       await _audioPlayer.play(AssetSource('audio/new_order.wav'));
     } catch (e) {
-      print('Error playing notification sound: $e');
     }
   }
 }

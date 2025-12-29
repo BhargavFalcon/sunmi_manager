@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/translation_keys.dart';
 
 class ReservationScreenController extends GetxController {
   // Text Editing Controllers
@@ -106,8 +107,16 @@ class ReservationScreenController extends GetxController {
 
   String getDropdownDisplayText() {
     switch (selectedMonth.value) {
+      case 'Today':
+        return '${TranslationKeys.today.tr}: ${formatDate(DateTime.now())}';
+      case 'Yesterday':
+        return '${TranslationKeys.yesterday.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 1)))}';
+      case 'Last 7 Days':
+        return "${TranslationKeys.last7Days.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+      case 'Last 30 Days':
+        return "${TranslationKeys.last30Days.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 29)))} - ${formatDate(DateTime.now())}";
       case 'Custom Date':
-        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+        return "${TranslationKeys.customDate.tr}: ${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
       default:
         return selectedMonth.value;
     }
@@ -270,8 +279,8 @@ class ReservationScreenController extends GetxController {
       );
     } catch (e) {
       safeGetSnackbar(
-        'Error',
-        'Failed to select date range: ${e.toString()}',
+        TranslationKeys.error.tr,
+        '${TranslationKeys.failedToSelectDateRange.tr}: ${e.toString()}',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -302,11 +311,11 @@ class ReservationScreenController extends GetxController {
   // Validation Methods
   bool validateName(String name) {
     if (name.isEmpty) {
-      nameError.value = 'Customer name is required';
+      nameError.value = TranslationKeys.customerNameRequired.tr;
       isNameValid.value = false;
       return false;
     } else if (name.length < 2) {
-      nameError.value = 'Name must be at least 2 characters';
+      nameError.value = TranslationKeys.nameMustBeAtLeast2Characters.tr;
       isNameValid.value = false;
       return false;
     } else {
@@ -321,15 +330,15 @@ class ReservationScreenController extends GetxController {
     String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
 
     if (phone.isEmpty) {
-      phoneError.value = 'Phone number is required';
+      phoneError.value = TranslationKeys.phoneNumberRequired.tr;
       isPhoneValid.value = false;
       return false;
     } else if (cleanPhone.length < 10) {
-      phoneError.value = 'Phone number must be at least 10 digits';
+      phoneError.value = TranslationKeys.phoneNumberMustBeAtLeast10Digits.tr;
       isPhoneValid.value = false;
       return false;
     } else if (cleanPhone.length > 15) {
-      phoneError.value = 'Phone number is too long';
+      phoneError.value = TranslationKeys.phoneNumberTooLong.tr;
       isPhoneValid.value = false;
       return false;
     } else {
@@ -364,8 +373,8 @@ class ReservationScreenController extends GetxController {
 
     if (!nameValid || !phoneValid) {
       safeGetSnackbar(
-        'Validation Error',
-        'Please fill all required fields correctly',
+        TranslationKeys.validationError.tr,
+        TranslationKeys.pleaseFillAllRequiredFields.tr,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade700,
@@ -375,8 +384,8 @@ class ReservationScreenController extends GetxController {
 
     if (selectedTimeSlot.value.isEmpty) {
       safeGetSnackbar(
-        'Time Slot Required',
-        'Please select a time slot',
+        TranslationKeys.timeSlotRequired.tr,
+        TranslationKeys.pleaseSelectTimeSlot.tr,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.orange.shade100,
         colorText: Colors.orange.shade700,
@@ -400,8 +409,8 @@ class ReservationScreenController extends GetxController {
 
     // Show success message
     safeGetSnackbar(
-      'Success',
-      'Reservation created successfully!',
+      TranslationKeys.success.tr,
+      TranslationKeys.reservationCreatedSuccessfully.tr,
       snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.green.shade100,
       colorText: Colors.green.shade700,

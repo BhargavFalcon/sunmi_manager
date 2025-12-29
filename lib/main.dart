@@ -8,6 +8,8 @@ import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/services/printer_service.dart';
 import 'app/services/network_connectivity_service.dart';
+import 'app/utils/locale_string.dart';
+import 'app/utils/language_utils.dart';
 
 final box = GetStorage();
 void main() async {
@@ -20,10 +22,16 @@ void main() async {
   final pusherService = PusherService();
   await pusherService.initPusher();
 
+  final language = LanguageUtils.getLanguage();
+  final locale = LanguageUtils.getLocaleFromCode(language);
+
   runApp(
     GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Application",
+      translations: LocaleString(),
+      locale: locale,
+      fallbackLocale: const Locale('en', 'US'),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       theme: ThemeData(

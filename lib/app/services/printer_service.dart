@@ -28,9 +28,6 @@ class PrinterService extends GetxService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading saved printer: $e');
-      }
     }
   }
 
@@ -48,9 +45,6 @@ class PrinterService extends GetxService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking connection: $e');
-      }
       isConnected.value = false;
     }
   }

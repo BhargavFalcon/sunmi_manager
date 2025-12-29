@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/utils/language_utils.dart';
 
 import '../controllers/setting_screen_controller.dart';
 
@@ -31,7 +33,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                 ),
                 child: Center(
                   child: Text(
-                    "Setting",
+                    TranslationKeys.setting.tr,
                     style: TextStyle(fontSize: 20, color: Colors.black),
                   ),
                 ),
@@ -46,7 +48,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         Obx(
                           () => _buildSettingItemWithLoader(
                             icon: Icons.sync,
-                            title: "Sync Menu",
+                            title: TranslationKeys.syncMenu.tr,
                             color: ColorConstants.primaryColor,
                             onTap: () {
                               showSyncMenuDialog(context: context);
@@ -56,20 +58,19 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        _buildSettingItem(
-                          icon: Icons.language,
-                          title: "Language",
-                          color: ColorConstants.primaryColor,
-                          onTap: () {
-                            // Language functionality disabled
-                          },
-                          showArrow: true,
+                        Obx(
+                          () => _buildLanguageSettingItem(
+                            controller: controller,
+                            onTap: () {
+                              showLanguageDialog(context: context);
+                            },
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.vibration,
-                            title: "Haptic Feedback",
+                            title: TranslationKeys.hapticFeedback.tr,
                             color: ColorConstants.primaryColor,
                             value: controller.hapticFeedbackEnabled.value,
                             onToggle: () => controller.toggleHapticFeedback(),
@@ -79,7 +80,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.volume_up,
-                            title: "Beep Sound",
+                            title: TranslationKeys.beepSound.tr,
                             color: ColorConstants.primaryColor,
                             value: controller.beepSoundEnabled.value,
                             onToggle: () => controller.toggleBeepSound(),
@@ -89,7 +90,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.notifications,
-                            title: "New Shop Order Notifications",
+                            title: TranslationKeys.newShopOrderNotifications.tr,
                             color: ColorConstants.primaryColor,
                             value:
                                 controller
@@ -104,7 +105,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         const SizedBox(height: 8),
                         _buildSettingItem(
                           icon: Icons.print,
-                          title: "Printer Settings",
+                          title: TranslationKeys.printerSettings.tr,
                           color: ColorConstants.primaryColor,
                           onTap: () {
                             Get.toNamed(Routes.PRINTER_SCREEN);
@@ -114,7 +115,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         const SizedBox(height: 8),
                         _buildSettingItem(
                           icon: Icons.power_settings_new_sharp,
-                          title: "Logout",
+                          title: TranslationKeys.logout.tr,
                           color: Colors.red,
                           onTap: () {
                             showLogoutDialog(context: context);
@@ -151,13 +152,16 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Logout',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    TranslationKeys.logout.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Are you sure you want to logout?',
+                  Text(
+                    TranslationKeys.areYouSureLogout.tr,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -181,10 +185,10 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                               color: Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Cancel',
-                                style: TextStyle(color: Colors.black),
+                                TranslationKeys.cancel.tr,
+                                style: const TextStyle(color: Colors.black),
                               ),
                             ),
                           ),
@@ -227,9 +231,11 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                               ),
                                         ),
                                       )
-                                      : const Text(
-                                        'Logout',
-                                        style: TextStyle(color: Colors.white),
+                                      : Text(
+                                        TranslationKeys.logout.tr,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
                                       ),
                             ),
                           ),
@@ -264,13 +270,16 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Sync Menu',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    TranslationKeys.syncMenu.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'This will fetch menu, food items, prices, taxes, and additional charges from the server. Continue?',
+                  Text(
+                    TranslationKeys.syncMenuMessage.tr,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -294,10 +303,10 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                               color: Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Cancel',
-                                style: TextStyle(color: Colors.black),
+                                TranslationKeys.cancel.tr,
+                                style: const TextStyle(color: Colors.black),
                               ),
                             ),
                           ),
@@ -340,9 +349,11 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                               ),
                                         ),
                                       )
-                                      : const Text(
-                                        'Sync',
-                                        style: TextStyle(color: Colors.white),
+                                      : Text(
+                                        TranslationKeys.sync.tr,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
                                       ),
                             ),
                           ),
@@ -359,14 +370,82 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
     );
   }
 
+  Widget _buildLanguageSettingItem({
+    required SettingScreenController controller,
+    required VoidCallback onTap,
+  }) {
+    final currentLanguage = controller.selectedLanguage.value;
+    final flagEmoji = LanguageUtils.getFlagEmoji(currentLanguage);
+    final languageName = LanguageUtils.getLanguageName(currentLanguage);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: ColorConstants.primaryColor.withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: ColorConstants.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.language,
+                  color: ColorConstants.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  languageName,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Text(flagEmoji, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void showLanguageDialog({required BuildContext context}) {
     final controller = Get.find<SettingScreenController>();
     final languages = [
       {'code': 'en', 'name': 'English'},
       {'code': 'de', 'name': 'Deutsch'},
-      {'code': 'es', 'name': 'Español'},
-      {'code': 'fr', 'name': 'Français'},
-      {'code': 'it', 'name': 'Italiano'},
+      {'code': 'nl', 'name': 'Nederlands'},
+      {'code': 'da', 'name': 'Dansk'},
     ];
 
     showDialog(
@@ -383,9 +462,12 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Select Language',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  TranslationKeys.selectLanguage.tr,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ...languages.map(
@@ -420,6 +502,11 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         ),
                         child: Row(
                           children: [
+                            Text(
+                              LanguageUtils.getFlagEmoji(lang['code']!),
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 lang['name']!,
@@ -460,10 +547,10 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'Close',
-                        style: TextStyle(color: Colors.black),
+                        TranslationKeys.close.tr,
+                        style: const TextStyle(color: Colors.black),
                       ),
                     ),
                   ),

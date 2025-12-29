@@ -11,7 +11,6 @@ class CurrencyFormatter {
         return RestaurantModel.fromJson(storedData);
       }
     } catch (e) {
-      print('Error reading restaurant details: $e');
     }
     return null;
   }

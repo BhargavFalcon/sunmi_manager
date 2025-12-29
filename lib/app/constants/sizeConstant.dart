@@ -271,7 +271,6 @@ CachedNetworkImage getImageByLink({
           ),
         ),
     errorListener: (value) {
-      print("Error: $value");
     },
     placeholder:
         (context, url) =>
@@ -382,8 +381,6 @@ void safeGetSnackbar(
         }
       }
     } catch (e) {
-      // Silent failure - just print for debugging
-      print('Error showing snackbar: $title - $message');
     }
   });
 }

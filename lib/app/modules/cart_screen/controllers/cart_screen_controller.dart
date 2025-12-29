@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
@@ -104,7 +105,6 @@ class CartScreenController extends GetxController {
         }
       }
     } catch (e) {
-      print('Error fetching table areas: $e');
     }
   }
 
@@ -115,8 +115,8 @@ class CartScreenController extends GetxController {
     try {
       if (!hasTable) {
         safeGetSnackbar(
-          'Error',
-          'Please select a table first',
+          TranslationKeys.error.tr,
+          TranslationKeys.pleaseSelectTableFirst.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -126,8 +126,8 @@ class CartScreenController extends GetxController {
 
       if (cartItems.isEmpty) {
         safeGetSnackbar(
-          'Error',
-          'Cart is empty. Please add items to cart',
+          TranslationKeys.error.tr,
+          TranslationKeys.cartIsEmpty.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -145,13 +145,12 @@ class CartScreenController extends GetxController {
           waiterId = loginModel.data?.user?.id;
         }
       } catch (e) {
-        print('Error getting user id: $e');
       }
 
       if (waiterId == null) {
         safeGetSnackbar(
-          'Error',
-          'Unable to get user information. Please login again',
+          TranslationKeys.error.tr,
+          TranslationKeys.unableToGetUserInfo.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -163,8 +162,8 @@ class CartScreenController extends GetxController {
       final tableId = selectedTable.value?.id;
       if (tableId == null) {
         safeGetSnackbar(
-          'Error',
-          'Table information is missing',
+          TranslationKeys.error.tr,
+          TranslationKeys.tableInformationMissing.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -257,8 +256,8 @@ class CartScreenController extends GetxController {
         }
       } else {
         safeGetSnackbar(
-          'Error',
-          'Failed to submit order. Please try again.',
+          TranslationKeys.error.tr,
+          TranslationKeys.failedToSubmitOrder.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -266,7 +265,7 @@ class CartScreenController extends GetxController {
       }
     } on ApiException catch (e) {
       safeGetSnackbar(
-        'Error',
+        TranslationKeys.error.tr,
         e.message,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
@@ -274,8 +273,8 @@ class CartScreenController extends GetxController {
       );
     } catch (e) {
       safeGetSnackbar(
-        'Error',
-        'Failed to submit order: ${e.toString()}',
+        TranslationKeys.error.tr,
+        TranslationKeys.failedToSubmitOrder.tr,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -301,8 +300,8 @@ class CartScreenController extends GetxController {
       if (paymentResponse.statusCode == 200 ||
           paymentResponse.statusCode == 201) {
         safeGetSnackbar(
-          'Success',
-          'Payment created successfully',
+          TranslationKeys.success.tr,
+          TranslationKeys.paymentCreatedSuccessfully.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -312,8 +311,8 @@ class CartScreenController extends GetxController {
         _navigateBackAfterSubmit();
       } else {
         safeGetSnackbar(
-          'Error',
-          'Failed to create payment. Please try again.',
+          TranslationKeys.error.tr,
+          TranslationKeys.failedToCreatePayment.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -321,7 +320,7 @@ class CartScreenController extends GetxController {
       }
     } on ApiException catch (e) {
       safeGetSnackbar(
-        'Error',
+        TranslationKeys.error.tr,
         e.message,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
@@ -329,8 +328,8 @@ class CartScreenController extends GetxController {
       );
     } catch (e) {
       safeGetSnackbar(
-        'Error',
-        'Failed to create payment: ${e.toString()}',
+        TranslationKeys.error.tr,
+        TranslationKeys.failedToCreatePayment.tr,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -657,7 +656,6 @@ class CartScreenController extends GetxController {
     try {
       await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'), volume: 0.2);
     } catch (e) {
-      print('Error playing beep sound: $e');
     }
   }
 }
