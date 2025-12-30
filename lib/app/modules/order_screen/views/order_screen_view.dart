@@ -1553,7 +1553,6 @@ class OrderCard extends StatelessWidget {
             ),
             Divider(color: Colors.grey.shade300, thickness: 1, height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   formattedPrice ?? '',
@@ -1562,6 +1561,7 @@ class OrderCard extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
+                SizedBox(width: MySize.getWidth(10)),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
