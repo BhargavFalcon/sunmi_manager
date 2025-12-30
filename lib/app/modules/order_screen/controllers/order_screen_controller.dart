@@ -92,10 +92,8 @@ class OrderScreenController extends GetxController {
       allOrders.clear();
     }
 
-    final dateFrom =
-        "${startDate.value.year}-${startDate.value.month.toString().padLeft(2, '0')}-${startDate.value.day.toString().padLeft(2, '0')}";
-    final dateTo =
-        "${endDate.value.year}-${endDate.value.month.toString().padLeft(2, '0')}-${endDate.value.day.toString().padLeft(2, '0')}";
+    final dateFrom = _formatDateForApi(startDate.value);
+    final dateTo = _formatDateForApi(endDate.value);
 
     final queryParams = <String, dynamic>{
       'page': currentPage,
@@ -138,7 +136,7 @@ class OrderScreenController extends GetxController {
         final sortedOrders = _sortOrdersByLatest(ordersList);
         if (isLoadMore) {
           allOrders.addAll(sortedOrders);
-          allOrders.sort((a, b) => _compareOrders(a, b));
+          allOrders.sort(_compareOrders);
         } else {
           allOrders.value = sortedOrders;
         }
@@ -221,87 +219,79 @@ class OrderScreenController extends GetxController {
 
     switch (option) {
       case 'Today':
-        startDate.value = DateTime(now.year, now.month, now.day);
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        _setDateRange(now, now);
         break;
       case 'Current Week':
-        final daysFromMonday = now.weekday - 1;
-        final monday = now.subtract(Duration(days: daysFromMonday));
-        startDate.value = DateTime(monday.year, monday.month, monday.day);
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final monday = _getMonday(now);
+        final sunday = monday.add(const Duration(days: 6));
+        _setDateRange(monday, sunday);
         break;
       case 'Last Week':
-        final daysFromMonday = now.weekday - 1;
-        final lastWeekMonday = now.subtract(Duration(days: daysFromMonday + 7));
+        final lastWeekMonday = _getMonday(
+          now,
+        ).subtract(const Duration(days: 7));
         final lastWeekSunday = lastWeekMonday.add(const Duration(days: 6));
-        startDate.value = DateTime(
-          lastWeekMonday.year,
-          lastWeekMonday.month,
-          lastWeekMonday.day,
-        );
-        endDate.value = DateTime(
-          lastWeekSunday.year,
-          lastWeekSunday.month,
-          lastWeekSunday.day,
-          23,
-          59,
-          59,
-        );
+        _setDateRange(lastWeekMonday, lastWeekSunday);
         break;
       case 'Last 7 Days':
-        startDate.value = DateTime(
-          now.year,
-          now.month,
-          now.day,
-        ).subtract(const Duration(days: 6));
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final startDate = now.subtract(const Duration(days: 6));
+        _setDateRange(startDate, now);
         break;
       case 'Current Month':
-        startDate.value = DateTime(now.year, now.month, 1);
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final monthStart = DateTime(now.year, now.month, 1);
+        final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+        _setDateRange(monthStart, lastDayOfMonth);
         break;
       case 'Last Month':
-        final lastMonth = DateTime(now.year, now.month - 1, 1);
-        final lastDayOfLastMonth = DateTime(now.year, now.month, 0);
-        startDate.value = DateTime(lastMonth.year, lastMonth.month, 1);
-        endDate.value = DateTime(
-          lastDayOfLastMonth.year,
-          lastDayOfLastMonth.month,
-          lastDayOfLastMonth.day,
-          23,
-          59,
-          59,
-        );
+        final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+        final lastMonthEnd = DateTime(now.year, now.month, 0);
+        _setDateRange(lastMonthStart, lastMonthEnd);
         break;
       case 'Current Year':
-        startDate.value = DateTime(now.year, 1, 1);
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final yearStart = DateTime(now.year, 1, 1);
+        final yearEnd = DateTime(now.year, 12, 31);
+        _setDateRange(yearStart, yearEnd);
         break;
       case 'Last Year':
-        startDate.value = DateTime(now.year - 1, 1, 1);
-        endDate.value = DateTime(now.year - 1, 12, 31, 23, 59, 59);
+        final lastYearStart = DateTime(now.year - 1, 1, 1);
+        final lastYearEnd = DateTime(now.year - 1, 12, 31);
+        _setDateRange(lastYearStart, lastYearEnd);
         break;
     }
   }
 
+  DateTime _getMonday(DateTime date) {
+    final daysFromMonday = date.weekday - 1;
+    return date.subtract(Duration(days: daysFromMonday));
+  }
+
+  void _setDateRange(DateTime start, DateTime end) {
+    startDate.value = DateTime(start.year, start.month, start.day);
+    endDate.value = DateTime(end.year, end.month, end.day, 23, 59, 59);
+  }
+
+  String _formatDateForApi(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
-      showCustomDateRangePicker(
-        context,
-        dismissible: true,
-        startDate: startDate.value,
-        endDate: endDate.value,
-        minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-        maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
-        backgroundColor: Colors.white,
-        primaryColor: ColorConstants.primaryColor,
-        onApplyClick: (DateTime start, DateTime end) {
-          startDate.value = start;
-          endDate.value = end;
-          selectedMonth.value = 'Custom Date';
-          fetchAllOrders();
-        },
-        onCancelClick: () {},
-      );
+    showCustomDateRangePicker(
+      context,
+      dismissible: true,
+      startDate: startDate.value,
+      endDate: endDate.value,
+      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+      maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      backgroundColor: Colors.white,
+      primaryColor: ColorConstants.primaryColor,
+      onApplyClick: (DateTime start, DateTime end) {
+        startDate.value = start;
+        endDate.value = end;
+        selectedMonth.value = 'Custom Date';
+        fetchAllOrders();
+      },
+      onCancelClick: () {},
+    );
   }
 
   String formatDate(DateTime date) {
@@ -309,40 +299,39 @@ class OrderScreenController extends GetxController {
   }
 
   String getDisplayDate() {
+    final now = DateTime.now();
+
     switch (selectedMonth.value) {
       case 'Today':
-        return formatDate(DateTime.now());
+        return formatDate(now);
       case 'Current Week':
-        final now = DateTime.now();
-        final daysFromMonday = now.weekday - 1;
-        final monday = now.subtract(Duration(days: daysFromMonday));
-        return "${formatDate(monday)} - ${formatDate(now)}";
+        final monday = _getMonday(now);
+        final sunday = monday.add(const Duration(days: 6));
+        return "${formatDate(monday)} - ${formatDate(sunday)}";
       case 'Last Week':
-        final now = DateTime.now();
-        final daysFromMonday = now.weekday - 1;
-        final lastWeekMonday = now.subtract(Duration(days: daysFromMonday + 7));
+        final lastWeekMonday = _getMonday(
+          now,
+        ).subtract(const Duration(days: 7));
         final lastWeekSunday = lastWeekMonday.add(const Duration(days: 6));
         return "${formatDate(lastWeekMonday)} - ${formatDate(lastWeekSunday)}";
       case 'Last 7 Days':
-        return "${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+        final startDate = now.subtract(const Duration(days: 6));
+        return "${formatDate(startDate)} - ${formatDate(now)}";
       case 'Current Month':
-        final now = DateTime.now();
-        return "${formatDate(DateTime(now.year, now.month, 1))} - ${formatDate(now)}";
+        final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+        return "${formatDate(DateTime(now.year, now.month, 1))} - ${formatDate(lastDayOfMonth)}";
       case 'Last Month':
-        final now = DateTime.now();
         final lastMonth = DateTime(now.year, now.month - 1, 1);
         final lastDayOfLastMonth = DateTime(now.year, now.month, 0);
         return "${formatDate(lastMonth)} - ${formatDate(lastDayOfLastMonth)}";
       case 'Current Year':
-        final now = DateTime.now();
         return "${formatDate(DateTime(now.year, 1, 1))} - ${formatDate(now)}";
       case 'Last Year':
-        final now = DateTime.now();
         return "${formatDate(DateTime(now.year - 1, 1, 1))} - ${formatDate(DateTime(now.year - 1, 12, 31))}";
       case 'Custom Date':
         return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
       default:
-        return formatDate(DateTime.now());
+        return formatDate(now);
     }
   }
 
@@ -357,7 +346,7 @@ class OrderScreenController extends GetxController {
 
   List<Orders> _sortOrdersByLatest(List<Orders> orders) {
     final sorted = List<Orders>.from(orders);
-    sorted.sort((a, b) => _compareOrders(a, b));
+    sorted.sort(_compareOrders);
     return sorted;
   }
 
