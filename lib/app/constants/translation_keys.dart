@@ -109,6 +109,9 @@ class TranslationKeys {
   // Status
   static const String status = 'status';
   static const String pending = 'pending';
+  static const String deliveryTime = 'deliveryTime';
+  static const String pickupTime = 'pickupTime';
+  static const String orderCreated = 'orderCreated';
   static const String processing = 'processing';
   static const String completed = 'completed';
   static const String active = 'active';

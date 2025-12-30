@@ -692,7 +692,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${TranslationKeys.orderNumber.tr}${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
+                    '${TranslationKeys.orderNumber.tr} ${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -701,6 +701,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            _buildOrderTimeInfo(orderDetails),
             const SizedBox(height: 8),
             if (orderDetails?.customer != null)
               _buildCustomerDetails(orderDetails!.customer!),
@@ -774,6 +776,159 @@ class OrderScreenView extends GetView<OrderScreenController> {
         ),
       ),
     );
+  }
+
+  Widget _buildOrderTimeInfo(dynamic orderDetails) {
+    if (orderDetails == null) return const SizedBox.shrink();
+
+    final createdAt = orderDetails.createdAt ?? '';
+    final orderType = orderDetails.orderType?.toLowerCase() ?? '';
+    final dateTimeString = orderDetails.dateTime ?? '';
+
+    final List<String> timeInfoList = [];
+
+    if (createdAt.isNotEmpty) {
+      final formattedCreatedAt = _formatOrderDateTime(createdAt);
+      timeInfoList.add(
+        '${TranslationKeys.orderCreated.tr}: $formattedCreatedAt',
+      );
+    }
+
+    if (dateTimeString.isNotEmpty) {
+      final formattedDateTime = _formatOrderDateTime(dateTimeString);
+      final timeLabel = _getTimeLabel(orderType);
+      if (timeLabel != null) {
+        timeInfoList.add('$timeLabel: $formattedDateTime');
+      }
+    }
+
+    if (timeInfoList.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: ColorConstants.getShadow2,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children:
+            timeInfoList
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: entry.key < timeInfoList.length - 1 ? 8 : 0,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 18,
+                          color: ColorConstants.primaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+      ),
+    );
+  }
+
+  String? _getTimeLabel(String orderType) {
+    if (orderType == 'delivery' || orderType == 'delivery_order') {
+      return TranslationKeys.deliveryTime.tr;
+    } else if (orderType == 'pickup' || orderType == 'pickup_order') {
+      return TranslationKeys.pickupTime.tr;
+    }
+    return null;
+  }
+
+  String _formatOrderDateTime(String dateTimeString) {
+    try {
+      DateTime? dateTime = _parseDateTime(dateTimeString);
+      if (dateTime == null) return dateTimeString;
+
+      return _formatToDisplayString(dateTime);
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
+  DateTime? _parseDateTime(String dateTimeString) {
+    try {
+      return DateTime.parse(dateTimeString);
+    } catch (e) {
+      return _parseCustomFormat(dateTimeString);
+    }
+  }
+
+  DateTime? _parseCustomFormat(String dateTimeString) {
+    if (!dateTimeString.contains(' ')) return null;
+
+    final parts = dateTimeString.split(' ');
+    if (parts.length < 2) return null;
+
+    final dateParts = parts[0].split('-');
+    final timeParts = parts[1].split(':');
+
+    if (dateParts.length != 3 || timeParts.length < 2) return null;
+
+    try {
+      return DateTime(
+        int.parse(dateParts[0]),
+        int.parse(dateParts[1]),
+        int.parse(dateParts[2]),
+        int.parse(timeParts[0]),
+        int.parse(timeParts[1]),
+        timeParts.length > 2 ? int.parse(timeParts[2]) : 0,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String _formatToDisplayString(DateTime dateTime) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final month = months[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour12 =
+        dateTime.hour > 12
+            ? dateTime.hour - 12
+            : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+
+    return '$month $day, $year $hour12:$minute $period';
   }
 
   String _formatOrderType(String? orderType) {
@@ -1357,7 +1512,7 @@ class OrderCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "${TranslationKeys.orderNumber.tr}$orderNumber",
+                        "${TranslationKeys.orderNumber.tr} $orderNumber",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
