@@ -1591,7 +1591,7 @@ class OrderCard extends StatelessWidget {
                     if (order.coupon != null &&
                         order.coupon!.code != null &&
                         waiterName.isNotEmpty)
-                      const SizedBox(width: 12),
+                      const Spacer(),
                     if (waiterName.isNotEmpty)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
