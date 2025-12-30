@@ -30,6 +30,7 @@ class TranslationKeys {
   static const String total = 'total';
   static const String subTotal = 'subTotal';
   static const String discount = 'discount';
+  static const String coupon = 'coupon';
   static const String tip = 'tip';
   static const String tax = 'tax';
   static const String taxes = 'taxes';

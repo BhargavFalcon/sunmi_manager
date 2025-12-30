@@ -1562,16 +1562,55 @@ class OrderCard extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                if (waiterName.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(ImageConstant.order, width: 18, height: 18),
-                      const SizedBox(width: 6),
-                      Text(waiterName, style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (order.coupon != null && order.coupon!.code != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade100,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.purple.shade300,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
+                          style: TextStyle(
+                            color: Colors.purple.shade700,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (order.coupon != null &&
+                        order.coupon!.code != null &&
+                        waiterName.isNotEmpty)
+                      const SizedBox(width: 12),
+                    if (waiterName.isNotEmpty)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            ImageConstant.order,
+                            width: 18,
+                            height: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            waiterName,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ],
             ),
           ],
