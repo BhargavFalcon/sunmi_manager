@@ -9,6 +9,7 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
 import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
+import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -38,276 +39,317 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
           },
           child: Scaffold(
             backgroundColor: ColorConstants.bgColor,
-            body: Column(
+            body: Stack(
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        controller.scrollToTop();
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12).copyWith(
-                          top: MediaQuery.of(context).padding.top + 12,
-                          bottom: MySize.getHeight(15),
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: ColorConstants.getShadow2,
-                        ),
-                        child: Center(
-                          child: Text(
-                            TranslationKeys.takeOrder.tr,
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(16),
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (controller.hasTable)
-                      Positioned(
-                        left: 12,
-                        top: MediaQuery.of(context).padding.top + 8,
-                        child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap: () {
-                            CartScreenController? cartController;
-                            if (Get.isRegistered<CartScreenController>()) {
-                              cartController = Get.find<CartScreenController>();
-                            }
-                            if (cartController == null ||
-                                cartController.cartItems.isEmpty) {
-                              Get.back();
-                            } else {
-                              _showCancelOrderDialog(context, cartController);
-                            }
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            height: MySize.getHeight(30),
-                            width: MySize.getHeight(30),
-                            decoration: BoxDecoration(
-                              color: ColorConstants.primaryColor.withValues(
-                                alpha: 0.10,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: ColorConstants.primaryColor,
-                              size: MySize.getHeight(20),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
                 Obx(
-                  () => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    height: controller.isCategorySticky.value ? null : 0,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: controller.isCategorySticky.value ? 1.0 : 0.0,
-                      child:
-                          controller.isCategorySticky.value
-                              ? _buildSearchAndCategoryBox(
-                                controller,
-                                categoryController:
-                                    controller.stickyCategoryScrollController,
-                              )
-                              : const SizedBox.shrink(),
+                  () => IgnorePointer(
+                    ignoring: controller.showAccessDialog.value,
+                    child: Column(
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                controller.scrollToTop();
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12).copyWith(
+                                  top: MediaQuery.of(context).padding.top + 12,
+                                  bottom: MySize.getHeight(15),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    TranslationKeys.takeOrder.tr,
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(16),
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (controller.hasTable)
+                              Positioned(
+                                left: 12,
+                                top: MediaQuery.of(context).padding.top + 8,
+                                child: InkWell(
+                                  hoverColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    CartScreenController? cartController;
+                                    if (Get.isRegistered<
+                                      CartScreenController
+                                    >()) {
+                                      cartController =
+                                          Get.find<CartScreenController>();
+                                    }
+                                    if (cartController == null ||
+                                        cartController.cartItems.isEmpty) {
+                                      Get.back();
+                                    } else {
+                                      _showCancelOrderDialog(
+                                        context,
+                                        cartController,
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    height: MySize.getHeight(30),
+                                    width: MySize.getHeight(30),
+                                    decoration: BoxDecoration(
+                                      color: ColorConstants.primaryColor
+                                          .withValues(alpha: 0.10),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_back,
+                                      color: ColorConstants.primaryColor,
+                                      size: MySize.getHeight(20),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        Obx(
+                          () => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            height:
+                                controller.isCategorySticky.value ? null : 0,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity:
+                                  controller.isCategorySticky.value ? 1.0 : 0.0,
+                              child:
+                                  controller.isCategorySticky.value
+                                      ? _buildSearchAndCategoryBox(
+                                        controller,
+                                        categoryController:
+                                            controller
+                                                .stickyCategoryScrollController,
+                                      )
+                                      : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Obx(() {
+                            if (controller.isLoading.value) {
+                              return Center(
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: ColorConstants.getShadow2,
+                                  ),
+                                  child: Center(
+                                    child: CupertinoActivityIndicator(
+                                      radius: 12,
+                                      color: ColorConstants.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final visibleCategories =
+                                controller.categories
+                                    .where(
+                                      (cat) => controller.filteredGroupedItems
+                                          .containsKey(cat),
+                                    )
+                                    .toList();
+
+                            if (visibleCategories.isEmpty) {
+                              return Center(
+                                child: Text(TranslationKeys.noItemsFound.tr),
+                              );
+                            }
+
+                            return Obx(() {
+                              final itemCount =
+                                  controller.hasTable
+                                      ? visibleCategories.length + 1
+                                      : visibleCategories.length + 2;
+
+                              return ScrollablePositionedList.builder(
+                                itemScrollController:
+                                    controller.itemScrollController,
+                                itemPositionsListener:
+                                    controller.itemPositionsListener,
+                                itemCount: itemCount,
+                                itemBuilder: (context, index) {
+                                  if (!controller.hasTable && index == 0) {
+                                    return _buildPickupDeliverySelector(
+                                      controller,
+                                    );
+                                  }
+                                  final searchIndex =
+                                      controller.hasTable ? 0 : 1;
+                                  if (index == searchIndex) {
+                                    return _buildSearchAndCategoryBox(
+                                      controller,
+                                      categoryController:
+                                          controller.categoryScrollController,
+                                    );
+                                  }
+
+                                  final categoryIndex =
+                                      controller.hasTable
+                                          ? index - 1
+                                          : index - 2;
+                                  final category =
+                                      visibleCategories[categoryIndex];
+                                  final items =
+                                      controller.filteredGroupedItems[category];
+                                  if (items == null || items.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return _buildCategorySection(
+                                    controller,
+                                    category,
+                                    items,
+                                  );
+                                },
+                              );
+                            });
+                          }),
+                        ),
+                        Obx(() {
+                          final cartCount = controller.cartItemsCount.value;
+                          if (cartCount == 0) {
+                            return const SizedBox.shrink();
+                          }
+                          return Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(4),
+                              vertical: MySize.getHeight(6),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: Offset(0, -2),
+                                ),
+                              ],
+                            ),
+                            child: SafeArea(
+                              top: false,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _showClearCartDialog(
+                                          context,
+                                          cartController,
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: MySize.getHeight(12),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF60616E),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          TranslationKeys.clearCart.tr
+                                              .replaceAll('?', ''),
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: MySize.getWidth(8)),
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        final Map<String, dynamic> arguments =
+                                            {};
+
+                                        if (controller.hasTable) {
+                                          arguments[ArgumentConstant.tableKey] =
+                                              controller.selectedTable.value;
+                                        }
+
+                                        if (controller.currentOrder.value !=
+                                            null) {
+                                          arguments[ArgumentConstant.orderKey] =
+                                              controller.currentOrder.value;
+                                        }
+
+                                        if (controller.sourceScreen != null) {
+                                          arguments[ArgumentConstant
+                                                  .sourceScreenKey] =
+                                              controller.sourceScreen;
+                                        }
+
+                                        Get.toNamed(
+                                          Routes.CART_SCREEN,
+                                          arguments:
+                                              arguments.isEmpty
+                                                  ? null
+                                                  : arguments,
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: MySize.getHeight(12),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF0B9F6E),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'Next (${cartCount})',
+                                          style: TextStyle(
+                                            fontSize: MySize.getHeight(14),
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Obx(() {
-                    if (controller.isLoading.value) {
-                      return Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: ColorConstants.getShadow2,
-                          ),
-                          child: Center(
-                            child: CupertinoActivityIndicator(
-                              radius: 12,
-                              color: ColorConstants.primaryColor,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final visibleCategories =
-                        controller.categories
-                            .where(
-                              (cat) => controller.filteredGroupedItems
-                                  .containsKey(cat),
-                            )
-                            .toList();
-
-                    if (visibleCategories.isEmpty) {
-                      return Center(
-                        child: Text(TranslationKeys.noItemsFound.tr),
-                      );
-                    }
-
-                    return Obx(() {
-                      final itemCount =
-                          controller.hasTable
-                              ? visibleCategories.length + 1
-                              : visibleCategories.length + 2;
-
-                      return ScrollablePositionedList.builder(
-                        itemScrollController: controller.itemScrollController,
-                        itemPositionsListener: controller.itemPositionsListener,
-                        itemCount: itemCount,
-                        itemBuilder: (context, index) {
-                          if (!controller.hasTable && index == 0) {
-                            return _buildPickupDeliverySelector(controller);
-                          }
-                          final searchIndex = controller.hasTable ? 0 : 1;
-                          if (index == searchIndex) {
-                            return _buildSearchAndCategoryBox(
-                              controller,
-                              categoryController:
-                                  controller.categoryScrollController,
-                            );
-                          }
-
-                          final categoryIndex =
-                              controller.hasTable ? index - 1 : index - 2;
-                          final category = visibleCategories[categoryIndex];
-                          final items =
-                              controller.filteredGroupedItems[category];
-                          if (items == null || items.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          return _buildCategorySection(
-                            controller,
-                            category,
-                            items,
-                          );
-                        },
-                      );
-                    });
-                  }),
-                ),
                 Obx(() {
-                  final cartCount = controller.cartItemsCount.value;
-                  if (cartCount == 0) {
-                    return const SizedBox.shrink();
+                  if (controller.showAccessDialog.value) {
+                    return const AccessLimitedDialog();
                   }
-                  return Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: MySize.getWidth(4),
-                      vertical: MySize.getHeight(6),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: SafeArea(
-                      top: false,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                _showClearCartDialog(context, cartController);
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: MySize.getHeight(12),
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF60616E),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  TranslationKeys.clearCart.tr.replaceAll(
-                                    '?',
-                                    '',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(14),
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: MySize.getWidth(8)),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                final Map<String, dynamic> arguments = {};
-
-                                if (controller.hasTable) {
-                                  arguments[ArgumentConstant.tableKey] =
-                                      controller.selectedTable.value;
-                                }
-
-                                if (controller.currentOrder.value != null) {
-                                  arguments[ArgumentConstant.orderKey] =
-                                      controller.currentOrder.value;
-                                }
-
-                                if (controller.sourceScreen != null) {
-                                  arguments[ArgumentConstant.sourceScreenKey] =
-                                      controller.sourceScreen;
-                                }
-
-                                Get.toNamed(
-                                  Routes.CART_SCREEN,
-                                  arguments:
-                                      arguments.isEmpty ? null : arguments,
-                                );
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: MySize.getHeight(12),
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF0B9F6E),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Next (${cartCount})',
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(14),
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+                  return const SizedBox.shrink();
                 }),
               ],
             ),

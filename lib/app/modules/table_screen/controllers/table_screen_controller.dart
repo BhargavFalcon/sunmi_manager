@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/tableModel.dart';
+import '../../../model/MobileAppModulesModel.dart';
+import '../../../../main.dart';
 
 class TableScreenController extends GetxController {
   final networkClient = NetworkClient();
   final isLoading = false.obs;
   final isNavigatingToOrder = false.obs;
+  final showAccessDialog = false.obs;
   final tableModel = Rx<TableModel?>(null);
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
@@ -30,6 +32,24 @@ class TableScreenController extends GetxController {
     super.onReady();
     // Refresh tables every time screen becomes active
     fetchTablesAreas();
+    _checkAndShowDialog();
+  }
+
+  void _checkAndShowDialog() {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modulesModel = MobileAppModulesModel.fromJson(modulesData);
+        final modules = modulesModel.data?.modules ?? [];
+        if (!modules.contains('POS')) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            showAccessDialog.value = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   void resetScroll() {
@@ -45,8 +65,7 @@ class TableScreenController extends GetxController {
       if (horizontalScrollController.hasClients) {
         horizontalScrollController.jumpTo(0);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   @override

@@ -6,6 +6,8 @@ import '../../../constants/api_constants.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
+import '../../../model/MobileAppModulesModel.dart';
+import '../../../../main.dart';
 
 class OrderScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -16,6 +18,7 @@ class OrderScreenController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool isNavigatingToOrder = false.obs;
   final RxBool isLoadingOrderDetails = false.obs;
+  final RxBool showAccessDialog = false.obs;
   final Rx<orderModel.GetOrderModel?> orderDetails =
       Rx<orderModel.GetOrderModel?>(null);
   final RxList<Orders> allOrders = <Orders>[].obs;
@@ -60,6 +63,24 @@ class OrderScreenController extends GetxController {
   void onReady() {
     super.onReady();
     fetchAllOrders();
+    _checkAndShowDialog();
+  }
+
+  void _checkAndShowDialog() {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modulesModel = MobileAppModulesModel.fromJson(modulesData);
+        final modules = modulesModel.data?.modules ?? [];
+        if (!modules.contains('All Orders')) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            showAccessDialog.value = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   void _onScroll() {

@@ -14,6 +14,7 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/tableModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
+import '../../../model/MobileAppModulesModel.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
 
@@ -46,6 +47,7 @@ class TakeOrderController extends GetxController {
   final RxMap<int, bool> modifierErrors = <int, bool>{}.obs;
 
   RxInt cartItemsCount = 0.obs;
+  final RxBool showAccessDialog = false.obs;
   bool _cartListenerSet = false;
 
   final Rx<Tables?> selectedTable = Rx<Tables?>(null);
@@ -62,6 +64,7 @@ class TakeOrderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _checkAndShowDialog();
     _fetchTableFromArguments();
     _fetchOrderFromArguments();
     _fetchSourceScreenFromArguments();
@@ -73,6 +76,23 @@ class TakeOrderController extends GetxController {
     });
 
     itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
+  }
+
+  void _checkAndShowDialog() {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modulesModel = MobileAppModulesModel.fromJson(modulesData);
+        final modules = modulesModel.data?.modules ?? [];
+        if (!modules.contains('POS')) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            showAccessDialog.value = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   void _fetchTableFromArguments() {
@@ -157,7 +177,8 @@ class TakeOrderController extends GetxController {
     categoryIndexMap.clear();
 
     for (Items item in menuItems) {
-      final categoryName = item.category?.categoryName ?? TranslationKeys.uncategorized.tr;
+      final categoryName =
+          item.category?.categoryName ?? TranslationKeys.uncategorized.tr;
       final amountString = item.pickupPrice ?? item.deliveryPrice ?? '0';
       final itemData = {
         'product_name': item.itemName ?? '',
@@ -696,7 +717,8 @@ class TakeOrderController extends GetxController {
                           Expanded(
                             flex: 2,
                             child: Text(
-                              variation.variation ?? TranslationKeys.variation.tr,
+                              variation.variation ??
+                                  TranslationKeys.variation.tr,
                               style: TextStyle(
                                 fontSize: MySize.getHeight(12),
                                 fontWeight: FontWeight.w600,
@@ -945,7 +967,8 @@ class TakeOrderController extends GetxController {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            modifierGroup.name ?? TranslationKeys.section.tr,
+                                            modifierGroup.name ??
+                                                TranslationKeys.section.tr,
                                             style: TextStyle(
                                               fontSize: MySize.getHeight(14),
                                               fontWeight: FontWeight.bold,
@@ -1067,7 +1090,8 @@ class TakeOrderController extends GetxController {
                                       Expanded(
                                         flex: 2,
                                         child: Text(
-                                          option.name ?? TranslationKeys.option.tr,
+                                          option.name ??
+                                              TranslationKeys.option.tr,
                                           style: TextStyle(
                                             fontSize: MySize.getHeight(12),
                                             fontWeight: FontWeight.w500,
@@ -1253,7 +1277,9 @@ class TakeOrderController extends GetxController {
                                     SizedBox(width: MySize.getWidth(8)),
                                     Expanded(
                                       child: Text(
-                                        TranslationKeys.pleaseChooseAtLeastOneOption.tr,
+                                        TranslationKeys
+                                            .pleaseChooseAtLeastOneOption
+                                            .tr,
                                         style: TextStyle(
                                           fontSize: MySize.getHeight(12),
                                           color: Colors.red,

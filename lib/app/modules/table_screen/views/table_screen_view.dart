@@ -7,6 +7,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
+import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../controllers/table_screen_controller.dart';
@@ -26,7 +27,9 @@ class TableScreenView extends GetWidget<TableScreenController> {
           body: Obx(() {
             return Stack(
               children: [
-                Column(
+                IgnorePointer(
+                  ignoring: controller.showAccessDialog.value,
+                  child: Column(
                   children: [
                     Container(
                       width: double.infinity,
@@ -569,6 +572,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                     }),
                   ],
                 ),
+                ),
                 if (controller.isNavigatingToOrder.value)
                   Container(
                     color: Colors.black.withOpacity(0.2),
@@ -593,6 +597,8 @@ class TableScreenView extends GetWidget<TableScreenController> {
                       ),
                     ),
                   ),
+                if (controller.showAccessDialog.value)
+                  const AccessLimitedDialog(),
               ],
             );
           }),

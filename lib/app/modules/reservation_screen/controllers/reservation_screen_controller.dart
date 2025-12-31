@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../constants/api_constants.dart';
+import '../../../model/MobileAppModulesModel.dart';
+import '../../../../main.dart';
 
 class ReservationScreenController extends GetxController {
   // Text Editing Controllers
@@ -21,6 +24,7 @@ class ReservationScreenController extends GetxController {
   Rx<DateTime> startDate = DateTime.now().obs;
   Rx<DateTime> endDate = DateTime.now().obs;
   RxString selectedOrderFilter = 'Pending'.obs;
+  final RxBool showAccessDialog = false.obs;
   // Validation
   RxBool isNameValid = false.obs;
   RxBool isPhoneValid = false.obs;
@@ -194,7 +198,6 @@ class ReservationScreenController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Add listeners for real-time validation
     customerNameController.addListener(() {
       validateName(customerNameController.text);
     });
@@ -203,6 +206,29 @@ class ReservationScreenController extends GetxController {
       validatePhone(customerPhoneController.text);
     });
     _updateDatesByOption('Today');
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    _checkAndShowDialog();
+  }
+
+  void _checkAndShowDialog() {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modulesModel = MobileAppModulesModel.fromJson(modulesData);
+        final modules = modulesModel.data?.modules ?? [];
+        if (!modules.contains('Table Reservations')) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            showAccessDialog.value = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   void updateOrderFilter(String value) => selectedOrderFilter.value = value;
