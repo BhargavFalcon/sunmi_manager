@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
+import 'package:managerapp/app/constants/sizeConstant.dart';
 import '../constants/translation_keys.dart';
 
 class AccessLimitedDialog extends StatelessWidget {
@@ -31,17 +34,14 @@ class AccessLimitedDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    '😔',
-                    style: TextStyle(fontSize: 64),
-                  ),
+                  Image.asset(ImageConstant.access, height: MySize.getHeight(70)),
                   const SizedBox(height: 20),
                   Text(
                     TranslationKeys.accessLimited.tr,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: ColorConstants.primaryColor,
                     ),
                     textAlign: TextAlign.center,
                   ),
