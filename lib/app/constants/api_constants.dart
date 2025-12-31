@@ -5,10 +5,13 @@ class ArgumentConstant {
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
   static const restaurantDetailsEndpoint =
       "api/v1/pos/restaurant/:restaurant_id/details";
+  static const mobileAppModulesEndpoint =
+      "api/v1/pos/restaurant/:restaurant_id/mobile-app-modules";
   static const tokenKey = "auth_token";
   static const loginModelKey = "login_model";
   static const menuItemsKey = "menu_items";
   static const restaurantDetailsKey = "restaurant_details";
+  static const mobileAppModulesKey = "mobile_app_modules";
   static const tablesAreasEndpoint = "api/v1/pos/tables/areas";
   static const tableDetailsEndpoint = "api/v1/pos/tables/:id";
   static const tableKey = "table";

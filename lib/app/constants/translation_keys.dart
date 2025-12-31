@@ -309,4 +309,8 @@ class TranslationKeys {
   static const String thankYouForVisit = 'thankYouForVisit';
   static const String totalTax = 'totalTax';
   static const String balanceReturned = 'balanceReturned';
+  static const String noInternet = 'noInternet';
+  static const String noInternetMessage = 'noInternetMessage';
+  static const String accessLimited = 'accessLimited';
+  static const String featureNotEnabled = 'featureNotEnabled';
 }

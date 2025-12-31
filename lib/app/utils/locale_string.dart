@@ -287,6 +287,10 @@ class LocaleString extends Translations {
       'thankYouForVisit': 'Thank you for your visit!',
       'totalTax': 'Total Tax',
       'balanceReturned': 'Balance Returned',
+      'noInternet': 'No Internet',
+      'noInternetMessage': 'This module is not available. Please check your internet connection.',
+      'accessLimited': 'Access Limited',
+      'featureNotEnabled': 'This feature is not enabled for your account.',
     },
     'da_DK': {
       // ========== COMMON (Shared across screens) ==========
@@ -555,6 +559,10 @@ class LocaleString extends Translations {
       'thankYouForVisit': 'Tak for dit besøg!',
       'totalTax': 'Total moms',
       'balanceReturned': 'Saldo returneret',
+      'noInternet': 'Ingen Internet',
+      'noInternetMessage': 'Denne modul er ikke tilgængelig. Tjek venligst din internetforbindelse.',
+      'accessLimited': 'Begrænset adgang',
+      'featureNotEnabled': 'Denne funktion er ikke aktiveret for din konto.',
     },
     'de_DE': {
       // ========== COMMON (Shared across screens) ==========
@@ -831,6 +839,10 @@ class LocaleString extends Translations {
       'thankYouForVisit': 'Vielen Dank für Ihren Besuch!',
       'totalTax': 'Gesamtsteuer',
       'balanceReturned': 'Zurückgegebener Betrag',
+      'noInternet': 'Kein Internet',
+      'noInternetMessage': 'Dieses Modul ist nicht verfügbar. Bitte überprüfen Sie Ihre Internetverbindung.',
+      'accessLimited': 'Zugriff eingeschränkt',
+      'featureNotEnabled': 'Diese Funktion ist für Ihr Konto nicht aktiviert.',
     },
     'nl_NL': {
       // ========== COMMON (Shared across screens) ==========
@@ -1098,6 +1110,10 @@ class LocaleString extends Translations {
       'thankYouForVisit': 'Bedankt voor uw bezoek!',
       'totalTax': 'Totale belasting',
       'balanceReturned': 'Teruggegeven saldo',
+      'noInternet': 'Geen Internet',
+      'noInternetMessage': 'Deze module is niet beschikbaar. Controleer uw internetverbinding.',
+      'accessLimited': 'Toegang beperkt',
+      'featureNotEnabled': 'Deze functie is niet ingeschakeld voor uw account.',
     },
   };
 }

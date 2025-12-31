@@ -5,7 +5,6 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
-import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../../main.dart';
 
@@ -88,10 +87,6 @@ class LoginScreenController extends GetxController {
               networkClient.setAuthToken(token);
               final savedToken = networkClient.getSavedToken();
               if (savedToken != null && savedToken.isNotEmpty) {
-                final restaurantId = loginModel.data?.user?.restaurantId;
-                if (restaurantId != null) {
-                  await fetchRestaurantDetails(restaurantId);
-                }
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
                 safeGetSnackbar(
@@ -124,7 +119,11 @@ class LoginScreenController extends GetxController {
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      safeGetSnackbar(TranslationKeys.error.tr, e.message, snackPosition: SnackPosition.TOP);
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        e.message,
+        snackPosition: SnackPosition.TOP,
+      );
     } catch (e) {
       isLoading.value = false;
       safeGetSnackbar(
@@ -132,36 +131,6 @@ class LoginScreenController extends GetxController {
         TranslationKeys.somethingWentWrong.tr,
         snackPosition: SnackPosition.TOP,
       );
-    }
-  }
-
-  // Fetch restaurant details
-  Future<void> fetchRestaurantDetails(int restaurantId) async {
-    try {
-      final endpoint = ArgumentConstant.restaurantDetailsEndpoint.replaceAll(
-        ':restaurant_id',
-        restaurantId.toString(),
-      );
-
-      final response = await networkClient.get(endpoint);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data != null && response.data is Map<String, dynamic>) {
-          try {
-            final restaurantModel = RestaurantModel.fromJson(
-              response.data as Map<String, dynamic>,
-            );
-
-            // Save restaurant details to box
-            box.write(
-              ArgumentConstant.restaurantDetailsKey,
-              restaurantModel.toJson(),
-            );
-          } catch (e) {
-          }
-        }
-      }
-    } catch (e) {
     }
   }
 }
