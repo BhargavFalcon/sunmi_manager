@@ -692,7 +692,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${TranslationKeys.orderNumber.tr} ${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
+                    '${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1512,7 +1512,7 @@ class OrderCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "${TranslationKeys.orderNumber.tr} $orderNumber",
+                        orderNumber,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
