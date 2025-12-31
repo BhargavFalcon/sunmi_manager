@@ -34,7 +34,10 @@ class AccessLimitedDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(ImageConstant.access, height: MySize.getHeight(70)),
+                  Image.asset(
+                    ImageConstant.access,
+                    height: MySize.getHeight(70),
+                  ),
                   const SizedBox(height: 20),
                   Text(
                     TranslationKeys.accessLimited.tr,
@@ -48,10 +51,7 @@ class AccessLimitedDialog extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     TranslationKeys.featureNotEnabled.tr,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -63,4 +63,3 @@ class AccessLimitedDialog extends StatelessWidget {
     );
   }
 }
-
