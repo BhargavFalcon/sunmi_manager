@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'package:get/get.dart';
+import '../../main.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
@@ -65,17 +66,22 @@ class PusherService {
 
       _refreshOrderList();
 
+      final notificationsEnabled =
+          box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
+
       final orderNumber = _extractOrderNumber(order);
       orderModel.Data? fetchedOrderData;
 
-      NewOrderDialog.show(
-        orderNumber: orderNumber,
-        onViewOrder: () {
-          if (fetchedOrderData != null) {
-            NewOrderDetailsBottomSheet.show(fetchedOrderData);
-          }
-        },
-      );
+      if (notificationsEnabled) {
+        NewOrderDialog.show(
+          orderNumber: orderNumber,
+          onViewOrder: () {
+            if (fetchedOrderData != null) {
+              NewOrderDetailsBottomSheet.show(fetchedOrderData);
+            }
+          },
+        );
+      }
 
       fetchedOrderData = await _fetchAndPrintInvoice(orderUuid);
     } catch (_) {}
@@ -135,7 +141,11 @@ class PusherService {
         return null;
       }
 
-      _printerService.printInvoice(getOrderModel.data!);
+      final autoPrintEnabled =
+          box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+      if (autoPrintEnabled) {
+        _printerService.printInvoice(getOrderModel.data!);
+      }
 
       return getOrderModel.data;
     } catch (_) {
