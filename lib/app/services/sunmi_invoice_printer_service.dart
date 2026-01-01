@@ -509,7 +509,7 @@ class SunmiInvoicePrinterService {
 
         if (order.payments?.isNotEmpty == true) {
           await SunmiPrinter.printText(
-            "Amount  Payment Method   Date & Time",
+            "Amount Payment Method   Date & Time",
             style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
           );
           await SunmiPrinter.printText("--------------------------------");
@@ -524,7 +524,7 @@ class SunmiInvoicePrinterService {
             );
 
             await SunmiPrinter.printText(
-              "$paymentAmount   $paymentMethod   $formattedPaymentTime",
+              "$paymentAmount  $paymentMethod  $formattedPaymentTime",
               style: SunmiTextStyle(
                 align: SunmiPrintAlign.CENTER,
                 fontSize: 20,

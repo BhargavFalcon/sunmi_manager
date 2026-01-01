@@ -743,50 +743,62 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${item['guests']} ${TranslationKeys.guests.tr}',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          item['time'],
-                          style: const TextStyle(
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${item['guests']} ${TranslationKeys.guests.tr}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.access_time,
+                            size: 16,
                             color: Colors.red,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              item['time'],
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: controller.getStatusBgColor(item['status']),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: controller.getStatusBorderColor(item['status']),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
                     ),
-                  ),
-                  child: Text(
-                    _translateStatus(item['status']).toUpperCase(),
-                    style: TextStyle(
-                      color: controller.getStatusColor(item['status']),
-                      fontWeight: FontWeight.w600,
+                    decoration: BoxDecoration(
+                      color: controller.getStatusBgColor(item['status']),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: controller.getStatusBorderColor(item['status']),
+                      ),
+                    ),
+                    child: Text(
+                      _translateStatus(item['status']).toUpperCase(),
+                      style: TextStyle(
+                        color: controller.getStatusColor(item['status']),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ),

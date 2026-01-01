@@ -305,7 +305,9 @@ class NewOrderDetailsBottomSheet {
   }
 
   static DateTime? _parseCustomFormat(String dateTimeString) {
-    if (!dateTimeString.contains(' ')) return null;
+    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-')) {
+      return null;
+    }
 
     final parts = dateTimeString.split(' ');
     if (parts.length < 2) return null;
@@ -330,22 +332,22 @@ class NewOrderDetailsBottomSheet {
   }
 
   static String _formatToDisplayString(DateTime dateTime) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+    final monthNames = [
+      TranslationKeys.january.tr,
+      TranslationKeys.february.tr,
+      TranslationKeys.march.tr,
+      TranslationKeys.april.tr,
+      TranslationKeys.may.tr,
+      TranslationKeys.june.tr,
+      TranslationKeys.july.tr,
+      TranslationKeys.august.tr,
+      TranslationKeys.september.tr,
+      TranslationKeys.october.tr,
+      TranslationKeys.november.tr,
+      TranslationKeys.december.tr,
     ];
 
-    final month = months[dateTime.month - 1];
+    final month = monthNames[dateTime.month - 1];
     final day = dateTime.day;
     final year = dateTime.year;
     final hour12 =
