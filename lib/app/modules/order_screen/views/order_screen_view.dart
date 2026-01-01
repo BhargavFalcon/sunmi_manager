@@ -13,7 +13,6 @@ import '../../../constants/translation_keys.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../model/RestaurantDetailsModel.dart';
-import '../../../model/invoiceModel.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../../main.dart';
@@ -1479,7 +1478,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
       return;
     }
     final printerService = SunmiInvoicePrinterService();
-    // printerService.printInvoice(invoiceModel);
+    printerService.printInvoice(orderData);
   }
 }
 

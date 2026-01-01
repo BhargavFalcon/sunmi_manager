@@ -41,6 +41,9 @@ class TranslationKeys {
   static const String order = 'order';
   static const String orders = 'orders';
   static const String orderNumber = 'orderNumber';
+  static const String restaurant = 'restaurant';
+  static const String customer = 'customer';
+  static const String qtyItemNamePriceAmount = 'qtyItemNamePriceAmount';
   static const String noData = 'noData';
   static const String empty = 'empty';
   static const String na = 'na';
@@ -142,6 +145,8 @@ class TranslationKeys {
   // Actions
   static const String continueToOrder = 'continueToOrder';
   static const String viewOrder = 'viewOrder';
+  static const String dismiss = 'dismiss';
+  static const String youHaveANewOrder = 'youHaveANewOrder';
   static const String variationPrefix = 'variationPrefix';
 
   // Error Messages

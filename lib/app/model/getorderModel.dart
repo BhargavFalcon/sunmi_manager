@@ -143,6 +143,7 @@ class Restaurant {
   bool? allowCustomerDeliveryOrders;
   bool? allowCustomerPickupOrders;
   int? currentBranchId;
+  String? logoUrl;
 
   Restaurant({
     this.id,
@@ -156,6 +157,7 @@ class Restaurant {
     this.allowCustomerDeliveryOrders,
     this.allowCustomerPickupOrders,
     this.currentBranchId,
+    this.logoUrl,
   });
 
   Restaurant.fromJson(Map<String, dynamic> json)
@@ -169,7 +171,8 @@ class Restaurant {
       taxInclusive = json['tax_inclusive'],
       allowCustomerDeliveryOrders = json['allow_customer_delivery_orders'],
       allowCustomerPickupOrders = json['allow_customer_pickup_orders'],
-      currentBranchId = json['current_branch_id'];
+      currentBranchId = json['current_branch_id'],
+      logoUrl = json['logo_url'];
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -183,6 +186,7 @@ class Restaurant {
     'allow_customer_delivery_orders': allowCustomerDeliveryOrders,
     'allow_customer_pickup_orders': allowCustomerPickupOrders,
     'current_branch_id': currentBranchId,
+    'logo_url': logoUrl,
   };
 }
 

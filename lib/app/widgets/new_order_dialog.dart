@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:managerapp/app/model/notificationModel.dart';
+import '../constants/translation_keys.dart';
 
 class NewOrderDialog {
   static final AudioPlayer _audioPlayer = AudioPlayer();
@@ -9,7 +9,6 @@ class NewOrderDialog {
 
   static Future<void> show({
     required String orderNumber,
-    Order? order,
     VoidCallback? onViewOrder,
   }) async {
     if (Get.context == null) return;
@@ -57,9 +56,9 @@ class NewOrderDialog {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'You have a new order',
-                  style: TextStyle(
+                Text(
+                  TranslationKeys.youHaveANewOrder.tr,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -68,7 +67,7 @@ class NewOrderDialog {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Order #$orderNumber',
+                  '${TranslationKeys.orderNumber.tr}$orderNumber',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
@@ -96,9 +95,9 @@ class NewOrderDialog {
                           ),
                           elevation: 2,
                         ),
-                        child: const Text(
-                          'View Order',
-                          style: TextStyle(
+                        child: Text(
+                          TranslationKeys.viewOrder.tr,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -121,9 +120,9 @@ class NewOrderDialog {
                           ),
                           elevation: 2,
                         ),
-                        child: const Text(
-                          'Dismiss',
-                          style: TextStyle(
+                        child: Text(
+                          TranslationKeys.dismiss.tr,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -146,7 +145,6 @@ class NewOrderDialog {
   static Future<void> _playNotificationSound() async {
     try {
       await _audioPlayer.play(AssetSource('audio/new_order.wav'));
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }
