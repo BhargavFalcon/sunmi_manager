@@ -750,7 +750,7 @@ class Payments {
 }
 
 class Totals {
-  int? subTotal;
+  double? subTotal;
   double? totalTaxAmount;
   double? tipAmount;
   int? deliveryFee;
@@ -769,7 +769,7 @@ class Totals {
   });
 
   Totals.fromJson(Map<String, dynamic> json)
-    : subTotal = _toInt(json['sub_total']),
+    : subTotal = _toDouble(json['sub_total']),
       totalTaxAmount = _toDouble(json['total_tax_amount']),
       tipAmount = _toDouble(json['tip_amount']),
       deliveryFee = _toInt(json['delivery_fee']),
