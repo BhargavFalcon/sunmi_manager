@@ -1544,7 +1544,10 @@ class TakeOrderController extends GetxController {
                   final selectedOption = Options(
                     id: option.id,
                     name: option.name,
-                    price: orderModifier.price ?? option.price,
+                    price:
+                        orderModifier.price != null
+                            ? orderModifier.price!.toString()
+                            : option.price,
                     isAvailable: option.isAvailable,
                   );
                   selectedOption.isSelected.value = true;
@@ -1655,10 +1658,7 @@ class TakeOrderController extends GetxController {
       if (discountType != null &&
           discountType.isNotEmpty &&
           discountValue != null) {
-        final discountValueNum =
-            discountValue is num
-                ? discountValue.toDouble()
-                : double.tryParse(discountValue.toString()) ?? 0.0;
+        final discountValueNum = discountValue.toDouble();
 
         if (discountValueNum > 0) {
           final discountTypeStr = discountType.toLowerCase();

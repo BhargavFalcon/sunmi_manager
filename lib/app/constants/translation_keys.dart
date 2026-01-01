@@ -58,6 +58,7 @@ class TranslationKeys {
   static const String orderUuidNotFound = 'orderUuidNotFound';
   static const String invoiceDataNotFound = 'invoiceDataNotFound';
   static const String customerDetails = 'customerDetails';
+  static const String waiter = 'waiter';
   static const String itemNames = 'itemNames';
   static const String qty = 'qty';
   static const String noHeader = 'noHeader';

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -104,8 +105,7 @@ class CartScreenController extends GetxController {
           tableAreasList.assignAll(tableModelData.data!);
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   Future<void> submitOrder({
@@ -144,8 +144,7 @@ class CartScreenController extends GetxController {
           final loginModel = LoginModel.fromJson(loginData);
           waiterId = loginModel.data?.user?.id;
         }
-      } catch (e) {
-      }
+      } catch (e) {}
 
       if (waiterId == null) {
         safeGetSnackbar(
@@ -580,9 +579,8 @@ class CartScreenController extends GetxController {
 
   Map<String, double> get groupedTaxes {
     if (existingOrder != null) {
-      final orderData =
-          existingOrder!.data?.order ?? existingOrder!.data?.invoice?.order;
-      if (orderData?.taxes != null && orderData!.taxes!.isNotEmpty) {
+      final orderData = existingOrder!.data!;
+      if (orderData.taxes != null && orderData.taxes!.isNotEmpty) {
         final taxMap = <String, double>{};
         for (var tax in orderData.taxes!) {
           final taxAmount =
@@ -593,7 +591,7 @@ class CartScreenController extends GetxController {
             final percent = tax.percent?.toString() ?? '';
             final taxName = tax.taxName ?? 'Tax';
             final taxKey =
-                percent.isNotEmpty ? '$taxName (${percent}%)' : taxName;
+                percent.isNotEmpty ? '$taxName ($percent%)' : taxName;
             taxMap[taxKey] = taxAmount;
           }
         }
@@ -639,8 +637,7 @@ class CartScreenController extends GetxController {
 
   List<orderModel.Charges> get orderCharges {
     if (existingOrder != null) {
-      final orderData =
-          existingOrder!.data?.order ?? existingOrder!.data?.invoice?.order;
+      final orderData = existingOrder!.data?.order;
       return orderData?.charges ?? [];
     }
     return [];
@@ -656,6 +653,9 @@ class CartScreenController extends GetxController {
     try {
       await _audioPlayer.play(AssetSource('audio/sound_beep.mp3'), volume: 0.2);
     } catch (e) {
+      if (kDebugMode) {
+        print('Error playing beep sound: $e');
+      }
     }
   }
 }

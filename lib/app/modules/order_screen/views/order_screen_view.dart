@@ -626,8 +626,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     orderModel.Orders order,
   ) {
     final orderDetails = controller.orderDetails.value;
-    final orderData =
-        orderDetails?.data?.order ?? orderDetails?.data?.invoice?.order;
+    final orderData = orderDetails?.data?.order;
 
     if (orderData == null || orderDetails?.data == null) {
       return _buildErrorView(context);
@@ -695,7 +694,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     orderDetailsModel.Data orderData,
     orderModel.Orders order,
   ) {
-    final orderDetails = orderData.order ?? orderData.invoice?.order;
+    final orderDetails = orderData.order;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -720,9 +719,30 @@ class OrderScreenView extends GetView<OrderScreenController> {
             const SizedBox(height: 8),
             _buildOrderTimeInfo(orderDetails),
             const SizedBox(height: 8),
-            if (orderDetails?.customer != null)
-              _buildCustomerDetails(orderDetails!.customer!),
-            if (orderDetails?.customer != null) const SizedBox(height: 8),
+            if (orderDetails?.customer != null &&
+                _hasCustomerInfo(orderDetails!.customer!))
+              _buildCustomerDetails(orderDetails.customer!),
+            if (orderDetails?.customer != null &&
+                _hasCustomerInfo(orderDetails!.customer!))
+              const SizedBox(height: 8),
+            Builder(
+              builder: (context) {
+                final shouldShowWaiter =
+                    (orderDetails?.customer == null ||
+                        !_hasCustomerInfo(orderDetails?.customer)) &&
+                    _isDineInOrder(orderDetails?.orderType) &&
+                    _hasWaiterInfo(orderDetails?.waiter);
+
+                if (!shouldShowWaiter) return const SizedBox.shrink();
+
+                return Column(
+                  children: [
+                    _buildWaiterDetails(orderDetails!.waiter!),
+                    const SizedBox(height: 8),
+                  ],
+                );
+              },
+            ),
             _buildOrderItemsTable(orderData),
             const SizedBox(height: 8),
             _buildPriceSummary(orderData),
@@ -964,7 +984,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   Widget _buildOrderItemsTable(orderDetailsModel.Data orderData) {
-    final orderDetails = orderData.order ?? orderData.invoice?.order;
+    final orderDetails = orderData.order;
     final items = orderDetails?.items ?? [];
     if (items.isEmpty) {
       return Container(
@@ -1051,7 +1071,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 modifiers
                     .map(
                       (m) =>
-                          '${m.name ?? ''}${m.price != null && m.price!.isNotEmpty ? ' : ${CurrencyFormatter.formatPrice(m.price!)}' : ''}',
+                          '${m.name ?? ''}${m.price != null && m.price! > 0 ? ' : ${CurrencyFormatter.formatPrice(m.price!.toString())}' : ''}',
                     )
                     .toList();
             if (item.variationName != null && item.variationName!.isNotEmpty) {
@@ -1064,7 +1084,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             final amountStr =
                 item.amount is num
                     ? item.amount.toString()
-                    : (item.formattedAmount ?? item.amount?.toString() ?? '0');
+                    : (item.amount?.toString() ?? '0');
 
             return _buildTableRow(
               itemName: item.itemName ?? 'N/A',
@@ -1150,10 +1170,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   Widget _buildPriceSummary(orderDetailsModel.Data orderData) {
-    final orderDetails = orderData.order ?? orderData.invoice?.order;
+    final orderDetails = orderData.order;
     final totals = orderDetails?.totals;
     final itemsCount = orderDetails?.items?.length ?? 0;
-    final taxes = orderDetails?.taxes ?? [];
+    final taxes = orderData.taxes ?? [];
     final charges = orderDetails?.charges ?? [];
     final isTaxIncluded = _isTaxIncluded(orderData);
 
@@ -1233,7 +1253,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   isTaxIncluded ? ' ${TranslationKeys.incl.tr}:' : ':';
               final taxLabel =
                   percent.isNotEmpty
-                      ? '${tax.taxName ?? TranslationKeys.tax.tr} (${percent}%)$taxSuffix'
+                      ? '${tax.taxName ?? TranslationKeys.tax.tr} ($percent%)$taxSuffix'
                       : '${tax.taxName ?? TranslationKeys.tax.tr}$taxSuffix';
               return _buildPriceRow(taxLabel, formattedAmount);
             }),
@@ -1317,6 +1337,86 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
+  bool _hasCustomerInfo(orderDetailsModel.Customer? customer) {
+    if (customer == null) return false;
+    return (customer.name != null && customer.name!.isNotEmpty) ||
+        (customer.email != null && customer.email!.isNotEmpty) ||
+        (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty);
+  }
+
+  bool _isDineInOrder(String? orderType) {
+    if (orderType == null) return false;
+    final type = orderType.toLowerCase().replaceAll(' ', '_');
+    return type == 'dine_in' || type == 'dinein' || type == 'dine in';
+  }
+
+  bool _hasWaiterInfo(orderDetailsModel.Waiter? waiter) {
+    if (waiter == null) return false;
+    return (waiter.name != null && waiter.name!.trim().isNotEmpty) ||
+        waiter.id != null ||
+        (waiter.email != null && waiter.email!.trim().isNotEmpty) ||
+        (waiter.phoneNumber != null && waiter.phoneNumber!.trim().isNotEmpty);
+  }
+
+  Widget _buildWaiterDetails(orderDetailsModel.Waiter waiter) {
+    final hasName = waiter.name != null && waiter.name!.trim().isNotEmpty;
+    final hasId = waiter.id != null;
+
+    if (!hasName && !hasId) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.restaurant,
+                size: 20,
+                color: ColorConstants.primaryColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                TranslationKeys.waiter.tr,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (waiter.name != null && waiter.name!.trim().isNotEmpty)
+            _buildDetailRow(TranslationKeys.name.tr, waiter.name!),
+          if (waiter.email != null && waiter.email!.trim().isNotEmpty)
+            _buildDetailRow(TranslationKeys.email.tr, waiter.email!),
+          if (waiter.phoneNumber != null &&
+              waiter.phoneNumber!.trim().isNotEmpty)
+            _buildDetailRow(
+              TranslationKeys.phone.tr,
+              '${waiter.phoneCode ?? ''}${waiter.phoneNumber}',
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -1363,29 +1463,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   bool _isTaxIncluded(orderDetailsModel.Data orderData) {
-    final invoice = orderData.invoice;
-    if (invoice?.taxInclusive != null) {
-      return invoice!.taxInclusive == true;
+    if (orderData.taxInclusive != null) {
+      return orderData.taxInclusive == true;
     }
     final branch = _getBranch();
     return branch?.taxesIncluded == true;
   }
 
   void _printInvoice(orderDetailsModel.Data orderData) {
-    final invoiceData = orderData.invoice;
-    if (invoiceData == null) {
+    if (orderData.order == null) {
       safeGetSnackbar(
         TranslationKeys.error.tr,
         TranslationKeys.invoiceDataNotFound.tr,
       );
       return;
     }
-
-    final invoiceJson = invoiceData.toJson();
-    final invoice = Invoice.fromJson(invoiceJson);
-    final invoiceModel = InvoiceModel(invoice: invoice);
     final printerService = SunmiInvoicePrinterService();
-    printerService.printInvoice(invoiceModel);
+    // printerService.printInvoice(invoiceModel);
   }
 }
 
