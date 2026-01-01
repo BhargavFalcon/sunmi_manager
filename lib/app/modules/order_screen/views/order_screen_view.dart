@@ -870,7 +870,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           child: Text(
                             entry.value,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
