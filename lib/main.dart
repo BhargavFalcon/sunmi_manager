@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
@@ -24,6 +25,8 @@ void main() async {
 
   final language = LanguageUtils.getLanguage();
   final locale = LanguageUtils.getLocaleFromCode(language);
+
+  await _initializeDateFormatting(locale);
 
   runApp(
     GetMaterialApp(
@@ -48,4 +51,17 @@ void main() async {
       },
     ),
   );
+}
+
+Future<void> _initializeDateFormatting(Locale locale) async {
+  try {
+    final localeString = '${locale.languageCode}_${locale.countryCode}';
+    await initializeDateFormatting(localeString, null);
+  } catch (e) {
+    try {
+      await initializeDateFormatting('en_US', null);
+    } catch (e2) {
+      // If initialization fails, DateFormat will use default locale
+    }
+  }
 }

@@ -57,10 +57,10 @@ class SettingScreenController extends GetxController {
     );
   }
 
-  void changeLanguage(String languageCode) {
+  Future<void> changeLanguage(String languageCode) async {
     selectedLanguage.value = languageCode;
     box.write(ArgumentConstant.selectedLanguageKey, languageCode);
-    LanguageUtils.updateLocale(languageCode);
+    await LanguageUtils.updateLocale(languageCode);
   }
 
   Future<void> syncMenu() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../main.dart';
 import '../constants/api_constants.dart';
 import '../model/RestaurantDetailsModel.dart';
@@ -45,10 +46,24 @@ class LanguageUtils {
     }
   }
 
-  static Locale updateLocale(String languageCode) {
+  static Future<Locale> updateLocale(String languageCode) async {
     final locale = getLocaleFromCode(languageCode);
+    await _initializeDateFormattingForLocale(locale);
     Get.updateLocale(locale);
     return locale;
+  }
+
+  static Future<void> _initializeDateFormattingForLocale(Locale locale) async {
+    try {
+      final localeString = '${locale.languageCode}_${locale.countryCode}';
+      await initializeDateFormatting(localeString, null);
+    } catch (e) {
+      try {
+        await initializeDateFormatting('en_US', null);
+      } catch (e2) {
+        // If initialization fails, DateFormat will use default locale
+      }
+    }
   }
 
   static String getFlagEmoji(String languageCode) {
@@ -114,4 +129,3 @@ class LanguageUtils {
     return null;
   }
 }
-

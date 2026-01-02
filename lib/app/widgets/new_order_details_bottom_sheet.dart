@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
+import 'package:managerapp/app/utils/date_time_formatter.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../model/RestaurantDetailsModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
@@ -19,28 +20,18 @@ class NewOrderDetailsBottomSheet {
 
     showModalBottomSheet(
       context: context,
-      isDismissible: true,
+      isDismissible: false,
+      enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (builderContext) {
-        final draggableController = DraggableScrollableController();
-
-        return DraggableScrollableSheet(
-          controller: draggableController,
-          initialChildSize: 0.6,
-          minChildSize: 0.3,
-          maxChildSize: 0.9,
-          builder:
-              (context, scrollController) => _buildBottomSheetContent(
-                builderContext,
-                orderData,
-                screenHeight,
-                scrollController,
-                draggableController,
-              ),
+        return _buildBottomSheetContent(
+          builderContext,
+          orderData,
+          screenHeight,
         );
       },
     );
@@ -50,12 +41,11 @@ class NewOrderDetailsBottomSheet {
     BuildContext context,
     orderModel.Data orderData,
     double screenHeight,
-    ScrollController scrollController,
-    DraggableScrollableController draggableController,
   ) {
     final orderDetails = orderData.order;
     if (orderDetails == null) {
       return Container(
+        height: screenHeight * 0.8,
         decoration: BoxDecoration(
           color: ColorConstants.bgColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -71,14 +61,26 @@ class NewOrderDetailsBottomSheet {
     }
 
     return Container(
+      height: screenHeight * 0.8,
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: ColorConstants.getShadow2,
       ),
-      child: SingleChildScrollView(
-        controller: scrollController,
-        child: _buildOrderDetailsContent(context, orderData, orderDetails),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: _buildOrderDetailsContent(
+                context,
+                orderData,
+                orderDetails,
+              ),
+            ),
+          ),
+          _buildStickyButtons(context, orderData),
+        ],
       ),
     );
   }
@@ -88,121 +90,133 @@ class NewOrderDetailsBottomSheet {
     orderModel.Data orderData,
     orderModel.Order orderDetails,
   ) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Image.asset(ImageConstant.order, height: 24, width: 24),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${orderDetails.formattedOrderNumber ?? orderDetails.id?.toString() ?? ''} (${_formatOrderType(orderDetails.orderType)})',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Image.asset(ImageConstant.order, height: 24, width: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${orderDetails.formattedOrderNumber ?? orderDetails.id?.toString() ?? ''} (${_formatOrderType(orderDetails.orderType)})',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildOrderTimeInfo(orderDetails),
+          const SizedBox(height: 8),
+          if (orderDetails.customer != null &&
+              _hasCustomerInfo(orderDetails.customer!))
+            _buildCustomerDetails(orderDetails.customer!),
+          if (orderDetails.customer != null &&
+              _hasCustomerInfo(orderDetails.customer!))
+            const SizedBox(height: 8),
+          Builder(
+            builder: (context) {
+              final shouldShowWaiter =
+                  (orderDetails.customer == null ||
+                      !_hasCustomerInfo(orderDetails.customer)) &&
+                  _isDineInOrder(orderDetails.orderType) &&
+                  _hasWaiterInfo(orderDetails.waiter);
+
+              if (!shouldShowWaiter) return const SizedBox.shrink();
+
+              return Column(
+                children: [
+                  _buildWaiterDetails(orderDetails.waiter!),
+                  const SizedBox(height: 8),
+                ],
+              );
+            },
+          ),
+          _buildOrderItemsTable(orderData),
+          const SizedBox(height: 8),
+          _buildPriceSummary(orderData),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildStickyButtons(
+    BuildContext context,
+    orderModel.Data orderData,
+  ) {
+    return Container(
+      padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 24),
+      decoration: BoxDecoration(
+        color: ColorConstants.bgColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF60616E),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: Text(
+                  TranslationKeys.close.tr,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            _buildOrderTimeInfo(orderDetails),
-            const SizedBox(height: 8),
-            if (orderDetails.customer != null &&
-                _hasCustomerInfo(orderDetails.customer!))
-              _buildCustomerDetails(orderDetails.customer!),
-            if (orderDetails.customer != null &&
-                _hasCustomerInfo(orderDetails.customer!))
-              const SizedBox(height: 8),
-            Builder(
-              builder: (context) {
-                final shouldShowWaiter =
-                    (orderDetails.customer == null ||
-                        !_hasCustomerInfo(orderDetails.customer)) &&
-                    _isDineInOrder(orderDetails.orderType) &&
-                    _hasWaiterInfo(orderDetails.waiter);
-
-                if (!shouldShowWaiter) return const SizedBox.shrink();
-
-                return Column(
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: InkWell(
+              onTap: () => _printInvoice(orderData),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0E9F6E),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildWaiterDetails(orderDetails.waiter!),
-                    const SizedBox(height: 8),
+                    const Icon(Icons.print, color: Colors.white, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      TranslationKeys.print.tr,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
-                );
-              },
-            ),
-            _buildOrderItemsTable(orderData),
-            const SizedBox(height: 8),
-            _buildPriceSummary(orderData),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: ColorConstants.getShadow2,
-                      ),
-                      child: Text(
-                        TranslationKeys.close.tr,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _printInvoice(orderData),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: ColorConstants.getShadow2,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.print,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            TranslationKeys.print.tr,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -215,14 +229,16 @@ class NewOrderDetailsBottomSheet {
     final List<String> timeInfoList = [];
 
     if (createdAt.isNotEmpty) {
-      final formattedCreatedAt = _formatOrderDateTime(createdAt);
+      final formattedCreatedAt = DateTimeFormatter.formatDateTime(createdAt);
       timeInfoList.add(
         '${TranslationKeys.orderCreated.tr}: $formattedCreatedAt',
       );
     }
 
     if (dateTimeString.isNotEmpty) {
-      final formattedDateTime = _formatOrderDateTime(dateTimeString);
+      final formattedDateTime = DateTimeFormatter.formatDateTime(
+        dateTimeString,
+      );
       final timeLabel = _getTimeLabel(orderType);
       if (timeLabel != null) {
         timeInfoList.add('$timeLabel: $formattedDateTime');
@@ -283,81 +299,6 @@ class NewOrderDetailsBottomSheet {
       return TranslationKeys.pickupTime.tr;
     }
     return null;
-  }
-
-  static String _formatOrderDateTime(String dateTimeString) {
-    try {
-      DateTime? dateTime = _parseDateTime(dateTimeString);
-      if (dateTime == null) return dateTimeString;
-
-      return _formatToDisplayString(dateTime);
-    } catch (e) {
-      return dateTimeString;
-    }
-  }
-
-  static DateTime? _parseDateTime(String dateTimeString) {
-    try {
-      return DateTime.parse(dateTimeString);
-    } catch (e) {
-      return _parseCustomFormat(dateTimeString);
-    }
-  }
-
-  static DateTime? _parseCustomFormat(String dateTimeString) {
-    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-')) {
-      return null;
-    }
-
-    final parts = dateTimeString.split(' ');
-    if (parts.length < 2) return null;
-
-    final dateParts = parts[0].split('-');
-    final timeParts = parts[1].split(':');
-
-    if (dateParts.length != 3 || timeParts.length < 2) return null;
-
-    try {
-      return DateTime(
-        int.parse(dateParts[0]),
-        int.parse(dateParts[1]),
-        int.parse(dateParts[2]),
-        int.parse(timeParts[0]),
-        int.parse(timeParts[1]),
-        timeParts.length > 2 ? int.parse(timeParts[2]) : 0,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  static String _formatToDisplayString(DateTime dateTime) {
-    final monthNames = [
-      TranslationKeys.january.tr,
-      TranslationKeys.february.tr,
-      TranslationKeys.march.tr,
-      TranslationKeys.april.tr,
-      TranslationKeys.may.tr,
-      TranslationKeys.june.tr,
-      TranslationKeys.july.tr,
-      TranslationKeys.august.tr,
-      TranslationKeys.september.tr,
-      TranslationKeys.october.tr,
-      TranslationKeys.november.tr,
-      TranslationKeys.december.tr,
-    ];
-
-    final month = monthNames[dateTime.month - 1];
-    final day = dateTime.day;
-    final year = dateTime.year;
-    final hour12 =
-        dateTime.hour > 12
-            ? dateTime.hour - 12
-            : (dateTime.hour == 0 ? 12 : dateTime.hour);
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
-
-    return '$month $day, $year $hour12:$minute $period';
   }
 
   static String _formatOrderType(String? orderType) {
@@ -614,22 +555,6 @@ class NewOrderDetailsBottomSheet {
               CurrencyFormatter.formatPrice(totals!.subTotal.toString()),
             ),
 
-          ...() {
-            if (orderDetails?.discountValue == null) return <Widget>[];
-            final discountValue =
-                orderDetails!.discountValue is num
-                    ? (orderDetails.discountValue as num).toDouble()
-                    : double.tryParse(orderDetails.discountValue.toString()) ??
-                        0.0;
-            if (discountValue <= 0) return <Widget>[];
-            return [
-              _buildPriceRow(
-                '${TranslationKeys.discount.tr}:',
-                '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
-              ),
-            ];
-          }(),
-
           if (charges.isNotEmpty)
             ...charges.map((charge) {
               final chargeAmount =
@@ -679,7 +604,24 @@ class NewOrderDetailsBottomSheet {
               ),
             ];
           }(),
-
+          ...() {
+            if (orderDetails!.totals!.discountAmount == null) return <Widget>[];
+            final discountValue =
+                orderDetails.totals!.discountAmount is num
+                    ? (orderDetails.totals!.discountAmount as num).toDouble()
+                    : double.tryParse(
+                          orderDetails.totals!.discountAmount.toString(),
+                        ) ??
+                        0.0;
+            if (discountValue <= 0) return <Widget>[];
+            return [
+              _buildPriceRow(
+                '${TranslationKeys.discount.tr}:',
+                '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
+                valueColor: const Color(0xFF0B9F6E),
+              ),
+            ];
+          }(),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1, thickness: 1, color: Colors.grey),

@@ -25,6 +25,7 @@ class OrderScreenController extends GetxController {
   Pagination? pagination;
   int currentPage = 1;
   final ScrollController scrollController = ScrollController();
+  VoidCallback? _scrollListener;
 
   final List<String> dateOptions = [
     'Today',
@@ -56,14 +57,26 @@ class OrderScreenController extends GetxController {
   void onInit() {
     super.onInit();
     _updateDatesByOption('Today');
-    scrollController.addListener(_onScroll);
   }
 
   @override
   void onReady() {
     super.onReady();
+    _setupScrollListener();
     fetchAllOrders();
     _checkAndShowDialog();
+  }
+
+  void _setupScrollListener() {
+    _scrollListener = () {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent * 0.8) {
+        if (hasMorePages && !isLoadingMore.value && !isLoading.value) {
+          loadMoreOrders();
+        }
+      }
+    };
+    scrollController.addListener(_scrollListener!);
   }
 
   void _checkAndShowDialog() {
@@ -80,27 +93,6 @@ class OrderScreenController extends GetxController {
       }
     } catch (e) {
       // Handle error silently
-    }
-  }
-
-  void _onScroll() {
-    if (!scrollController.hasClients) return;
-    final position = scrollController.position;
-    final maxScroll = position.maxScrollExtent;
-    final currentScroll = position.pixels;
-    if (currentScroll >= maxScroll - 200) {
-      if (!isLoadingMore.value && !isLoading.value) {
-        if (pagination == null) {
-          currentPage++;
-          fetchAllOrders(isLoadMore: true);
-        } else {
-          final lastPage = pagination!.lastPage ?? 1;
-          if (currentPage < lastPage) {
-            currentPage++;
-            fetchAllOrders(isLoadMore: true);
-          }
-        }
-      }
     }
   }
 
@@ -196,7 +188,9 @@ class OrderScreenController extends GetxController {
 
   @override
   void onClose() {
-    scrollController.removeListener(_onScroll);
+    if (_scrollListener != null && scrollController.hasClients) {
+      scrollController.removeListener(_scrollListener!);
+    }
     if (scrollController.hasClients) {
       scrollController.dispose();
     }

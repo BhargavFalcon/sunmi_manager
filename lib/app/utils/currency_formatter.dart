@@ -10,8 +10,7 @@ class CurrencyFormatter {
       if (storedData != null && storedData is Map<String, dynamic>) {
         return RestaurantModel.fromJson(storedData);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
     return null;
   }
 

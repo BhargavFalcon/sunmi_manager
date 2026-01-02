@@ -17,16 +17,20 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
 
+  CartScreenController? _getCartController() {
+    if (Get.isRegistered<CartScreenController>()) {
+      return Get.find<CartScreenController>();
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<TakeOrderController>(
       init: TakeOrderController(),
       assignId: true,
       builder: (controller) {
-        CartScreenController? cartController;
-        if (Get.isRegistered<CartScreenController>()) {
-          cartController = Get.find<CartScreenController>();
-        }
+        final cartController = _getCartController();
 
         return PopScope(
           canPop: cartController == null || cartController.cartItems.isEmpty,
@@ -84,21 +88,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                   highlightColor: Colors.transparent,
                                   splashColor: Colors.transparent,
                                   onTap: () {
-                                    CartScreenController? cartController;
-                                    if (Get.isRegistered<
-                                      CartScreenController
-                                    >()) {
-                                      cartController =
-                                          Get.find<CartScreenController>();
-                                    }
-                                    if (cartController == null ||
-                                        cartController.cartItems.isEmpty) {
+                                    final cartCtrl = _getCartController();
+                                    if (cartCtrl == null ||
+                                        cartCtrl.cartItems.isEmpty) {
                                       Get.back();
                                     } else {
-                                      _showCancelOrderDialog(
-                                        context,
-                                        cartController,
-                                      );
+                                      _showCancelOrderDialog(context, cartCtrl);
                                     }
                                   },
                                   child: Container(
@@ -252,11 +247,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: InkWell(
+                                    child: GestureDetector(
                                       onTap: () {
                                         _showClearCartDialog(
                                           context,
-                                          cartController,
+                                          _getCartController(),
                                         );
                                       },
                                       child: Container(
@@ -757,13 +752,41 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     return images;
   }
 
+  Widget _buildDialogButton({
+    required String text,
+    required VoidCallback onTap,
+    required Color backgroundColor,
+    required Color textColor,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: MySize.getHeight(12),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showClearCartDialog(
     BuildContext context,
     CartScreenController? controller, {
     bool shouldExit = false,
   }) {
-    if (controller == null) return;
-
+    final cartCtrl = controller ?? _getCartController();
     final title =
         shouldExit
             ? TranslationKeys.cancelOrder.tr
@@ -804,64 +827,22 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 SizedBox(height: MySize.getHeight(20)),
                 Row(
                   children: [
-                    Expanded(
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              TranslationKeys.close.tr,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: MySize.getHeight(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    _buildDialogButton(
+                      text: TranslationKeys.close.tr,
+                      onTap: () => Navigator.of(context).pop(),
+                      backgroundColor: Colors.grey.shade200,
+                      textColor: Colors.black,
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: () {
-                          controller.clearCart();
-                          Navigator.of(context).pop();
-                          if (shouldExit) {
-                            Get.back();
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              TranslationKeys.clearCart.tr.replaceAll('?', ''),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: MySize.getHeight(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    _buildDialogButton(
+                      text: TranslationKeys.clearCart.tr.replaceAll('?', ''),
+                      onTap: () {
+                        cartCtrl?.clearCart();
+                        Navigator.of(context).pop();
+                        if (shouldExit) Get.back();
+                      },
+                      backgroundColor: ColorConstants.primaryColor,
+                      textColor: Colors.white,
                     ),
                   ],
                 ),

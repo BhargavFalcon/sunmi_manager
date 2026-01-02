@@ -698,75 +698,72 @@ class TakeOrderController extends GetxController {
                       price,
                     );
 
-                    return Container(
-                      margin: EdgeInsets.only(bottom: MySize.getHeight(8)),
-                      padding: EdgeInsets.all(MySize.getHeight(12)),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          MySize.getHeight(12),
-                        ),
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                          width: MySize.getWidth(1),
-                        ),
-                        boxShadow: ColorConstants.getShadow2,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              variation.variation ??
-                                  TranslationKeys.variation.tr,
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(12),
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Text(
-                              formattedPrice,
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(12),
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Obx(
-                                () => GestureDetector(
-                                  onTap: () {
-                                    if (item.variations != null) {
-                                      for (var v in item.variations!) {
-                                        if (v.id != variation.id) {
-                                          v.selected.value = false;
-                                        }
-                                      }
-                                    }
-                                    variation.selected.value = true;
+                    return Obx(
+                      () => GestureDetector(
+                        onTap: () {
+                          if (item.variations != null) {
+                            for (var v in item.variations!) {
+                              if (v.id != variation.id) {
+                                v.selected.value = false;
+                              }
+                            }
+                          }
+                          variation.selected.value = true;
 
-                                    Get.back();
-                                    if (item.modifierGroups != null &&
-                                        item.modifierGroups!.isNotEmpty) {
-                                      showItemExtrasBottomSheet(
-                                        item,
-                                        selectedVariation: variation,
-                                      );
-                                    } else {
-                                      addItemToCart(
-                                        item,
-                                        selectedVariation: variation,
-                                      );
-                                    }
-                                  },
+                          Get.back();
+                          if (item.modifierGroups != null &&
+                              item.modifierGroups!.isNotEmpty) {
+                            showItemExtrasBottomSheet(
+                              item,
+                              selectedVariation: variation,
+                            );
+                          } else {
+                            addItemToCart(item, selectedVariation: variation);
+                          }
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: MySize.getHeight(8)),
+                          padding: EdgeInsets.all(MySize.getHeight(12)),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(12),
+                            ),
+                            border: Border.all(
+                              color: Colors.grey.shade200,
+                              width: MySize.getWidth(1),
+                            ),
+                            boxShadow: ColorConstants.getShadow2,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  variation.variation ??
+                                      TranslationKeys.variation.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  formattedPrice,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.centerRight,
                                   child: Container(
                                     width: MySize.getWidth(20),
                                     height: MySize.getHeight(20),
@@ -795,9 +792,9 @@ class TakeOrderController extends GetxController {
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     );
                   }).toList(),
@@ -1071,112 +1068,101 @@ class TakeOrderController extends GetxController {
                                 String formattedPrice =
                                     CurrencyFormatter.formatPrice(price);
 
-                                return Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: MySize.getWidth(12),
-                                    vertical: MySize.getHeight(10),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.shade200,
-                                        width: MySize.getWidth(1),
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          option.name ??
-                                              TranslationKeys.option.tr,
-                                          style: TextStyle(
-                                            fontSize: MySize.getHeight(12),
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(
-                                          formattedPrice,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: MySize.getHeight(12),
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Builder(
-                                            builder: (context) {
-                                              final allowMultiple =
-                                                  modifierGroup
-                                                      .allowMultipleSelection ??
-                                                  false;
-                                              return Obx(
-                                                () => GestureDetector(
-                                                  onTap: () {
-                                                    if (!allowMultiple) {
-                                                      for (var opt in options) {
-                                                        if (opt.id !=
-                                                            option.id) {
-                                                          opt.isSelected.value =
-                                                              false;
-                                                        }
-                                                      }
-                                                    }
-                                                    option.isSelected.value =
-                                                        !option
-                                                            .isSelected
-                                                            .value;
+                                return Builder(
+                                  builder: (context) {
+                                    final allowMultiple =
+                                        modifierGroup.allowMultipleSelection ??
+                                        false;
+                                    return Obx(
+                                      () => GestureDetector(
+                                        onTap: () {
+                                          if (!allowMultiple) {
+                                            for (var opt in options) {
+                                              if (opt.id != option.id) {
+                                                opt.isSelected.value = false;
+                                              }
+                                            }
+                                          }
+                                          option.isSelected.value =
+                                              !option.isSelected.value;
 
-                                                    if (option
-                                                            .isSelected
-                                                            .value &&
-                                                        modifierErrors[index] ==
-                                                            true) {
-                                                      modifierErrors[index] =
-                                                          false;
-                                                    }
+                                          if (option.isSelected.value &&
+                                              modifierErrors[index] == true) {
+                                            modifierErrors[index] = false;
+                                          }
 
-                                                    if (allowMultiple) {
-                                                      final currentSet =
-                                                          selectedOptions[index] ??
-                                                          <int>{};
-                                                      if (option
-                                                          .isSelected
-                                                          .value) {
-                                                        selectedOptions[index] =
-                                                            {
-                                                              ...currentSet,
-                                                              option.id!,
-                                                            };
-                                                      } else {
-                                                        currentSet.remove(
-                                                          option.id,
-                                                        );
-                                                        selectedOptions[index] =
-                                                            currentSet.isEmpty
-                                                                ? <int>{}
-                                                                : currentSet;
-                                                      }
-                                                    } else {
-                                                      selectedOptions[index] =
-                                                          option
-                                                                  .isSelected
-                                                                  .value
-                                                              ? {option.id!}
-                                                              : <int>{};
-                                                    }
-                                                  },
+                                          if (allowMultiple) {
+                                            final currentSet =
+                                                selectedOptions[index] ??
+                                                <int>{};
+                                            if (option.isSelected.value) {
+                                              selectedOptions[index] = {
+                                                ...currentSet,
+                                                option.id!,
+                                              };
+                                            } else {
+                                              currentSet.remove(option.id);
+                                              selectedOptions[index] =
+                                                  currentSet.isEmpty
+                                                      ? <int>{}
+                                                      : currentSet;
+                                            }
+                                          } else {
+                                            selectedOptions[index] =
+                                                option.isSelected.value
+                                                    ? {option.id!}
+                                                    : <int>{};
+                                          }
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: MySize.getWidth(12),
+                                            vertical: MySize.getHeight(10),
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: Colors.grey.shade200,
+                                                width: MySize.getWidth(1),
+                                              ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text(
+                                                  option.name ??
+                                                      TranslationKeys.option.tr,
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      12,
+                                                    ),
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 1,
+                                                child: Text(
+                                                  formattedPrice,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      12,
+                                                    ),
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 1,
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
                                                   child: Container(
                                                     width: MySize.getWidth(20),
                                                     height: MySize.getHeight(
@@ -1240,13 +1226,13 @@ class TakeOrderController extends GetxController {
                                                             : null,
                                                   ),
                                                 ),
-                                              );
-                                            },
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 );
                               }).toList(),
                             ],

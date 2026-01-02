@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/date_time_formatter.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../constants/translation_keys.dart';
 
@@ -45,77 +46,8 @@ class SunmiInvoicePrinterService {
     return CurrencyFormatter.formatPrice('0');
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
-
-  String _formatTime(DateTime dateTime) {
-    int hour12 =
-        dateTime.hour > 12
-            ? dateTime.hour - 12
-            : (dateTime.hour == 0 ? 12 : dateTime.hour);
-    final hour = hour12.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final day = dateTime.day.toString().padLeft(2, '0');
-    final month = _getMonthName(dateTime.month);
-    final year = dateTime.year.toString();
-    final time = _formatTime(dateTime);
-    return '$day $month $year $time';
-  }
-
-  DateTime? _parseDateTime(String? dateTimeString) {
-    if (dateTimeString == null || dateTimeString.isEmpty) return null;
-
-    try {
-      return DateTime.parse(dateTimeString);
-    } catch (e) {
-      try {
-        if (!dateTimeString.contains('-') || !dateTimeString.contains(' ')) {
-          return null;
-        }
-        final parts = dateTimeString.split(' ');
-        final dateParts = parts[0].split('-');
-        final timeParts = parts[1].split(':');
-
-        if (dateParts.length != 3 || timeParts.length < 2) return null;
-
-        final isYearFirst = dateParts[0].length == 4;
-        return DateTime(
-          int.parse(isYearFirst ? dateParts[0] : dateParts[2]),
-          int.parse(dateParts[1]),
-          int.parse(isYearFirst ? dateParts[2] : dateParts[0]),
-          int.parse(timeParts[0]),
-          int.parse(timeParts[1]),
-        );
-      } catch (e2) {
-        return null;
-      }
-    }
-  }
-
   String _formatDateTimeString(String? dateTimeString) {
-    if (dateTimeString == null || dateTimeString.isEmpty) return '';
-    final dateTime = _parseDateTime(dateTimeString);
-    return dateTime != null ? _formatDateTime(dateTime) : dateTimeString;
+    return DateTimeFormatter.formatDateTime(dateTimeString);
   }
 
   String _formatLabelValue(String label, String value, {int totalWidth = 38}) {
