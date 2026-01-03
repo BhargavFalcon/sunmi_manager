@@ -309,6 +309,7 @@ class Order {
   int? numberOfPax;
   String? discountType;
   int? discountValue;
+  String? couponCode;
   String? note;
   String? taxModeAtOrder;
   bool? taxInclusiveAtOrder;
@@ -344,6 +345,7 @@ class Order {
     this.numberOfPax,
     this.discountType,
     this.discountValue,
+    this.couponCode,
     this.note,
     this.taxModeAtOrder,
     this.taxInclusiveAtOrder,
@@ -380,6 +382,9 @@ class Order {
       numberOfPax = _toInt(json['number_of_pax']),
       discountType = json['discount_type'],
       discountValue = _toInt(json['discount_value']),
+      couponCode =
+          json['coupon_code'] ??
+          (json['coupon'] is Map ? json['coupon']['code'] : null),
       note = json['note'],
       taxModeAtOrder = json['tax_mode_at_order'],
       taxInclusiveAtOrder = json['tax_inclusive_at_order'],
@@ -415,6 +420,7 @@ class Order {
     'number_of_pax': numberOfPax,
     'discount_type': discountType,
     'discount_value': discountValue,
+    'coupon_code': couponCode,
     'note': note,
     'tax_mode_at_order': taxModeAtOrder,
     'tax_inclusive_at_order': taxInclusiveAtOrder,

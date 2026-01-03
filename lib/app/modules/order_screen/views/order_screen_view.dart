@@ -1211,9 +1211,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         ) ??
                         0.0;
             if (discountValue <= 0) return <Widget>[];
+            final couponCode = orderDetails.couponCode;
+            final discountLabel = couponCode != null && couponCode.isNotEmpty
+                ? '${TranslationKeys.discount.tr} ($couponCode):'
+                : '${TranslationKeys.discount.tr}:';
             return [
               _buildPriceRow(
-                '${TranslationKeys.discount.tr}:',
+                discountLabel,
                 '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
                 valueColor: const Color(0xFF0B9F6E),
               ),
