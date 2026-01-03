@@ -41,8 +41,10 @@ class PrinterScreenController extends GetxController {
     _loadSavedPrinter();
     _loadSettings();
     _syncWithService();
-    _checkBluetoothStatus();
-    _autoScan();
+    if (Platform.isAndroid) {
+      _checkBluetoothStatus();
+      _autoScan();
+    }
   }
 
   Future<void> _autoScan() async {
@@ -51,6 +53,7 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> _checkBluetoothStatus() async {
+    if (!Platform.isAndroid) return;
     try {
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
@@ -146,6 +149,7 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> _checkConnection() async {
+    if (!Platform.isAndroid) return;
     try {
       if (connectedDevice.value == null) return;
 
@@ -187,6 +191,10 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> scanForDevices() async {
+    if (!Platform.isAndroid) {
+      isScanning.value = false;
+      return;
+    }
     try {
       isScanning.value = true;
       availableDevices.clear();
@@ -214,6 +222,14 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> connectToDevice(BluetoothInfo device) async {
+    if (!Platform.isAndroid) {
+      _showSnackbar(
+        TranslationKeys.error.tr,
+        'Bluetooth printing is only available on Android',
+        Colors.orange,
+      );
+      return;
+    }
     try {
       isLoading.value = true;
       final result = await PrintBluetoothThermal.connect(
@@ -242,6 +258,7 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> disconnectDevice() async {
+    if (!Platform.isAndroid) return;
     try {
       isLoading.value = true;
       final result = await PrintBluetoothThermal.disconnect;
@@ -301,6 +318,14 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> printTestReceipt() async {
+    if (!Platform.isAndroid) {
+      _showSnackbar(
+        TranslationKeys.error.tr,
+        'Bluetooth printing is only available on Android',
+        Colors.orange,
+      );
+      return;
+    }
     // Check Bluetooth status
     try {
       final bool bluetoothEnabled =
@@ -1306,6 +1331,7 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> _handleBluetoothEnabled() async {
+    if (!Platform.isAndroid) return;
     await Future.delayed(_bluetoothEnableDelay);
     final bool? bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
 
@@ -1326,6 +1352,7 @@ class PrinterScreenController extends GetxController {
   }
 
   Future<void> _pollBluetoothStatus() async {
+    if (!Platform.isAndroid) return;
     _showSnackbar(
       TranslationKeys.enablingBluetooth.tr,
       TranslationKeys.pleaseAllowBluetoothInDialog.tr,
