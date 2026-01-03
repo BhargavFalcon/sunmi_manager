@@ -1212,9 +1212,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         0.0;
             if (discountValue <= 0) return <Widget>[];
             final couponCode = orderDetails.couponCode;
-            final discountLabel = couponCode != null && couponCode.isNotEmpty
-                ? '${TranslationKeys.discount.tr} ($couponCode):'
-                : '${TranslationKeys.discount.tr}:';
+            final discountLabel =
+                couponCode != null && couponCode.isNotEmpty
+                    ? '${TranslationKeys.discount.tr} ($couponCode):'
+                    : '${TranslationKeys.discount.tr}:';
             return [
               _buildPriceRow(
                 discountLabel,

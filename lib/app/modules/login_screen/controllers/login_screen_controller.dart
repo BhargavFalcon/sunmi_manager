@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
+import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../../main.dart';
 
@@ -87,6 +88,7 @@ class LoginScreenController extends GetxController {
               networkClient.setAuthToken(token);
               final savedToken = networkClient.getSavedToken();
               if (savedToken != null && savedToken.isNotEmpty) {
+                await _fetchRestaurantDetails(loginModel);
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
                 safeGetSnackbar(
@@ -131,6 +133,38 @@ class LoginScreenController extends GetxController {
         TranslationKeys.somethingWentWrong.tr,
         snackPosition: SnackPosition.TOP,
       );
+    }
+  }
+
+  Future<void> _fetchRestaurantDetails(LoginModel loginModel) async {
+    try {
+      final restaurantId = loginModel.data?.user?.restaurantId;
+      if (restaurantId != null) {
+        final endpoint = ArgumentConstant.restaurantDetailsEndpoint.replaceAll(
+          ':restaurant_id',
+          restaurantId.toString(),
+        );
+
+        final response = await networkClient.get(endpoint);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data != null && response.data is Map<String, dynamic>) {
+            try {
+              final restaurantModel = RestaurantModel.fromJson(
+                response.data as Map<String, dynamic>,
+              );
+              box.write(
+                ArgumentConstant.restaurantDetailsKey,
+                restaurantModel.toJson(),
+              );
+            } catch (e) {
+              // Handle parsing error silently
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Handle error silently - don't block login flow
     }
   }
 }

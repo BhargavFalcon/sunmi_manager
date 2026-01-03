@@ -8,6 +8,7 @@ import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/MobileAppModulesModel.dart';
+import '../../../model/RestaurantDetailsModel.dart';
 
 class MainHomeScreenController extends GetxController {
   final selectedIndex = 0.obs;
@@ -18,6 +19,7 @@ class MainHomeScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _fetchRestaurantDetails();
     _subscribeToPusher();
     _fetchMobileAppModules();
   }
@@ -117,6 +119,42 @@ class MainHomeScreenController extends GetxController {
       }
     } catch (e) {
       // Handle error
+    }
+  }
+
+  Future<void> _fetchRestaurantDetails() async {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final loginModel = LoginModel.fromJson(loginModelData);
+        final restaurantId = loginModel.data?.user?.restaurantId;
+
+        if (restaurantId != null) {
+          final endpoint = ArgumentConstant.restaurantDetailsEndpoint
+              .replaceAll(':restaurant_id', restaurantId.toString());
+
+          final response = await networkClient.get(endpoint);
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            if (response.data != null &&
+                response.data is Map<String, dynamic>) {
+              try {
+                final restaurantModel = RestaurantModel.fromJson(
+                  response.data as Map<String, dynamic>,
+                );
+                box.write(
+                  ArgumentConstant.restaurantDetailsKey,
+                  restaurantModel.toJson(),
+                );
+              } catch (e) {
+                // Handle parsing error silently
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Handle error silently
     }
   }
 }
