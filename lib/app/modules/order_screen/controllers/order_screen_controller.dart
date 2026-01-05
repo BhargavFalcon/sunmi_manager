@@ -1,8 +1,9 @@
-import 'package:custom_date_range_picker/custom_date_range_picker.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
@@ -288,22 +289,202 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
-    showCustomDateRangePicker(
-      context,
-      dismissible: true,
-      startDate: startDate.value,
-      endDate: endDate.value,
-      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-      maximumDate: DateTime.now().add(const Duration(days: 365 * 5)),
-      backgroundColor: Colors.white,
-      primaryColor: ColorConstants.primaryColor,
-      onApplyClick: (DateTime start, DateTime end) {
-        startDate.value = start;
-        endDate.value = end;
-        selectedMonth.value = 'Custom Date';
-        fetchAllOrders();
+    DateTime? selectedStartDate = startDate.value;
+    DateTime? selectedEndDate = endDate.value;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 400,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Date Picker
+                Flexible(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Theme(
+                      data: ThemeData(
+                        colorScheme: ColorScheme.light(
+                          primary: Colors.black87,
+                          onPrimary: Colors.white,
+                          surface: Colors.white,
+                          onSurface: Colors.black87,
+                        ),
+                        iconTheme: IconThemeData(color: Colors.black87),
+                      ),
+                      child: SizedBox(
+                        height: 300,
+                        child: Localizations.override(
+                          context: context,
+                          locale: Get.locale ?? const Locale('en'),
+                          child: SfDateRangePicker(
+                            backgroundColor: Colors.white,
+                            view: DateRangePickerView.month,
+                            selectionMode: DateRangePickerSelectionMode.range,
+                            initialSelectedRange:
+                                selectedStartDate != null &&
+                                        selectedEndDate != null
+                                    ? PickerDateRange(
+                                      selectedStartDate,
+                                      selectedEndDate,
+                                    )
+                                    : null,
+                            minDate: DateTime.now().subtract(
+                              const Duration(days: 365 * 5),
+                            ),
+                            maxDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
+                            rangeSelectionColor: ColorConstants.primaryColor
+                                .withValues(alpha: 0.3),
+                            startRangeSelectionColor:
+                                ColorConstants.primaryColor,
+                            endRangeSelectionColor: ColorConstants.primaryColor,
+                            selectionColor: ColorConstants.primaryColor,
+                            todayHighlightColor: ColorConstants.primaryColor,
+                            headerStyle: DateRangePickerHeaderStyle(
+                              textStyle: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              backgroundColor: Colors.white,
+                            ),
+                            monthCellStyle: DateRangePickerMonthCellStyle(
+                              textStyle: TextStyle(color: Colors.black87),
+                              todayTextStyle: TextStyle(
+                                color: ColorConstants.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            yearCellStyle: DateRangePickerYearCellStyle(
+                              textStyle: TextStyle(color: Colors.black87),
+                              todayTextStyle: TextStyle(
+                                color: ColorConstants.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            monthViewSettings: DateRangePickerMonthViewSettings(
+                              firstDayOfWeek: 1,
+                              dayFormat: 'EEE',
+                              showTrailingAndLeadingDates: true,
+                            ),
+                            onSelectionChanged: (
+                              DateRangePickerSelectionChangedArgs args,
+                            ) {
+                              if (args.value is PickerDateRange) {
+                                final range = args.value as PickerDateRange;
+                                selectedStartDate = range.startDate;
+                                selectedEndDate = range.endDate;
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Buttons
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          side: BorderSide(color: Colors.grey.shade400),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          TranslationKeys.cancel.tr,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (selectedStartDate != null &&
+                              selectedEndDate != null) {
+                            startDate.value = selectedStartDate!;
+                            endDate.value = selectedEndDate!;
+                            selectedMonth.value = 'Custom Date';
+                            Navigator.of(dialogContext).pop();
+                            fetchAllOrders();
+                          } else {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorConstants.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          TranslationKeys.apply.tr,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
-      onCancelClick: () {},
     );
   }
 
