@@ -7,7 +7,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/color_constant.dart';
-import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
@@ -572,26 +571,6 @@ class TakeOrderController extends GetxController {
                   SizedBox(height: MySize.getHeight(16)),
                   Row(
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children:
-                            _getItemTypeImages(item.type)
-                                .map(
-                                  (imagePath) => Padding(
-                                    padding: EdgeInsets.only(
-                                      right: MySize.getWidth(4),
-                                    ),
-                                    child: Image.asset(
-                                      imagePath,
-                                      height: MySize.getHeight(16),
-                                      width: MySize.getWidth(16),
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                      SizedBox(width: MySize.getWidth(8)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -896,26 +875,6 @@ class TakeOrderController extends GetxController {
                   SizedBox(height: MySize.getHeight(12)),
                   Row(
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children:
-                            _getItemTypeImages(item.type)
-                                .map(
-                                  (imagePath) => Padding(
-                                    padding: EdgeInsets.only(
-                                      right: MySize.getWidth(4),
-                                    ),
-                                    child: Image.asset(
-                                      imagePath,
-                                      height: MySize.getHeight(16),
-                                      width: MySize.getWidth(16),
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                      SizedBox(width: MySize.getWidth(8)),
                       Expanded(
                         child: Text(
                           item.itemName ?? TranslationKeys.item.tr,
@@ -1415,36 +1374,6 @@ class TakeOrderController extends GetxController {
     );
   }
 
-  List<String> _getItemTypeImages(String? type) {
-    if (type == null || type.isEmpty) {
-      return [ImageConstant.veg];
-    }
-
-    final types = type.toLowerCase().split(',').map((e) => e.trim()).toList();
-    List<String> images = [];
-
-    if (types.contains('halal')) {
-      images.add(ImageConstant.halal);
-    }
-    if (types.contains('hot')) {
-      images.add(ImageConstant.hot);
-    }
-    if (types.contains('non-veg')) {
-      images.add(ImageConstant.nonVeg);
-    }
-    if (types.contains('drink')) {
-      images.add(ImageConstant.drink);
-    }
-    if (types.contains('veg')) {
-      images.add(ImageConstant.veg);
-    }
-
-    if (images.isEmpty) {
-      return [ImageConstant.veg];
-    }
-
-    return images;
-  }
 
   void _addOrderItemsToCart() {
     final orderData = currentOrder.value?.data?.order;

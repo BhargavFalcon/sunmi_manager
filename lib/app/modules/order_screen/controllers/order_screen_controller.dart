@@ -146,12 +146,10 @@ class OrderScreenController extends GetxController {
       final allOrdersModel = AllOrdersModel.fromJson(response.data);
       if (allOrdersModel.success == true && allOrdersModel.data != null) {
         final ordersList = allOrdersModel.data!.orders ?? [];
-        final sortedOrders = _sortOrdersByLatest(ordersList);
         if (isLoadMore) {
-          allOrders.addAll(sortedOrders);
-          allOrders.sort(_compareOrders);
+          allOrders.addAll(ordersList);
         } else {
-          allOrders.value = sortedOrders;
+          allOrders.value = ordersList;
         }
         pagination = allOrdersModel.data!.pagination;
       }
@@ -357,18 +355,6 @@ class OrderScreenController extends GetxController {
       default:
         return selectedMonth.value;
     }
-  }
-
-  List<Orders> _sortOrdersByLatest(List<Orders> orders) {
-    final sorted = List<Orders>.from(orders);
-    sorted.sort(_compareOrders);
-    return sorted;
-  }
-
-  int _compareOrders(Orders a, Orders b) {
-    final aOrderNumber = int.tryParse(a.orderNumber ?? '0') ?? 0;
-    final bOrderNumber = int.tryParse(b.orderNumber ?? '0') ?? 0;
-    return bOrderNumber.compareTo(aOrderNumber);
   }
 
   String _monthName(int month) {

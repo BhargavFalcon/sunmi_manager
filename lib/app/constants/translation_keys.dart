@@ -49,6 +49,7 @@ class TranslationKeys {
   static const String na = 'na';
   static const String incl = 'incl';
   static const String variation = 'variation';
+  static const String from = 'from';
 
   // Order Screen
   static const String allOrders = 'allOrders';

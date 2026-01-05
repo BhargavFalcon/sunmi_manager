@@ -619,29 +619,14 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children:
-                        _getItemTypeImages(itemObject?.type)
-                            .map(
-                              (imagePath) => Padding(
-                                padding: EdgeInsets.only(
-                                  right: MySize.getWidth(4),
-                                ),
-                                child: Image.asset(
-                                  imagePath,
-                                  height: MySize.getHeight(14),
-                                  width: MySize.getHeight(14),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
+                const SizedBox.shrink(),
                 Obx(() {
                   String price = '0';
+                  bool hasVariations = false;
                   if (itemObject != null) {
+                    hasVariations =
+                        itemObject.variations != null &&
+                        itemObject.variations!.isNotEmpty;
                     final orderType = controller.selectedOrderType.value;
                     if (orderType == 'Pickup') {
                       price = itemObject.pickupPrice ?? '0';
@@ -658,8 +643,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   } else {
                     price = item["amount"] ?? '0';
                   }
+                  final formattedPrice = CurrencyFormatter.formatPrice(price);
+                  final priceText =
+                      hasVariations
+                          ? '${TranslationKeys.from.tr} $formattedPrice'
+                          : formattedPrice;
                   return Text(
-                    CurrencyFormatter.formatPrice(price),
+                    priceText,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.black87,
@@ -719,37 +709,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         ),
       ),
     );
-  }
-
-  List<String> _getItemTypeImages(String? type) {
-    if (type == null || type.isEmpty) {
-      return [ImageConstant.veg];
-    }
-
-    final types = type.toLowerCase().split(',').map((e) => e.trim()).toList();
-    List<String> images = [];
-
-    if (types.contains('halal')) {
-      images.add(ImageConstant.halal);
-    }
-    if (types.contains('hot')) {
-      images.add(ImageConstant.hot);
-    }
-    if (types.contains('non-veg')) {
-      images.add(ImageConstant.nonVeg);
-    }
-    if (types.contains('drink')) {
-      images.add(ImageConstant.drink);
-    }
-    if (types.contains('veg')) {
-      images.add(ImageConstant.veg);
-    }
-
-    if (images.isEmpty) {
-      return [ImageConstant.veg];
-    }
-
-    return images;
   }
 
   Widget _buildDialogButton({

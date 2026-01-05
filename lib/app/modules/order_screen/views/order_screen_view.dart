@@ -27,10 +27,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
     if (!Get.isRegistered<OrderScreenController>()) {
       Get.put(OrderScreenController());
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = Get.find<OrderScreenController>();
-      controller.fetchAllOrders();
-    });
     return GetBuilder<OrderScreenController>(
       assignId: true,
       builder: (controller) {
