@@ -286,199 +286,119 @@ class ReservationScreenController extends GetxController {
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
     DateTime? selectedStartDate = startDate.value;
     DateTime? selectedEndDate = endDate.value;
+    final now = DateTime.now();
+    final dateRange = now.subtract(const Duration(days: 365 * 5));
+    final primaryColor = ColorConstants.primaryColor;
+    final textStyle = TextStyle(color: Colors.black87, fontWeight: FontWeight.bold);
 
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: 400,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
           ),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: 400,
-              maxHeight: MediaQuery.of(context).size.height * 0.8,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Date Picker
-                Flexible(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: Theme(
-                      data: ThemeData(
-                        colorScheme: ColorScheme.light(
-                          primary: Colors.black87,
-                          onPrimary: Colors.white,
-                          surface: Colors.white,
-                          onSurface: Colors.black87,
-                        ),
-                        iconTheme: IconThemeData(color: Colors.black87),
-                      ),
-                      child: SizedBox(
-                        height: 300,
-                        child: Localizations.override(
-                          context: context,
-                          locale: Get.locale ?? const Locale('en'),
-                          child: SfDateRangePicker(
-                            backgroundColor: Colors.white,
-                            view: DateRangePickerView.month,
-                            selectionMode: DateRangePickerSelectionMode.range,
-                            initialSelectedRange:
-                                selectedStartDate != null &&
-                                        selectedEndDate != null
-                                    ? PickerDateRange(
-                                      selectedStartDate,
-                                      selectedEndDate,
-                                    )
-                                    : null,
-                            minDate: DateTime.now().subtract(
-                              const Duration(days: 365 * 5),
-                            ),
-                            maxDate: DateTime.now().add(
-                              const Duration(days: 365 * 5),
-                            ),
-                            rangeSelectionColor: ColorConstants.primaryColor
-                                .withValues(alpha: 0.3),
-                            startRangeSelectionColor:
-                                ColorConstants.primaryColor,
-                            endRangeSelectionColor: ColorConstants.primaryColor,
-                            selectionColor: ColorConstants.primaryColor,
-                            todayHighlightColor: ColorConstants.primaryColor,
-                            headerStyle: DateRangePickerHeaderStyle(
-                              textStyle: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              backgroundColor: Colors.white,
-                            ),
-                            monthCellStyle: DateRangePickerMonthCellStyle(
-                              textStyle: TextStyle(color: Colors.black87),
-                              todayTextStyle: TextStyle(
-                                color: ColorConstants.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            yearCellStyle: DateRangePickerYearCellStyle(
-                              textStyle: TextStyle(color: Colors.black87),
-                              todayTextStyle: TextStyle(
-                                color: ColorConstants.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            monthViewSettings: DateRangePickerMonthViewSettings(
-                              firstDayOfWeek: 1,
-                              dayFormat: 'EEE',
-                              showTrailingAndLeadingDates: true,
-                            ),
-                            onSelectionChanged: (
-                              DateRangePickerSelectionChangedArgs args,
-                            ) {
-                              if (args.value is PickerDateRange) {
-                                final range = args.value as PickerDateRange;
-                                selectedStartDate = range.startDate;
-                                selectedEndDate = range.endDate;
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Buttons
-                Container(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Theme(
+                    data: ThemeData(
+                      colorScheme: ColorScheme.light(primary: Colors.black87, onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black87),
+                      iconTheme: IconThemeData(color: Colors.black87),
+                    ),
+                    child: SizedBox(
+                      height: 300,
+                      child: Localizations.override(
+                        context: context,
+                        locale: Get.locale ?? const Locale('en'),
+                        child: SfDateRangePicker(
+                          backgroundColor: Colors.white,
+                          view: DateRangePickerView.month,
+                          selectionMode: DateRangePickerSelectionMode.range,
+                          initialSelectedRange: selectedStartDate != null && selectedEndDate != null
+                              ? PickerDateRange(selectedStartDate, selectedEndDate)
+                              : null,
+                          minDate: dateRange,
+                          maxDate: now.add(const Duration(days: 365 * 5)),
+                          rangeSelectionColor: primaryColor.withValues(alpha: 0.3),
+                          startRangeSelectionColor: primaryColor,
+                          endRangeSelectionColor: primaryColor,
+                          selectionColor: primaryColor,
+                          todayHighlightColor: primaryColor,
+                          headerStyle: DateRangePickerHeaderStyle(textStyle: textStyle.copyWith(fontSize: 16), backgroundColor: Colors.white),
+                          monthCellStyle: DateRangePickerMonthCellStyle(textStyle: TextStyle(color: Colors.black87), todayTextStyle: textStyle.copyWith(color: primaryColor)),
+                          yearCellStyle: DateRangePickerYearCellStyle(textStyle: TextStyle(color: Colors.black87), todayTextStyle: textStyle.copyWith(color: primaryColor)),
+                          monthViewSettings: DateRangePickerMonthViewSettings(firstDayOfWeek: 1, dayFormat: 'EEE', showTrailingAndLeadingDates: true),
+                          onSelectionChanged: (args) {
+                            if (args.value is PickerDateRange) {
+                              final range = args.value as PickerDateRange;
+                              selectedStartDate = range.startDate;
+                              selectedEndDate = range.endDate;
+                            }
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          side: BorderSide(color: Colors.grey.shade400),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          TranslationKeys.cancel.tr,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (selectedStartDate != null &&
-                              selectedEndDate != null) {
-                            startDate.value = selectedStartDate!;
-                            endDate.value = selectedEndDate!;
-                            selectedMonth.value = 'Custom Date';
-                            Navigator.of(dialogContext).pop();
-                          } else {
-                            Navigator.of(dialogContext).pop();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorConstants.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          TranslationKeys.apply.tr,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ],
-            ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text(TranslationKeys.cancel.tr, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (selectedStartDate != null && selectedEndDate != null) {
+                          startDate.value = selectedStartDate!;
+                          endDate.value = selectedEndDate!;
+                          selectedMonth.value = 'Custom Date';
+                          Navigator.of(dialogContext).pop();
+                        } else {
+                          Navigator.of(dialogContext).pop();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                      ),
+                      child: Text(TranslationKeys.apply.tr, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
