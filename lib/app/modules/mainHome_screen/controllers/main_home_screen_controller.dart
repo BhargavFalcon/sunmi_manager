@@ -6,6 +6,9 @@ import '../../table_screen/controllers/table_screen_controller.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/translation_keys.dart';
+import '../../../constants/color_constant.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/MobileAppModulesModel.dart';
 import '../../../model/RestaurantDetailsModel.dart';
@@ -40,6 +43,111 @@ class MainHomeScreenController extends GetxController {
   }
 
   void changeTab(int index) {
+    if (selectedIndex.value == 2 && index != 2 && _hasCartItems()) {
+      _showNavigationConfirmationDialog(index);
+      return;
+    }
+
+    _performTabChange(index);
+  }
+
+  bool _hasCartItems() {
+    try {
+      return Get.isRegistered<CartScreenController>() &&
+          Get.find<CartScreenController>().cartItems.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void _showNavigationConfirmationDialog(int targetIndex) {
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: ColorConstants.bgColor),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                TranslationKeys.warning.tr,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(16),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                TranslationKeys.areYouSureExit.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: MySize.getHeight(12)),
+              ),
+              SizedBox(height: MySize.getHeight(20)),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        padding: EdgeInsets.symmetric(
+                          vertical: MySize.getHeight(12),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        TranslationKeys.cancel.tr,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: MySize.getHeight(14),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Get.back();
+                        _performTabChange(targetIndex);
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: ColorConstants.primaryColor,
+                        padding: EdgeInsets.symmetric(
+                          vertical: MySize.getHeight(12),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        TranslationKeys.confirm.tr,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: MySize.getHeight(14),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _performTabChange(int index) {
     if (index == 2 && selectedIndex.value != 2) {
       _clearCartIfExists();
     }
@@ -110,16 +218,12 @@ class MainHomeScreenController extends GetxController {
                   ArgumentConstant.mobileAppModulesKey,
                   modulesModel.toJson(),
                 );
-              } catch (e) {
-                // Handle parsing error
-              }
+              } catch (e) {}
             }
           }
         }
       }
-    } catch (e) {
-      // Handle error
-    }
+    } catch (e) {}
   }
 
   Future<void> _fetchRestaurantDetails() async {
@@ -146,15 +250,11 @@ class MainHomeScreenController extends GetxController {
                   ArgumentConstant.restaurantDetailsKey,
                   restaurantModel.toJson(),
                 );
-              } catch (e) {
-                // Handle parsing error silently
-              }
+              } catch (e) {}
             }
           }
         }
       }
-    } catch (e) {
-      // Handle error silently
-    }
+    } catch (e) {}
   }
 }
