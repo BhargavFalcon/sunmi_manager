@@ -621,33 +621,48 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
               children: [
                 const SizedBox.shrink(),
                 Obx(() {
+                  final orderType = controller.selectedOrderType.value;
                   String price = '0';
                   bool hasVariations = false;
+
                   if (itemObject != null) {
-                    hasVariations =
-                        itemObject.variations != null &&
-                        itemObject.variations!.isNotEmpty;
-                    final orderType = controller.selectedOrderType.value;
-                    if (orderType == 'Pickup') {
-                      price = itemObject.pickupPrice ?? '0';
-                    } else if (orderType == 'Delivery') {
-                      price = itemObject.deliveryPrice ?? '0';
-                    } else if (orderType == 'Dine In') {
-                      price = itemObject.dineInPrice ?? '0';
+                    hasVariations = itemObject.variations?.isNotEmpty ?? false;
+
+                    if (hasVariations &&
+                        (orderType == 'Pickup' || orderType == 'Delivery')) {
+                      price = controller.getMinimumVariationPrice(
+                        itemObject,
+                        orderType,
+                      );
                     } else {
-                      price =
-                          itemObject.pickupPrice ??
-                          itemObject.deliveryPrice ??
-                          '0';
+                      // Use base price for items without variations or for Dine In
+                      switch (orderType) {
+                        case 'Pickup':
+                          price = itemObject.pickupPrice ?? '0';
+                          break;
+                        case 'Delivery':
+                          price = itemObject.deliveryPrice ?? '0';
+                          break;
+                        case 'Dine In':
+                          price = itemObject.dineInPrice ?? '0';
+                          break;
+                        default:
+                          price =
+                              itemObject.pickupPrice ??
+                              itemObject.deliveryPrice ??
+                              '0';
+                      }
                     }
                   } else {
                     price = item["amount"] ?? '0';
                   }
+
                   final formattedPrice = CurrencyFormatter.formatPrice(price);
                   final priceText =
                       hasVariations
                           ? '${TranslationKeys.from.tr} $formattedPrice'
                           : formattedPrice;
+
                   return Text(
                     priceText,
                     style: TextStyle(

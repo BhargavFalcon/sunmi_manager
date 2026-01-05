@@ -375,32 +375,61 @@ class TakeOrderController extends GetxController {
     } catch (e) {}
   }
 
+  String _getBasePrice(Items item, String orderType) {
+    switch (orderType) {
+      case 'Pickup':
+        return item.pickupPrice ?? '0';
+      case 'Delivery':
+        return item.deliveryPrice ?? '0';
+      case 'Dine In':
+        return item.dineInPrice ?? '0';
+      default:
+        return item.pickupPrice ?? item.deliveryPrice ?? '0';
+    }
+  }
+
+  String? _getVariationPrice(Variations variation, String orderType) {
+    switch (orderType) {
+      case 'Pickup':
+        return variation.onlinePrice ?? variation.price;
+      case 'Delivery':
+        return variation.takeAwayPrice ?? variation.price;
+      case 'Dine In':
+      default:
+        return variation.price;
+    }
+  }
+
   String _getItemPrice(Items item, Variations? selectedVariation) {
     final orderType = selectedOrderType.value;
 
     if (selectedVariation != null) {
-      if (orderType == 'Pickup') {
-        return selectedVariation.onlinePrice ?? selectedVariation.price ?? '0';
-      } else if (orderType == 'Delivery') {
-        return selectedVariation.takeAwayPrice ??
-            selectedVariation.price ??
-            '0';
-      } else if (orderType == 'Dine In') {
-        return selectedVariation.price ?? '0';
-      } else {
-        return selectedVariation.price ?? '0';
-      }
-    } else {
-      if (orderType == 'Pickup') {
-        return item.pickupPrice ?? '0';
-      } else if (orderType == 'Delivery') {
-        return item.deliveryPrice ?? '0';
-      } else if (orderType == 'Dine In') {
-        return item.dineInPrice ?? '0';
-      } else {
-        return item.pickupPrice ?? item.deliveryPrice ?? '0';
-      }
+      return _getVariationPrice(selectedVariation, orderType) ?? '0';
     }
+    return _getBasePrice(item, orderType);
+  }
+
+  String getMinimumVariationPrice(Items item, String orderType) {
+    final variations = item.variations;
+    if (variations == null || variations.isEmpty) {
+      return _getBasePrice(item, orderType);
+    }
+
+    // Calculate minimum price from all variations using fold
+    final minPrice = variations
+        .map((v) => _getVariationPrice(v, orderType))
+        .whereType<String>()
+        .where((priceStr) => priceStr.isNotEmpty)
+        .map((priceStr) => double.tryParse(priceStr) ?? 0.0)
+        .where((price) => price > 0)
+        .fold<double?>(
+          null,
+          (min, price) => min == null || price < min ? price : min,
+        );
+
+    return minPrice != null
+        ? minPrice.toString()
+        : _getBasePrice(item, orderType);
   }
 
   void addItemToCart(
@@ -1373,7 +1402,6 @@ class TakeOrderController extends GetxController {
       ),
     );
   }
-
 
   void _addOrderItemsToCart() {
     final orderData = currentOrder.value?.data?.order;
