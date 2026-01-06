@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -1418,6 +1419,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   void _printInvoice(orderDetailsModel.Data orderData) {
+    if (Platform.isIOS) {
+      safeGetSnackbar(
+        TranslationKeys.warning.tr,
+        TranslationKeys.printOnlyAvailableOnAndroid.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange.shade100,
+        colorText: Colors.orange.shade700,
+      );
+      return;
+    }
+
     if (orderData.order == null) {
       safeGetSnackbar(
         TranslationKeys.error.tr,

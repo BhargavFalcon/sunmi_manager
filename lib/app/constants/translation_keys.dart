@@ -84,6 +84,7 @@ class TranslationKeys {
   static const String menuSyncedSuccessfully = 'menuSyncedSuccessfully';
   static const String failedToSyncMenu = 'failedToSyncMenu';
   static const String sync = 'sync';
+  static const String printOnlyAvailableOnAndroid = 'printOnlyAvailableOnAndroid';
 
   // Cart Screen
   static const String cart = 'cart';

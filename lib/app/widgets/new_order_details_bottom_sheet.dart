@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
@@ -8,6 +9,7 @@ import '../model/RestaurantDetailsModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/image_constants.dart';
 import '../constants/translation_keys.dart';
+import '../constants/sizeConstant.dart';
 import '../../main.dart';
 import '../constants/api_constants.dart';
 
@@ -856,6 +858,17 @@ class NewOrderDetailsBottomSheet {
   }
 
   static void _printInvoice(orderModel.Data orderData) {
+    if (Platform.isIOS) {
+      safeGetSnackbar(
+        TranslationKeys.warning.tr,
+        TranslationKeys.printOnlyAvailableOnAndroid.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange.shade100,
+        colorText: Colors.orange.shade700,
+      );
+      return;
+    }
+
     if (orderData.order == null) {
       return;
     }

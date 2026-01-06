@@ -60,7 +60,6 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
           Expanded(
             child: TextField(
               controller: _controller,
-              autofocus: true,
               style: const TextStyle(fontSize: 13.0),
               decoration: const InputDecoration(
                 hintText:

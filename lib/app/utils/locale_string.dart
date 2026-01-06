@@ -240,6 +240,7 @@ class LocaleString extends Translations {
 
       // ========== SETTINGS SCREEN ==========
       'setting': 'Setting',
+      'settings': 'Settings',
       'syncMenu': 'Sync Menu',
       'language': 'Language',
       'hapticFeedback': 'Haptic Feedback',
@@ -254,6 +255,7 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu synced successfully',
       'failedToSyncMenu': 'Failed to sync menu',
       'sync': 'Sync',
+      'printOnlyAvailableOnAndroid': 'Print feature is only available on Android devices',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth Disabled',
@@ -532,6 +534,7 @@ class LocaleString extends Translations {
 
       // ========== SETTINGS SCREEN ==========
       'setting': 'Indstillinger',
+      'settings': 'Indstillinger',
       'syncMenu': 'Synkroniser menu',
       'language': 'Sprog',
       'hapticFeedback': 'Haptisk feedback',
@@ -546,6 +549,7 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu synkroniseret',
       'failedToSyncMenu': 'Kunne ikke synkronisere menu',
       'sync': 'Synkroniser',
+      'printOnlyAvailableOnAndroid': 'Printfunktion er kun tilgængelig på Android-enheder',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth deaktiveret',
@@ -829,6 +833,7 @@ class LocaleString extends Translations {
 
       // ========== SETTINGS SCREEN ==========
       'setting': 'Einstellungen',
+      'settings': 'Einstellungen',
       'syncMenu': 'Menü synchronisieren',
       'language': 'Sprache',
       'hapticFeedback': 'Haptisches Feedback',
@@ -843,6 +848,7 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menü erfolgreich synchronisiert',
       'failedToSyncMenu': 'Menü konnte nicht synchronisiert werden',
       'sync': 'Synchronisieren',
+      'printOnlyAvailableOnAndroid': 'Druckfunktion ist nur auf Android-Geräten verfügbar',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth deaktiviert',
@@ -1123,6 +1129,7 @@ class LocaleString extends Translations {
 
       // ========== SETTINGS SCREEN ==========
       'setting': 'Instellingen',
+      'settings': 'Instellingen',
       'syncMenu': 'Menu synchroniseren',
       'language': 'Taal',
       'hapticFeedback': 'Haptische feedback',
@@ -1137,6 +1144,7 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu succesvol gesynchroniseerd',
       'failedToSyncMenu': 'Menu kon niet worden gesynchroniseerd',
       'sync': 'Synchroniseren',
+      'printOnlyAvailableOnAndroid': 'Printfunctie is alleen beschikbaar op Android-apparaten',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth uitgeschakeld',

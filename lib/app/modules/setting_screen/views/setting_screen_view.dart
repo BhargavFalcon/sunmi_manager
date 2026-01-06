@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -102,16 +103,18 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                         .toggleNewShopOrderNotifications(),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        _buildSettingItem(
-                          icon: Icons.print,
-                          title: TranslationKeys.printerSettings.tr,
-                          color: ColorConstants.primaryColor,
-                          onTap: () {
-                            Get.toNamed(Routes.PRINTER_SCREEN);
-                          },
-                          showArrow: true,
-                        ),
+                        if (Platform.isAndroid) ...[
+                          const SizedBox(height: 8),
+                          _buildSettingItem(
+                            icon: Icons.print,
+                            title: TranslationKeys.printerSettings.tr,
+                            color: ColorConstants.primaryColor,
+                            onTap: () {
+                              Get.toNamed(Routes.PRINTER_SCREEN);
+                            },
+                            showArrow: true,
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         _buildSettingItem(
                           icon: Icons.power_settings_new_sharp,
