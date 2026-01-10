@@ -59,6 +59,61 @@ class SunmiInvoicePrinterService {
     return '$label$spacing$value';
   }
 
+  List<String> _wrapText(String text, int maxWidth) {
+    if (text.length <= maxWidth) {
+      return [text];
+    }
+
+    final List<String> lines = [];
+    final words = text.split(' ');
+    String currentLine = '';
+
+    for (final word in words) {
+      if (currentLine.isEmpty) {
+        if (word.length > maxWidth) {
+          int start = 0;
+          while (start < word.length) {
+            final end =
+                (start + maxWidth < word.length)
+                    ? start + maxWidth
+                    : word.length;
+            lines.add(word.substring(start, end));
+            start = end;
+          }
+        } else {
+          currentLine = word;
+        }
+      } else {
+        final testLine = '$currentLine $word';
+        if (testLine.length <= maxWidth) {
+          currentLine = testLine;
+        } else {
+          lines.add(currentLine);
+          if (word.length > maxWidth) {
+            int start = 0;
+            while (start < word.length) {
+              final end =
+                  (start + maxWidth < word.length)
+                      ? start + maxWidth
+                      : word.length;
+              lines.add(word.substring(start, end));
+              start = end;
+            }
+            currentLine = '';
+          } else {
+            currentLine = word;
+          }
+        }
+      }
+    }
+
+    if (currentLine.isNotEmpty) {
+      lines.add(currentLine);
+    }
+
+    return lines;
+  }
+
   Future<void> _printLabelValue(
     String label,
     String value, {
@@ -241,21 +296,48 @@ class SunmiInvoicePrinterService {
             final priceAmountSpacing = '   ';
 
             final qtyPadded = qty.padRight(qtyWidth);
-            final displayItemName =
-                itemName.length > itemNameWidth
-                    ? '${itemName.substring(0, itemNameWidth - 3)}...'
-                    : itemName;
-
-            final itemNamePadded = displayItemName.padRight(itemNameWidth);
             final pricePadded = price.padLeft(priceWidth);
-            final itemLine =
-                '$qtyPadded$itemNamePadded$pricePadded$priceAmountSpacing$amount';
+            final priceAmountLine = '$pricePadded$priceAmountSpacing$amount';
 
-            await SunmiPrinter.printText(
-              itemLine,
-              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
-            );
-            await SunmiPrinter.lineWrap(5);
+            if (itemName.length <= itemNameWidth) {
+              final itemNamePadded = itemName.padRight(itemNameWidth);
+              final itemLine = '$qtyPadded$itemNamePadded$priceAmountLine';
+              await SunmiPrinter.printText(
+                itemLine,
+                style: SunmiTextStyle(
+                  align: SunmiPrintAlign.LEFT,
+                  fontSize: 20,
+                ),
+              );
+              await SunmiPrinter.lineWrap(5);
+            } else {
+              final nameLines = _wrapText(itemName, itemNameWidth);
+              for (int i = 0; i < nameLines.length; i++) {
+                if (i == 0) {
+                  final itemNamePadded = nameLines[i].padRight(itemNameWidth);
+                  final itemLine = '$qtyPadded$itemNamePadded$priceAmountLine';
+                  await SunmiPrinter.printText(
+                    itemLine,
+                    style: SunmiTextStyle(
+                      align: SunmiPrintAlign.LEFT,
+                      fontSize: 20,
+                    ),
+                  );
+                } else {
+                  final indent = ' '.padRight(qtyWidth);
+                  final itemNamePadded = nameLines[i].padRight(itemNameWidth);
+                  await SunmiPrinter.printText(
+                    '$indent$itemNamePadded',
+                    style: SunmiTextStyle(
+                      align: SunmiPrintAlign.LEFT,
+                      fontSize: 20,
+                    ),
+                  );
+                }
+                await SunmiPrinter.lineWrap(2);
+              }
+              await SunmiPrinter.lineWrap(3);
+            }
 
             if (item.variationName?.isNotEmpty == true) {
               await SunmiPrinter.printText(
@@ -287,7 +369,6 @@ class SunmiInvoicePrinterService {
 
         await SunmiPrinter.lineWrap(5);
 
-        // Sub Total
         if (order.totals?.subTotal != null) {
           final subTotalValue = _formatPrice(
             null,
@@ -370,7 +451,6 @@ class SunmiInvoicePrinterService {
           await SunmiPrinter.lineWrap(5);
         }
 
-        // Calculate balance returned if payment exists
         if (order.payments?.isNotEmpty == true && order.totals?.total != null) {
           final totalPaid = order.payments!.fold<double>(
             0.0,
@@ -414,28 +494,29 @@ class SunmiInvoicePrinterService {
           style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
         );
         await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.printText(
-          TranslationKeys.payFromYourPhone.tr.toUpperCase(),
-          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
-        );
-        await SunmiPrinter.lineWrap(5);
-
         if (qrCodeUrl != null && qrCodeUrl.isNotEmpty) {
           final qrCodeData = await _downloadNetworkImage(qrCodeUrl);
           if (qrCodeData != null) {
+            await SunmiPrinter.printText(
+              TranslationKeys.payFromYourPhone.tr.toUpperCase(),
+              style: SunmiTextStyle(
+                align: SunmiPrintAlign.CENTER,
+                fontSize: 20,
+              ),
+            );
+            await SunmiPrinter.lineWrap(5);
             await SunmiPrinter.printImage(
               qrCodeData,
               align: SunmiPrintAlign.CENTER,
             );
             await SunmiPrinter.lineWrap(5);
           }
+          await SunmiPrinter.printText(
+            TranslationKeys.scanQrCodeToPay.tr,
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+          );
+          await SunmiPrinter.lineWrap(5);
         }
-
-        await SunmiPrinter.printText(
-          TranslationKeys.scanQrCodeToPay.tr,
-          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
-        );
-        await SunmiPrinter.lineWrap(5);
         await SunmiPrinter.printText("--------------------------------");
         await SunmiPrinter.lineWrap(5);
 

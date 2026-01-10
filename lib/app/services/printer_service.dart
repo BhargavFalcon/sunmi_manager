@@ -27,8 +27,7 @@ class PrinterService extends GetxService {
           isConnected.value = true;
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   Future<void> _checkConnection() async {
