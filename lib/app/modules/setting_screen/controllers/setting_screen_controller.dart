@@ -141,8 +141,7 @@ class SettingScreenController extends GetxController {
 
   void _clearUserData() {
     networkClient.removeAuthToken();
-    box.remove(ArgumentConstant.loginModelKey);
-    box.remove(ArgumentConstant.menuItemsKey);
+    box.erase();
     Get.offAllNamed(Routes.LOGIN_SCREEN);
   }
 }

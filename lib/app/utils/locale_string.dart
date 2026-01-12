@@ -144,7 +144,7 @@ class LocaleString extends Translations {
       // ========== CART SCREEN ==========
       'cart': 'Cart',
       'yourCartIsEmpty': 'Your cart is empty',
-      'placeOrder': 'Place Order',
+      'sendToKitchen': 'Send to Kitchen',
       'addDiscount': 'Add Discount',
       'enterDiscountValue': 'Enter Discount Value',
       'fixed': 'Fixed',
@@ -456,7 +456,7 @@ class LocaleString extends Translations {
       // ========== CART SCREEN ==========
       'cart': 'Kurv',
       'yourCartIsEmpty': 'Din kurv er tom',
-      'placeOrder': 'Afgiv bestilling',
+      'sendToKitchen': 'Til køkkenet',
       'addDiscount': 'Tilføj rabat',
       'enterDiscountValue': 'Indtast rabatværdi',
       'fixed': 'Fast',
@@ -754,7 +754,7 @@ class LocaleString extends Translations {
       // ========== CART SCREEN ==========
       'cart': 'Warenkorb',
       'yourCartIsEmpty': 'Ihr Warenkorb ist leer',
-      'placeOrder': 'Bestellung aufgeben',
+      'sendToKitchen': 'Küche senden',
       'addDiscount': 'Rabatt hinzufügen',
       'enterDiscountValue': 'Rabattwert eingeben',
       'fixed': 'Fest',
@@ -1052,7 +1052,7 @@ class LocaleString extends Translations {
       // ========== CART SCREEN ==========
       'cart': 'Winkelwagen',
       'yourCartIsEmpty': 'Uw winkelwagen is leeg',
-      'placeOrder': 'Bestelling plaatsen',
+      'sendToKitchen': 'Keuken sturen',
       'addDiscount': 'Korting toevoegen',
       'enterDiscountValue': 'Kortingswaarde invoeren',
       'fixed': 'Vast',

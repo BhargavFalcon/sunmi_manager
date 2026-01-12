@@ -89,7 +89,7 @@ class TranslationKeys {
   // Cart Screen
   static const String cart = 'cart';
   static const String yourCartIsEmpty = 'yourCartIsEmpty';
-  static const String placeOrder = 'placeOrder';
+  static const String sendToKitchen = 'sendToKitchen';
   static const String addDiscount = 'addDiscount';
   static const String enterDiscountValue = 'enterDiscountValue';
   static const String fixed = 'fixed';

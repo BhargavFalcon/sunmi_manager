@@ -86,6 +86,45 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                         ),
                       ),
+                      Positioned(
+                        right: 12,
+                        top: MediaQuery.of(context).padding.top + 8,
+                        child: Obx(() {
+                          if (controller.cartItems.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return InkWell(
+                            hoverColor: Colors.transparent,
+                            focusColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            onTap: () {
+                              controller.submitOrder(
+                                createPayment: true,
+                                status: 'billed',
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0B9F6E),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "Bill & Pay",
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
                     ],
                   ),
                   Obx(() {
@@ -878,63 +917,29 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
 
                           SizedBox(height: 10.0),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    controller.submitOrder(status: 'kot');
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: ColorConstants.primaryColor,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      TranslationKeys.placeOrder.tr,
-                                      style: TextStyle(
-                                        fontSize: 15.0,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
+                          InkWell(
+                            onTap: () {
+                              controller.submitOrder(status: 'kot');
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: ColorConstants.primaryColor,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                TranslationKeys.sendToKitchen.tr,
+                                style: TextStyle(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
                                 ),
                               ),
-                              SizedBox(width: 8.0),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    controller.submitOrder(
-                                      createPayment: true,
-                                      status: 'billed',
-                                    );
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF0B9F6E),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      "Bill & Pay",
-                                      style: TextStyle(
-                                        fontSize: 15.0,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
