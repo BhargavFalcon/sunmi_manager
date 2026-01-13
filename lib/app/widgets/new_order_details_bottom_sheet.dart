@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
@@ -14,6 +15,8 @@ import '../../main.dart';
 import '../constants/api_constants.dart';
 
 class NewOrderDetailsBottomSheet {
+  static final RxBool isPrinting = false.obs;
+
   static void show(orderModel.Data orderData) {
     final context = Get.context;
     if (context == null) return;
@@ -153,7 +156,7 @@ class NewOrderDetailsBottomSheet {
     orderModel.Data orderData,
   ) {
     return Container(
-      padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 24),
+      padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 10),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         boxShadow: [
@@ -190,33 +193,46 @@ class NewOrderDetailsBottomSheet {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: InkWell(
-              onTap: () => _printInvoice(orderData),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0E9F6E),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: ColorConstants.getShadow2,
+            child: Obx(() {
+              final printing = isPrinting.value;
+              return InkWell(
+                onTap: printing ? null : () => _printInvoice(orderData),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        printing
+                            ? const Color(0xFF0E9F6E).withOpacity(0.7)
+                            : const Color(0xFF0E9F6E),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (printing)
+                        const CupertinoActivityIndicator(
+                          radius: 8,
+                          color: Colors.white,
+                        )
+                      else
+                        const Icon(Icons.print, color: Colors.white, size: 18),
+                      if (!printing) const SizedBox(width: 6),
+                      if (!printing)
+                        Text(
+                          TranslationKeys.print.tr,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.print, color: Colors.white, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      TranslationKeys.print.tr,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              );
+            }),
           ),
         ],
       ),
@@ -857,7 +873,7 @@ class NewOrderDetailsBottomSheet {
     return branch?.taxesIncluded == true;
   }
 
-  static void _printInvoice(orderModel.Data orderData) {
+  static Future<void> _printInvoice(orderModel.Data orderData) async {
     if (Platform.isIOS) {
       safeGetSnackbar(
         TranslationKeys.warning.tr,
@@ -872,8 +888,19 @@ class NewOrderDetailsBottomSheet {
     if (orderData.order == null) {
       return;
     }
-    final printerService = SunmiInvoicePrinterService();
-    printerService.printInvoice(orderData);
+
+    try {
+      isPrinting.value = true;
+      final printerService = SunmiInvoicePrinterService();
+      await printerService.printInvoice(orderData);
+    } catch (e) {
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.somethingWentWrong.tr,
+      );
+    } finally {
+      isPrinting.value = false;
+    }
   }
 
   static bool _isValidAmount(String? amount) {

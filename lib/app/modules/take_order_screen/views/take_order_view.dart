@@ -12,7 +12,6 @@ import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_contr
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -240,33 +239,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     );
   }
 
-  Widget _buildCategorySection(
-    TakeOrderController controller,
-    String category,
-    List<Map<String, dynamic>> items,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            category,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        ..._buildItemsInRows(controller, items),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
   Widget _buildSearchAndCategoryBox(
     TakeOrderController controller, {
     ScrollController? categoryController,
@@ -443,77 +415,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             }),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStickyCategoryTabs(TakeOrderController controller) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: ColorConstants.getShadow2,
-      ),
-      child: Container(
-        height: MySize.getHeight(45),
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Obx(() {
-          final visibleCategories =
-              controller.categories
-                  .where(
-                    (cat) => controller.filteredGroupedItems.containsKey(cat),
-                  )
-                  .toList();
-          return ListView.builder(
-            controller: controller.stickyCategoryScrollController,
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: visibleCategories.length,
-            itemBuilder: (context, index) {
-              final category = visibleCategories[index];
-              return Obx(() {
-                final isSelected =
-                    controller.selectedCategory.value == category;
-                return GestureDetector(
-                  onTap: () => controller.updateCategory(category),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? ColorConstants.primaryColor
-                              : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow:
-                          isSelected
-                              ? [
-                                BoxShadow(
-                                  color: ColorConstants.primaryColor.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  spreadRadius: 0,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                              : null,
-                    ),
-                    child: Center(
-                      child: Text(
-                        category,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
-                          fontSize: MySize.getHeight(14),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              });
-            },
-          );
-        }),
       ),
     );
   }

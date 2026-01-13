@@ -18,12 +18,15 @@ class LoginScreenView extends GetView<LoginScreenController> {
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          bottom:
+              MediaQuery.of(context).viewInsets.bottom + MySize.getHeight(20),
         ),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0).copyWith(top: 200),
+              padding: EdgeInsets.all(
+                MySize.getWidth(8),
+              ).copyWith(top: MySize.getHeight(200)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -38,10 +41,13 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           height: MySize.getHeight(30),
                           fit: BoxFit.contain,
                         ),
-                        const SizedBox(width: 3),
+                        SizedBox(width: MySize.getWidth(3)),
                         RichText(
                           text: TextSpan(
-                            style: TextStyle(fontSize: 25, color: Colors.black),
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(25),
+                              color: Colors.black,
+                            ),
                             children: [
                               TextSpan(
                                 text: TranslationKeys.dine.tr,
@@ -59,10 +65,10 @@ class LoginScreenView extends GetView<LoginScreenController> {
                     width: MySize.screenWidth,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                       boxShadow: ColorConstants.getShadow2,
                     ),
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(MySize.getWidth(8)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -70,7 +76,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         Text(
                           TranslationKeys.login.tr,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: MySize.getHeight(16),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -83,7 +89,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         Text(
                           TranslationKeys.welcomeBack.tr,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: MySize.getHeight(14),
                             color: ColorConstants.grey600,
                           ),
                         ),
@@ -91,27 +97,39 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         Text(
                           TranslationKeys.enterEmailOrUsername.tr,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: MySize.getHeight(14),
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(5)),
-                        CupertinoTextField(
-                          controller: controller.emailController,
-                          padding: const EdgeInsets.all(12),
-                          placeholder: TranslationKeys.emailOrUsername.tr,
-                          placeholderStyle: TextStyle(
-                            color: ColorConstants.grey600,
-                            fontSize: 14,
-                          ),
-                          style: TextStyle(color: Colors.black, fontSize: 14),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.bgColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
+                        SizedBox(
+                          height: MySize.getHeight(35),
+                          child: CupertinoTextField(
+                            controller: controller.emailController,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(12),
+                              vertical: 0,
+                            ),
+                            textAlignVertical: TextAlignVertical.center,
+                            placeholder: TranslationKeys.emailOrUsername.tr,
+                            placeholderStyle: TextStyle(
                               color: ColorConstants.grey600,
-                              width: 1,
+                              fontSize: MySize.getHeight(14),
+                            ),
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: MySize.getHeight(14),
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.bgColor,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                              border: Border.all(
+                                color: ColorConstants.grey600,
+                                width: MySize.getWidth(1),
+                              ),
                             ),
                           ),
                         ),
@@ -119,7 +137,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         Text(
                           TranslationKeys.enterPassword.tr,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: MySize.getHeight(14),
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
@@ -129,36 +147,42 @@ class LoginScreenView extends GetView<LoginScreenController> {
                           () => Stack(
                             alignment: Alignment.centerRight,
                             children: [
-                              CupertinoTextField(
-                                controller: controller.passwordController,
-                                padding: const EdgeInsets.only(
-                                  left: 12,
-                                  top: 12,
-                                  bottom: 12,
-                                  right: 45,
-                                ),
-                                placeholder: TranslationKeys.password.tr,
-                                placeholderStyle: TextStyle(
-                                  color: ColorConstants.grey600,
-                                  fontSize: 14,
-                                ),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                ),
-                                obscureText:
-                                    !controller.isPasswordVisible.value,
-                                decoration: BoxDecoration(
-                                  color: ColorConstants.bgColor,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
+                              SizedBox(
+                                height: MySize.getHeight(35),
+                                child: CupertinoTextField(
+                                  controller: controller.passwordController,
+                                  padding: EdgeInsets.only(
+                                    left: MySize.getWidth(12),
+                                    top: 0,
+                                    bottom: 0,
+                                    right: MySize.getWidth(45),
+                                  ),
+                                  textAlignVertical: TextAlignVertical.center,
+                                  placeholder: TranslationKeys.password.tr,
+                                  placeholderStyle: TextStyle(
                                     color: ColorConstants.grey600,
-                                    width: 1,
+                                    fontSize: MySize.getHeight(14),
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: MySize.getHeight(14),
+                                  ),
+                                  obscureText:
+                                      !controller.isPasswordVisible.value,
+                                  decoration: BoxDecoration(
+                                    color: ColorConstants.bgColor,
+                                    borderRadius: BorderRadius.circular(
+                                      MySize.getHeight(8),
+                                    ),
+                                    border: Border.all(
+                                      color: ColorConstants.grey600,
+                                      width: MySize.getWidth(1),
+                                    ),
                                   ),
                                 ),
                               ),
                               Positioned(
-                                right: 12,
+                                right: MySize.getWidth(12),
                                 child: GestureDetector(
                                   onTap: () {
                                     controller.togglePasswordVisibility();
@@ -168,7 +192,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                         ? Icons.visibility
                                         : Icons.visibility_off,
                                     color: ColorConstants.grey600,
-                                    size: 20,
+                                    size: MySize.getHeight(20),
                                   ),
                                 ),
                               ),
@@ -186,38 +210,32 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                 controller.isLoading.value
                                     ? null
                                     : () {
-                                      // Hide keyboard when login button is tapped
                                       FocusScope.of(context).unfocus();
                                       controller.login();
                                     },
                             child: Container(
-                              width: MySize.screenWidth,
-                              height: MySize.getHeight(50),
+                              width: double.infinity,
+                              height: MySize.getHeight(35),
                               decoration: BoxDecoration(
                                 color:
                                     controller.isLoading.value
                                         ? ColorConstants.grey600
                                         : ColorConstants.primaryColor,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(8),
+                                ),
                               ),
                               child: Center(
                                 child:
                                     controller.isLoading.value
-                                        ? SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
+                                        ? CupertinoActivityIndicator(
+                                          radius: MySize.getHeight(10),
+                                          color: Colors.white,
                                         )
                                         : Text(
                                           TranslationKeys.login.tr,
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize: MySize.getHeight(18),
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                           ),

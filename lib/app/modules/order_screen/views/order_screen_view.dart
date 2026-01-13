@@ -25,6 +25,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    MySize().init(context);
     if (!Get.isRegistered<OrderScreenController>()) {
       Get.put(OrderScreenController());
     }
@@ -43,18 +44,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
                       SizedBox(height: MediaQuery.of(context).padding.top),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: EdgeInsets.all(MySize.getHeight(8)),
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(MySize.getHeight(5)),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(12),
+                                  ),
                                   boxShadow: ColorConstants.getShadow2,
                                   border: Border.all(
                                     color: Colors.grey.shade300,
-                                    width: 1.0,
+                                    width: MySize.getWidth(1),
                                   ),
                                 ),
                                 child: Column(
@@ -86,9 +89,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                 child: Obx(() {
                                                   return Container(
                                                     padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 5,
-                                                          vertical: 10,
+                                                        EdgeInsets.symmetric(
+                                                          horizontal:
+                                                              MySize.getWidth(
+                                                                5,
+                                                              ),
+                                                          vertical:
+                                                              MySize.getHeight(
+                                                                6,
+                                                              ),
                                                         ),
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
@@ -97,7 +106,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             Colors
                                                                 .grey
                                                                 .shade300,
-                                                        width: 1.0,
+                                                        width: MySize.getWidth(
+                                                          1,
+                                                        ),
                                                       ),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -118,18 +129,24 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             overflow:
                                                                 TextOverflow
                                                                     .ellipsis,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 12,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    12,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
                                                           ),
                                                         ),
-                                                        const Icon(
+                                                        Icon(
                                                           Icons
                                                               .keyboard_arrow_down,
+                                                          size:
+                                                              MySize.getHeight(
+                                                                20,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),
@@ -167,14 +184,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                         option,
                                                       ),
                                                       style: TextStyle(
-                                                        fontSize: 12,
+                                                        fontSize:
+                                                            MySize.getHeight(
+                                                              12,
+                                                            ),
                                                       ),
                                                     ),
                                                   );
                                                 }).toList(),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: MySize.getWidth(4)),
                                         Expanded(
                                           child: MenuAnchor(
                                             style: MenuStyle(
@@ -199,9 +219,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                 child: Obx(() {
                                                   return Container(
                                                     padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 10,
+                                                        EdgeInsets.symmetric(
+                                                          horizontal:
+                                                              MySize.getWidth(
+                                                                6,
+                                                              ),
+                                                          vertical:
+                                                              MySize.getHeight(
+                                                                6,
+                                                              ),
                                                         ),
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
@@ -210,7 +236,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             Colors
                                                                 .grey
                                                                 .shade300,
-                                                        width: 1.0,
+                                                        width: MySize.getWidth(
+                                                          1,
+                                                        ),
                                                       ),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -228,17 +256,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                                 .selectedOrderFilter
                                                                 .value,
                                                           ),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 12,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                MySize.getHeight(
+                                                                  12,
+                                                                ),
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
-                                                        const Icon(
+                                                        Icon(
                                                           Icons
                                                               .keyboard_arrow_down,
+                                                          size:
+                                                              MySize.getHeight(
+                                                                20,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),
@@ -261,7 +294,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                         option,
                                                       ),
                                                       style: TextStyle(
-                                                        fontSize: 12,
+                                                        fontSize:
+                                                            MySize.getHeight(
+                                                              12,
+                                                            ),
                                                       ),
                                                     ),
                                                   );
@@ -270,87 +306,199 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 10),
+                                    SizedBox(height: MySize.getHeight(8)),
                                     Obx(() {
                                       final selectedType =
                                           controller.selectedOrderType.value;
+                                      final shortestSide =
+                                          MediaQuery.of(
+                                            context,
+                                          ).size.shortestSide;
+                                      final isTablet = shortestSide >= 600;
                                       return Center(
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             border: Border.all(
                                               color: Colors.grey.shade300,
-                                              width: 1.0,
+                                              width: MySize.getWidth(1),
                                             ),
                                             borderRadius: BorderRadius.circular(
-                                              12,
+                                              MySize.getHeight(8),
                                             ),
                                           ),
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 6,
+                                            padding: EdgeInsets.all(
+                                              MySize.getWidth(3),
                                             ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceAround,
-                                              children: [
-                                                _buildOrderTypeButton(
-                                                  icon: ImageConstant.allOrders,
-                                                  label:
-                                                      TranslationKeys
-                                                          .allOrders
-                                                          .tr,
-                                                  isSelected:
-                                                      selectedType ==
-                                                      'All Orders',
-                                                  onTap:
-                                                      () => controller
-                                                          .updateOrderType(
-                                                            'All Orders',
+                                            child:
+                                                isTablet
+                                                    ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Flexible(
+                                                          child: _buildOrderTypeButton(
+                                                            icon:
+                                                                ImageConstant
+                                                                    .allOrders,
+                                                            label:
+                                                                TranslationKeys
+                                                                    .allOrders
+                                                                    .tr,
+                                                            isSelected:
+                                                                selectedType ==
+                                                                'All Orders',
+                                                            onTap:
+                                                                () => controller
+                                                                    .updateOrderType(
+                                                                      'All Orders',
+                                                                    ),
+                                                            isTablet: isTablet,
                                                           ),
-                                                ),
-                                                _buildOrderTypeButton(
-                                                  icon: ImageConstant.dinein,
-                                                  label:
-                                                      TranslationKeys.dineIn.tr,
-                                                  isSelected:
-                                                      selectedType == 'Dine In',
-                                                  onTap:
-                                                      () => controller
-                                                          .updateOrderType(
-                                                            'Dine In',
+                                                        ),
+                                                        Flexible(
+                                                          child: _buildOrderTypeButton(
+                                                            icon:
+                                                                ImageConstant
+                                                                    .dinein,
+                                                            label:
+                                                                TranslationKeys
+                                                                    .dineIn
+                                                                    .tr,
+                                                            isSelected:
+                                                                selectedType ==
+                                                                'Dine In',
+                                                            onTap:
+                                                                () => controller
+                                                                    .updateOrderType(
+                                                                      'Dine In',
+                                                                    ),
+                                                            isTablet: isTablet,
                                                           ),
-                                                ),
-                                                _buildOrderTypeButton(
-                                                  icon: ImageConstant.pickup,
-                                                  label:
-                                                      TranslationKeys.pickup.tr,
-                                                  isSelected:
-                                                      selectedType == 'Pickup',
-                                                  onTap:
-                                                      () => controller
-                                                          .updateOrderType(
-                                                            'Pickup',
+                                                        ),
+                                                        Flexible(
+                                                          child: _buildOrderTypeButton(
+                                                            icon:
+                                                                ImageConstant
+                                                                    .pickup,
+                                                            label:
+                                                                TranslationKeys
+                                                                    .pickup
+                                                                    .tr,
+                                                            isSelected:
+                                                                selectedType ==
+                                                                'Pickup',
+                                                            onTap:
+                                                                () => controller
+                                                                    .updateOrderType(
+                                                                      'Pickup',
+                                                                    ),
+                                                            isTablet: isTablet,
                                                           ),
-                                                ),
-                                                _buildOrderTypeButton(
-                                                  icon: ImageConstant.delivery,
-                                                  label:
-                                                      TranslationKeys
-                                                          .delivery
-                                                          .tr,
-                                                  isSelected:
-                                                      selectedType ==
-                                                      'Delivery',
-                                                  onTap:
-                                                      () => controller
-                                                          .updateOrderType(
-                                                            'Delivery',
+                                                        ),
+                                                        Flexible(
+                                                          child: _buildOrderTypeButton(
+                                                            icon:
+                                                                ImageConstant
+                                                                    .delivery,
+                                                            label:
+                                                                TranslationKeys
+                                                                    .delivery
+                                                                    .tr,
+                                                            isSelected:
+                                                                selectedType ==
+                                                                'Delivery',
+                                                            onTap:
+                                                                () => controller
+                                                                    .updateOrderType(
+                                                                      'Delivery',
+                                                                    ),
+                                                            isTablet: isTablet,
                                                           ),
-                                                ),
-                                              ],
-                                            ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                    : Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceAround,
+                                                      children: [
+                                                        _buildOrderTypeButton(
+                                                          icon:
+                                                              ImageConstant
+                                                                  .allOrders,
+                                                          label:
+                                                              TranslationKeys
+                                                                  .allOrders
+                                                                  .tr,
+                                                          isSelected:
+                                                              selectedType ==
+                                                              'All Orders',
+                                                          onTap:
+                                                              () => controller
+                                                                  .updateOrderType(
+                                                                    'All Orders',
+                                                                  ),
+                                                          isTablet: isTablet,
+                                                        ),
+                                                        _buildOrderTypeButton(
+                                                          icon:
+                                                              ImageConstant
+                                                                  .dinein,
+                                                          label:
+                                                              TranslationKeys
+                                                                  .dineIn
+                                                                  .tr,
+                                                          isSelected:
+                                                              selectedType ==
+                                                              'Dine In',
+                                                          onTap:
+                                                              () => controller
+                                                                  .updateOrderType(
+                                                                    'Dine In',
+                                                                  ),
+                                                          isTablet: isTablet,
+                                                        ),
+                                                        _buildOrderTypeButton(
+                                                          icon:
+                                                              ImageConstant
+                                                                  .pickup,
+                                                          label:
+                                                              TranslationKeys
+                                                                  .pickup
+                                                                  .tr,
+                                                          isSelected:
+                                                              selectedType ==
+                                                              'Pickup',
+                                                          onTap:
+                                                              () => controller
+                                                                  .updateOrderType(
+                                                                    'Pickup',
+                                                                  ),
+                                                          isTablet: isTablet,
+                                                        ),
+                                                        _buildOrderTypeButton(
+                                                          icon:
+                                                              ImageConstant
+                                                                  .delivery,
+                                                          label:
+                                                              TranslationKeys
+                                                                  .delivery
+                                                                  .tr,
+                                                          isSelected:
+                                                              selectedType ==
+                                                              'Delivery',
+                                                          onTap:
+                                                              () => controller
+                                                                  .updateOrderType(
+                                                                    'Delivery',
+                                                                  ),
+                                                          isTablet: isTablet,
+                                                        ),
+                                                      ],
+                                                    ),
                                           ),
                                         ),
                                       );
@@ -358,7 +506,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: MySize.getHeight(12)),
                               Expanded(
                                 child: Obx(() {
                                   if (controller.isLoading.value &&
@@ -384,10 +532,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     color: Colors.black.withOpacity(0.2),
                     child: Center(
                       child: Container(
-                        padding: EdgeInsets.all(20),
+                        padding: EdgeInsets.all(MySize.getWidth(20)),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -425,8 +575,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
-              height: 400,
-              child: Center(child: Text(TranslationKeys.noOrdersFound.tr)),
+              height: MySize.getHeight(400),
+              child: Center(
+                child: Text(
+                  TranslationKeys.noOrdersFound.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(18),
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
           );
         }
@@ -437,11 +596,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
           itemCount:
               controller.allOrders.length +
               (controller.isLoadingMore.value ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, __) => SizedBox(height: MySize.getHeight(10)),
           itemBuilder: (context, index) {
             if (index == controller.allOrders.length) {
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
+              return Padding(
+                padding: EdgeInsets.all(MySize.getWidth(16)),
                 child: Center(
                   child: CupertinoActivityIndicator(
                     color: ColorConstants.primaryColor,
@@ -554,8 +713,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
       enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MySize.getHeight(16)),
+        ),
       ),
       builder: (builderContext) {
         return OrderScreenView()._buildBottomSheetContent(
@@ -578,7 +739,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
       height: screenHeight * 0.8,
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MySize.getHeight(16)),
+        ),
         boxShadow: ColorConstants.getShadow2,
       ),
       child: Obx(() {
@@ -609,14 +772,19 @@ class OrderScreenView extends GetView<OrderScreenController> {
     orderDetailsModel.Data orderData,
   ) {
     return Container(
-      padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 24),
+      padding: EdgeInsets.only(
+        top: MySize.getHeight(8),
+        left: MySize.getWidth(8),
+        right: MySize.getWidth(8),
+        bottom: MySize.getHeight(20),
+      ),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+            blurRadius: MySize.getWidth(4),
+            offset: Offset(0, -MySize.getHeight(2)),
           ),
         ],
       ),
@@ -626,17 +794,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
             child: InkWell(
               onTap: () => Navigator.pop(context),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: MySize.getWidth(16),
+                  vertical: MySize.getHeight(10),
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF60616E),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                   boxShadow: ColorConstants.getShadow2,
                 ),
                 child: Text(
                   TranslationKeys.close.tr,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -644,35 +815,58 @@ class OrderScreenView extends GetView<OrderScreenController> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: MySize.getWidth(12)),
           Expanded(
-            child: InkWell(
-              onTap: () => _printInvoice(orderData),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0E9F6E),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: ColorConstants.getShadow2,
+            child: Obx(() {
+              final isPrinting = controller.isPrinting.value;
+              return InkWell(
+                onTap:
+                    isPrinting
+                        ? null
+                        : () => _printInvoice(context, controller, orderData),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(16),
+                    vertical: MySize.getHeight(10),
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isPrinting
+                            ? const Color(0xFF0E9F6E).withOpacity(0.7)
+                            : const Color(0xFF0E9F6E),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isPrinting)
+                        CupertinoActivityIndicator(
+                          radius: MySize.getHeight(8),
+                          color: Colors.white,
+                        )
+                      else
+                        Icon(
+                          Icons.print,
+                          color: Colors.white,
+                          size: MySize.getHeight(18),
+                        ),
+                      if (!isPrinting) SizedBox(width: MySize.getWidth(6)),
+                      if (!isPrinting)
+                        Text(
+                          TranslationKeys.print.tr,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(14),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.print, color: Colors.white, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      TranslationKeys.print.tr,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              );
+            }),
           ),
         ],
       ),
@@ -697,20 +891,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildLoadingView() {
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(MySize.getWidth(24)),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: MySize.getWidth(8),
+              offset: Offset(0, MySize.getHeight(2)),
             ),
           ],
         ),
-        child: const CupertinoActivityIndicator(
-          radius: 8,
+        child: CupertinoActivityIndicator(
+          radius: MySize.getHeight(8),
           color: ColorConstants.primaryColor,
         ),
       ),
@@ -722,27 +916,41 @@ class OrderScreenView extends GetView<OrderScreenController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-          const SizedBox(height: 16),
+          Icon(
+            Icons.error_outline,
+            size: MySize.getHeight(48),
+            color: Colors.grey,
+          ),
+          SizedBox(height: MySize.getHeight(16)),
           Text(
             TranslationKeys.failedToLoadOrderDetails.tr,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: MySize.getHeight(16),
+              color: Colors.grey,
+            ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: MySize.getHeight(16)),
           InkWell(
             onTap: () => Navigator.pop(context),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: MySize.getWidth(24),
+                vertical: MySize.getHeight(12),
+              ),
               decoration: BoxDecoration(
                 color: ColorConstants.primaryColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MySize.getHeight(8)),
               ),
               child: Text(
                 TranslationKeys.close.tr,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: MySize.getHeight(14),
+                ),
               ),
             ),
           ),
+          SizedBox(height: MySize.getHeight(16)),
         ],
       ),
     );
@@ -755,34 +963,38 @@ class OrderScreenView extends GetView<OrderScreenController> {
   ) {
     final orderDetails = orderData.order;
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(MySize.getWidth(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Image.asset(ImageConstant.order, height: 24, width: 24),
-              const SizedBox(width: 8),
+              Image.asset(
+                ImageConstant.order,
+                height: MySize.getHeight(24),
+                width: MySize.getHeight(24),
+              ),
+              SizedBox(width: MySize.getWidth(8)),
               Expanded(
                 child: Text(
                   '${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           _buildOrderTimeInfo(orderDetails),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           if (orderDetails?.customer != null &&
               _hasCustomerInfo(orderDetails!.customer!))
             _buildCustomerDetails(orderDetails.customer!),
           if (orderDetails?.customer != null &&
               _hasCustomerInfo(orderDetails!.customer!))
-            const SizedBox(height: 8),
+            SizedBox(height: MySize.getHeight(8)),
           Builder(
             builder: (context) {
               final shouldShowWaiter =
@@ -796,15 +1008,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
               return Column(
                 children: [
                   _buildWaiterDetails(orderDetails!.waiter!),
-                  const SizedBox(height: 8),
+                  SizedBox(height: MySize.getHeight(8)),
                 ],
               );
             },
           ),
           _buildOrderItemsTable(orderData),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           _buildPriceSummary(orderData),
-          const SizedBox(height: 16),
+          SizedBox(height: MySize.getHeight(16)),
         ],
       ),
     );
@@ -837,12 +1049,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
     if (timeInfoList.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,21 +1065,24 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 .map(
                   (entry) => Padding(
                     padding: EdgeInsets.only(
-                      bottom: entry.key < timeInfoList.length - 1 ? 8 : 0,
+                      bottom:
+                          entry.key < timeInfoList.length - 1
+                              ? MySize.getHeight(8)
+                              : 0,
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.access_time,
-                          size: 18,
+                          size: MySize.getHeight(18),
                           color: ColorConstants.primaryColor,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: MySize.getWidth(8)),
                         Expanded(
                           child: Text(
                             entry.value,
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -915,17 +1130,21 @@ class OrderScreenView extends GetView<OrderScreenController> {
     final items = orderDetails?.items ?? [];
     if (items.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(MySize.getWidth(16)),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: ColorConstants.getShadow2,
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         ),
         child: Center(
           child: Text(
             TranslationKeys.noItemsFound.tr,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(
+              fontSize: MySize.getHeight(18),
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       );
@@ -935,7 +1154,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
       ),
       child: Table(
         columnWidths: const {
@@ -949,42 +1168,59 @@ class OrderScreenView extends GetView<OrderScreenController> {
           TableRow(
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(MySize.getHeight(8)),
+              ),
             ),
             children: [
               Padding(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
                   TranslationKeys.noHeader.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(10),
+                  ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
                   TranslationKeys.itemNames.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(10),
+                  ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
                   TranslationKeys.qty.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(10),
+                  ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
                   TranslationKeys.priceHeader.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(10),
+                  ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
                   TranslationKeys.amountHeader.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(10),
+                  ),
                 ),
               ),
             ],
@@ -1036,29 +1272,35 @@ class OrderScreenView extends GetView<OrderScreenController> {
     String itemNumber = 'M1',
   }) {
     return TableRow(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border.symmetric(
-          horizontal: BorderSide(color: Colors.grey, width: 0.5),
+          horizontal: BorderSide(
+            color: Colors.grey,
+            width: MySize.getWidth(0.5),
+          ),
         ),
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Text(
             itemNumber,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: MySize.getHeight(12),
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 itemName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: MySize.getHeight(12),
                 ),
               ),
               if (details.isNotEmpty)
@@ -1070,7 +1312,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             (detail) => Text(
                               detail,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: MySize.getHeight(12),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -1081,16 +1323,16 @@ class OrderScreenView extends GetView<OrderScreenController> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(qty, style: TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getWidth(6)),
+          child: Text(qty, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(price, style: TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getWidth(6)),
+          child: Text(price, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(amount, style: TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getWidth(6)),
+          child: Text(amount, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
       ],
     );
@@ -1105,17 +1347,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
     final isTaxIncluded = _isTaxIncluded(orderData);
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(MySize.getWidth(8)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            spreadRadius: MySize.getWidth(1),
+            blurRadius: MySize.getWidth(3),
+            offset: Offset(0, MySize.getHeight(1)),
           ),
         ],
       ),
@@ -1124,9 +1366,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
         children: [
           Text(
             '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: MySize.getHeight(14),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
 
           if (totals?.subTotal != null)
             _buildPriceRow(
@@ -1206,9 +1451,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
               ),
             ];
           }(),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1, thickness: 1, color: Colors.grey),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
+            child: Divider(
+              height: MySize.getHeight(1),
+              thickness: MySize.getHeight(1),
+              color: Colors.grey,
+            ),
           ),
 
           if (totals?.total != null)
@@ -1225,17 +1474,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildCustomerDetails(orderDetailsModel.Customer customer) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            spreadRadius: MySize.getWidth(1),
+            blurRadius: MySize.getWidth(3),
+            offset: Offset(0, MySize.getHeight(1)),
           ),
         ],
       ),
@@ -1244,18 +1493,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
         children: [
           Row(
             children: [
-              Icon(Icons.person, size: 20, color: ColorConstants.primaryColor),
-              const SizedBox(width: 8),
+              Icon(
+                Icons.person,
+                size: MySize.getHeight(20),
+                color: ColorConstants.primaryColor,
+              ),
+              SizedBox(width: MySize.getWidth(8)),
               Text(
                 TranslationKeys.customerDetails.tr,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: MySize.getHeight(12)),
           if (customer.name != null && customer.name!.isNotEmpty)
             _buildDetailRow(TranslationKeys.name.tr, customer.name!),
           if (customer.email != null && customer.email!.isNotEmpty)
@@ -1300,17 +1553,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            spreadRadius: MySize.getWidth(1),
+            blurRadius: MySize.getWidth(3),
+            offset: Offset(0, MySize.getHeight(1)),
           ),
         ],
       ),
@@ -1321,20 +1574,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
             children: [
               Icon(
                 Icons.restaurant,
-                size: 20,
+                size: MySize.getHeight(20),
                 color: ColorConstants.primaryColor,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: MySize.getWidth(8)),
               Text(
                 TranslationKeys.waiter.tr,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: MySize.getHeight(12)),
           if (waiter.name != null && waiter.name!.trim().isNotEmpty)
             _buildDetailRow(TranslationKeys.name.tr, waiter.name!),
           if (waiter.email != null && waiter.email!.trim().isNotEmpty)
@@ -1352,16 +1605,16 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: MySize.getWidth(80),
             child: Text(
               '$label:',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: MySize.getHeight(12),
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade700,
               ),
@@ -1370,7 +1623,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              style: TextStyle(
+                fontSize: MySize.getHeight(12),
+                color: Colors.black87,
+              ),
             ),
           ),
         ],
@@ -1403,7 +1659,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return branch?.taxesIncluded == true;
   }
 
-  void _printInvoice(orderDetailsModel.Data orderData) {
+  Future<void> _printInvoice(
+    BuildContext context,
+    OrderScreenController controller,
+    orderDetailsModel.Data orderData,
+  ) async {
     if (Platform.isIOS) {
       safeGetSnackbar(
         TranslationKeys.warning.tr,
@@ -1422,8 +1682,19 @@ class OrderScreenView extends GetView<OrderScreenController> {
       );
       return;
     }
-    final printerService = SunmiInvoicePrinterService();
-    printerService.printInvoice(orderData);
+
+    try {
+      controller.isPrinting.value = true;
+      final printerService = SunmiInvoicePrinterService();
+      await printerService.printInvoice(orderData);
+    } catch (e) {
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.somethingWentWrong.tr,
+      );
+    } finally {
+      controller.isPrinting.value = false;
+    }
   }
 }
 
@@ -1447,21 +1718,21 @@ Widget _buildPriceRow(
   Color? valueColor,
 }) {
   return Padding(
-    padding: const EdgeInsets.only(bottom: 4),
+    padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: MySize.getHeight(12),
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: MySize.getHeight(12),
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: valueColor ?? Colors.black,
           ),
@@ -1476,12 +1747,14 @@ Widget _buildOrderTypeButton({
   required String label,
   required bool isSelected,
   required VoidCallback onTap,
+  required bool isTablet,
 }) {
   return _OrderTypeButtonItem(
     icon: icon,
     label: label,
     isSelected: isSelected,
     onTap: onTap,
+    isTablet: isTablet,
   );
 }
 
@@ -1515,12 +1788,15 @@ class OrderCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         boxShadow: ColorConstants.getShadow2,
-        border: Border.all(color: Colors.grey.shade300, width: 1.0),
+        border: Border.all(
+          color: Colors.grey.shade300,
+          width: MySize.getWidth(1),
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(MySize.getHeight(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1528,41 +1804,41 @@ class OrderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 10,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(6),
+                    vertical: MySize.getHeight(6),
                   ),
                   decoration: BoxDecoration(
                     color: ColorConstants.primaryColor.withValues(alpha: 0.15),
                     border: Border.all(
                       color: ColorConstants.primaryColor.withValues(alpha: 0.3),
                     ),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(6)),
                   ),
                   child:
                       order.orderType?.toLowerCase() == 'pickup'
                           ? Image.asset(
                             ImageConstant.pickup_all,
-                            width: MySize.getHeight(20),
-                            height: MySize.getHeight(20),
+                            width: MySize.getHeight(16),
+                            height: MySize.getHeight(16),
                           )
                           : order.orderType?.toLowerCase() == 'delivery'
                           ? Image.asset(
                             ImageConstant.delivery_all,
                             color: ColorConstants.primaryColor,
-                            width: MySize.getHeight(20),
-                            height: MySize.getHeight(20),
+                            width: MySize.getHeight(16),
+                            height: MySize.getHeight(16),
                           )
                           : Text(
                             tableCode,
                             style: TextStyle(
                               color: ColorConstants.primaryColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: MySize.getHeight(12),
+                              fontSize: MySize.getHeight(10),
                             ),
                           ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: MySize.getWidth(10)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1570,17 +1846,17 @@ class OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         orderNumber,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: MySize.getHeight(11),
                         ),
                       ),
                       if (order.customer != null && customerName.isNotEmpty)
                         Text(
                           customerName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: ColorConstants.grey600,
-                            fontSize: 12,
+                            fontSize: MySize.getHeight(10),
                           ),
                         ),
                     ],
@@ -1589,7 +1865,7 @@ class OrderCard extends StatelessWidget {
                 _statusBadge(formattedStatus, statusColor),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: MySize.getHeight(6)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1598,24 +1874,31 @@ class OrderCard extends StatelessWidget {
                     formattedDateTime,
                     style: TextStyle(
                       color: ColorConstants.grey600,
-                      fontSize: 13,
+                      fontSize: MySize.getHeight(11),
                     ),
                   ),
                 ),
                 Text(
                   "$itemsCount ${TranslationKeys.itemsPlural.tr}",
-                  style: TextStyle(color: ColorConstants.grey600, fontSize: 13),
+                  style: TextStyle(
+                    color: ColorConstants.grey600,
+                    fontSize: MySize.getHeight(11),
+                  ),
                 ),
               ],
             ),
-            Divider(color: Colors.grey.shade300, thickness: 1, height: 10),
+            Divider(
+              color: Colors.grey.shade300,
+              thickness: MySize.getHeight(1),
+              height: MySize.getHeight(10),
+            ),
             Row(
               children: [
                 Text(
                   formattedPrice,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: MySize.getHeight(14),
                   ),
                 ),
                 SizedBox(width: MySize.getWidth(10)),
@@ -1624,23 +1907,25 @@ class OrderCard extends StatelessWidget {
                   children: [
                     if (order.coupon != null && order.coupon!.code != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.purple.shade100,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(6),
+                          ),
                           border: Border.all(
                             color: Colors.purple.shade300,
-                            width: 1,
+                            width: MySize.getWidth(1),
                           ),
                         ),
                         child: Text(
                           '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
                           style: TextStyle(
                             color: Colors.purple.shade700,
-                            fontSize: 11,
+                            fontSize: MySize.getHeight(10),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1656,13 +1941,13 @@ class OrderCard extends StatelessWidget {
                         children: [
                           Image.asset(
                             ImageConstant.order,
-                            width: 18,
-                            height: 18,
+                            width: MySize.getHeight(18),
+                            height: MySize.getHeight(18),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: MySize.getWidth(6)),
                           Text(
                             waiterName,
-                            style: const TextStyle(fontSize: 13),
+                            style: TextStyle(fontSize: MySize.getHeight(11)),
                           ),
                         ],
                       ),
@@ -1718,18 +2003,21 @@ class OrderCard extends StatelessWidget {
 
   Widget _statusBadge(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(8),
+        vertical: MySize.getHeight(4),
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 1.0),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        border: Border.all(color: color, width: MySize.getWidth(1)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: MySize.getHeight(10),
+          fontSize: MySize.getHeight(9),
         ),
       ),
     );
@@ -1741,12 +2029,14 @@ class _OrderTypeButtonItem extends StatefulWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isTablet;
 
   const _OrderTypeButtonItem({
     required this.icon,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    required this.isTablet,
   });
 
   @override
@@ -1774,7 +2064,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
+      begin: widget.isTablet ? 1.0 : 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Interval(0.3, 1.0)));
 
@@ -1783,7 +2073,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    if (widget.isSelected) {
+    if (widget.isSelected || widget.isTablet) {
       _controller.forward();
     }
   }
@@ -1791,7 +2081,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
   @override
   void didUpdateWidget(covariant _OrderTypeButtonItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isSelected) {
+    if (widget.isSelected || widget.isTablet) {
       _controller.forward();
     } else {
       _controller.reverse();
@@ -1813,42 +2103,90 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
         animation: _controller,
         builder: (context, child) {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            decoration: BoxDecoration(
-              color: ColorConstants.primaryColor.withValues(
-                alpha: 0.1 * _backgroundAnimation.value,
-              ),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: ColorConstants.primaryColor.withValues(
-                  alpha: _backgroundAnimation.value,
-                ),
-                width: 1,
-              ),
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(widget.isTablet ? 6 : 8),
+              vertical: MySize.getHeight(3),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Image.asset(widget.icon, height: MySize.getHeight(20)),
-                ),
-                SizeTransition(
-                  axis: Axis.horizontal,
-                  sizeFactor: _fadeAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Text(
-                      widget.label,
-                      style: TextStyle(
-                        fontSize: MySize.getHeight(12),
-                        color: ColorConstants.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+            decoration: BoxDecoration(
+              color:
+                  widget.isSelected
+                      ? ColorConstants.primaryColor.withValues(
+                        alpha: 0.1 * _backgroundAnimation.value,
+                      )
+                      : Colors.transparent,
+              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+              border:
+                  widget.isSelected
+                      ? Border.all(
+                        color: ColorConstants.primaryColor.withValues(
+                          alpha: _backgroundAnimation.value,
+                        ),
+                        width: MySize.getWidth(1),
+                      )
+                      : null,
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: widget.isTablet ? 0 : MySize.getWidth(6),
+              ),
+              child: Row(
+                mainAxisSize:
+                    widget.isTablet ? MainAxisSize.max : MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Image.asset(
+                      widget.icon,
+                      height: MySize.getHeight(20),
+                      width: MySize.getHeight(20),
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
-              ],
+                  if (widget.isTablet || _fadeAnimation.value > 0)
+                    Flexible(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: MySize.getWidth(4)),
+                        child:
+                            widget.isTablet
+                                ? Text(
+                                  widget.label,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    color:
+                                        widget.isSelected
+                                            ? ColorConstants.primaryColor
+                                            : Colors.grey.shade700,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.visible,
+                                  textAlign: TextAlign.center,
+                                )
+                                : Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: MySize.getWidth(2),
+                                  ),
+                                  child: SizeTransition(
+                                    axis: Axis.horizontal,
+                                    sizeFactor: _fadeAnimation,
+                                    child: Text(
+                                      widget.label,
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(12),
+                                        color:
+                                            widget.isSelected
+                                                ? ColorConstants.primaryColor
+                                                : Colors.grey.shade700,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.visible,
+                                    ),
+                                  ),
+                                ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           );
         },

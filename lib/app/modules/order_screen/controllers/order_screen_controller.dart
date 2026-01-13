@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
@@ -19,6 +20,7 @@ class OrderScreenController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool isNavigatingToOrder = false.obs;
   final RxBool isLoadingOrderDetails = false.obs;
+  final RxBool isPrinting = false.obs;
   final RxBool showAccessDialog = false.obs;
   final Rx<orderModel.GetOrderModel?> orderDetails =
       Rx<orderModel.GetOrderModel?>(null);
@@ -289,15 +291,31 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
+    MySize().init(context);
     DateTime? selectedStartDate = startDate.value;
     DateTime? selectedEndDate = endDate.value;
     final now = DateTime.now();
     final dateRange = now.subtract(const Duration(days: 365 * 5));
     final primaryColor = ColorConstants.primaryColor;
-    final textStyle = TextStyle(
-      color: Colors.black87,
-      fontWeight: FontWeight.bold,
+    final borderRadius = MySize.getHeight(20);
+    final dateTextSize = MySize.getHeight(14);
+    final greyTextStyle = TextStyle(
+      color: Colors.grey.shade400,
+      fontSize: dateTextSize,
     );
+    final dateTextStyle = TextStyle(
+      color: Colors.black87,
+      fontSize: dateTextSize,
+    );
+    final whiteTextStyle = TextStyle(
+      color: Colors.white,
+      fontSize: dateTextSize,
+    );
+    final buttonPadding = EdgeInsets.symmetric(
+      horizontal: MySize.getWidth(24),
+      vertical: MySize.getHeight(8),
+    );
+    final buttonBorderRadius = BorderRadius.circular(MySize.getHeight(8));
 
     showDialog(
       context: context,
@@ -306,32 +324,32 @@ class OrderScreenController extends GetxController {
           (dialogContext) => Dialog(
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: 400,
+                maxWidth: MySize.getWidth(400),
                 maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(borderRadius),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
                     child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(8),
+                        vertical: MySize.getHeight(4),
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(borderRadius),
+                          topRight: Radius.circular(borderRadius),
                         ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
                       ),
                       child: Theme(
                         data: ThemeData(
@@ -341,10 +359,13 @@ class OrderScreenController extends GetxController {
                             surface: Colors.white,
                             onSurface: Colors.black87,
                           ),
-                          iconTheme: IconThemeData(color: Colors.black87),
+                          iconTheme: IconThemeData(
+                            color: Colors.black87,
+                            size: MySize.getHeight(28),
+                          ),
                         ),
                         child: SizedBox(
-                          height: 300,
+                          height: MySize.getHeight(300),
                           child: Localizations.override(
                             context: context,
                             locale: Get.locale ?? const Locale('en'),
@@ -370,19 +391,34 @@ class OrderScreenController extends GetxController {
                               selectionColor: primaryColor,
                               todayHighlightColor: primaryColor,
                               headerStyle: DateRangePickerHeaderStyle(
-                                textStyle: textStyle.copyWith(fontSize: 16),
-                                backgroundColor: Colors.white,
-                              ),
-                              monthCellStyle: DateRangePickerMonthCellStyle(
-                                textStyle: TextStyle(color: Colors.black87),
-                                todayTextStyle: textStyle.copyWith(
-                                  color: primaryColor,
+                                textStyle: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: MySize.getHeight(16),
                                 ),
+                                backgroundColor: Colors.white,
+                                textAlign: TextAlign.center,
                               ),
-                              yearCellStyle: DateRangePickerYearCellStyle(
-                                textStyle: TextStyle(color: Colors.black87),
-                                todayTextStyle: textStyle.copyWith(
+                              headerHeight: MySize.getHeight(50),
+                              monthCellStyle: DateRangePickerMonthCellStyle(
+                                textStyle: dateTextStyle,
+                                todayTextStyle: TextStyle(
                                   color: primaryColor,
+                                  fontSize: dateTextSize,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                disabledDatesTextStyle: greyTextStyle,
+                                leadingDatesTextStyle: greyTextStyle,
+                                trailingDatesTextStyle: greyTextStyle,
+                              ),
+                              selectionTextStyle: whiteTextStyle,
+                              rangeTextStyle: whiteTextStyle,
+                              yearCellStyle: DateRangePickerYearCellStyle(
+                                textStyle: dateTextStyle,
+                                todayTextStyle: TextStyle(
+                                  color: primaryColor,
+                                  fontSize: dateTextSize,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               monthViewSettings:
@@ -390,6 +426,16 @@ class OrderScreenController extends GetxController {
                                     firstDayOfWeek: 1,
                                     dayFormat: 'EEE',
                                     showTrailingAndLeadingDates: true,
+                                    viewHeaderHeight: MySize.getHeight(40),
+                                    viewHeaderStyle:
+                                        DateRangePickerViewHeaderStyle(
+                                          textStyle: TextStyle(
+                                            fontSize: MySize.getHeight(12),
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          backgroundColor: Colors.white,
+                                        ),
                                   ),
                               onSelectionChanged: (args) {
                                 if (args.value is PickerDateRange) {
@@ -405,12 +451,17 @@ class OrderScreenController extends GetxController {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    padding: EdgeInsets.fromLTRB(
+                      MySize.getWidth(16),
+                      MySize.getHeight(8),
+                      MySize.getWidth(16),
+                      MySize.getHeight(16),
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(borderRadius),
+                        bottomRight: Radius.circular(borderRadius),
                       ),
                     ),
                     child: Row(
@@ -419,13 +470,13 @@ class OrderScreenController extends GetxController {
                         OutlinedButton(
                           onPressed: () => Navigator.of(dialogContext).pop(),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                            padding: buttonPadding,
+                            side: BorderSide(
+                              color: Colors.grey.shade400,
+                              width: MySize.getWidth(1),
                             ),
-                            side: BorderSide(color: Colors.grey.shade400),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: buttonBorderRadius,
                             ),
                           ),
                           child: Text(
@@ -433,10 +484,11 @@ class OrderScreenController extends GetxController {
                             style: TextStyle(
                               color: Colors.grey.shade700,
                               fontWeight: FontWeight.w600,
+                              fontSize: dateTextSize,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: MySize.getWidth(12)),
                         ElevatedButton(
                           onPressed: () {
                             if (selectedStartDate != null &&
@@ -452,12 +504,9 @@ class OrderScreenController extends GetxController {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
+                            padding: buttonPadding,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: buttonBorderRadius,
                             ),
                             elevation: 0,
                           ),
@@ -466,6 +515,7 @@ class OrderScreenController extends GetxController {
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
+                              fontSize: dateTextSize,
                             ),
                           ),
                         ),

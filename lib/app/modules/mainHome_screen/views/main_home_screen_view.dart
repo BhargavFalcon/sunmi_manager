@@ -70,11 +70,13 @@ class _CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      bottom: false,
       child: Padding(
         padding: EdgeInsets.only(
-          bottom:
-              Platform.isAndroid
-                  ? MediaQuery.of(context).padding.bottom
+          bottom: Platform.isAndroid
+              ? MediaQuery.of(context).padding.bottom
+              : Platform.isIOS
+                  ? 10
                   : MySize.getHeight(0),
         ),
         child: Column(

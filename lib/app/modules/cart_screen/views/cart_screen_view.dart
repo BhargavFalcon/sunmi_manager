@@ -577,7 +577,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   child: Material(
                     color: Colors.transparent,
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -916,7 +916,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             ],
                           ),
 
-                          SizedBox(height: 10.0),
+                          SizedBox(height: 8.0),
                           InkWell(
                             onTap: () {
                               controller.submitOrder(status: 'kot');
@@ -924,9 +924,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             child: Container(
                               width: double.infinity,
                               alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
                                 color: ColorConstants.primaryColor,
                                 borderRadius: BorderRadius.circular(6),
@@ -1617,14 +1615,14 @@ class _QuantitySelectorState extends State<QuantitySelector> {
                   bottomLeft: Radius.circular(6),
                 ),
               ),
-              child: Center(
-                child: Text(
-                  '-',
-                  style: TextStyle(
-                    fontSize: 17.0,
-                    fontWeight: FontWeight.bold,
-                    color: ColorConstants.primaryColor,
-                  ),
+              alignment: Alignment.center,
+              child: Text(
+                '-',
+                style: TextStyle(
+                  fontSize: 17.0,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.primaryColor,
+                  height: 1.0,
                 ),
               ),
             ),
@@ -1634,37 +1632,36 @@ class _QuantitySelectorState extends State<QuantitySelector> {
             width: 35.0,
             height: 26.0,
             decoration: BoxDecoration(color: Colors.transparent),
-            child: Center(
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                textAlign: TextAlign.center,
-                textAlignVertical: TextAlignVertical.center,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(2),
-                ],
-                style: TextStyle(
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                  height: 1.2,
-                ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                  isDense: true,
-                ),
-                onChanged: _onTextChanged,
-                onSubmitted: (value) {
-                  _onTextChanged(value);
-                  _focusNode.unfocus();
-                },
-                onTapOutside: (event) {
-                  _focusNode.unfocus();
-                },
+            alignment: Alignment.center,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(2),
+              ],
+              style: TextStyle(
+                fontSize: 15.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                height: 1.0,
               ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+              ),
+              onChanged: _onTextChanged,
+              onSubmitted: (value) {
+                _onTextChanged(value);
+                _focusNode.unfocus();
+              },
+              onTapOutside: (event) {
+                _focusNode.unfocus();
+              },
             ),
           ),
 
@@ -1680,17 +1677,17 @@ class _QuantitySelectorState extends State<QuantitySelector> {
                   bottomRight: Radius.circular(6),
                 ),
               ),
-              child: Center(
-                child: Text(
-                  '+',
-                  style: TextStyle(
-                    fontSize: 17.0,
-                    fontWeight: FontWeight.bold,
-                    color:
-                        _currentQuantity < widget.maxQuantity
-                            ? ColorConstants.primaryColor
-                            : Colors.grey.shade400,
-                  ),
+              alignment: Alignment.center,
+              child: Text(
+                '+',
+                style: TextStyle(
+                  fontSize: 17.0,
+                  fontWeight: FontWeight.bold,
+                  color:
+                      _currentQuantity < widget.maxQuantity
+                          ? ColorConstants.primaryColor
+                          : Colors.grey.shade400,
+                  height: 1.0,
                 ),
               ),
             ),

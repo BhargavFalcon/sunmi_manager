@@ -19,6 +19,11 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       builder: (controller) {
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showReservationBottomSheet(context, controller),
+            backgroundColor: ColorConstants.primaryColor,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
           body: Obx(() {
             return Stack(
               children: [
@@ -26,54 +31,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                   ignoring: controller.showAccessDialog.value,
                   child: Column(
                     children: [
-                      Stack(
-                        children: [
-                          Positioned(
-                            top: MediaQuery.of(context).padding.top,
-                            right: 0,
-                            child: InkWell(
-                              onTap:
-                                  () => _showReservationBottomSheet(
-                                    context,
-                                    controller,
-                                  ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: Container(
-                                  width: MySize.getWidth(80),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: ColorConstants.primaryColor,
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 5,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.add, size: 20),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          TranslationKeys.newReservation.tr,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      SizedBox(height: MediaQuery.of(context).padding.top),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Padding(

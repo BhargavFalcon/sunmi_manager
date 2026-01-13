@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -44,24 +46,56 @@ void main() async {
         hoverColor: Colors.transparent,
       ),
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context),
-          child: child ?? const SizedBox.shrink(),
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _setDeviceOrientation(),
+        );
+        return OrientationBuilder(
+          builder:
+              (context, orientation) => MediaQuery(
+                data: MediaQuery.of(context),
+                child: child ?? const SizedBox.shrink(),
+              ),
         );
       },
     ),
   );
 }
 
+void _setDeviceOrientation() {
+  try {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return;
+
+    final shortestSide = MediaQueryData.fromView(views.first).size.shortestSide;
+    final isTablet = shortestSide >= 600;
+
+    SystemChrome.setPreferredOrientations(
+      isTablet
+          ? [
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]
+          : [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+    );
+  } catch (e) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+}
+
 Future<void> _initializeDateFormatting(Locale locale) async {
   try {
-    final localeString = '${locale.languageCode}_${locale.countryCode}';
-    await initializeDateFormatting(localeString, null);
+    await initializeDateFormatting(
+      '${locale.languageCode}_${locale.countryCode}',
+      null,
+    );
   } catch (e) {
     try {
       await initializeDateFormatting('en_US', null);
-    } catch (e2) {
-      // If initialization fails, DateFormat will use default locale
-    }
+    } catch (e2) {}
   }
 }

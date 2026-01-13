@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/language_utils.dart';
@@ -15,6 +16,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    MySize().init(context);
     return GetBuilder<SettingScreenController>(
       init: SettingScreenController(),
       assignId: true,
@@ -25,9 +27,13 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(
-                  12,
-                ).copyWith(top: MediaQuery.of(context).padding.top + 12),
+                padding: EdgeInsets.only(
+                  top:
+                      MediaQuery.of(context).padding.top + MySize.getHeight(12),
+                  left: MySize.getWidth(8),
+                  right: MySize.getWidth(8),
+                  bottom: MySize.getHeight(12),
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: ColorConstants.getShadow2,
@@ -35,14 +41,20 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                 child: Center(
                   child: Text(
                     TranslationKeys.setting.tr,
-                    style: TextStyle(fontSize: 20, color: Colors.black),
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(20),
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MySize.getWidth(8),
+                      vertical: MySize.getHeight(16),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -58,7 +70,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             isLoading: controller.isSyncingMenu.value,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: MySize.getHeight(8)),
                         Obx(
                           () => _buildLanguageSettingItem(
                             controller: controller,
@@ -67,7 +79,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: MySize.getHeight(8)),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.vibration,
@@ -77,7 +89,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             onToggle: () => controller.toggleHapticFeedback(),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: MySize.getHeight(8)),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.volume_up,
@@ -87,7 +99,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             onToggle: () => controller.toggleBeepSound(),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: MySize.getHeight(8)),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.notifications,
@@ -104,7 +116,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ),
                         ),
                         if (Platform.isAndroid) ...[
-                          const SizedBox(height: 8),
+                          SizedBox(height: MySize.getHeight(8)),
                           _buildSettingItem(
                             icon: Icons.print,
                             title: TranslationKeys.printerSettings.tr,
@@ -115,7 +127,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             showArrow: true,
                           ),
                         ],
-                        const SizedBox(height: 8),
+                        SizedBox(height: MySize.getHeight(8)),
                         _buildSettingItem(
                           icon: Icons.power_settings_new_sharp,
                           title: TranslationKeys.logout.tr,
@@ -147,27 +159,31 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           () => Dialog(
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(MySize.getHeight(12)),
               side: BorderSide(color: ColorConstants.bgColor),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(MySize.getWidth(20)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     TranslationKeys.logout.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: MySize.getHeight(12)),
                   Text(
                     TranslationKeys.areYouSureLogout.tr,
                     textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(14),
+                      color: Colors.black87,
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: MySize.getHeight(24)),
                   Row(
                     children: [
                       Expanded(
@@ -183,21 +199,28 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     Navigator.of(context).pop();
                                   },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
                             ),
                             child: Center(
                               child: Text(
                                 TranslationKeys.cancel.tr,
-                                style: const TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: MySize.getHeight(14),
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: MySize.getWidth(12)),
                       Expanded(
                         child: InkWell(
                           hoverColor: Colors.transparent,
@@ -212,22 +235,26 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     controller.logout();
                                   },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
                             decoration: BoxDecoration(
                               color:
                                   controller.isLoading.value
                                       ? Colors.grey
                                       : Colors.red,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
                             ),
                             child: Center(
                               child:
                                   controller.isLoading.value
-                                      ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
+                                      ? SizedBox(
+                                        width: MySize.getHeight(20),
+                                        height: MySize.getHeight(20),
                                         child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                          strokeWidth: MySize.getWidth(2),
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
                                                 Colors.white,
@@ -236,8 +263,9 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                       )
                                       : Text(
                                         TranslationKeys.logout.tr,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.white,
+                                          fontSize: MySize.getHeight(14),
                                         ),
                                       ),
                             ),
@@ -265,27 +293,31 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           () => Dialog(
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(MySize.getHeight(12)),
               side: BorderSide(color: ColorConstants.bgColor),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(MySize.getWidth(20)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     TranslationKeys.syncMenu.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: MySize.getHeight(12)),
                   Text(
                     TranslationKeys.syncMenuMessage.tr,
                     textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(14),
+                      color: Colors.black87,
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: MySize.getHeight(24)),
                   Row(
                     children: [
                       Expanded(
@@ -301,21 +333,28 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     Navigator.of(context).pop();
                                   },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
                             ),
                             child: Center(
                               child: Text(
                                 TranslationKeys.cancel.tr,
-                                style: const TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: MySize.getHeight(14),
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: MySize.getWidth(12)),
                       Expanded(
                         child: InkWell(
                           hoverColor: Colors.transparent,
@@ -330,22 +369,26 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     controller.syncMenu();
                                   },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
                             decoration: BoxDecoration(
                               color:
                                   controller.isSyncingMenu.value
                                       ? Colors.grey
                                       : ColorConstants.primaryColor,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
                             ),
                             child: Center(
                               child:
                                   controller.isSyncingMenu.value
-                                      ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
+                                      ? SizedBox(
+                                        width: MySize.getHeight(20),
+                                        height: MySize.getHeight(20),
                                         child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                          strokeWidth: MySize.getWidth(2),
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
                                                 Colors.white,
@@ -354,8 +397,9 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                       )
                                       : Text(
                                         TranslationKeys.sync.tr,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.white,
+                                          fontSize: MySize.getHeight(14),
                                         ),
                                       ),
                             ),
@@ -385,54 +429,57 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(8),
+            vertical: MySize.getHeight(6),
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
             border: Border.all(
               color: ColorConstants.primaryColor.withValues(alpha: 0.2),
-              width: 1.0,
+              width: MySize.getWidth(1),
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                blurRadius: MySize.getWidth(6),
+                offset: Offset(0, MySize.getHeight(2)),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 decoration: BoxDecoration(
                   color: ColorConstants.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
                 child: Icon(
                   Icons.language,
                   color: ColorConstants.primaryColor,
-                  size: 20,
+                  size: MySize.getHeight(16),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MySize.getWidth(12)),
               Expanded(
                 child: Text(
                   languageName,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: MySize.getHeight(12),
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),
               ),
-              Text(flagEmoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
+              Text(flagEmoji, style: TextStyle(fontSize: MySize.getHeight(18))),
+              SizedBox(width: MySize.getWidth(8)),
               Icon(
                 Icons.arrow_forward_ios,
-                size: 16,
+                size: MySize.getHeight(14),
                 color: Colors.grey.shade600,
               ),
             ],
@@ -457,22 +504,22 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
         return Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
             side: BorderSide(color: ColorConstants.bgColor),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(MySize.getWidth(20)),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   TranslationKeys.selectLanguage.tr,
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(20),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: MySize.getHeight(16)),
                 ...languages.map(
                   (lang) => Obx(
                     () => InkWell(
@@ -481,11 +528,11 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                         Navigator.of(context).pop();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(16),
+                          vertical: MySize.getHeight(8),
                         ),
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: EdgeInsets.only(bottom: MySize.getHeight(8)),
                         decoration: BoxDecoration(
                           color:
                               controller.selectedLanguage.value == lang['code']
@@ -493,28 +540,30 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     alpha: 0.1,
                                   )
                                   : Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
+                          ),
                           border: Border.all(
                             color:
                                 controller.selectedLanguage.value ==
                                         lang['code']
                                     ? ColorConstants.primaryColor
                                     : Colors.transparent,
-                            width: 1.5,
+                            width: MySize.getWidth(1.5),
                           ),
                         ),
                         child: Row(
                           children: [
                             Text(
                               LanguageUtils.getFlagEmoji(lang['code']!),
-                              style: const TextStyle(fontSize: 24),
+                              style: TextStyle(fontSize: MySize.getHeight(18)),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: MySize.getWidth(12)),
                             Expanded(
                               child: Text(
                                 lang['name']!,
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: MySize.getHeight(14),
                                   fontWeight:
                                       controller.selectedLanguage.value ==
                                               lang['code']
@@ -533,7 +582,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                               Icon(
                                 Icons.check,
                                 color: ColorConstants.primaryColor,
-                                size: 20,
+                                size: MySize.getHeight(18),
                               ),
                           ],
                         ),
@@ -541,19 +590,24 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: MySize.getHeight(8)),
                 InkWell(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                      vertical: MySize.getHeight(12),
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                     ),
                     child: Center(
                       child: Text(
                         TranslationKeys.close.tr,
-                        style: const TextStyle(color: Colors.black),
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: MySize.getHeight(14),
+                        ),
                       ),
                     ),
                   ),
@@ -577,38 +631,44 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(10),
+            vertical: MySize.getHeight(6),
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.2), width: 1.0),
+            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
+              width: MySize.getWidth(1),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                blurRadius: MySize.getWidth(6),
+                offset: Offset(0, MySize.getHeight(2)),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: MySize.getHeight(18)),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MySize.getWidth(12)),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     color: Colors.black87,
-                    fontSize: 14,
+                    fontSize: MySize.getHeight(12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -617,7 +677,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                 Icon(
                   Icons.chevron_right,
                   color: color.withValues(alpha: 0.6),
-                  size: 16,
+                  size: MySize.getHeight(14),
                 ),
             ],
           ),
@@ -638,49 +698,58 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       color: Colors.transparent,
       child: InkWell(
         onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(10),
+            vertical: MySize.getHeight(6),
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.2), width: 1.0),
+            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
+              width: MySize.getWidth(1),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                blurRadius: MySize.getWidth(6),
+                offset: Offset(0, MySize.getHeight(2)),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: MySize.getHeight(16)),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MySize.getWidth(12)),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     color: Colors.black87,
-                    fontSize: 14,
+                    fontSize: MySize.getHeight(12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               if (isLoading)
-                CupertinoActivityIndicator(radius: 8, color: color)
+                CupertinoActivityIndicator(
+                  radius: MySize.getHeight(8),
+                  color: color,
+                )
               else if (showArrow)
                 Icon(
                   Icons.chevron_right,
                   color: color.withValues(alpha: 0.6),
-                  size: 16,
+                  size: MySize.getHeight(14),
                 ),
             ],
           ),
@@ -700,38 +769,44 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onToggle,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(10),
+            vertical: MySize.getHeight(6),
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.2), width: 1.0),
+            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
+              width: MySize.getWidth(1),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                blurRadius: MySize.getWidth(6),
+                offset: Offset(0, MySize.getHeight(2)),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getWidth(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: MySize.getHeight(16)),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MySize.getWidth(12)),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     color: Colors.black87,
-                    fontSize: 14,
+                    fontSize: MySize.getHeight(12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
@@ -27,14 +26,8 @@ class TakeOrderController extends GetxController {
   ScrollController categoryScrollController = ScrollController();
   ScrollController stickyCategoryScrollController = ScrollController();
 
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
-
   RxString searchText = "".obs;
   RxString selectedCategory = "".obs;
-  RxBool isCategorySticky = false.obs;
-  RxBool isAutoScrolling = false.obs;
 
   final RxList<String> categories = <String>[].obs;
   final RxMap<String, List<Map<String, dynamic>>> groupedItems =
@@ -74,8 +67,6 @@ class TakeOrderController extends GetxController {
       searchText.value = searchController.text;
     });
 
-    // Disabled scroll-based category change
-    // itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
   }
 
   void _checkAndShowDialog() {
@@ -238,54 +229,6 @@ class TakeOrderController extends GetxController {
     }
   }
 
-  void _onScrollPositionChanged() {
-    if (isAutoScrolling.value) return;
-
-    final positions = itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) return;
-
-    final searchBoxPosition = positions.where((p) => p.index == 0).firstOrNull;
-    final isSearchBoxVisible = searchBoxPosition != null && 
-                                searchBoxPosition.itemTrailingEdge > 0 &&
-                                searchBoxPosition.itemLeadingEdge >= 0 &&
-                                searchBoxPosition.itemLeadingEdge < 1.0;
-    
-    isCategorySticky.value = !isSearchBoxVisible;
-
-    final categoryPositions = positions
-        .where((p) => p.index >= categoryOffset && p.itemTrailingEdge > 0)
-        .toList();
-
-    if (categoryPositions.isEmpty) return;
-
-    final filteredItems = filteredGroupedItems;
-    final visibleCategories =
-        categories.where((cat) => filteredItems.containsKey(cat)).toList();
-
-    categoryPositions.sort((a, b) {
-      final aVisibility = (a.itemTrailingEdge - a.itemLeadingEdge).abs();
-      final bVisibility = (b.itemTrailingEdge - b.itemLeadingEdge).abs();
-      if (aVisibility != bVisibility) {
-        return bVisibility.compareTo(aVisibility);
-      }
-      return a.itemLeadingEdge.compareTo(b.itemLeadingEdge);
-    });
-
-    final mostVisibleCategory = categoryPositions.first;
-    final categoryIndex = mostVisibleCategory.index - categoryOffset;
-
-    if (categoryIndex >= 0 && categoryIndex < visibleCategories.length) {
-      final newCategory = visibleCategories[categoryIndex];
-      if (selectedCategory.value != newCategory) {
-        selectedCategory.value = newCategory;
-        Future.delayed(
-          const Duration(milliseconds: 50),
-          () => _scrollCategoryToCenter(newCategory),
-        );
-      }
-    }
-  }
-
   void _scrollCategoryToCenter(String category) {
     final visibleCategories =
         categories
@@ -351,20 +294,6 @@ class TakeOrderController extends GetxController {
     _scrollCategoryToCenter(category);
   }
 
-  void toggleCategorySticky() =>
-      isCategorySticky.value = !isCategorySticky.value;
-
-  void scrollToTop() async {
-    if (!itemScrollController.isAttached) return;
-    isCategorySticky.value = false;
-    try {
-      await itemScrollController.scrollTo(
-        index: 0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    } catch (e) {}
-  }
 
   String _getBasePrice(Items item, String orderType) {
     switch (orderType) {
