@@ -18,7 +18,7 @@ class PusherService {
   final SunmiInvoicePrinterService _printerService =
       SunmiInvoicePrinterService();
 
-  static const String key = "976a2c01b088eeeb0342";
+  static const String key = "4b5739b24c754c883545";
   static const String cluster = "eu";
 
   Future<void> initPusher() async {
@@ -114,9 +114,7 @@ class PusherService {
   }
 
   String _extractOrderNumber(Map<String, dynamic> data) {
-    return data['order_number'] as String? ??
-        data['formatted_order_number'] as String? ??
-        TranslationKeys.na.tr;
+    return data['order_number'].toString();
   }
 
   Future<orderModel.Data?> _fetchAndPrintInvoice(String orderUuid) async {

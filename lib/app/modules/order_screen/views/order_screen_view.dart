@@ -40,22 +40,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   ignoring: controller.showAccessDialog.value,
                   child: Column(
                     children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12).copyWith(
-                          top: MediaQuery.of(context).padding.top + 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: ColorConstants.getShadow2,
-                        ),
-                        child: Center(
-                          child: Text(
-                            TranslationKeys.allOrders.tr,
-                            style: TextStyle(fontSize: 20, color: Colors.black),
-                          ),
-                        ),
-                      ),
+                      SizedBox(height: MediaQuery.of(context).padding.top),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8),

@@ -116,6 +116,7 @@ class MainHomeScreenController extends GetxController {
                     child: TextButton(
                       onPressed: () {
                         Get.back();
+                        _clearCartIfExists();
                         _performTabChange(targetIndex);
                       },
                       style: TextButton.styleFrom(

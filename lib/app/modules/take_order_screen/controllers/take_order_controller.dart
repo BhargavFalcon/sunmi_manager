@@ -58,7 +58,7 @@ class TakeOrderController extends GetxController {
 
   bool get hasTable => selectedTable.value != null;
 
-  int get categoryOffset => hasTable ? 1 : 2;
+  int get categoryOffset => 1;
 
   @override
   void onInit() {
@@ -74,7 +74,8 @@ class TakeOrderController extends GetxController {
       searchText.value = searchController.text;
     });
 
-    itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
+    // Disabled scroll-based category change
+    // itemPositionsListener.itemPositions.addListener(_onScrollPositionChanged);
   }
 
   void _checkAndShowDialog() {
@@ -243,18 +244,35 @@ class TakeOrderController extends GetxController {
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    final mostVisible =
-        positions
-            .where((p) => p.itemLeadingEdge < 0.5 && p.itemTrailingEdge > 0)
-            .toList()
-          ..sort((a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge));
+    final searchBoxPosition = positions.where((p) => p.index == 0).firstOrNull;
+    final isSearchBoxVisible = searchBoxPosition != null && 
+                                searchBoxPosition.itemTrailingEdge > 0 &&
+                                searchBoxPosition.itemLeadingEdge >= 0 &&
+                                searchBoxPosition.itemLeadingEdge < 1.0;
+    
+    isCategorySticky.value = !isSearchBoxVisible;
 
-    if (mostVisible.isEmpty) return;
+    final categoryPositions = positions
+        .where((p) => p.index >= categoryOffset && p.itemTrailingEdge > 0)
+        .toList();
+
+    if (categoryPositions.isEmpty) return;
 
     final filteredItems = filteredGroupedItems;
     final visibleCategories =
         categories.where((cat) => filteredItems.containsKey(cat)).toList();
-    final categoryIndex = mostVisible.first.index - categoryOffset;
+
+    categoryPositions.sort((a, b) {
+      final aVisibility = (a.itemTrailingEdge - a.itemLeadingEdge).abs();
+      final bVisibility = (b.itemTrailingEdge - b.itemLeadingEdge).abs();
+      if (aVisibility != bVisibility) {
+        return bVisibility.compareTo(aVisibility);
+      }
+      return a.itemLeadingEdge.compareTo(b.itemLeadingEdge);
+    });
+
+    final mostVisibleCategory = categoryPositions.first;
+    final categoryIndex = mostVisibleCategory.index - categoryOffset;
 
     if (categoryIndex >= 0 && categoryIndex < visibleCategories.length) {
       final newCategory = visibleCategories[categoryIndex];
@@ -266,8 +284,6 @@ class TakeOrderController extends GetxController {
         );
       }
     }
-
-    isCategorySticky.value = mostVisible.first.index > (categoryOffset - 1);
   }
 
   void _scrollCategoryToCenter(String category) {
@@ -330,34 +346,9 @@ class TakeOrderController extends GetxController {
 
   void updateOrderType(String value) => selectedOrderType.value = value;
 
-  void updateCategory(String category) async {
+  void updateCategory(String category) {
     selectedCategory.value = category;
-    isCategorySticky.value = true;
-
-    final visibleCategories =
-        categories
-            .where((cat) => filteredGroupedItems.containsKey(cat))
-            .toList();
-    final categoryIndex = visibleCategories.indexOf(category);
-    if (categoryIndex == -1 || !itemScrollController.isAttached) return;
-
-    Future.delayed(
-      const Duration(milliseconds: 100),
-      () => _scrollCategoryToCenter(category),
-    );
-
-    isAutoScrolling.value = true;
-    try {
-      await itemScrollController.scrollTo(
-        index: categoryIndex + categoryOffset,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    } catch (e) {}
-    Future.delayed(
-      const Duration(milliseconds: 600),
-      () => isAutoScrolling.value = false,
-    );
+    _scrollCategoryToCenter(category);
   }
 
   void toggleCategorySticky() =>

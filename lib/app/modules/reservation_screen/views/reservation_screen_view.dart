@@ -27,29 +27,9 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                   child: Column(
                     children: [
                       Stack(
-                        alignment: Alignment.topCenter,
                         children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12).copyWith(
-                              top: MediaQuery.of(context).padding.top + 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: ColorConstants.getShadow2,
-                            ),
-                            child: Center(
-                              child: Text(
-                                TranslationKeys.reservation.tr,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
                           Positioned(
-                            top: MediaQuery.of(context).padding.top + 8,
+                            top: MediaQuery.of(context).padding.top,
                             right: 0,
                             child: InkWell(
                               onTap:
