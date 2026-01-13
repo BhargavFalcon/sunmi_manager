@@ -511,8 +511,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 child: Obx(() {
                                   if (controller.isLoading.value &&
                                       controller.allOrders.isEmpty) {
-                                    return const Center(
+                                    return Center(
                                       child: CupertinoActivityIndicator(
+                                        radius: MySize.getHeight(12),
                                         color: ColorConstants.primaryColor,
                                       ),
                                     );
@@ -547,7 +548,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ],
                         ),
                         child: CupertinoActivityIndicator(
-                          radius: 12,
+                          radius: MySize.getHeight(12),
                           color: ColorConstants.primaryColor,
                         ),
                       ),
@@ -603,6 +604,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 padding: EdgeInsets.all(MySize.getWidth(16)),
                 child: Center(
                   child: CupertinoActivityIndicator(
+                    radius: MySize.getHeight(12),
                     color: ColorConstants.primaryColor,
                   ),
                 ),
@@ -1805,7 +1807,7 @@ class OrderCard extends StatelessWidget {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: MySize.getWidth(6),
+                    horizontal: MySize.getHeight(6),
                     vertical: MySize.getHeight(6),
                   ),
                   decoration: BoxDecoration(
