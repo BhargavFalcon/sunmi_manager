@@ -10,7 +10,6 @@ import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
 import '../data/NetworkClient.dart';
 import '../constants/api_constants.dart';
-import '../constants/translation_keys.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();

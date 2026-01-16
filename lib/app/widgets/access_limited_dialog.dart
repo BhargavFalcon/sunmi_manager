@@ -15,7 +15,7 @@ class AccessLimitedDialog extends StatelessWidget {
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
+          constraints:  BoxConstraints(maxWidth: MySize.getHeight(400)),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -38,20 +38,23 @@ class AccessLimitedDialog extends StatelessWidget {
                     ImageConstant.access,
                     height: MySize.getHeight(70),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: MySize.getHeight(20)),
                   Text(
                     TranslationKeys.accessLimited.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(20),
                       fontWeight: FontWeight.bold,
                       color: ColorConstants.primaryColor,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: MySize.getHeight(12)),
                   Text(
                     TranslationKeys.featureNotEnabled.tr,
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(14),
+                      color: Colors.black54,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],

@@ -57,7 +57,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   boxShadow: ColorConstants.getShadow2,
                                   border: Border.all(
                                     color: Colors.grey.shade300,
-                                    width: MySize.getWidth(1),
+                                    width: 1.5,
                                   ),
                                 ),
                                 child: Column(
@@ -106,9 +106,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             Colors
                                                                 .grey
                                                                 .shade300,
-                                                        width: MySize.getWidth(
-                                                          1,
-                                                        ),
+                                                        width: 1.5,
                                                       ),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -236,9 +234,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             Colors
                                                                 .grey
                                                                 .shade300,
-                                                        width: MySize.getWidth(
-                                                          1,
-                                                        ),
+                                                        width: 1.5,
                                                       ),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -321,7 +317,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                             color: Colors.white,
                                             border: Border.all(
                                               color: Colors.grey.shade300,
-                                              width: MySize.getWidth(1),
+                                              width: 1.5,
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               MySize.getHeight(8),
@@ -329,7 +325,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                           ),
                                           child: Padding(
                                             padding: EdgeInsets.all(
-                                              MySize.getWidth(3),
+                                              MySize.getHeight(2),
                                             ),
                                             child:
                                                 isTablet
@@ -1276,10 +1272,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     return TableRow(
       decoration: BoxDecoration(
         border: Border.symmetric(
-          horizontal: BorderSide(
-            color: Colors.grey,
-            width: MySize.getWidth(0.5),
-          ),
+          horizontal: BorderSide(color: Colors.grey, width: 0.5),
         ),
       ),
       children: [
@@ -1792,10 +1785,7 @@ class OrderCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         boxShadow: ColorConstants.getShadow2,
-        border: Border.all(
-          color: Colors.grey.shade300,
-          width: MySize.getWidth(1),
-        ),
+        border: Border.all(color: Colors.grey.shade300, width: 1.5),
       ),
       child: Padding(
         padding: EdgeInsets.all(MySize.getHeight(8)),
@@ -1920,7 +1910,7 @@ class OrderCard extends StatelessWidget {
                           ),
                           border: Border.all(
                             color: Colors.purple.shade300,
-                            width: MySize.getWidth(1),
+                            width: 1.5,
                           ),
                         ),
                         child: Text(
@@ -2012,7 +2002,7 @@ class OrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-        border: Border.all(color: color, width: MySize.getWidth(1)),
+        border: Border.all(color: color, width: 1.5),
       ),
       child: Text(
         label,
@@ -2107,7 +2097,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
           return Container(
             padding: EdgeInsets.symmetric(
               horizontal: MySize.getWidth(widget.isTablet ? 6 : 8),
-              vertical: MySize.getHeight(3),
+              vertical: MySize.getHeight(6),
             ),
             decoration: BoxDecoration(
               color:
@@ -2123,7 +2113,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
                         color: ColorConstants.primaryColor.withValues(
                           alpha: _backgroundAnimation.value,
                         ),
-                        width: MySize.getWidth(1),
+                        width: 1.5,
                       )
                       : null,
             ),

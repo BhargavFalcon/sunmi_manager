@@ -25,6 +25,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
 
   @override
   Widget build(BuildContext context) {
+    MySize().init(context);
     return GetBuilder<TakeOrderController>(
       init: TakeOrderController(),
       assignId: true,
@@ -51,6 +52,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       children: [
                         SizedBox(height: MediaQuery.of(context).padding.top),
                         _buildSearchAndCategoryBox(
+                          context,
                           controller,
                           categoryController:
                               controller.categoryScrollController,
@@ -60,16 +62,18 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                             if (controller.isLoading.value) {
                               return Center(
                                 child: Container(
-                                  width: 60,
-                                  height: 60,
+                                  width: MySize.getWidth(60),
+                                  height: MySize.getHeight(60),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(
+                                      MySize.getHeight(8),
+                                    ),
                                     boxShadow: ColorConstants.getShadow2,
                                   ),
                                   child: Center(
                                     child: CupertinoActivityIndicator(
-                                      radius: 12,
+                                      radius: MySize.getHeight(12),
                                       color: ColorConstants.primaryColor,
                                     ),
                                   ),
@@ -87,9 +91,14 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               if (items.isEmpty) {
                                 return Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
+                                    padding: EdgeInsets.all(
+                                      MySize.getWidth(16),
+                                    ),
                                     child: Text(
                                       TranslationKeys.noItemsFound.tr,
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                      ),
                                     ),
                                   ),
                                 );
@@ -99,8 +108,12 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    ..._buildItemsInRows(controller, items),
-                                    const SizedBox(height: 16),
+                                    ..._buildItemsInRows(
+                                      context,
+                                      controller,
+                                      items,
+                                    ),
+                                    SizedBox(height: MySize.getHeight(16)),
                                   ],
                                 ),
                               );
@@ -122,8 +135,8 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: Offset(0, -2),
+                                  blurRadius: MySize.getHeight(4),
+                                  offset: Offset(0, -MySize.getHeight(2)),
                                 ),
                               ],
                             ),
@@ -146,7 +159,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                         decoration: BoxDecoration(
                                           color: Color(0xFF60616E),
                                           borderRadius: BorderRadius.circular(
-                                            30,
+                                            MySize.getHeight(30),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -201,7 +214,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                         decoration: BoxDecoration(
                                           color: Color(0xFF0B9F6E),
                                           borderRadius: BorderRadius.circular(
-                                            30,
+                                            MySize.getHeight(30),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -240,6 +253,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
   }
 
   Widget _buildSearchAndCategoryBox(
+    BuildContext context,
     TakeOrderController controller, {
     ScrollController? categoryController,
   }) {
@@ -248,199 +262,532 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
       ),
-      child: Column(
-        children: [
-          if (!controller.hasTable)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-              child: Obx(() {
-                final selectedType = controller.selectedOrderType.value;
-                return Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: _buildOrderTypeButton(
-                              icon: ImageConstant.pickup,
-                              label: TranslationKeys.pickup.tr,
-                              isSelected: selectedType == 'Pickup',
-                              onTap: () => controller.updateOrderType('Pickup'),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildOrderTypeButton(
-                              icon: ImageConstant.delivery,
-                              label: TranslationKeys.delivery.tr,
-                              isSelected: selectedType == 'Delivery',
-                              onTap:
-                                  () => controller.updateOrderType('Delivery'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+      child: Builder(
+        builder: (context) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final isLandscape = screenWidth > screenHeight;
+          final isTablet = screenWidth >= 600;
+
+          return Column(
+            children: [
+              if (!controller.hasTable)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    MySize.getWidth(8),
+                    MySize.getHeight(12),
+                    MySize.getWidth(8),
+                    isTablet && isLandscape
+                        ? MySize.getHeight(8)
+                        : MySize.getHeight(2),
                   ),
-                );
-              }),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-            child: Row(
-              children: [
-                if (controller.hasTable)
-                  InkWell(
-                    hoverColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    onTap: () {
-                      final cartCtrl = _getCartController();
-                      final dialogContext = Get.context;
-                      if (cartCtrl == null || cartCtrl.cartItems.isEmpty) {
-                        Get.back();
-                      } else if (dialogContext != null) {
-                        _showCancelOrderDialog(dialogContext, cartCtrl);
-                      }
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: MySize.getHeight(40),
-                      width: MySize.getHeight(40),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: ColorConstants.primaryColor.withValues(
-                          alpha: 0.10,
+                  child:
+                      isTablet && isLandscape
+                          ? Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Obx(() {
+                                  final selectedType =
+                                      controller.selectedOrderType.value;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        MySize.getHeight(8),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(
+                                        MySize.getWidth(2),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
+                                              icon: ImageConstant.delivery,
+                                              label:
+                                                  TranslationKeys.delivery.tr,
+                                              isSelected:
+                                                  selectedType == 'Delivery',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Delivery',
+                                                      ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
+                                              icon: ImageConstant.pickup,
+                                              label: TranslationKeys.pickup.tr,
+                                              isSelected:
+                                                  selectedType == 'Pickup',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Pickup',
+                                                      ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                              SizedBox(width: MySize.getWidth(6)),
+                              _buildActionButton(
+                                icon: Icons.person,
+                                label: TranslationKeys.customer.tr,
+                                onTap: () {
+                                  // TODO: Implement Customer Info functionality
+                                },
+                              ),
+                              SizedBox(width: MySize.getWidth(6)),
+                              _buildActionButton(
+                                icon: Icons.access_time,
+                                label: TranslationKeys.preOrder.tr,
+                                onTap: () {
+                                  // TODO: Implement Pre-Order functionality
+                                },
+                              ),
+                              SizedBox(width: MySize.getWidth(8)),
+                              Expanded(
+                                flex: 4,
+                                child: SizedBox(
+                                  height: MySize.getHeight(40),
+                                  child: CupertinoTextField(
+                                    controller: controller.searchController,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: MySize.getWidth(2),
+                                      vertical: MySize.getHeight(2),
+                                    ),
+                                    placeholder:
+                                        TranslationKeys.searchMenuItems.tr,
+                                    placeholderStyle: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: MySize.getHeight(12),
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: MySize.getHeight(12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        MySize.getHeight(8),
+                                      ),
+                                    ),
+                                    prefix: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: MySize.getWidth(4),
+                                        right: MySize.getWidth(4),
+                                        top: MySize.getHeight(11),
+                                        bottom: MySize.getHeight(11),
+                                      ),
+                                      child: Icon(
+                                        Icons.search,
+                                        size: MySize.getHeight(18),
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    clearButtonMode:
+                                        OverlayVisibilityMode.editing,
+                                    onChanged: (value) {},
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                          : Row(
+                            children: [
+                              Expanded(
+                                child: Obx(() {
+                                  final selectedType =
+                                      controller.selectedOrderType.value;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        MySize.getHeight(8),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(
+                                        MySize.getWidth(2),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
+                                              icon: ImageConstant.delivery,
+                                              label:
+                                                  TranslationKeys.delivery.tr,
+                                              isSelected:
+                                                  selectedType == 'Delivery',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Delivery',
+                                                      ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
+                                              icon: ImageConstant.pickup,
+                                              label: TranslationKeys.pickup.tr,
+                                              isSelected:
+                                                  selectedType == 'Pickup',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Pickup',
+                                                      ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                              SizedBox(width: MySize.getWidth(4)),
+                              _buildActionButton(
+                                icon: Icons.person,
+                                label: TranslationKeys.customer.tr,
+                                onTap: () {
+                                  // TODO: Implement Customer Info functionality
+                                },
+                              ),
+                              SizedBox(width: MySize.getWidth(6)),
+                              _buildActionButton(
+                                icon: Icons.access_time,
+                                label: TranslationKeys.preOrder.tr,
+                                onTap: () {
+                                  // TODO: Implement Pre-Order functionality
+                                },
+                              ),
+                            ],
+                          ),
+                ),
+              if (isTablet && isLandscape)
+                Container(
+                  height: MySize.getHeight(38),
+                  padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
+                  child: Obx(() {
+                    final visibleCategories =
+                        controller.categories
+                            .where(
+                              (cat) => controller.filteredGroupedItems
+                                  .containsKey(cat),
+                            )
+                            .toList();
+                    return ListView.builder(
+                      controller:
+                          categoryController ??
+                          controller.categoryScrollController,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.only(
+                        left: MySize.getWidth(8),
+                        right: MySize.getWidth(4),
+                      ),
+                      itemCount: visibleCategories.length,
+                      itemBuilder: (context, index) {
+                        final category = visibleCategories[index];
+                        return Obx(() {
+                          final isSelected =
+                              controller.selectedCategory.value == category;
+                          return GestureDetector(
+                            onTap: () => controller.updateCategory(category),
+                            child: Container(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(2),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(12),
+                                vertical: MySize.getHeight(6),
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isSelected
+                                        ? ColorConstants.primaryColor
+                                        : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(20),
+                                ),
+                                boxShadow:
+                                    isSelected
+                                        ? [
+                                          BoxShadow(
+                                            color: ColorConstants.primaryColor
+                                                .withValues(alpha: 0.3),
+                                            spreadRadius: 0,
+                                            blurRadius: MySize.getHeight(4),
+                                            offset: Offset(
+                                              0,
+                                              MySize.getHeight(2),
+                                            ),
+                                          ),
+                                        ]
+                                        : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  category,
+                                  style: TextStyle(
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: MySize.getHeight(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        });
+                      },
+                    );
+                  }),
+                ),
+              if (!isTablet || !isLandscape)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    MySize.getWidth(8),
+                    MySize.getHeight(4),
+                    MySize.getWidth(8),
+                    MySize.getHeight(8),
+                  ),
+                  child: Row(
+                    children: [
+                      if (controller.hasTable)
+                        InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            final cartCtrl = _getCartController();
+                            final dialogContext = Get.context;
+                            if (cartCtrl == null ||
+                                cartCtrl.cartItems.isEmpty) {
+                              Get.back();
+                            } else if (dialogContext != null) {
+                              _showCancelOrderDialog(dialogContext, cartCtrl);
+                            }
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: MySize.getHeight(40),
+                            width: MySize.getHeight(40),
+                            margin: EdgeInsets.only(right: MySize.getWidth(8)),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor.withValues(
+                                alpha: 0.10,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: ColorConstants.primaryColor,
+                              size: MySize.getHeight(20),
+                            ),
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                      Expanded(
+                        child: SizedBox(
+                          height: MySize.getHeight(40),
+                          child: CupertinoTextField(
+                            controller: controller.searchController,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(2),
+                              vertical: MySize.getHeight(2),
+                            ),
+                            placeholder: TranslationKeys.searchMenuItems.tr,
+                            placeholderStyle: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: MySize.getHeight(12),
+                            ),
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: MySize.getHeight(12),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              border: Border.all(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                            ),
+                            prefix: Padding(
+                              padding: EdgeInsets.only(
+                                left: MySize.getWidth(4),
+                                right: MySize.getWidth(4),
+                                top: MySize.getHeight(11),
+                                bottom: MySize.getHeight(11),
+                              ),
+                              child: Icon(
+                                Icons.search,
+                                size: MySize.getHeight(18),
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            clearButtonMode: OverlayVisibilityMode.editing,
+                            onChanged: (value) {},
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: ColorConstants.primaryColor,
-                        size: MySize.getHeight(20),
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: CupertinoTextField(
-                    controller: controller.searchController,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    placeholder: TranslationKeys.searchMenuItems.tr,
-                    prefix: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(Icons.search),
-                    ),
-                    clearButtonMode: OverlayVisibilityMode.editing,
-                    onChanged: (value) {},
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          Container(
-            height: MySize.getHeight(45),
-            padding: const EdgeInsets.only(bottom: 5),
-            child: Obx(() {
-              final visibleCategories =
-                  controller.categories
-                      .where(
-                        (cat) =>
-                            controller.filteredGroupedItems.containsKey(cat),
-                      )
-                      .toList();
-              return ListView.builder(
-                controller:
-                    categoryController ?? controller.categoryScrollController,
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: visibleCategories.length,
-                itemBuilder: (context, index) {
-                  final category = visibleCategories[index];
-                  return Obx(() {
-                    final isSelected =
-                        controller.selectedCategory.value == category;
-                    return GestureDetector(
-                      onTap: () => controller.updateCategory(category),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? ColorConstants.primaryColor
-                                  : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow:
-                              isSelected
-                                  ? [
-                                    BoxShadow(
-                                      color: ColorConstants.primaryColor
-                                          .withValues(alpha: 0.3),
-                                      spreadRadius: 0,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                  : null,
-                        ),
-                        child: Center(
-                          child: Text(
-                            category,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w600,
-                              fontSize: MySize.getHeight(14),
-                            ),
-                          ),
-                        ),
+              if (!isTablet || !isLandscape)
+                Container(
+                  height: MySize.getHeight(38),
+                  padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
+                  child: Obx(() {
+                    final visibleCategories =
+                        controller.categories
+                            .where(
+                              (cat) => controller.filteredGroupedItems
+                                  .containsKey(cat),
+                            )
+                            .toList();
+                    return ListView.builder(
+                      controller:
+                          categoryController ??
+                          controller.categoryScrollController,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.only(
+                        left: MySize.getWidth(8),
+                        right: MySize.getWidth(4),
                       ),
+                      itemCount: visibleCategories.length,
+                      itemBuilder: (context, index) {
+                        final category = visibleCategories[index];
+                        return Obx(() {
+                          final isSelected =
+                              controller.selectedCategory.value == category;
+                          return GestureDetector(
+                            onTap: () => controller.updateCategory(category),
+                            child: Container(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(2),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(12),
+                                vertical: MySize.getHeight(6),
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isSelected
+                                        ? ColorConstants.primaryColor
+                                        : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(20),
+                                ),
+                                boxShadow:
+                                    isSelected
+                                        ? [
+                                          BoxShadow(
+                                            color: ColorConstants.primaryColor
+                                                .withValues(alpha: 0.3),
+                                            spreadRadius: 0,
+                                            blurRadius: MySize.getHeight(4),
+                                            offset: Offset(
+                                              0,
+                                              MySize.getHeight(2),
+                                            ),
+                                          ),
+                                        ]
+                                        : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  category,
+                                  style: TextStyle(
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: MySize.getHeight(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        });
+                      },
                     );
-                  });
-                },
-              );
-            }),
-          ),
-        ],
+                  }),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 
   List<Widget> _buildItemsInRows(
+    BuildContext context,
     TakeOrderController controller,
     List<Map<String, dynamic>> items,
   ) {
     List<Widget> rows = [];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth >= 600;
+    final isLandscape = screenWidth > screenHeight;
 
-    for (int i = 0; i < items.length; i += 2) {
+    int itemsPerRow = 1; // Default for mobile
+    if (isTablet) {
+      itemsPerRow = isLandscape ? 3 : 2; // Landscape: 3, Portrait: 2
+    }
+
+    for (int i = 0; i < items.length; i += itemsPerRow) {
+      List<Widget> rowItems = [];
+      for (int j = 0; j < itemsPerRow && i + j < items.length; j++) {
+        rowItems.add(
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(MySize.getWidth(2)),
+              child: _buildItemCell(controller, items[i + j]),
+            ),
+          ),
+        );
+      }
+
       rows.add(
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            children: [
-              Expanded(child: _buildItemCell(controller, items[i])),
-              const SizedBox(width: 8),
-              Expanded(
-                child:
-                    i + 1 < items.length
-                        ? _buildItemCell(controller, items[i + 1])
-                        : const SizedBox(),
-              ),
-            ],
-          ),
+          padding: EdgeInsets.all(MySize.getHeight(2)),
+          child: Row(children: rowItems),
         ),
       );
     }
@@ -453,6 +800,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     Map<String, dynamic> item,
   ) {
     final itemObject = item["item"] as Items?;
+
     return GestureDetector(
       onTap: () {
         if (itemObject != null) {
@@ -460,33 +808,35 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        height: MySize.getHeight(75),
+        padding: EdgeInsets.all(MySize.getHeight(8)),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MySize.getHeight(12)),
           boxShadow: ColorConstants.getShadow2,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Row(
               children: [
                 if (itemObject?.itemNumber != null &&
                     itemObject!.itemNumber!.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MySize.getWidth(6),
+                      vertical: MySize.getHeight(2),
                     ),
                     margin: EdgeInsets.only(right: MySize.getWidth(6)),
                     decoration: BoxDecoration(
                       color: ColorConstants.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(MySize.getHeight(4)),
                     ),
                     child: Text(
                       itemObject.itemNumber!,
                       style: TextStyle(
-                        fontSize: MySize.getHeight(10),
+                        fontSize: MySize.getHeight(12),
                         fontWeight: FontWeight.bold,
                         color: ColorConstants.primaryColor,
                       ),
@@ -498,19 +848,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     maxLines: 2,
                     style: TextStyle(
                       overflow: TextOverflow.ellipsis,
-                      fontSize: MySize.getHeight(12),
+                      fontSize: MySize.getHeight(14),
                       color: Colors.black87,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-              ],
-            ),
-            Divider(color: Colors.grey.shade300, height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox.shrink(),
+                SizedBox(width: MySize.getWidth(8)),
                 Obx(() {
                   final orderType = controller.selectedOrderType.value;
                   String price = '0';
@@ -557,7 +901,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                   return Text(
                     priceText,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: MySize.getHeight(16),
                       color: Colors.black87,
                       fontWeight: FontWeight.w600,
                     ),
@@ -567,6 +911,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 }),
               ],
             ),
+            Divider(
+              color: Colors.grey.shade300,
+              height: MySize.getHeight(15),
+              thickness: MySize.getHeight(1),
+            ),
           ],
         ),
       ),
@@ -574,15 +923,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
   }
 
   Widget _buildOrderTypeButton({
+    required BuildContext context,
     required String icon,
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: EdgeInsets.symmetric(vertical: MySize.getHeight(4)),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color:
               isSelected
@@ -593,23 +947,75 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                 isSelected ? ColorConstants.primaryColor : Colors.transparent,
             width: 1.5,
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(icon, height: 20, width: 20),
-            const SizedBox(width: 6),
+            Image.asset(
+              icon,
+              height: MySize.getHeight(20),
+              width: MySize.getWidth(20),
+              alignment: Alignment.center,
+            ),
+            if (isTablet)
+              Text(
+                label,
+                style: TextStyle(
+                  color:
+                      isSelected
+                          ? ColorConstants.primaryColor
+                          : Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                  fontSize: MySize.getHeight(14),
+                ),
+                textAlign: TextAlign.center,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(4),
+          vertical: MySize.getHeight(8),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: ColorConstants.primaryColor, width: 1.5),
+          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: MySize.getHeight(18),
+              color: ColorConstants.primaryColor,
+            ),
+            SizedBox(width: MySize.getWidth(4)),
             Text(
               label,
               style: TextStyle(
-                color:
-                    isSelected
-                        ? ColorConstants.primaryColor
-                        : Colors.grey.shade700,
+                fontSize: MySize.getHeight(12),
                 fontWeight: FontWeight.w500,
+                color: ColorConstants.primaryColor,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -627,10 +1033,10 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: MySize.getHeight(12)),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(MySize.getHeight(8)),
           ),
           child: Center(
             child: Text(
@@ -668,11 +1074,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         return Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
             side: BorderSide(color: ColorConstants.bgColor),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(MySize.getWidth(20)),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -683,7 +1089,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: MySize.getHeight(12)),
                 Text(
                   message,
                   textAlign: TextAlign.center,
@@ -698,7 +1104,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       backgroundColor: Colors.grey.shade200,
                       textColor: Colors.black,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: MySize.getWidth(12)),
                     _buildDialogButton(
                       text: TranslationKeys.clearCart.tr.replaceAll('?', ''),
                       onTap: () {

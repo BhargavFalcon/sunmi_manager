@@ -431,8 +431,9 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
+          height: MySize.getHeight(50),
           padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(8),
+            horizontal: MySize.getWidth(10),
             vertical: MySize.getHeight(6),
           ),
           decoration: BoxDecoration(
@@ -453,7 +454,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(MySize.getWidth(6)),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 decoration: BoxDecoration(
                   color: ColorConstants.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(MySize.getHeight(8)),
@@ -461,7 +462,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                 child: Icon(
                   Icons.language,
                   color: ColorConstants.primaryColor,
-                  size: MySize.getHeight(16),
+                  size: MySize.getHeight(24),
                 ),
               ),
               SizedBox(width: MySize.getWidth(12)),
@@ -633,6 +634,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
+          height: MySize.getHeight(50),
           padding: EdgeInsets.symmetric(
             horizontal: MySize.getWidth(10),
             vertical: MySize.getHeight(6),
@@ -655,12 +657,12 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(MySize.getWidth(6)),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: MySize.getHeight(18)),
+                child: Icon(icon, color: color, size: MySize.getHeight(24)),
               ),
               SizedBox(width: MySize.getWidth(12)),
               Expanded(
@@ -700,6 +702,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
         onTap: isLoading ? null : onTap,
         borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
+          height: MySize.getHeight(50),
           padding: EdgeInsets.symmetric(
             horizontal: MySize.getWidth(10),
             vertical: MySize.getHeight(6),
@@ -722,12 +725,12 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(MySize.getWidth(6)),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: MySize.getHeight(16)),
+                child: Icon(icon, color: color, size: MySize.getHeight(24)),
               ),
               SizedBox(width: MySize.getWidth(12)),
               Expanded(
@@ -771,6 +774,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
         onTap: onToggle,
         borderRadius: BorderRadius.circular(MySize.getHeight(16)),
         child: Container(
+          height: MySize.getHeight(50),
           padding: EdgeInsets.symmetric(
             horizontal: MySize.getWidth(10),
             vertical: MySize.getHeight(6),
@@ -793,12 +797,12 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(MySize.getWidth(6)),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: MySize.getHeight(16)),
+                child: Icon(icon, color: color, size: MySize.getHeight(24)),
               ),
               SizedBox(width: MySize.getWidth(12)),
               Expanded(

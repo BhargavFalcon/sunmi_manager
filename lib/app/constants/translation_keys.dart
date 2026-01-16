@@ -232,6 +232,7 @@ class TranslationKeys {
   static const String itemExtras = 'itemExtras';
   static const String optionName = 'optionName';
   static const String uncategorized = 'uncategorized';
+  static const String preOrder = 'preOrder';
 
   // Table Screen
   static const String available = 'available';

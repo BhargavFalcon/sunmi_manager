@@ -135,6 +135,7 @@ class LocaleString extends Translations {
       'itemExtras': 'Item Extras',
       'optionName': 'OPTION NAME',
       'uncategorized': 'Uncategorized',
+      'preOrder': 'Pre-Order',
       'searchMenuItems': 'Search your menu item here',
       'pleaseChooseAtLeastOneOption':
           'Please choose at least one option to continue.',
@@ -447,6 +448,7 @@ class LocaleString extends Translations {
       'itemExtras': 'Vare Ekstra',
       'optionName': 'VALG NAVN',
       'uncategorized': 'Ikke kategoriseret',
+      'preOrder': 'Forudbestilling',
       'searchMenuItems': 'Søg efter din menupunkt her',
       'pleaseChooseAtLeastOneOption':
           'Vælg venligst mindst én mulighed for at fortsætte.',
@@ -745,6 +747,7 @@ class LocaleString extends Translations {
       'itemExtras': 'Artikel Extras',
       'optionName': 'OPTIONSNAME',
       'uncategorized': 'Nicht kategorisiert',
+      'preOrder': 'Vorbestellung',
       'searchMenuItems': 'Suchen Sie hier nach Ihrem Menüpunkt',
       'pleaseChooseAtLeastOneOption':
           'Bitte wählen Sie mindestens eine Option, um fortzufahren.',
@@ -1043,6 +1046,7 @@ class LocaleString extends Translations {
       'itemExtras': 'Item Extras',
       'optionName': 'OPTIE NAAM',
       'uncategorized': 'Niet gecategoriseerd',
+      'preOrder': 'Vooraf bestellen',
       'searchMenuItems': 'Zoek hier naar uw menupunt',
       'pleaseChooseAtLeastOneOption':
           'Kies ten minste één optie om door te gaan.',
