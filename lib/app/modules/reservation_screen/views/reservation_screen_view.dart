@@ -13,6 +13,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    MySize().init(context);
     return GetBuilder<ReservationScreenController>(
       init: ReservationScreenController(),
       assignId: true,
@@ -55,7 +56,13 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           child,
                                         ) {
                                           return GestureDetector(
-                                            onTap: () => controllerMenu.open(),
+                                            onTap: () {
+                                              if (controllerMenu.isOpen) {
+                                                controllerMenu.close();
+                                              } else {
+                                                controllerMenu.open();
+                                              }
+                                            },
                                             child: Obx(() {
                                               return Container(
                                                 padding:
@@ -84,8 +91,11 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                         overflow:
                                                             TextOverflow
                                                                 .ellipsis,
-                                                        style: const TextStyle(
-                                                          fontSize: 16,
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              MySize.getHeight(
+                                                                12,
+                                                              ),
                                                           fontWeight:
                                                               FontWeight.w500,
                                                         ),
@@ -125,12 +135,17 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                 },
                                                 child: Text(
                                                   _translateDateOption(option),
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      12,
+                                                    ),
+                                                  ),
                                                 ),
                                               );
                                             }).toList(),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: MySize.getWidth(12)),
                                     Expanded(
                                       child: MenuAnchor(
                                         style: MenuStyle(
@@ -145,7 +160,13 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           child,
                                         ) {
                                           return GestureDetector(
-                                            onTap: () => controllerMenu.open(),
+                                            onTap: () {
+                                              if (controllerMenu.isOpen) {
+                                                controllerMenu.close();
+                                              } else {
+                                                controllerMenu.open();
+                                              }
+                                            },
                                             child: Obx(() {
                                               return Container(
                                                 padding:
@@ -173,6 +194,12 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                             .selectedOrderFilter
                                                             .value,
                                                       ),
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            MySize.getHeight(
+                                                              12,
+                                                            ),
+                                                      ),
                                                     ),
                                                     const Icon(
                                                       Icons.keyboard_arrow_down,
@@ -195,6 +222,11 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                         ),
                                                 child: Text(
                                                   _translateOrderFilter(option),
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      12,
+                                                    ),
+                                                  ),
                                                 ),
                                               );
                                             }).toList(),
@@ -202,7 +234,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 12),
+                                SizedBox(height: MySize.getHeight(12)),
                                 ListView.builder(
                                   padding: EdgeInsets.zero,
                                   shrinkWrap: true,
@@ -279,7 +311,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                               TranslationKeys.reservation.tr,
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 18,
+                                fontSize: MySize.getHeight(18),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -298,7 +330,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       controller,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: MySize.getWidth(12)),
                                   Expanded(
                                     child: _buildSelectPersonDropdown(
                                       controller,
@@ -306,16 +338,16 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: MySize.getHeight(10)),
                               Text(
                                 TranslationKeys.selectTimeSlot.tr,
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: 16,
+                                  fontSize: MySize.getHeight(16),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: MySize.getHeight(10)),
                               Container(
                                 width: double.infinity,
                                 decoration: BoxDecoration(
@@ -342,17 +374,23 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                               border: Border.all(
                                                 color:
                                                     ColorConstants.grey9E9E9E,
+                                                width: 1,
                                               ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
-                                            child: Text(time),
+                                            child: Text(
+                                              time,
+                                              style: TextStyle(
+                                                fontSize: MySize.getHeight(14),
+                                              ),
+                                            ),
                                           );
                                         }).toList(),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: MySize.getHeight(10)),
                               Container(
                                 width: double.infinity,
                                 decoration: BoxDecoration(
@@ -371,7 +409,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           Icon(
                                             Icons.add_circle_outline_rounded,
                                           ),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: MySize.getWidth(8)),
                                           Text(
                                             TranslationKeys
                                                 .anySpecialRequest
@@ -384,7 +422,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: MySize.getHeight(8)),
                                       CupertinoTextField(
                                         maxLines: 2,
                                         placeholder:
@@ -398,18 +436,20 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                           border: Border.all(
                                             color: ColorConstants.grey9E9E9E,
+                                            width: 1,
                                           ),
                                         ),
                                         padding: const EdgeInsets.all(12),
                                         placeholderStyle: TextStyle(
                                           color: ColorConstants.grey9E9E9E,
+                                          fontSize: MySize.getHeight(14),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: MySize.getHeight(10)),
                               Container(
                                 width: double.infinity,
                                 decoration: BoxDecoration(
@@ -426,7 +466,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       Row(
                                         children: [
                                           Icon(Icons.person_2_rounded),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: MySize.getWidth(8)),
                                           Text(
                                             "${TranslationKeys.customerName.tr} *",
                                             style: TextStyle(
@@ -437,7 +477,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: MySize.getHeight(8)),
                                       CupertinoTextField(
                                         placeholder:
                                             TranslationKeys.enterName.tr,
@@ -448,18 +488,20 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                           border: Border.all(
                                             color: ColorConstants.grey9E9E9E,
+                                            width: 1,
                                           ),
                                         ),
                                         padding: const EdgeInsets.all(12),
                                         placeholderStyle: TextStyle(
                                           color: ColorConstants.grey9E9E9E,
+                                          fontSize: MySize.getHeight(14),
                                         ),
                                       ),
-                                      const SizedBox(height: 10),
+                                      SizedBox(height: MySize.getHeight(10)),
                                       Row(
                                         children: [
                                           Icon(Icons.phone_outlined),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: MySize.getWidth(8)),
                                           Text(
                                             "${TranslationKeys.customerPhone.tr} *",
                                             style: TextStyle(
@@ -470,7 +512,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: MySize.getHeight(8)),
                                       CupertinoTextField(
                                         placeholder:
                                             TranslationKeys.enterPhoneNumber.tr,
@@ -482,18 +524,20 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                           border: Border.all(
                                             color: ColorConstants.grey9E9E9E,
+                                            width: 1,
                                           ),
                                         ),
                                         padding: const EdgeInsets.all(12),
                                         placeholderStyle: TextStyle(
                                           color: ColorConstants.grey9E9E9E,
+                                          fontSize: MySize.getHeight(14),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                              SizedBox(height: MySize.getHeight(20)),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8.0,
@@ -518,6 +562,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                           ),
                                           border: Border.all(
                                             color: ColorConstants.grey9E9E9E,
+                                            width: 1,
                                           ),
                                         ),
                                         child: Text(
@@ -551,7 +596,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                              SizedBox(height: MySize.getHeight(20)),
                             ],
                           ),
                         ),
@@ -590,7 +635,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_translatePersonOption(controller.selectedPerson.value)),
+                  Text(
+                    _translatePersonOption(controller.selectedPerson.value),
+                    style: TextStyle(fontSize: MySize.getHeight(16)),
+                  ),
                   const Icon(Icons.keyboard_arrow_down),
                 ],
               ),
@@ -603,7 +651,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
               .map(
                 (option) => MenuItemButton(
                   onPressed: () => controller.selectPerson(option),
-                  child: Text(_translatePersonOption(option)),
+                  child: Text(
+                    _translatePersonOption(option),
+                    style: TextStyle(fontSize: MySize.getHeight(14)),
+                  ),
                 ),
               )
               .toList(),
@@ -644,14 +695,17 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border.all(color: ColorConstants.grey9E9E9E),
+            border: Border.all(color: ColorConstants.grey9E9E9E, width: 1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Icon(Icons.date_range_rounded),
-              Text(controller.formattedDateReservation),
+              Text(
+                controller.formattedDateReservation,
+                style: TextStyle(fontSize: MySize.getHeight(16)),
+              ),
             ],
           ),
         ),
@@ -667,11 +721,11 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       final item = controller.reservations[index];
 
       return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: MySize.getHeight(16)),
+        padding: EdgeInsets.all(MySize.getHeight(12)),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MySize.getHeight(12)),
           boxShadow: ColorConstants.getShadow2,
           border: Border.all(color: Colors.grey.shade300, width: 1.0),
         ),
@@ -681,117 +735,159 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${item['guests']} ${TranslationKeys.guests.tr}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.access_time,
-                            size: 16,
-                            color: Colors.red,
+                Row(
+                  children: [
+                    if (item['table'] != null || item['tableCode'] != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(8),
+                          vertical: MySize.getHeight(6),
+                        ),
+                        margin: EdgeInsets.only(right: MySize.getWidth(8)),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
+                        ),
+                        child: Text(
+                          item['table'] ?? item['tableCode'] ?? '',
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${item['guests']} ${TranslationKeys.guests.tr}',
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: MySize.getHeight(4)),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: MySize.getHeight(16),
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: MySize.getWidth(4)),
+                            Text(
                               item['time'],
-                              style: const TextStyle(
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(12),
                                 color: Colors.red,
                                 fontWeight: FontWeight.w600,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+                SizedBox(width: MySize.getWidth(8)),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(12),
+                    vertical: MySize.getHeight(4),
+                  ),
+                  decoration: BoxDecoration(
+                    color: controller.getStatusBgColor(item['status']),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                    border: Border.all(
+                      color: controller.getStatusBorderColor(item['status']),
+                      width: 1,
                     ),
-                    decoration: BoxDecoration(
-                      color: controller.getStatusBgColor(item['status']),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: controller.getStatusBorderColor(item['status']),
-                      ),
-                    ),
-                    child: Text(
-                      _translateStatus(item['status']).toUpperCase(),
-                      style: TextStyle(
-                        color: controller.getStatusColor(item['status']),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                  ),
+                  child: Text(
+                    _translateStatus(item['status']).toUpperCase(),
+                    style: TextStyle(
+                      color: controller.getStatusColor(item['status']),
+                      fontWeight: FontWeight.w600,
+                      fontSize: MySize.getHeight(12),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: MySize.getHeight(10)),
             Row(
               children: [
-                const Icon(Icons.note_alt_outlined, size: 20),
-                const SizedBox(width: 4),
+                Icon(Icons.note_alt_outlined, size: MySize.getHeight(16)),
+                SizedBox(width: MySize.getWidth(4)),
                 Expanded(
                   child: Text(
                     "${item['note']}",
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: MySize.getWidth(8)),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(12),
+                    vertical: MySize.getHeight(6),
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: ColorConstants.grey9E9E9E),
-                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: ColorConstants.grey9E9E9E,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.table_bar_outlined),
-                      SizedBox(width: 4),
-                      Text(TranslationKeys.assignTable.tr),
+                      Icon(
+                        Icons.table_bar_outlined,
+                        size: MySize.getHeight(18),
+                      ),
+                      SizedBox(width: MySize.getWidth(4)),
+                      Text(
+                        TranslationKeys.assignTable.tr,
+                        style: TextStyle(fontSize: MySize.getHeight(12)),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: MySize.getHeight(10)),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: MySize.getWidth(8),
+                vertical: MySize.getHeight(8),
+              ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 color: Colors.grey.shade100,
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 18),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(item['name'])),
-                  const Icon(Icons.call_outlined, size: 18),
-                  const SizedBox(width: 6),
-                  Text(item['phone']),
+                  Icon(Icons.person_outline, size: MySize.getHeight(18)),
+                  SizedBox(width: MySize.getWidth(6)),
+                  Expanded(
+                    child: Text(
+                      item['name'],
+                      style: TextStyle(fontSize: MySize.getHeight(12)),
+                    ),
+                  ),
+                  Icon(Icons.call_outlined, size: MySize.getHeight(18)),
+                  SizedBox(width: MySize.getWidth(6)),
+                  Text(
+                    item['phone'],
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: MySize.getHeight(12)),
             Row(
               children: [
                 MenuAnchor(
@@ -812,19 +908,30 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                             : menuController.open();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(16),
+                          vertical: MySize.getHeight(8),
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: ColorConstants.grey9E9E9E),
-                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: ColorConstants.grey9E9E9E,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Text(_translateStatus(item['status'])),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down),
+                            Text(
+                              _translateStatus(item['status']),
+                              style: TextStyle(fontSize: MySize.getHeight(12)),
+                            ),
+                            SizedBox(width: MySize.getWidth(4)),
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              size: MySize.getHeight(18),
+                            ),
                           ],
                         ),
                       ),
@@ -835,22 +942,28 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                         return MenuItemButton(
                           onPressed:
                               () => controller.updateStatus(index, status),
-                          child: Text(_translateStatus(status)),
+                          child: Text(
+                            _translateStatus(status),
+                            style: TextStyle(fontSize: MySize.getHeight(12)),
+                          ),
                         );
                       }).toList(),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(8),
+                    vertical: MySize.getHeight(8),
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: ColorConstants.grey9E9E9E),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                    border: Border.all(
+                      color: ColorConstants.grey9E9E9E,
+                      width: 1,
+                    ),
                   ),
-                  child: const Icon(Icons.edit_outlined),
+                  child: Icon(Icons.edit_outlined, size: MySize.getHeight(20)),
                 ),
               ],
             ),

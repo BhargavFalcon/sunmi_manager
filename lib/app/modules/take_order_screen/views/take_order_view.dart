@@ -914,7 +914,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
             Divider(
               color: Colors.grey.shade300,
               height: MySize.getHeight(15),
-              thickness: MySize.getHeight(1),
+              thickness: 1,
             ),
           ],
         ),

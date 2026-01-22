@@ -112,15 +112,15 @@ class ReservationScreenController extends GetxController {
   String getDropdownDisplayText() {
     switch (selectedMonth.value) {
       case 'Today':
-        return '${TranslationKeys.today.tr}: ${formatDate(DateTime.now())}';
+        return TranslationKeys.today.tr;
       case 'Yesterday':
-        return '${TranslationKeys.yesterday.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 1)))}';
+        return TranslationKeys.yesterday.tr;
       case 'Last 7 Days':
-        return "${TranslationKeys.last7Days.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+        return TranslationKeys.last7Days.tr;
       case 'Last 30 Days':
-        return "${TranslationKeys.last30Days.tr}: ${formatDate(DateTime.now().subtract(const Duration(days: 29)))} - ${formatDate(DateTime.now())}";
+        return TranslationKeys.last30Days.tr;
       case 'Custom Date':
-        return "${TranslationKeys.customDate.tr}: ${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
       default:
         return selectedMonth.value;
     }
@@ -167,6 +167,7 @@ class ReservationScreenController extends GetxController {
           'name': 'Karen Page',
           'phone': '+91 45620 45620',
           'status': 'Confirmed',
+          'table': 'T5',
         },
         {
           'guests': 2,
@@ -289,116 +290,187 @@ class ReservationScreenController extends GetxController {
     final now = DateTime.now();
     final dateRange = now.subtract(const Duration(days: 365 * 5));
     final primaryColor = ColorConstants.primaryColor;
-    final textStyle = TextStyle(color: Colors.black87, fontWeight: FontWeight.bold);
+    final textStyle = TextStyle(
+      color: Colors.black87,
+      fontWeight: FontWeight.bold,
+    );
 
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: 400,
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-          ),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Theme(
-                    data: ThemeData(
-                      colorScheme: ColorScheme.light(primary: Colors.black87, onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black87),
-                      iconTheme: IconThemeData(color: Colors.black87),
-                    ),
-                    child: SizedBox(
-                      height: 300,
-                      child: Localizations.override(
-                        context: context,
-                        locale: Get.locale ?? const Locale('en'),
-                        child: SfDateRangePicker(
-                          backgroundColor: Colors.white,
-                          view: DateRangePickerView.month,
-                          selectionMode: DateRangePickerSelectionMode.range,
-                          initialSelectedRange: selectedStartDate != null && selectedEndDate != null
-                              ? PickerDateRange(selectedStartDate, selectedEndDate)
-                              : null,
-                          minDate: dateRange,
-                          maxDate: now.add(const Duration(days: 365 * 5)),
-                          rangeSelectionColor: primaryColor.withValues(alpha: 0.3),
-                          startRangeSelectionColor: primaryColor,
-                          endRangeSelectionColor: primaryColor,
-                          selectionColor: primaryColor,
-                          todayHighlightColor: primaryColor,
-                          headerStyle: DateRangePickerHeaderStyle(textStyle: textStyle.copyWith(fontSize: 16), backgroundColor: Colors.white),
-                          monthCellStyle: DateRangePickerMonthCellStyle(textStyle: TextStyle(color: Colors.black87), todayTextStyle: textStyle.copyWith(color: primaryColor)),
-                          yearCellStyle: DateRangePickerYearCellStyle(textStyle: TextStyle(color: Colors.black87), todayTextStyle: textStyle.copyWith(color: primaryColor)),
-                          monthViewSettings: DateRangePickerMonthViewSettings(firstDayOfWeek: 1, dayFormat: 'EEE', showTrailingAndLeadingDates: true),
-                          onSelectionChanged: (args) {
-                            if (args.value is PickerDateRange) {
-                              final range = args.value as PickerDateRange;
-                              selectedStartDate = range.startDate;
-                              selectedEndDate = range.endDate;
-                            }
-                          },
+      builder:
+          (dialogContext) => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: 400,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Theme(
+                        data: ThemeData(
+                          colorScheme: ColorScheme.light(
+                            primary: Colors.black87,
+                            onPrimary: Colors.white,
+                            surface: Colors.white,
+                            onSurface: Colors.black87,
+                          ),
+                          iconTheme: IconThemeData(color: Colors.black87),
+                        ),
+                        child: SizedBox(
+                          height: 300,
+                          child: Localizations.override(
+                            context: context,
+                            locale: Get.locale ?? const Locale('en'),
+                            child: SfDateRangePicker(
+                              backgroundColor: Colors.white,
+                              view: DateRangePickerView.month,
+                              selectionMode: DateRangePickerSelectionMode.range,
+                              initialSelectedRange:
+                                  selectedStartDate != null &&
+                                          selectedEndDate != null
+                                      ? PickerDateRange(
+                                        selectedStartDate,
+                                        selectedEndDate,
+                                      )
+                                      : null,
+                              minDate: dateRange,
+                              maxDate: now.add(const Duration(days: 365 * 5)),
+                              rangeSelectionColor: primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              startRangeSelectionColor: primaryColor,
+                              endRangeSelectionColor: primaryColor,
+                              selectionColor: primaryColor,
+                              todayHighlightColor: primaryColor,
+                              headerStyle: DateRangePickerHeaderStyle(
+                                textStyle: textStyle.copyWith(fontSize: 16),
+                                backgroundColor: Colors.white,
+                              ),
+                              monthCellStyle: DateRangePickerMonthCellStyle(
+                                textStyle: TextStyle(color: Colors.black87),
+                                todayTextStyle: textStyle.copyWith(
+                                  color: primaryColor,
+                                ),
+                              ),
+                              yearCellStyle: DateRangePickerYearCellStyle(
+                                textStyle: TextStyle(color: Colors.black87),
+                                todayTextStyle: textStyle.copyWith(
+                                  color: primaryColor,
+                                ),
+                              ),
+                              monthViewSettings:
+                                  DateRangePickerMonthViewSettings(
+                                    firstDayOfWeek: 1,
+                                    dayFormat: 'EEE',
+                                    showTrailingAndLeadingDates: true,
+                                  ),
+                              onSelectionChanged: (args) {
+                                if (args.value is PickerDateRange) {
+                                  final range = args.value as PickerDateRange;
+                                  selectedStartDate = range.startDate;
+                                  selectedEndDate = range.endDate;
+                                }
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        side: BorderSide(color: Colors.grey.shade400),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
                       ),
-                      child: Text(TranslationKeys.cancel.tr, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (selectedStartDate != null && selectedEndDate != null) {
-                          startDate.value = selectedStartDate!;
-                          endDate.value = selectedEndDate!;
-                          selectedMonth.value = 'Custom Date';
-                          Navigator.of(dialogContext).pop();
-                        } else {
-                          Navigator.of(dialogContext).pop();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        elevation: 0,
-                      ),
-                      child: Text(TranslationKeys.apply.tr, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            side: BorderSide(color: Colors.grey.shade400),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            TranslationKeys.cancel.tr,
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (selectedStartDate != null &&
+                                selectedEndDate != null) {
+                              startDate.value = selectedStartDate!;
+                              endDate.value = selectedEndDate!;
+                              selectedMonth.value = 'Custom Date';
+                              Navigator.of(dialogContext).pop();
+                            } else {
+                              Navigator.of(dialogContext).pop();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            TranslationKeys.apply.tr,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
