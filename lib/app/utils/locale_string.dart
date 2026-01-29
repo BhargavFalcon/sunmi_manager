@@ -191,10 +191,15 @@ class LocaleString extends Translations {
       // ========== TABLE SCREEN ==========
       'available': 'Available',
       'running': 'Running',
+      'table': 'Table',
       'availableTables': 'Available Tables',
       'noTablesAvailable': 'No tables available',
       'unnamedArea': 'Unnamed Area',
       'noAvailableTables': 'No available tables',
+      'noTableSelectedYet': 'No table selected yet.',
+      'selectingTableOptional':
+          'Selecting a table is optional, skip if you want to assign it later.',
+      'remove': 'Remove',
       'assignTable': 'Assign Table',
 
       // ========== RESERVATION SCREEN ==========
@@ -256,7 +261,8 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu synced successfully',
       'failedToSyncMenu': 'Failed to sync menu',
       'sync': 'Sync',
-      'printOnlyAvailableOnAndroid': 'Print feature is only available on Android devices',
+      'printOnlyAvailableOnAndroid':
+          'Print feature is only available on Android devices',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth Disabled',
@@ -506,10 +512,15 @@ class LocaleString extends Translations {
       // ========== TABLE SCREEN ==========
       'available': 'Tilgængelig',
       'running': 'Kørende',
+      'table': 'Bord',
       'availableTables': 'Tilgængelige borde',
       'noTablesAvailable': 'Ingen borde tilgængelige',
       'unnamedArea': 'Unavngivet område',
       'noAvailableTables': 'Ingen tilgængelige borde',
+      'noTableSelectedYet': 'Intet bord valgt endnu.',
+      'selectingTableOptional':
+          'Valg af bord er valgfrit, spring over, hvis du vil tildele det senere.',
+      'remove': 'Fjern',
       'assignTable': 'Tildel bord',
 
       // ========== RESERVATION SCREEN ==========
@@ -551,7 +562,8 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu synkroniseret',
       'failedToSyncMenu': 'Kunne ikke synkronisere menu',
       'sync': 'Synkroniser',
-      'printOnlyAvailableOnAndroid': 'Printfunktion er kun tilgængelig på Android-enheder',
+      'printOnlyAvailableOnAndroid':
+          'Printfunktion er kun tilgængelig på Android-enheder',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth deaktiveret',
@@ -805,10 +817,15 @@ class LocaleString extends Translations {
       // ========== TABLE SCREEN ==========
       'available': 'Verfügbar',
       'running': 'Laufend',
+      'table': 'Tisch',
       'availableTables': 'Verfügbare Tische',
       'noTablesAvailable': 'Keine Tische verfügbar',
       'unnamedArea': 'Unbenannter Bereich',
       'noAvailableTables': 'Keine verfügbaren Tische',
+      'noTableSelectedYet': 'Noch kein Tisch ausgewählt.',
+      'selectingTableOptional':
+          'Die Auswahl eines Tisches ist optional, überspringen Sie es, wenn Sie es später zuweisen möchten.',
+      'remove': 'Entfernen',
       'assignTable': 'Tisch zuweisen',
 
       // ========== RESERVATION SCREEN ==========
@@ -851,7 +868,8 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menü erfolgreich synchronisiert',
       'failedToSyncMenu': 'Menü konnte nicht synchronisiert werden',
       'sync': 'Synchronisieren',
-      'printOnlyAvailableOnAndroid': 'Druckfunktion ist nur auf Android-Geräten verfügbar',
+      'printOnlyAvailableOnAndroid':
+          'Druckfunktion ist nur auf Android-Geräten verfügbar',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth deaktiviert',
@@ -1104,10 +1122,15 @@ class LocaleString extends Translations {
       // ========== TABLE SCREEN ==========
       'available': 'Beschikbaar',
       'running': 'Lopend',
+      'table': 'Tafel',
       'availableTables': 'Beschikbare tafels',
       'noTablesAvailable': 'Geen tafels beschikbaar',
       'unnamedArea': 'Naamloos gebied',
       'noAvailableTables': 'Geen beschikbare tafels',
+      'noTableSelectedYet': 'Nog geen tafel geselecteerd.',
+      'selectingTableOptional':
+          'Het selecteren van een tafel is optioneel, sla over als u dit later wilt toewijzen.',
+      'remove': 'Verwijderen',
       'assignTable': 'Tafel toewijzen',
 
       // ========== RESERVATION SCREEN ==========
@@ -1148,7 +1171,8 @@ class LocaleString extends Translations {
       'menuSyncedSuccessfully': 'Menu succesvol gesynchroniseerd',
       'failedToSyncMenu': 'Menu kon niet worden gesynchroniseerd',
       'sync': 'Synchroniseren',
-      'printOnlyAvailableOnAndroid': 'Printfunctie is alleen beschikbaar op Android-apparaten',
+      'printOnlyAvailableOnAndroid':
+          'Printfunctie is alleen beschikbaar op Android-apparaten',
 
       // ========== PRINTER SCREEN ==========
       'bluetoothDisabled': 'Bluetooth uitgeschakeld',

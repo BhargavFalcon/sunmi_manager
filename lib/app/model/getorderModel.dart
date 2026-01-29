@@ -319,6 +319,7 @@ class Order {
   String? cancelReasonText;
   String? createdAt;
   String? updatedAt;
+  String? placedVia;
 
   Order({
     this.uuid,
@@ -355,6 +356,7 @@ class Order {
     this.cancelReasonText,
     this.createdAt,
     this.updatedAt,
+    this.placedVia,
   });
 
   Order.fromJson(Map<String, dynamic> json)
@@ -393,7 +395,8 @@ class Order {
       cancelReasonId = _toInt(json['cancel_reason_id']),
       cancelReasonText = json['cancel_reason_text'],
       createdAt = json['created_at'],
-      updatedAt = json['updated_at'];
+      updatedAt = json['updated_at'],
+      placedVia = json['placed_via'];
 
   Map<String, dynamic> toJson() => {
     'uuid': uuid,
@@ -430,6 +433,7 @@ class Order {
     'cancel_reason_text': cancelReasonText,
     'created_at': createdAt,
     'updated_at': updatedAt,
+    'placed_via': placedVia,
   };
 }
 

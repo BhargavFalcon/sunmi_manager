@@ -20,6 +20,33 @@ import '../../../utils/date_time_formatter.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 
+// Static helper functions for placed_via badge colors and text
+Color _getPlacedViaColorStatic(String placedVia) {
+  switch (placedVia.toLowerCase()) {
+    case 'ios':
+      return const Color(0xFF4A4A4A); // Charcoal/dark grey
+    case 'android':
+      return ColorConstants.statusPaid; // Green like paid
+    case 'pos':
+      return ColorConstants.primaryColor; // Dinemetrics pink
+    case 'qr':
+      return Colors.orange; // Yellow/Orange like kitchen
+    case 'shop':
+      return ColorConstants.statusBilled; // Blue like billed
+    default:
+      return Colors.grey;
+  }
+}
+
+String _formatPlacedViaTextStatic(String placedVia) {
+  switch (placedVia.toLowerCase()) {
+    case 'ios':
+      return 'iOS'; // Proper iOS formatting
+    default:
+      return placedVia.toUpperCase();
+  }
+}
+
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
 
@@ -985,6 +1012,79 @@ class OrderScreenView extends GetView<OrderScreenController> {
             ],
           ),
           SizedBox(height: MySize.getHeight(8)),
+          // Coupon and Placed Via badges
+          if ((orderDetails?.couponCode != null &&
+                  orderDetails!.couponCode!.isNotEmpty) ||
+              (orderDetails?.placedVia != null &&
+                  orderDetails!.placedVia!.isNotEmpty))
+            Padding(
+              padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
+              child: Row(
+                children: [
+                  if (orderDetails?.couponCode != null &&
+                      orderDetails!.couponCode!.isNotEmpty)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade100,
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(6),
+                        ),
+                        border: Border.all(
+                          color: Colors.purple.shade300,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        '${TranslationKeys.coupon.tr.toUpperCase()}: ${orderDetails!.couponCode!.toUpperCase()}',
+                        style: TextStyle(
+                          color: Colors.purple.shade700,
+                          fontSize: MySize.getHeight(10),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  if (orderDetails?.couponCode != null &&
+                      orderDetails!.couponCode!.isNotEmpty &&
+                      orderDetails.placedVia != null &&
+                      orderDetails.placedVia!.isNotEmpty)
+                    SizedBox(width: MySize.getWidth(8)),
+                  if (orderDetails?.placedVia != null &&
+                      orderDetails!.placedVia!.isNotEmpty)
+                    Builder(
+                      builder: (context) {
+                        final placedViaColor = _getPlacedViaColorStatic(
+                          orderDetails.placedVia!,
+                        );
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: placedViaColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(6),
+                            ),
+                            border: Border.all(
+                              color: placedViaColor,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            _formatPlacedViaTextStatic(orderDetails.placedVia!),
+                            style: TextStyle(
+                              color: placedViaColor,
+                              fontSize: MySize.getHeight(10),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
           _buildOrderTimeInfo(orderDetails),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails?.customer != null &&
@@ -1782,9 +1882,8 @@ class OrderCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF3F3F3),
         borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-        boxShadow: ColorConstants.getShadow2,
         border: Border.all(color: Colors.grey.shade300, width: 1.5),
       ),
       child: Padding(
@@ -1801,23 +1900,20 @@ class OrderCard extends StatelessWidget {
                     vertical: MySize.getHeight(6),
                   ),
                   decoration: BoxDecoration(
-                    color: ColorConstants.primaryColor.withValues(alpha: 0.15),
-                    border: Border.all(
-                      color: ColorConstants.primaryColor.withValues(alpha: 0.3),
-                    ),
+                    color: const Color(0xFFE8E8E8),
+                    border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(MySize.getHeight(6)),
                   ),
                   child:
                       order.orderType?.toLowerCase() == 'pickup'
                           ? Image.asset(
-                            ImageConstant.pickup_all,
+                            ImageConstant.pickup,
                             width: MySize.getHeight(16),
                             height: MySize.getHeight(16),
                           )
                           : order.orderType?.toLowerCase() == 'delivery'
                           ? Image.asset(
-                            ImageConstant.delivery_all,
-                            color: ColorConstants.primaryColor,
+                            ImageConstant.delivery,
                             width: MySize.getHeight(16),
                             height: MySize.getHeight(16),
                           )
@@ -1893,58 +1989,78 @@ class OrderCard extends StatelessWidget {
                     fontSize: MySize.getHeight(14),
                   ),
                 ),
-                SizedBox(width: MySize.getWidth(10)),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (order.coupon != null && order.coupon!.code != null)
-                      Container(
+                if (waiterName.isNotEmpty) SizedBox(width: MySize.getWidth(10)),
+                if (waiterName.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        ImageConstant.waiter,
+                        width: MySize.getHeight(18),
+                        height: MySize.getHeight(18),
+                      ),
+                      SizedBox(width: MySize.getWidth(6)),
+                      Text(
+                        waiterName,
+                        style: TextStyle(fontSize: MySize.getHeight(11)),
+                      ),
+                    ],
+                  ),
+                const Spacer(),
+                if (order.coupon != null && order.coupon!.code != null)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade100,
+                      borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+                      border: Border.all(
+                        color: Colors.purple.shade300,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
+                      style: TextStyle(
+                        color: Colors.purple.shade700,
+                        fontSize: MySize.getHeight(10),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                if (order.coupon != null &&
+                    order.coupon!.code != null &&
+                    order.placedVia != null &&
+                    order.placedVia!.isNotEmpty)
+                  SizedBox(width: MySize.getWidth(6)),
+                if (order.placedVia != null && order.placedVia!.isNotEmpty)
+                  Builder(
+                    builder: (context) {
+                      final placedViaColor = _getPlacedViaColorStatic(
+                        order.placedVia!,
+                      );
+                      return Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.purple.shade100,
+                          color: placedViaColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(
                             MySize.getHeight(6),
                           ),
-                          border: Border.all(
-                            color: Colors.purple.shade300,
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: placedViaColor, width: 1.5),
                         ),
                         child: Text(
-                          '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
+                          _formatPlacedViaTextStatic(order.placedVia!),
                           style: TextStyle(
-                            color: Colors.purple.shade700,
+                            color: placedViaColor,
                             fontSize: MySize.getHeight(10),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    if (order.coupon != null &&
-                        order.coupon!.code != null &&
-                        waiterName.isNotEmpty)
-                      const Spacer(),
-                    if (waiterName.isNotEmpty)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            ImageConstant.order,
-                            width: MySize.getHeight(18),
-                            height: MySize.getHeight(18),
-                          ),
-                          SizedBox(width: MySize.getWidth(6)),
-                          Text(
-                            waiterName,
-                            style: TextStyle(fontSize: MySize.getHeight(11)),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
+                      );
+                    },
+                  ),
               ],
             ),
           ],
@@ -1990,6 +2106,34 @@ class OrderCard extends StatelessWidget {
         return Colors.orange;
       default:
         return Colors.grey;
+    }
+  }
+
+  // Helper method to get color for placed_via badge
+  Color _getPlacedViaColor(String placedVia) {
+    switch (placedVia.toLowerCase()) {
+      case 'ios':
+        return const Color(0xFF4A4A4A); // Charcoal/dark grey
+      case 'android':
+        return ColorConstants.statusPaid; // Green like paid
+      case 'pos':
+        return ColorConstants.primaryColor; // Dinemetrics pink
+      case 'qr':
+        return Colors.orange; // Yellow/Orange like kitchen
+      case 'shop':
+        return ColorConstants.statusBilled; // Blue like billed
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Helper method to format placed_via text
+  String _formatPlacedViaText(String placedVia) {
+    switch (placedVia.toLowerCase()) {
+      case 'ios':
+        return 'iOS'; // Proper iOS formatting
+      default:
+        return placedVia.toUpperCase();
     }
   }
 

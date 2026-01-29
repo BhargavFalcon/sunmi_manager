@@ -67,6 +67,7 @@ class Orders {
   String? formattedTotal;
   int? currencyId;
   Coupon? coupon;
+  String? placedVia;
 
   Orders({
     this.id,
@@ -85,6 +86,7 @@ class Orders {
     this.formattedTotal,
     this.currencyId,
     this.coupon,
+    this.placedVia,
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
@@ -98,14 +100,33 @@ class Orders {
     formattedDateTime = json['formatted_date_time'];
     customer =
         json['customer'] != null
-            ? new Customer.fromJson(json['customer'] is Map ? json['customer'] as Map<String, dynamic> : (json['customer'] is List && json['customer'].isNotEmpty ? json['customer'][0] as Map<String, dynamic> : {}))
+            ? new Customer.fromJson(
+              json['customer'] is Map
+                  ? json['customer'] as Map<String, dynamic>
+                  : (json['customer'] is List && json['customer'].isNotEmpty
+                      ? json['customer'][0] as Map<String, dynamic>
+                      : {}),
+            )
             : null;
-    table = json['table'] != null 
-        ? new Table.fromJson(json['table'] is Map ? json['table'] as Map<String, dynamic> : (json['table'] is List && json['table'].isNotEmpty ? json['table'][0] as Map<String, dynamic> : {}))
-        : null;
+    table =
+        json['table'] != null
+            ? new Table.fromJson(
+              json['table'] is Map
+                  ? json['table'] as Map<String, dynamic>
+                  : (json['table'] is List && json['table'].isNotEmpty
+                      ? json['table'][0] as Map<String, dynamic>
+                      : {}),
+            )
+            : null;
     waiter =
         json['waiter'] != null
-            ? new Customer.fromJson(json['waiter'] is Map ? json['waiter'] as Map<String, dynamic> : (json['waiter'] is List && json['waiter'].isNotEmpty ? json['waiter'][0] as Map<String, dynamic> : {}))
+            ? new Customer.fromJson(
+              json['waiter'] is Map
+                  ? json['waiter'] as Map<String, dynamic>
+                  : (json['waiter'] is List && json['waiter'].isNotEmpty
+                      ? json['waiter'][0] as Map<String, dynamic>
+                      : {}),
+            )
             : null;
     itemsCount = json['items_count'];
     total = json['total']?.toString();
@@ -113,8 +134,15 @@ class Orders {
     currencyId = json['currency_id'];
     coupon =
         json['coupon'] != null
-            ? new Coupon.fromJson(json['coupon'] is Map ? json['coupon'] as Map<String, dynamic> : (json['coupon'] is List && json['coupon'].isNotEmpty ? json['coupon'][0] as Map<String, dynamic> : {}))
+            ? new Coupon.fromJson(
+              json['coupon'] is Map
+                  ? json['coupon'] as Map<String, dynamic>
+                  : (json['coupon'] is List && json['coupon'].isNotEmpty
+                      ? json['coupon'][0] as Map<String, dynamic>
+                      : {}),
+            )
             : null;
+    placedVia = json['placed_via'];
   }
 
   Map<String, dynamic> toJson() {
@@ -143,6 +171,7 @@ class Orders {
     if (this.coupon != null) {
       data['coupon'] = this.coupon!.toJson();
     }
+    data['placed_via'] = this.placedVia;
     return data;
   }
 }

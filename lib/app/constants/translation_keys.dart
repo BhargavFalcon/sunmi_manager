@@ -84,7 +84,8 @@ class TranslationKeys {
   static const String menuSyncedSuccessfully = 'menuSyncedSuccessfully';
   static const String failedToSyncMenu = 'failedToSyncMenu';
   static const String sync = 'sync';
-  static const String printOnlyAvailableOnAndroid = 'printOnlyAvailableOnAndroid';
+  static const String printOnlyAvailableOnAndroid =
+      'printOnlyAvailableOnAndroid';
 
   // Cart Screen
   static const String cart = 'cart';
@@ -242,10 +243,14 @@ class TranslationKeys {
   static const String searchMenuItems = 'searchMenuItems';
 
   // Tables
+  static const String table = 'table';
   static const String availableTables = 'availableTables';
   static const String noTablesAvailable = 'noTablesAvailable';
   static const String unnamedArea = 'unnamedArea';
   static const String noAvailableTables = 'noAvailableTables';
+  static const String noTableSelectedYet = 'noTableSelectedYet';
+  static const String selectingTableOptional = 'selectingTableOptional';
+  static const String remove = 'remove';
   static const String percent = 'percent';
   static const String assignTable = 'assignTable';
 

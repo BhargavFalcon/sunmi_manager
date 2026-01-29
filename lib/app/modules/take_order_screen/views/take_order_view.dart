@@ -346,19 +346,15 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               ),
                               SizedBox(width: MySize.getWidth(6)),
                               _buildActionButton(
-                                icon: Icons.person,
-                                label: TranslationKeys.customer.tr,
-                                onTap: () {
-                                  // TODO: Implement Customer Info functionality
-                                },
+                                icon: Icons.access_time,
+                                label: TranslationKeys.preOrder.tr,
+                                onTap: () {},
                               ),
                               SizedBox(width: MySize.getWidth(6)),
                               _buildActionButton(
-                                icon: Icons.access_time,
-                                label: TranslationKeys.preOrder.tr,
-                                onTap: () {
-                                  // TODO: Implement Pre-Order functionality
-                                },
+                                icon: Icons.person,
+                                label: TranslationKeys.customer.tr,
+                                onTap: () {},
                               ),
                               SizedBox(width: MySize.getWidth(8)),
                               Expanded(
@@ -474,19 +470,15 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               ),
                               SizedBox(width: MySize.getWidth(4)),
                               _buildActionButton(
-                                icon: Icons.person,
-                                label: TranslationKeys.customer.tr,
-                                onTap: () {
-                                  // TODO: Implement Customer Info functionality
-                                },
+                                icon: Icons.access_time,
+                                label: TranslationKeys.preOrder.tr,
+                                onTap: () {},
                               ),
                               SizedBox(width: MySize.getWidth(6)),
                               _buildActionButton(
-                                icon: Icons.access_time,
-                                label: TranslationKeys.preOrder.tr,
-                                onTap: () {
-                                  // TODO: Implement Pre-Order functionality
-                                },
+                                icon: Icons.person,
+                                label: TranslationKeys.customer.tr,
+                                onTap: () {},
                               ),
                             ],
                           ),
@@ -760,38 +752,52 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     TakeOrderController controller,
     List<Map<String, dynamic>> items,
   ) {
-    List<Widget> rows = [];
+    if (items.isEmpty) return [];
+
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth >= 600;
-    final isLandscape = screenWidth > screenHeight;
+    final isLandscape = screenWidth > MediaQuery.of(context).size.height;
+    final itemsPerRow = isTablet ? (isLandscape ? 3 : 2) : 1;
 
-    int itemsPerRow = 1; // Default for mobile
-    if (isTablet) {
-      itemsPerRow = isLandscape ? 3 : 2; // Landscape: 3, Portrait: 2
-    }
+    // Calculate item width
+    final padding = MySize.getWidth(8) * 2;
+    final spacing = MySize.getWidth(4);
+    final itemWidth =
+        ((screenWidth - padding - (spacing * (itemsPerRow - 1))) /
+            itemsPerRow) -
+        0.1;
 
+    final rows = <Widget>[];
     for (int i = 0; i < items.length; i += itemsPerRow) {
-      List<Widget> rowItems = [];
+      final rowItems = <Widget>[];
       for (int j = 0; j < itemsPerRow && i + j < items.length; j++) {
+        if (j > 0) rowItems.add(SizedBox(width: spacing));
         rowItems.add(
-          Expanded(
+          SizedBox(
+            width: itemWidth,
             child: Padding(
-              padding: EdgeInsets.all(MySize.getWidth(2)),
+              padding: EdgeInsets.symmetric(
+                horizontal: MySize.getWidth(2),
+                vertical: MySize.getHeight(2),
+              ),
               child: _buildItemCell(controller, items[i + j]),
             ),
           ),
         );
       }
-
       rows.add(
         Padding(
-          padding: EdgeInsets.all(MySize.getHeight(2)),
-          child: Row(children: rowItems),
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(8),
+            vertical: MySize.getHeight(2),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rowItems,
+          ),
         ),
       );
     }
-
     return rows;
   }
 

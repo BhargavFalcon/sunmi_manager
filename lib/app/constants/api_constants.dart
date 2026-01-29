@@ -1,4 +1,5 @@
 class ArgumentConstant {
+  // static const baseUrl = "https://partner.dinemetrics.app/";
   static const baseUrl = "https://dev.dinemetrics.app/";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";

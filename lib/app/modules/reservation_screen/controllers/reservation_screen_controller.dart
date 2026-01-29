@@ -7,6 +7,8 @@ import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../constants/api_constants.dart';
 import '../../../model/MobileAppModulesModel.dart';
+import '../../../model/tableModel.dart' as tableModel;
+import '../../../data/NetworkClient.dart';
 import '../../../../main.dart';
 
 class ReservationScreenController extends GetxController {
@@ -18,6 +20,7 @@ class ReservationScreenController extends GetxController {
 
   RxString selectedPerson = '1 Person'.obs;
   RxString selectedTimeSlot = ''.obs;
+  RxString selectedReservationStatus = 'Pending'.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   Rx<DateTime> selectedDateReservation = DateTime.now().obs;
   RxString selectedMonth = 'Today'.obs;
@@ -30,6 +33,16 @@ class ReservationScreenController extends GetxController {
   RxBool isPhoneValid = false.obs;
   RxString nameError = ''.obs;
   RxString phoneError = ''.obs;
+
+  // Country Code Selection
+  RxString selectedCountryCode = '+49'.obs;
+  RxString selectedCountryFlag = '🇩🇪'.obs;
+
+  // Table Selection
+  final networkClient = NetworkClient();
+  final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
+  final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
+  final RxBool isTableExpanded = false.obs;
 
   final List<String> dateOptions = [
     'Today',
@@ -126,11 +139,15 @@ class ReservationScreenController extends GetxController {
     }
   }
 
+  void selectReservationStatus(String status) {
+    selectedReservationStatus.value = status;
+  }
+
   String get formattedDate =>
       DateFormat('dd MMM yyyy').format(selectedDate.value);
 
   String get formattedDateReservation =>
-      DateFormat('EEE MMMM dd yyyy').format(selectedDateReservation.value);
+      DateFormat('EEE MMM dd yyyy').format(selectedDateReservation.value);
 
   String _monthName(int month) {
     const months = [
@@ -207,6 +224,7 @@ class ReservationScreenController extends GetxController {
       validatePhone(customerPhoneController.text);
     });
     _updateDatesByOption('Today');
+    fetchTablesAreas();
   }
 
   @override
@@ -285,14 +303,18 @@ class ReservationScreenController extends GetxController {
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
-    DateTime? selectedStartDate = startDate.value;
-    DateTime? selectedEndDate = endDate.value;
+    MySize().init(context);
     final now = DateTime.now();
-    final dateRange = now.subtract(const Duration(days: 365 * 5));
+    final today = DateTime(now.year, now.month, now.day);
+    DateTime? selectedStartDate =
+        startDate.value.isBefore(today) ? today : startDate.value;
+    DateTime? selectedEndDate =
+        endDate.value.isBefore(today) ? today : endDate.value;
     final primaryColor = ColorConstants.primaryColor;
     final textStyle = TextStyle(
       color: Colors.black87,
       fontWeight: FontWeight.bold,
+      fontSize: MySize.getHeight(16),
     );
 
     showDialog(
@@ -356,7 +378,7 @@ class ReservationScreenController extends GetxController {
                                         selectedEndDate,
                                       )
                                       : null,
-                              minDate: dateRange,
+                              minDate: today,
                               maxDate: now.add(const Duration(days: 365 * 5)),
                               rangeSelectionColor: primaryColor.withValues(
                                 alpha: 0.3,
@@ -366,19 +388,29 @@ class ReservationScreenController extends GetxController {
                               selectionColor: primaryColor,
                               todayHighlightColor: primaryColor,
                               headerStyle: DateRangePickerHeaderStyle(
-                                textStyle: textStyle.copyWith(fontSize: 16),
+                                textStyle: textStyle.copyWith(
+                                  fontSize: MySize.getHeight(16),
+                                ),
                                 backgroundColor: Colors.white,
                               ),
                               monthCellStyle: DateRangePickerMonthCellStyle(
-                                textStyle: TextStyle(color: Colors.black87),
+                                textStyle: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: MySize.getHeight(14),
+                                ),
                                 todayTextStyle: textStyle.copyWith(
                                   color: primaryColor,
+                                  fontSize: MySize.getHeight(14),
                                 ),
                               ),
                               yearCellStyle: DateRangePickerYearCellStyle(
-                                textStyle: TextStyle(color: Colors.black87),
+                                textStyle: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: MySize.getHeight(14),
+                                ),
                                 todayTextStyle: textStyle.copyWith(
                                   color: primaryColor,
+                                  fontSize: MySize.getHeight(14),
                                 ),
                               ),
                               monthViewSettings:
@@ -390,8 +422,17 @@ class ReservationScreenController extends GetxController {
                               onSelectionChanged: (args) {
                                 if (args.value is PickerDateRange) {
                                   final range = args.value as PickerDateRange;
-                                  selectedStartDate = range.startDate;
-                                  selectedEndDate = range.endDate;
+                                  // Ensure dates are not in the past
+                                  selectedStartDate =
+                                      range.startDate != null &&
+                                              range.startDate!.isBefore(today)
+                                          ? today
+                                          : range.startDate;
+                                  selectedEndDate =
+                                      range.endDate != null &&
+                                              range.endDate!.isBefore(today)
+                                          ? today
+                                          : range.endDate;
                                 }
                               },
                             ),
@@ -429,6 +470,7 @@ class ReservationScreenController extends GetxController {
                             style: TextStyle(
                               color: Colors.grey.shade700,
                               fontWeight: FontWeight.w600,
+                              fontSize: MySize.getHeight(14),
                             ),
                           ),
                         ),
@@ -437,8 +479,17 @@ class ReservationScreenController extends GetxController {
                           onPressed: () {
                             if (selectedStartDate != null &&
                                 selectedEndDate != null) {
-                              startDate.value = selectedStartDate!;
-                              endDate.value = selectedEndDate!;
+                              // Ensure dates are not in the past
+                              final start =
+                                  selectedStartDate!.isBefore(today)
+                                      ? today
+                                      : selectedStartDate!;
+                              final end =
+                                  selectedEndDate!.isBefore(today)
+                                      ? today
+                                      : selectedEndDate!;
+                              startDate.value = start;
+                              endDate.value = end;
                               selectedMonth.value = 'Custom Date';
                               Navigator.of(dialogContext).pop();
                             } else {
@@ -461,6 +512,7 @@ class ReservationScreenController extends GetxController {
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
+                              fontSize: MySize.getHeight(14),
                             ),
                           ),
                         ),
@@ -539,10 +591,30 @@ class ReservationScreenController extends GetxController {
       isPhoneValid.value &&
       selectedTimeSlot.value.isNotEmpty;
 
+  Future<void> fetchTablesAreas() async {
+    tableAreasList.clear();
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.tablesAreasEndpoint,
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map<String, dynamic>) {
+        final tableModelData = tableModel.TableModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        if (tableModelData.data != null) {
+          tableAreasList.assignAll(tableModelData.data!);
+        }
+      }
+    } catch (e) {}
+  }
+
   void clearForm() {
     customerNameController.clear();
     customerPhoneController.clear();
     specialRequestController.clear();
+    selectedCountryCode.value = '+49';
+    selectedCountryFlag.value = '🇩🇪';
     selectedPerson.value = '1 Person';
     selectedTimeSlot.value = '';
     selectedDateReservation.value = DateTime.now();
@@ -550,6 +622,9 @@ class ReservationScreenController extends GetxController {
     phoneError.value = '';
     isNameValid.value = false;
     isPhoneValid.value = false;
+    selectedTable.value = null;
+    isTableExpanded.value = false;
+    selectedReservationStatus.value = 'Pending';
   }
 
   void saveReservation() {
@@ -585,8 +660,9 @@ class ReservationScreenController extends GetxController {
       'time':
           '${DateFormat('dd MMMM').format(selectedDateReservation.value)}, ${selectedTimeSlot.value}',
       'name': customerNameController.text.trim(),
-      'phone': customerPhoneController.text.trim(),
-      'status': 'Pending',
+      'phone':
+          '${selectedCountryCode.value} ${customerPhoneController.text.trim()}',
+      'status': selectedReservationStatus.value,
       'specialRequest': specialRequestController.text.trim(),
     };
 

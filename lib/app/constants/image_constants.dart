@@ -28,4 +28,5 @@ class ImageConstant {
   static const warning = "${imagePath}warning.png";
   static const takeOrder = "${imagePath}takeOrder.png";
   static const access = "${imagePath}access.png";
+  static const waiter = "${imagePath}waiter.png";
 }

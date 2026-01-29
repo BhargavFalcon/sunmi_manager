@@ -54,6 +54,7 @@ dependencies:
   image: ^4.1.7
   connectivity_plus: ^6.0.5
   path_provider: ^2.1.2
+  country_picker: ^2.0.21
 
 dev_dependencies:
   flutter_test:
