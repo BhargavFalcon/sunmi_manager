@@ -52,7 +52,7 @@ class InventoryPurchaseOrderView
                           icon: Icons.check_circle_outline,
                           title: "Received",
                           count: 3,
-                          color: Colors.green,
+                          color: ColorConstants.successGreen,
                         ),
                       ),
                     ],
@@ -207,9 +207,8 @@ class InventoryPurchaseOrderView
                                     color:
                                         item['status'] == 'Created'
                                             ? Colors.blue.withValues(alpha: 0.1)
-                                            : Colors.green.withValues(
-                                              alpha: 0.1,
-                                            ),
+                                            : ColorConstants.successGreen
+                                                .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -219,7 +218,7 @@ class InventoryPurchaseOrderView
                                       color:
                                           item['status'] == 'Created'
                                               ? Colors.blue
-                                              : Colors.green,
+                                              : ColorConstants.successGreen,
                                     ),
                                   ),
                                 ),

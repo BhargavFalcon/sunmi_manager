@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../constants/color_constant.dart';
+
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
@@ -53,9 +55,9 @@ class DashboardScreenController extends GetxController {
           customerName: "Frank Castle",
           datetime: "June 26, 2025 | 01:33 AM",
           statusText: "Order Preparing",
-          statusColor: Colors.green,
+          statusColor: ColorConstants.successGreen,
           tag: "SERVED",
-          tagColor: Colors.green,
+          tagColor: ColorConstants.successGreen,
           total: "24.75",
         ),
         Order(

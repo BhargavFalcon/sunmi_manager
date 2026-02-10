@@ -11,7 +11,9 @@ import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_
 import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/widgets/add_customer_dialog.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
+import 'package:managerapp/app/widgets/pre_order_datetime_picker.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -199,6 +201,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                               controller.sourceScreen;
                                         }
 
+                                        if (controller.hideTableSection) {
+                                          arguments[ArgumentConstant
+                                                  .hideTableSectionKey] = true;
+                                        }
+
                                         Get.toNamed(
                                           Routes.CART_SCREEN,
                                           arguments:
@@ -345,17 +352,112 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 }),
                               ),
                               SizedBox(width: MySize.getWidth(6)),
-                              _buildActionButton(
-                                icon: Icons.access_time,
-                                label: TranslationKeys.preOrder.tr,
-                                onTap: () {},
-                              ),
+                              Obx(() {
+                                final isSelected =
+                                    controller.selectedPreOrderDate.value !=
+                                    null;
+                                String label =
+                                    isSelected
+                                        ? TranslationKeys.resetPreOrder.tr
+                                        : TranslationKeys.preOrder.tr;
+
+                                return _buildActionButton(
+                                  icon:
+                                      isSelected
+                                          ? Icons.restart_alt
+                                          : Icons.access_time,
+                                  label: label,
+                                  onTap: () {
+                                    if (isSelected) {
+                                      controller.updatePreOrderDateTime(
+                                        null,
+                                        null,
+                                      );
+                                    } else {
+                                      Get.dialog(
+                                        PreOrderDateTimePicker(
+                                          initialDate:
+                                              controller
+                                                  .selectedPreOrderDate
+                                                  .value,
+                                          initialTime:
+                                              controller
+                                                  .selectedPreOrderTime
+                                                  .value,
+                                          onSave: (date, time) {
+                                            controller.updatePreOrderDateTime(
+                                              date,
+                                              time,
+                                            );
+                                          },
+                                          onReset: () {
+                                            controller.updatePreOrderDateTime(
+                                              null,
+                                              null,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              }),
                               SizedBox(width: MySize.getWidth(6)),
-                              _buildActionButton(
-                                icon: Icons.person,
-                                label: TranslationKeys.customer.tr,
-                                onTap: () {},
-                              ),
+                              Obx(() {
+                                return _buildActionButton(
+                                  icon: Icons.person,
+                                  label:
+                                      controller.hasCustomer
+                                          ? controller.customerName.value
+                                          : TranslationKeys.customer.tr,
+                                  onTap: () {
+                                    Get.dialog(
+                                      AddCustomerDialog(
+                                        initialName:
+                                            controller.customerName.value,
+                                        initialPhone:
+                                            controller.customerPhone.value,
+                                        initialEmail:
+                                            controller.customerEmail.value,
+                                        initialPhoneCode:
+                                            controller.customerPhoneCode.value,
+                                        initialZipcode:
+                                            controller.customerZipcode.value,
+                                        initialHouseNumber:
+                                            controller
+                                                .customerHouseNumber
+                                                .value,
+                                        initialAddress:
+                                            controller.customerAddress.value,
+                                        isDelivery:
+                                            controller
+                                                .selectedOrderType
+                                                .value ==
+                                            'Delivery',
+                                        onSave: ({
+                                          required name,
+                                          required phone,
+                                          required email,
+                                          required phoneCode,
+                                          zipcode,
+                                          houseNumber,
+                                          address,
+                                        }) {
+                                          controller.updateCustomerDetails(
+                                            name: name,
+                                            phone: phone,
+                                            email: email,
+                                            phoneCode: phoneCode,
+                                            zipcode: zipcode,
+                                            houseNumber: houseNumber,
+                                            address: address,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                );
+                              }),
                               SizedBox(width: MySize.getWidth(8)),
                               Expanded(
                                 flex: 4,
@@ -469,17 +571,112 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 }),
                               ),
                               SizedBox(width: MySize.getWidth(4)),
-                              _buildActionButton(
-                                icon: Icons.access_time,
-                                label: TranslationKeys.preOrder.tr,
-                                onTap: () {},
-                              ),
+                              Obx(() {
+                                final isSelected =
+                                    controller.selectedPreOrderDate.value !=
+                                    null;
+                                String label =
+                                    isSelected
+                                        ? TranslationKeys.resetPreOrder.tr
+                                        : TranslationKeys.preOrder.tr;
+
+                                return _buildActionButton(
+                                  icon:
+                                      isSelected
+                                          ? Icons.restart_alt
+                                          : Icons.access_time,
+                                  label: label,
+                                  onTap: () {
+                                    if (isSelected) {
+                                      controller.updatePreOrderDateTime(
+                                        null,
+                                        null,
+                                      );
+                                    } else {
+                                      Get.dialog(
+                                        PreOrderDateTimePicker(
+                                          initialDate:
+                                              controller
+                                                  .selectedPreOrderDate
+                                                  .value,
+                                          initialTime:
+                                              controller
+                                                  .selectedPreOrderTime
+                                                  .value,
+                                          onSave: (date, time) {
+                                            controller.updatePreOrderDateTime(
+                                              date,
+                                              time,
+                                            );
+                                          },
+                                          onReset: () {
+                                            controller.updatePreOrderDateTime(
+                                              null,
+                                              null,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              }),
                               SizedBox(width: MySize.getWidth(6)),
-                              _buildActionButton(
-                                icon: Icons.person,
-                                label: TranslationKeys.customer.tr,
-                                onTap: () {},
-                              ),
+                              Obx(() {
+                                return _buildActionButton(
+                                  icon: Icons.person,
+                                  label:
+                                      controller.hasCustomer
+                                          ? controller.customerName.value
+                                          : TranslationKeys.customer.tr,
+                                  onTap: () {
+                                    Get.dialog(
+                                      AddCustomerDialog(
+                                        initialName:
+                                            controller.customerName.value,
+                                        initialPhone:
+                                            controller.customerPhone.value,
+                                        initialEmail:
+                                            controller.customerEmail.value,
+                                        initialPhoneCode:
+                                            controller.customerPhoneCode.value,
+                                        initialZipcode:
+                                            controller.customerZipcode.value,
+                                        initialHouseNumber:
+                                            controller
+                                                .customerHouseNumber
+                                                .value,
+                                        initialAddress:
+                                            controller.customerAddress.value,
+                                        isDelivery:
+                                            controller
+                                                .selectedOrderType
+                                                .value ==
+                                            'Delivery',
+                                        onSave: ({
+                                          required name,
+                                          required phone,
+                                          required email,
+                                          required phoneCode,
+                                          zipcode,
+                                          houseNumber,
+                                          address,
+                                        }) {
+                                          controller.updateCustomerDetails(
+                                            name: name,
+                                            phone: phone,
+                                            email: email,
+                                            phoneCode: phoneCode,
+                                            zipcode: zipcode,
+                                            houseNumber: houseNumber,
+                                            address: address,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                );
+                              }),
                             ],
                           ),
                 ),

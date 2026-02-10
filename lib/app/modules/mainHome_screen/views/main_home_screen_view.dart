@@ -73,9 +73,10 @@ class _CustomBottomNavBar extends StatelessWidget {
       bottom: false,
       child: Padding(
         padding: EdgeInsets.only(
-          bottom: Platform.isAndroid
-              ? MediaQuery.of(context).padding.bottom
-              : Platform.isIOS
+          bottom:
+              Platform.isAndroid
+                  ? MediaQuery.of(context).padding.bottom
+                  : Platform.isIOS
                   ? 10
                   : MySize.getHeight(0),
         ),
@@ -106,8 +107,8 @@ class _CustomBottomNavBar extends StatelessWidget {
                     onTap: () => onTabChange(1),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.takeOrder,
-                    label: TranslationKeys.takeOrder.tr,
+                    icon: ImageConstant.deliveryPickup,
+                    label: TranslationKeys.deliveryPickup.tr,
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),

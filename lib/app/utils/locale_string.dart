@@ -27,6 +27,7 @@ class LocaleString extends Translations {
       'print': 'Print',
       'name': 'Name',
       'email': 'Email',
+      'emailAddress': 'Email Address',
       'phone': 'Phone',
       'address': 'Address',
       'quantity': 'Quantity',
@@ -127,7 +128,7 @@ class LocaleString extends Translations {
       'somethingWentWrong': 'Something went wrong. Please try again.',
 
       // ========== MAIN HOME SCREEN ==========
-      'takeOrder': 'Take Order',
+      'deliveryPickup': 'Delivery / Pickup',
 
       // ========== TAKE ORDER SCREEN ==========
       'itemVariations': 'Item Variations',
@@ -141,6 +142,18 @@ class LocaleString extends Translations {
           'Please choose at least one option to continue.',
       'section': 'Section',
       'option': 'Option',
+      'selectDateAndTime': 'Select Date & Time',
+      'reset': 'Reset',
+      'resetPreOrder': 'Reset Pre-Order',
+      'addCustomer': 'Add Customer',
+      'enterCustomerName': 'Please enter customer name',
+      'enterCustomerPhone': '123 4567890',
+      'enterCustomerEmail': 'Please enter customer email address',
+      'zipcode': 'Zipcode',
+      'houseNumber': 'House Number',
+      'deliveryDisclaimer':
+          'If you do not see your zipcode in the dropdown, it means we do not deliver there currently.',
+      'enterCustomerAddress': 'Please enter customer address',
 
       // ========== CART SCREEN ==========
       'cart': 'Cart',
@@ -226,6 +239,7 @@ class LocaleString extends Translations {
       'newReservation': 'New',
       'anySpecialRequest': 'Any special request ?',
       'customerName': 'Customer Name',
+      'customerEmail': 'Customer Email',
       'guests': 'Guests',
       'yesterday': 'Yesterday',
       'last30Days': 'Last 30 Days',
@@ -298,6 +312,9 @@ class LocaleString extends Translations {
       'onBluetooth': 'On Bluetooth',
       'paymentMethod': 'Payment Method',
       'cash': 'Cash',
+      'addPayment': 'Add Payment',
+      'view': 'View',
+      'due': 'Due',
       'testPrint': 'Test Print',
       'sunmiTestPrint': 'Sunmi Test Print',
       'connectedPrinter': 'Connected Printer',
@@ -320,6 +337,51 @@ class LocaleString extends Translations {
           'This module is not available. Please check your internet connection.',
       'accessLimited': 'Access Limited',
       'featureNotEnabled': 'This feature is not enabled for your account.',
+      'managePrinters': 'Manage Printers',
+      'printingRules': 'Printing Rules',
+      'printService': 'Print Service',
+      'connection': 'Connection',
+      'domainUrl': 'Domain URL',
+      'apiKey': 'API Key',
+      'testConnection': 'Test Connection',
+      'connectedAndPolling': 'Connected & Polling',
+      'configure': 'Configure',
+      'url': 'URL',
+      'key': 'Key',
+      'domainHint': 'https://your-domain.com',
+      'apiKeyHint': 'Enter your API key',
+
+      // Order Payment Dialog
+      'pay': 'PAY',
+      'paymentProcessedSuccessfully': 'Payment processed successfully',
+      'failedToProcessPayment': 'Failed to process payment',
+      'card': 'Card',
+      'upi': 'UPI',
+      'bankTransfer': 'Bank Transfer',
+      'amountToPay': 'Amount to Pay',
+      'addTip': 'Add Tip',
+      'totalAmount': 'Total Amount',
+      'payableAmount': 'Payable Amount',
+      'dueAmount': 'Due Amount',
+      'enterCustomAmount': 'Enter custom amount',
+      'custom': 'Custom',
+      'enterValue': 'Enter value',
+      'tipAdded': 'Tip Added',
+
+      // Split Bill
+      'availableItems': 'Available Items',
+      'clickItemToAdd': 'Click item to add to split',
+      'itemsInSplit': 'Items in Split',
+      'noItemsInSplit': 'No items added to this split yet',
+      'removeItem': 'Remove',
+      'all': 'All',
+      'returnAmount': 'Return Amount',
+      'considerReturnAsTip': 'Add return as tip',
+      'makePayment': 'Make Payment',
+      'switchingToFullPayment':
+          'Switching to Full Payment will clear all split items. Are you sure?',
+      'allSplitItemsWillBeCleared':
+          'All split items you have created will be cleared.',
     },
     'da_DK': {
       // ========== COMMON (Shared across screens) ==========
@@ -345,6 +407,7 @@ class LocaleString extends Translations {
       'print': 'Print',
       'name': 'Navn',
       'email': 'E-mail',
+      'emailAddress': 'Email-adresse',
       'phone': 'Telefon',
       'address': 'Adresse',
       'quantity': 'Antal',
@@ -446,7 +509,7 @@ class LocaleString extends Translations {
       'somethingWentWrong': 'Noget gik galt. Prøv venligst igen.',
 
       // ========== MAIN HOME SCREEN ==========
-      'takeOrder': 'Tag ordre',
+      'deliveryPickup': 'Levering / Afhentning',
 
       // ========== TAKE ORDER SCREEN ==========
       'itemVariations': 'Varevariationer',
@@ -460,6 +523,18 @@ class LocaleString extends Translations {
           'Vælg venligst mindst én mulighed for at fortsætte.',
       'section': 'Section',
       'option': 'Option',
+      'selectDateAndTime': 'Vælg dato og tid',
+      'reset': 'Nulstil',
+      'resetPreOrder': 'Nulstil forudbestilling',
+      'addCustomer': 'Tilføj kunde',
+      'enterCustomerName': 'Indtast venligst kundenavn',
+      'enterCustomerPhone': '123 4567890',
+      'enterCustomerEmail': 'Indtast venligst kundens e-mailadresse',
+      'zipcode': 'Postnummer',
+      'houseNumber': 'Husnummer',
+      'deliveryDisclaimer':
+          'Hvis du ikke ser dit postnummer i rullemenuen, betyder det, at vi ikke leverer der i øjeblikket.',
+      'enterCustomerAddress': 'Indtast venligst kundens adresse',
 
       // ========== CART SCREEN ==========
       'cart': 'Kurv',
@@ -599,6 +674,9 @@ class LocaleString extends Translations {
       'onBluetooth': 'Tænd Bluetooth',
       'paymentMethod': 'Betalingsmetode',
       'cash': 'Kontant',
+      'addPayment': 'Tilføj betaling',
+      'view': 'Se',
+      'due': 'Forfaldent',
       'testPrint': 'Test Print',
       'sunmiTestPrint': 'Sunmi Test Print',
       'connectedPrinter': 'Forbundet printer',
@@ -621,6 +699,41 @@ class LocaleString extends Translations {
           'Denne modul er ikke tilgængelig. Tjek venligst din internetforbindelse.',
       'accessLimited': 'Begrænset adgang',
       'featureNotEnabled': 'Denne funktion er ikke aktiveret for din konto.',
+      'managePrinters': 'Administrer printere',
+      'printingRules': 'Udskrivningsregler',
+      'printService': 'Udskrivningstjeneste',
+
+      // Order Payment Dialog
+      'pay': 'BETAL',
+      'paymentProcessedSuccessfully': 'Betaling behandlet',
+      'failedToProcessPayment': 'Kunne ikke behandle betaling',
+      'card': 'Kort',
+      'upi': 'UPI',
+      'bankTransfer': 'Bankoverførsel',
+      'amountToPay': 'Beløb at betale',
+      'addTip': 'Tilføj drikkepenge',
+      'totalAmount': 'Samlet beløb',
+      'payableAmount': 'Betalingsbeløb',
+      'dueAmount': 'Udestående beløb',
+      'enterCustomAmount': 'Indtast brugerdefineret beløb',
+      'custom': 'Brugerdefineret',
+      'enterValue': 'Indtast værdi',
+      'tipAdded': 'Drikkepenge tilføjet',
+
+      // Split Bill
+      'availableItems': 'Tilgængelige varer',
+      'clickItemToAdd': 'Klik på vare for at tilføje til opdeling',
+      'itemsInSplit': 'Varer i opdeling',
+      'noItemsInSplit': 'Ingen varer tilføjet til denne opdeling endnu',
+      'removeItem': 'Fjern',
+      'all': 'Alle',
+      'returnAmount': 'Returbeløb',
+      'considerReturnAsTip': 'Tilføj retur som drikkepenge',
+      'makePayment': 'Foretag betaling',
+      'switchingToFullPayment':
+          'Skift til fuld betaling vil rydde alle opdelingsvarer. Er du sikker?',
+      'allSplitItemsWillBeCleared':
+          'Alle opdelingsvarer, du har oprettet, vil blive ryddet.',
     },
     'de_DE': {
       // ========== COMMON (Shared across screens) ==========
@@ -646,6 +759,7 @@ class LocaleString extends Translations {
       'print': 'Drucken',
       'name': 'Name',
       'email': 'E-Mail',
+      'emailAddress': 'E-Mail-Adresse',
       'phone': 'Telefon',
       'address': 'Adresse',
       'quantity': 'Menge',
@@ -751,7 +865,7 @@ class LocaleString extends Translations {
           'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.',
 
       // ========== MAIN HOME SCREEN ==========
-      'takeOrder': 'Bestellung aufnehmen',
+      'deliveryPickup': 'Lieferung / Abholung',
 
       // ========== TAKE ORDER SCREEN ==========
       'itemVariations': 'Artikel-Varianten',
@@ -765,6 +879,18 @@ class LocaleString extends Translations {
           'Bitte wählen Sie mindestens eine Option, um fortzufahren.',
       'section': 'Section',
       'option': 'Option',
+      'selectDateAndTime': 'Datum & Uhrzeit auswählen',
+      'reset': 'Zurücksetzen',
+      'resetPreOrder': 'Vorbestellung zurücksetzen',
+      'addCustomer': 'Kunden hinzufügen',
+      'enterCustomerName': 'Bitte geben Sie den Kundennamen ein',
+      'enterCustomerPhone': '123 4567890',
+      'enterCustomerEmail': 'Bitte geben Sie die E-Mail-Adresse des Kunden ein',
+      'zipcode': 'Postleitzahl',
+      'houseNumber': 'Hausnummer',
+      'deliveryDisclaimer':
+          'Wenn Sie Ihre Postleitzahl nicht im Dropdown-Menü sehen, bedeutet dies, dass wir dort derzeit nicht liefern.',
+      'enterCustomerAddress': 'Bitte geben Sie die Adresse des Kunden ein',
 
       // ========== CART SCREEN ==========
       'cart': 'Warenkorb',
@@ -906,6 +1032,9 @@ class LocaleString extends Translations {
       'onBluetooth': 'Bluetooth einschalten',
       'paymentMethod': 'Zahlungsmethode',
       'cash': 'Bar',
+      'addPayment': 'Zahlung hinzufügen',
+      'view': 'Ansehen',
+      'due': 'Fällig',
       'testPrint': 'Testdruck',
       'sunmiTestPrint': 'Sunmi Testdruck',
       'connectedPrinter': 'Verbundener Drucker',
@@ -930,6 +1059,42 @@ class LocaleString extends Translations {
           'Dieses Modul ist nicht verfügbar. Bitte überprüfen Sie Ihre Internetverbindung.',
       'accessLimited': 'Zugriff eingeschränkt',
       'featureNotEnabled': 'Diese Funktion ist für Ihr Konto nicht aktiviert.',
+      'managePrinters': 'Drucker verwalten',
+      'printingRules': 'Druckregeln',
+      'printService': 'Druckdienst',
+
+      // Order Payment Dialog
+      'pay': 'BEZAHLEN',
+      'paymentProcessedSuccessfully': 'Zahlung erfolgreich verarbeitet',
+      'failedToProcessPayment': 'Zahlung konnte nicht verarbeitet werden',
+      'card': 'Karte',
+      'upi': 'UPI',
+      'bankTransfer': 'Überweisung',
+      'amountToPay': 'Zu zahlender Betrag',
+      'addTip': 'Trinkgeld hinzufügen',
+      'totalAmount': 'Gesamtbetrag',
+      'payableAmount': 'Zahlbarer Betrag',
+      'dueAmount': 'Fälliger Betrag',
+      'enterCustomAmount': 'Benutzerdefinierten Betrag eingeben',
+      'custom': 'Benutzerdefiniert',
+      'enterValue': 'Wert eingeben',
+      'tipAdded': 'Trinkgeld hinzugefügt',
+
+      // Split Bill
+      'availableItems': 'Verfügbare Artikel',
+      'clickItemToAdd':
+          'Klicken Sie auf Artikel, um zur Aufteilung hinzuzufügen',
+      'itemsInSplit': 'Artikel in Aufteilung',
+      'noItemsInSplit': 'Noch keine Artikel zu dieser Aufteilung hinzugefügt',
+      'removeItem': 'Entfernen',
+      'all': 'Alle',
+      'returnAmount': 'Rückgabebetrag',
+      'considerReturnAsTip': 'Rückgabe als Trinkgeld hinzufügen',
+      'makePayment': 'Zahlung vornehmen',
+      'switchingToFullPayment':
+          'Der Wechsel zur vollständigen Zahlung löscht alle aufgeteilten Artikel. Sind Sie sicher?',
+      'allSplitItemsWillBeCleared':
+          'Alle aufgeteilten Artikel, die Sie erstellt haben, werden gelöscht.',
     },
     'nl_NL': {
       // ========== COMMON (Shared across screens) ==========
@@ -955,6 +1120,7 @@ class LocaleString extends Translations {
       'print': 'Afdrukken',
       'name': 'Naam',
       'email': 'E-mail',
+      'emailAddress': 'E-mailadres',
       'phone': 'Telefoon',
       'address': 'Adres',
       'quantity': 'Aantal',
@@ -1056,7 +1222,7 @@ class LocaleString extends Translations {
       'somethingWentWrong': 'Er is iets misgegaan. Probeer het opnieuw.',
 
       // ========== MAIN HOME SCREEN ==========
-      'takeOrder': 'Bestelling opnemen',
+      'deliveryPickup': 'Delivery / Afhalen',
 
       // ========== TAKE ORDER SCREEN ==========
       'itemVariations': 'Itemvariaties',
@@ -1070,6 +1236,18 @@ class LocaleString extends Translations {
           'Kies ten minste één optie om door te gaan.',
       'section': 'Section',
       'option': 'Option',
+      'selectDateAndTime': 'Selecteer datum en tijd',
+      'reset': 'Resetten',
+      'resetPreOrder': 'Pre-order resetten',
+      'addCustomer': 'Klant toevoegen',
+      'enterCustomerName': 'Voer de klantnaam in',
+      'enterCustomerPhone': '123 4567890',
+      'enterCustomerEmail': 'Voer het e-mailadres van de klant in',
+      'zipcode': 'Postcode',
+      'houseNumber': 'Huisnummer',
+      'deliveryDisclaimer':
+          'Als u uw postcode niet in de dropdown ziet staan, betekent dit dat we daar momenteel niet bezorgen.',
+      'enterCustomerAddress': 'Voer het adres van de klant in',
 
       // ========== CART SCREEN ==========
       'cart': 'Winkelwagen',
@@ -1208,6 +1386,9 @@ class LocaleString extends Translations {
       'onBluetooth': 'Bluetooth aanzetten',
       'paymentMethod': 'Betalingsmethode',
       'cash': 'Contant',
+      'addPayment': 'Betaling toevoegen',
+      'view': 'Bekijken',
+      'due': 'Verschuldigd',
       'testPrint': 'Test afdrukken',
       'sunmiTestPrint': 'Sunmi test afdrukken',
       'connectedPrinter': 'Verbonden printer',
@@ -1230,6 +1411,41 @@ class LocaleString extends Translations {
           'Deze module is niet beschikbaar. Controleer uw internetverbinding.',
       'accessLimited': 'Toegang beperkt',
       'featureNotEnabled': 'Deze functie is niet ingeschakeld voor uw account.',
+      'managePrinters': 'Printers beheren',
+      'printingRules': 'Printregels',
+      'printService': 'Printservice',
+
+      // Order Payment Dialog
+      'pay': 'BETALEN',
+      'paymentProcessedSuccessfully': 'Betaling succesvol verwerkt',
+      'failedToProcessPayment': 'Betaling kon niet worden verwerkt',
+      'card': 'Kaart',
+      'upi': 'UPI',
+      'bankTransfer': 'Bankoverschrijving',
+      'amountToPay': 'Te betalen bedrag',
+      'addTip': 'Fooi toevoegen',
+      'totalAmount': 'Totaalbedrag',
+      'payableAmount': 'Te betalen bedrag',
+      'dueAmount': 'Verschuldigd bedrag',
+      'enterCustomAmount': 'Voer aangepast bedrag in',
+      'custom': 'Aangepast',
+      'enterValue': 'Voer waarde in',
+      'tipAdded': 'Fooi toegevoegd',
+
+      // Split Bill
+      'availableItems': 'Beschikbare artikelen',
+      'clickItemToAdd': 'Klik op artikel om toe te voegen aan splitsing',
+      'itemsInSplit': 'Artikelen in splitsing',
+      'noItemsInSplit': 'Nog geen artikelen toegevoegd aan deze splitsing',
+      'removeItem': 'Verwijderen',
+      'all': 'Alles',
+      'returnAmount': 'Terug te geven bedrag',
+      'considerReturnAsTip': 'Voeg teruggave toe als fooi',
+      'makePayment': 'Betaling doen',
+      'switchingToFullPayment':
+          'Overschakelen naar volledige betaling zal alle gesplitste artikelen wissen. Weet u het zeker?',
+      'allSplitItemsWillBeCleared':
+          'Alle gesplitste artikelen die u heeft aangemaakt worden gewist.',
     },
   };
 }

@@ -511,7 +511,8 @@ class InventoryDashboardView extends GetView<InventoryDashboardController> {
                                             horizontal: 8,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.green.shade100,
+                                            color: ColorConstants.successGreen
+                                                .withOpacity(0.2),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
@@ -519,7 +520,8 @@ class InventoryDashboardView extends GetView<InventoryDashboardController> {
                                           child: Text(
                                             item['status'] ?? '',
                                             style: const TextStyle(
-                                              color: Colors.green,
+                                              color:
+                                                  ColorConstants.successGreen,
                                             ),
                                           ),
                                         ),
@@ -533,7 +535,7 @@ class InventoryDashboardView extends GetView<InventoryDashboardController> {
                                         Text(
                                           item['stockAdded'] ?? '',
                                           style: const TextStyle(
-                                            color: Colors.green,
+                                            color: ColorConstants.successGreen,
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
                                           ),

@@ -23,8 +23,12 @@ import '../modules/reservation_screen/bindings/reservation_screen_binding.dart';
 import '../modules/reservation_screen/views/reservation_screen_view.dart';
 import '../modules/setting_screen/bindings/setting_screen_binding.dart';
 import '../modules/setting_screen/views/setting_screen_view.dart';
-import '../modules/printer_screen/bindings/printer_screen_binding.dart';
-import '../modules/printer_screen/views/printer_screen_view.dart';
+import '../modules/manage_printer_screen/bindings/manage_printer_screen_binding.dart';
+import '../modules/manage_printer_screen/views/manage_printer_screen_view.dart';
+import '../modules/printing_rules/bindings/printing_rules_binding.dart';
+import '../modules/printing_rules/views/printing_rules_view.dart';
+import '../modules/print_service/bindings/print_service_binding.dart';
+import '../modules/print_service/views/print_service_view.dart';
 import '../modules/table_screen/bindings/table_screen_binding.dart';
 import '../modules/table_screen/views/table_screen_view.dart';
 import '../modules/take_order_screen/bindings/take_order_binding.dart';
@@ -120,9 +124,19 @@ class AppPages {
       binding: SettingScreenBinding(),
     ),
     GetPage(
-      name: _Paths.PRINTER_SCREEN,
-      page: () => const PrinterScreenView(),
-      binding: PrinterScreenBinding(),
+      name: _Paths.MANAGE_PRINTER_SCREEN,
+      page: () => const ManagePrinterScreenView(),
+      binding: ManagePrinterScreenBinding(),
+    ),
+    GetPage(
+      name: _Paths.PRINTING_RULES,
+      page: () => const PrintingRulesView(),
+      binding: PrintingRulesBinding(),
+    ),
+    GetPage(
+      name: _Paths.PRINT_SERVICE,
+      page: () => const PrintServiceView(),
+      binding: PrintServiceBinding(),
     ),
   ];
 }

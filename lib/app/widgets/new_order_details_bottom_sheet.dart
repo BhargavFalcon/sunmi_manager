@@ -8,7 +8,6 @@ import 'package:managerapp/app/utils/date_time_formatter.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../model/RestaurantDetailsModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
-import '../constants/image_constants.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
 import '../../main.dart';
@@ -29,8 +28,10 @@ class NewOrderDetailsBottomSheet {
       enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MySize.getHeight(16)),
+        ),
       ),
       builder: (builderContext) {
         return _buildBottomSheetContent(
@@ -53,13 +54,18 @@ class NewOrderDetailsBottomSheet {
         height: screenHeight * 0.8,
         decoration: BoxDecoration(
           color: ColorConstants.bgColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(MySize.getHeight(16)),
+          ),
           boxShadow: ColorConstants.getShadow2,
         ),
         child: Center(
           child: Text(
             TranslationKeys.noItemsFound.tr,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(
+              fontSize: MySize.getHeight(14),
+              color: Colors.grey,
+            ),
           ),
         ),
       );
@@ -69,7 +75,9 @@ class NewOrderDetailsBottomSheet {
       height: screenHeight * 0.8,
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MySize.getHeight(16)),
+        ),
         boxShadow: ColorConstants.getShadow2,
       ),
       child: Column(
@@ -96,34 +104,32 @@ class NewOrderDetailsBottomSheet {
     orderModel.Order orderDetails,
   ) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(MySize.getHeight(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Image.asset(ImageConstant.order, height: 24, width: 24),
-              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${orderDetails.formattedOrderNumber ?? orderDetails.id?.toString() ?? ''} (${_formatOrderType(orderDetails.orderType)})',
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           _buildOrderTimeInfo(orderDetails),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           if (orderDetails.customer != null &&
               _hasCustomerInfo(orderDetails.customer!))
             _buildCustomerDetails(orderDetails.customer!),
           if (orderDetails.customer != null &&
               _hasCustomerInfo(orderDetails.customer!))
-            const SizedBox(height: 8),
+            SizedBox(height: MySize.getHeight(8)),
           Builder(
             builder: (context) {
               final shouldShowWaiter =
@@ -137,15 +143,15 @@ class NewOrderDetailsBottomSheet {
               return Column(
                 children: [
                   _buildWaiterDetails(orderDetails.waiter!),
-                  const SizedBox(height: 8),
+                  SizedBox(height: MySize.getHeight(8)),
                 ],
               );
             },
           ),
           _buildOrderItemsTable(orderData),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
           _buildPriceSummary(orderData),
-          const SizedBox(height: 16),
+          SizedBox(height: MySize.getHeight(16)),
         ],
       ),
     );
@@ -156,13 +162,18 @@ class NewOrderDetailsBottomSheet {
     orderModel.Data orderData,
   ) {
     return Container(
-      padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 10),
+      padding: EdgeInsets.only(
+        top: MySize.getHeight(8),
+        left: MySize.getWidth(16),
+        right: MySize.getWidth(16),
+        bottom: MySize.getHeight(10),
+      ),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
+            blurRadius: MySize.getHeight(4),
             offset: const Offset(0, -2),
           ),
         ],
@@ -173,17 +184,17 @@ class NewOrderDetailsBottomSheet {
             child: InkWell(
               onTap: () => Navigator.pop(context),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(MySize.getHeight(12)),
                 decoration: BoxDecoration(
                   color: const Color(0xFF60616E),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                   boxShadow: ColorConstants.getShadow2,
                 ),
                 child: Text(
                   TranslationKeys.close.tr,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -198,32 +209,36 @@ class NewOrderDetailsBottomSheet {
               return InkWell(
                 onTap: printing ? null : () => _printInvoice(orderData),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(MySize.getHeight(12)),
                   decoration: BoxDecoration(
                     color:
                         printing
                             ? const Color(0xFF0E9F6E).withOpacity(0.7)
                             : const Color(0xFF0E9F6E),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                     boxShadow: ColorConstants.getShadow2,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (printing)
-                        const CupertinoActivityIndicator(
-                          radius: 8,
+                        CupertinoActivityIndicator(
+                          radius: MySize.getHeight(8),
                           color: Colors.white,
                         )
                       else
-                        const Icon(Icons.print, color: Colors.white, size: 18),
-                      if (!printing) const SizedBox(width: 6),
+                        Icon(
+                          Icons.print,
+                          color: Colors.white,
+                          size: MySize.getHeight(18),
+                        ),
+                      if (!printing) SizedBox(width: MySize.getWidth(6)),
                       if (!printing)
                         Text(
                           TranslationKeys.print.tr,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(14),
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
@@ -266,12 +281,12 @@ class NewOrderDetailsBottomSheet {
     if (timeInfoList.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(MySize.getHeight(12)),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,21 +297,24 @@ class NewOrderDetailsBottomSheet {
                 .map(
                   (entry) => Padding(
                     padding: EdgeInsets.only(
-                      bottom: entry.key < timeInfoList.length - 1 ? 8 : 0,
+                      bottom:
+                          entry.key < timeInfoList.length - 1
+                              ? MySize.getHeight(8)
+                              : 0,
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.access_time,
-                          size: 18,
+                          size: MySize.getHeight(18),
                           color: ColorConstants.primaryColor,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: MySize.getWidth(8)),
                         Expanded(
                           child: Text(
                             entry.value,
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(12),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -340,17 +358,20 @@ class NewOrderDetailsBottomSheet {
     final items = orderDetails?.items ?? [];
     if (items.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(MySize.getHeight(16)),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: ColorConstants.getShadow2,
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         ),
         child: Center(
           child: Text(
             TranslationKeys.noItemsFound.tr,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(
+              fontSize: MySize.getHeight(14),
+              color: Colors.grey,
+            ),
           ),
         ),
       );
@@ -360,78 +381,68 @@ class NewOrderDetailsBottomSheet {
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
       ),
       child: Table(
         columnWidths: const {
-          0: FlexColumnWidth(0.7),
-          1: FlexColumnWidth(2),
-          2: FlexColumnWidth(0.8),
+          0: FlexColumnWidth(2),
+          1: FlexColumnWidth(0.8),
+          2: FlexColumnWidth(1),
           3: FlexColumnWidth(1),
-          4: FlexColumnWidth(1),
         },
         children: [
           TableRow(
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(8),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(MySize.getHeight(8)),
               ),
             ),
             children: [
-              const Padding(
-                padding: EdgeInsets.all(6),
-                child: Text(
-                  'No',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                ),
-              ),
               Padding(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 child: Text(
                   TranslationKeys.itemNames.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: MySize.getHeight(10),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 child: Text(
                   TranslationKeys.qty.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: MySize.getHeight(10),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 child: Text(
                   TranslationKeys.priceHeader.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: MySize.getHeight(10),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(MySize.getHeight(6)),
                 child: Text(
                   TranslationKeys.amountHeader.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: MySize.getHeight(10),
                   ),
                 ),
               ),
             ],
           ),
           ...items.asMap().entries.map((entry) {
-            final index = entry.key;
             final item = entry.value;
-            final itemNumber = item.itemNumber ?? 'M${index + 1}';
             final modifiers = item.modifiers ?? [];
             final details =
                 modifiers
@@ -458,7 +469,6 @@ class NewOrderDetailsBottomSheet {
               qty: item.quantity?.toString() ?? '0',
               price: CurrencyFormatter.formatPrice(priceStr),
               amount: CurrencyFormatter.formatPrice(amountStr),
-              itemNumber: itemNumber,
             );
           }).toList(),
         ],
@@ -472,7 +482,6 @@ class NewOrderDetailsBottomSheet {
     required String qty,
     required String price,
     required String amount,
-    String itemNumber = 'M1',
   }) {
     return TableRow(
       decoration: const BoxDecoration(
@@ -482,22 +491,15 @@ class NewOrderDetailsBottomSheet {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(
-            itemNumber,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(MySize.getHeight(6)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 itemName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: MySize.getHeight(12),
                 ),
               ),
               if (details.isNotEmpty)
@@ -509,7 +511,7 @@ class NewOrderDetailsBottomSheet {
                             (detail) => Text(
                               detail,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: MySize.getHeight(12),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -520,16 +522,16 @@ class NewOrderDetailsBottomSheet {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(qty, style: const TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getHeight(6)),
+          child: Text(qty, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(price, style: const TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getHeight(6)),
+          child: Text(price, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
         Padding(
-          padding: const EdgeInsets.all(6),
-          child: Text(amount, style: const TextStyle(fontSize: 12)),
+          padding: EdgeInsets.all(MySize.getHeight(6)),
+          child: Text(amount, style: TextStyle(fontSize: MySize.getHeight(12))),
         ),
       ],
     );
@@ -544,16 +546,16 @@ class NewOrderDetailsBottomSheet {
     final isTaxIncluded = _isTaxIncluded(orderData);
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(MySize.getHeight(8)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
-            blurRadius: 3,
+            blurRadius: MySize.getHeight(3),
             offset: const Offset(0, 1),
           ),
         ],
@@ -563,9 +565,12 @@ class NewOrderDetailsBottomSheet {
         children: [
           Text(
             '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: MySize.getHeight(14),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: MySize.getHeight(8)),
 
           if (totals?.subTotal != null)
             _buildPriceRow(
@@ -645,9 +650,9 @@ class NewOrderDetailsBottomSheet {
               ),
             ];
           }(),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1, thickness: 1, color: Colors.grey),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
+            child: const Divider(height: 1, thickness: 1, color: Colors.grey),
           ),
 
           if (totals?.total != null)
@@ -669,21 +674,21 @@ class NewOrderDetailsBottomSheet {
     Color? valueColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: MySize.getHeight(12),
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: MySize.getHeight(12),
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: valueColor ?? Colors.black,
             ),
@@ -714,18 +719,22 @@ class NewOrderDetailsBottomSheet {
         children: [
           Row(
             children: [
-              Icon(Icons.person, size: 20, color: ColorConstants.primaryColor),
-              const SizedBox(width: 8),
+              Icon(
+                Icons.person,
+                size: MySize.getHeight(20),
+                color: ColorConstants.primaryColor,
+              ),
+              SizedBox(width: MySize.getWidth(8)),
               Text(
                 TranslationKeys.customerDetails.tr,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: MySize.getHeight(12)),
           if (customer.name != null && customer.name!.isNotEmpty)
             _buildDetailRow(TranslationKeys.name.tr, customer.name!),
           if (customer.email != null && customer.email!.isNotEmpty)
@@ -791,20 +800,20 @@ class NewOrderDetailsBottomSheet {
             children: [
               Icon(
                 Icons.restaurant,
-                size: 20,
+                size: MySize.getHeight(20),
                 color: ColorConstants.primaryColor,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: MySize.getWidth(8)),
               Text(
                 TranslationKeys.waiter.tr,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(14),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: MySize.getHeight(12)),
           if (waiter.name != null && waiter.name!.trim().isNotEmpty)
             _buildDetailRow(TranslationKeys.name.tr, waiter.name!),
           if (waiter.email != null && waiter.email!.trim().isNotEmpty)
@@ -822,16 +831,16 @@ class NewOrderDetailsBottomSheet {
 
   static Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: MySize.getWidth(80),
             child: Text(
               '$label:',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: MySize.getHeight(12),
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade700,
               ),
@@ -840,7 +849,10 @@ class NewOrderDetailsBottomSheet {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              style: TextStyle(
+                fontSize: MySize.getHeight(12),
+                color: Colors.black87,
+              ),
             ),
           ),
         ],

@@ -299,189 +299,176 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
         ),
       ),
       builder:
-          (_) => DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.85,
-            builder:
-                (_, scrollController) => Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(MySize.getHeight(16)),
+          (_) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.85,
+              builder:
+                  (_, scrollController) => Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(MySize.getHeight(16)),
+                      ),
+                      boxShadow: ColorConstants.getShadow2,
                     ),
-                    boxShadow: ColorConstants.getShadow2,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(16),
-                            vertical: MySize.getHeight(16),
-                          ),
-                          child: Text(
-                            TranslationKeys.reservation.tr,
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: MySize.getHeight(14),
-                              fontWeight: FontWeight.w600,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(16),
+                              vertical: MySize.getHeight(16),
+                            ),
+                            child: Text(
+                              TranslationKeys.reservation.tr,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: MySize.getHeight(14),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(MySize.getWidth(8)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildAddDatePicker(
-                                      context,
-                                      controller,
-                                    ),
-                                  ),
-                                  SizedBox(width: MySize.getWidth(12)),
-                                  Expanded(
-                                    child: _buildSelectPersonDropdown(
-                                      controller,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: MySize.getHeight(10)),
-                              Text(
-                                TranslationKeys.selectTimeSlot.tr,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: MySize.getHeight(14),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: MySize.getHeight(4)),
-                              _buildTimeSlotsGrid(
-                                context,
-                                controller.timeSlots,
-                                controller,
-                              ),
-                              SizedBox(height: MySize.getHeight(4)),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    TranslationKeys.anySpecialRequest.tr,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: MySize.getHeight(12),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: MySize.getHeight(8)),
-                                  CupertinoTextField(
-                                    maxLines: 2,
-                                    placeholder:
-                                        TranslationKeys
-                                            .enterYourSpecialRequest
-                                            .tr,
-                                    decoration: BoxDecoration(
-                                      color: ColorConstants.bgColor,
-                                      borderRadius: BorderRadius.circular(
-                                        MySize.getHeight(8),
+                          Padding(
+                            padding: EdgeInsets.all(MySize.getWidth(8)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildAddDatePicker(
+                                        context,
+                                        controller,
                                       ),
+                                    ),
+                                    SizedBox(width: MySize.getWidth(12)),
+                                    Expanded(
+                                      child: _buildSelectPersonDropdown(
+                                        controller,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: MySize.getHeight(10)),
+                                Text(
+                                  TranslationKeys.selectTimeSlot.tr,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: MySize.getHeight(14),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: MySize.getHeight(4)),
+                                _buildTimeSlotsGrid(
+                                  context,
+                                  controller.timeSlots,
+                                  controller,
+                                ),
+                                SizedBox(height: MySize.getHeight(4)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      TranslationKeys.anySpecialRequest.tr,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: MySize.getHeight(12),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: MySize.getHeight(8)),
+                                    CupertinoTextField(
+                                      maxLines: 2,
+                                      placeholder:
+                                          TranslationKeys
+                                              .enterYourSpecialRequest
+                                              .tr,
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.bgColor,
+                                        borderRadius: BorderRadius.circular(
+                                          MySize.getHeight(8),
+                                        ),
+                                        border: Border.all(
+                                          color: ColorConstants.grey9E9E9E,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(
+                                        MySize.getWidth(12),
+                                      ),
+                                      placeholderStyle: TextStyle(
+                                        color: ColorConstants.grey600,
+                                        fontSize: MySize.getHeight(14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: MySize.getHeight(15)),
+                                Obx(
+                                  () => Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
                                       border: Border.all(
                                         color: ColorConstants.grey9E9E9E,
                                         width: 1,
                                       ),
+                                      borderRadius: BorderRadius.circular(
+                                        MySize.getHeight(8),
+                                      ),
                                     ),
-                                    padding: EdgeInsets.all(
-                                      MySize.getWidth(12),
-                                    ),
-                                    placeholderStyle: TextStyle(
-                                      color: ColorConstants.grey9E9E9E,
-                                      fontSize: MySize.getHeight(14),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: MySize.getHeight(15)),
-                              Obx(
-                                () => Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: ColorConstants.grey9E9E9E,
-                                      width: 1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      MySize.getHeight(8),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          controller.isTableExpanded.value =
-                                              !controller.isTableExpanded.value;
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.all(
-                                            MySize.getWidth(12),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      TranslationKeys.table.tr,
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize:
-                                                            MySize.getHeight(
-                                                              14,
-                                                            ),
-                                                        fontWeight:
-                                                            FontWeight.w600,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            controller.isTableExpanded.value =
+                                                !controller
+                                                    .isTableExpanded
+                                                    .value;
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(
+                                              MySize.getWidth(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        TranslationKeys
+                                                            .table
+                                                            .tr,
+                                                        style: TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize:
+                                                              MySize.getHeight(
+                                                                14,
+                                                              ),
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: MySize.getHeight(
-                                                        2,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      TranslationKeys
-                                                          .selectingTableOptional
-                                                          .tr,
-                                                      style: TextStyle(
-                                                        color:
-                                                            ColorConstants
-                                                                .grey9E9E9E,
-                                                        fontSize:
-                                                            MySize.getHeight(
-                                                              11,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    if (controller
-                                                            .selectedTable
-                                                            .value ==
-                                                        null) ...[
                                                       SizedBox(
                                                         height:
                                                             MySize.getHeight(2),
                                                       ),
                                                       Text(
                                                         TranslationKeys
-                                                            .noTableSelectedYet
+                                                            .selectingTableOptional
                                                             .tr,
                                                         style: TextStyle(
                                                           color:
@@ -493,212 +480,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                               ),
                                                         ),
                                                       ),
-                                                    ],
-                                                  ],
-                                                ),
-                                              ),
-                                              Icon(
-                                                controller.isTableExpanded.value
-                                                    ? Icons.keyboard_arrow_up
-                                                    : Icons.keyboard_arrow_down,
-                                                color: Colors.black54,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      if (controller.selectedTable.value !=
-                                          null)
-                                        Container(
-                                          margin: EdgeInsets.only(
-                                            left: MySize.getWidth(12),
-                                            right: MySize.getWidth(12),
-                                            bottom: MySize.getHeight(12),
-                                          ),
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: MySize.getWidth(12),
-                                            vertical: MySize.getHeight(8),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              MySize.getHeight(8),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                controller
-                                                        .selectedTable
-                                                        .value
-                                                        ?.tableCode ??
-                                                    '',
-                                                style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: MySize.getHeight(
-                                                    14,
-                                                  ),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              InkWell(
-                                                onTap: () {
-                                                  controller
-                                                      .selectedTable
-                                                      .value = null;
-                                                },
-                                                child: Text(
-                                                  TranslationKeys.remove.tr,
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                    fontSize: MySize.getHeight(
-                                                      13,
-                                                    ),
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (controller.isTableExpanded.value)
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            left: MySize.getWidth(12),
-                                            right: MySize.getWidth(12),
-                                            top: MySize.getHeight(6),
-                                          ),
-                                          child: Obx(() {
-                                            if (controller
-                                                .tableAreasList
-                                                .isEmpty) {
-                                              return Center(
-                                                child: Text(
-                                                  TranslationKeys
-                                                      .noTablesAvailable
-                                                      .tr,
-                                                  style: TextStyle(
-                                                    color:
-                                                        ColorConstants
-                                                            .grey9E9E9E,
-                                                    fontSize: MySize.getHeight(
-                                                      13,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            final allTables =
-                                                controller.tableAreasList
-                                                    .expand(
-                                                      (area) =>
-                                                          area.tables
-                                                              ?.where(
-                                                                (table) =>
-                                                                    table.availableStatus
-                                                                            ?.toLowerCase() ==
-                                                                        'available' &&
-                                                                    table.status
-                                                                            ?.toLowerCase() ==
-                                                                        'active',
-                                                              )
-                                                              .toList() ??
-                                                          [],
-                                                    )
-                                                    .toList();
-                                            if (allTables.isEmpty) {
-                                              return Center(
-                                                child: Text(
-                                                  TranslationKeys
-                                                      .noAvailableTables
-                                                      .tr,
-                                                  style: TextStyle(
-                                                    color:
-                                                        ColorConstants
-                                                            .grey9E9E9E,
-                                                    fontSize: MySize.getHeight(
-                                                      13,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            return GridView.builder(
-                                              shrinkWrap: true,
-                                              padding: EdgeInsets.only(
-                                                bottom: MySize.getHeight(15),
-                                              ),
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              gridDelegate:
-                                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 3,
-                                                    crossAxisSpacing:
-                                                        MySize.getWidth(10),
-                                                    mainAxisSpacing:
-                                                        MySize.getHeight(10),
-                                                    childAspectRatio: 1.4,
-                                                  ),
-                                              itemCount: allTables.length,
-                                              itemBuilder: (context, index) {
-                                                final table = allTables[index];
-                                                final isSelected =
-                                                    controller
-                                                        .selectedTable
-                                                        .value
-                                                        ?.id ==
-                                                    table.id;
-                                                return InkWell(
-                                                  onTap: () {
-                                                    controller
-                                                        .selectedTable
-                                                        .value = table;
-                                                  },
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          isSelected
-                                                              ? Colors.green
-                                                                  .withValues(
-                                                                    alpha: 0.1,
-                                                                  )
-                                                              : Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            MySize.getHeight(8),
-                                                          ),
-                                                      border: Border.all(
-                                                        color:
-                                                            isSelected
-                                                                ? Colors.green
-                                                                : ColorConstants
-                                                                    .grey9E9E9E,
-                                                        width:
-                                                            isSelected ? 2 : 1,
-                                                      ),
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                          table.tableCode ??
-                                                              '${table.id}',
-                                                          style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize:
-                                                                MySize.getHeight(
-                                                                  14,
-                                                                ),
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
-                                                        ),
+                                                      if (controller
+                                                              .selectedTable
+                                                              .value ==
+                                                          null) ...[
                                                         SizedBox(
                                                           height:
                                                               MySize.getHeight(
@@ -706,7 +491,9 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                               ),
                                                         ),
                                                         Text(
-                                                          '${table.seatingCapacity ?? 0} Seat(s)',
+                                                          TranslationKeys
+                                                              .noTableSelectedYet
+                                                              .tr,
                                                           style: TextStyle(
                                                             color:
                                                                 ColorConstants
@@ -718,161 +505,453 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                           ),
                                                         ),
                                                       ],
+                                                    ],
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  controller
+                                                          .isTableExpanded
+                                                          .value
+                                                      ? Icons.keyboard_arrow_up
+                                                      : Icons
+                                                          .keyboard_arrow_down,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        if (controller.selectedTable.value !=
+                                            null)
+                                          Container(
+                                            margin: EdgeInsets.only(
+                                              left: MySize.getWidth(12),
+                                              right: MySize.getWidth(12),
+                                              bottom: MySize.getHeight(12),
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: MySize.getWidth(12),
+                                              vertical: MySize.getHeight(8),
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: ColorConstants.successGreen
+                                                  .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    MySize.getHeight(8),
+                                                  ),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  controller
+                                                          .selectedTable
+                                                          .value
+                                                          ?.tableCode ??
+                                                      '',
+                                                  style: TextStyle(
+                                                    color:
+                                                        ColorConstants
+                                                            .successGreen,
+                                                    fontSize: MySize.getHeight(
+                                                      14,
+                                                    ),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    controller
+                                                        .selectedTable
+                                                        .value = null;
+                                                  },
+                                                  child: Text(
+                                                    TranslationKeys.remove.tr,
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize:
+                                                          MySize.getHeight(13),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (controller.isTableExpanded.value)
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              left: MySize.getWidth(12),
+                                              right: MySize.getWidth(12),
+                                              top: MySize.getHeight(6),
+                                            ),
+                                            child: Obx(() {
+                                              if (controller
+                                                  .tableAreasList
+                                                  .isEmpty) {
+                                                return Center(
+                                                  child: Text(
+                                                    TranslationKeys
+                                                        .noTablesAvailable
+                                                        .tr,
+                                                    style: TextStyle(
+                                                      color:
+                                                          ColorConstants
+                                                              .grey9E9E9E,
+                                                      fontSize:
+                                                          MySize.getHeight(13),
                                                     ),
                                                   ),
                                                 );
-                                              },
-                                            );
-                                          }),
-                                        ),
-                                    ],
+                                              }
+                                              final allTables =
+                                                  controller.tableAreasList
+                                                      .expand(
+                                                        (area) =>
+                                                            area.tables
+                                                                ?.where(
+                                                                  (table) =>
+                                                                      table.availableStatus
+                                                                              ?.toLowerCase() ==
+                                                                          'available' &&
+                                                                      table.status
+                                                                              ?.toLowerCase() ==
+                                                                          'active',
+                                                                )
+                                                                .toList() ??
+                                                            [],
+                                                      )
+                                                      .toList();
+                                              if (allTables.isEmpty) {
+                                                return Center(
+                                                  child: Text(
+                                                    TranslationKeys
+                                                        .noAvailableTables
+                                                        .tr,
+                                                    style: TextStyle(
+                                                      color:
+                                                          ColorConstants
+                                                              .grey9E9E9E,
+                                                      fontSize:
+                                                          MySize.getHeight(13),
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                              return GridView.builder(
+                                                shrinkWrap: true,
+                                                padding: EdgeInsets.only(
+                                                  bottom: MySize.getHeight(15),
+                                                ),
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                gridDelegate:
+                                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 3,
+                                                      crossAxisSpacing:
+                                                          MySize.getWidth(10),
+                                                      mainAxisSpacing:
+                                                          MySize.getHeight(10),
+                                                      childAspectRatio: 1.4,
+                                                    ),
+                                                itemCount: allTables.length,
+                                                itemBuilder: (context, index) {
+                                                  final table =
+                                                      allTables[index];
+                                                  final isSelected =
+                                                      controller
+                                                          .selectedTable
+                                                          .value
+                                                          ?.id ==
+                                                      table.id;
+                                                  return InkWell(
+                                                    onTap: () {
+                                                      controller
+                                                          .selectedTable
+                                                          .value = table;
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            isSelected
+                                                                ? ColorConstants
+                                                                    .successGreen
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.1,
+                                                                    )
+                                                                : Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              MySize.getHeight(
+                                                                8,
+                                                              ),
+                                                            ),
+                                                        border: Border.all(
+                                                          color:
+                                                              isSelected
+                                                                  ? ColorConstants
+                                                                      .successGreen
+                                                                  : ColorConstants
+                                                                      .grey9E9E9E,
+                                                          width:
+                                                              isSelected
+                                                                  ? 2
+                                                                  : 1,
+                                                        ),
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                            table.tableCode ??
+                                                                '${table.id}',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    14,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            height:
+                                                                MySize.getHeight(
+                                                                  2,
+                                                                ),
+                                                          ),
+                                                          Text(
+                                                            '${table.seatingCapacity ?? 0} Seat(s)',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  ColorConstants
+                                                                      .grey9E9E9E,
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    11,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            }),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(height: MySize.getHeight(15)),
-                              _buildStatusSelection(controller),
-                              SizedBox(height: MySize.getHeight(10)),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "${TranslationKeys.customerName.tr} *",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: MySize.getHeight(12),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: MySize.getHeight(8)),
-                                  CupertinoTextField(
-                                    placeholder: TranslationKeys.enterName.tr,
-                                    decoration: BoxDecoration(
-                                      color: ColorConstants.bgColor,
-                                      borderRadius: BorderRadius.circular(
-                                        MySize.getHeight(8),
-                                      ),
-                                      border: Border.all(
-                                        color: ColorConstants.grey9E9E9E,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    padding: EdgeInsets.all(
-                                      MySize.getWidth(12),
-                                    ),
-                                    placeholderStyle: TextStyle(
-                                      color: ColorConstants.grey9E9E9E,
-                                      fontSize: MySize.getHeight(14),
-                                    ),
-                                  ),
-                                  SizedBox(height: MySize.getHeight(10)),
-                                  Text(
-                                    "${TranslationKeys.customerPhone.tr} *",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: MySize.getHeight(12),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: MySize.getHeight(8)),
-                                  CupertinoTextField(
-                                    controller:
-                                        controller.customerPhoneController,
-                                    prefix: _buildCountryPicker(context),
-                                    placeholder:
-                                        TranslationKeys.enterPhoneNumber.tr,
-                                    keyboardType: TextInputType.phone,
-                                    decoration: BoxDecoration(
-                                      color: ColorConstants.bgColor,
-                                      borderRadius: BorderRadius.circular(
-                                        MySize.getHeight(8),
-                                      ),
-                                      border: Border.all(
-                                        color: ColorConstants.grey9E9E9E,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    padding: EdgeInsets.all(
-                                      MySize.getWidth(12),
-                                    ),
-                                    placeholderStyle: TextStyle(
-                                      color: ColorConstants.grey9E9E9E,
-                                      fontSize: MySize.getHeight(14),
-                                    ),
-                                    onChanged: (value) {
-                                      controller.validatePhone(value);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: MySize.getHeight(20)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: MySize.getWidth(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                SizedBox(height: MySize.getHeight(15)),
+                                _buildStatusSelection(controller),
+                                SizedBox(height: MySize.getHeight(10)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.pop(context);
+                                    Text(
+                                      "${TranslationKeys.customerName.tr} *",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: MySize.getHeight(12),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: MySize.getHeight(8)),
+                                    CupertinoTextField(
+                                      controller:
+                                          controller.customerNameController,
+                                      placeholder: TranslationKeys.enterName.tr,
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.bgColor,
+                                        borderRadius: BorderRadius.circular(
+                                          MySize.getHeight(8),
+                                        ),
+                                        border: Border.all(
+                                          color: ColorConstants.grey9E9E9E,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: MySize.getWidth(8),
+                                        vertical: MySize.getHeight(12),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        color: Colors.black,
+                                      ),
+                                      placeholderStyle: TextStyle(
+                                        color: ColorConstants.grey600,
+                                        fontSize: MySize.getHeight(14),
+                                      ),
+                                    ),
+                                    SizedBox(height: MySize.getHeight(10)),
+                                    Text(
+                                      "${TranslationKeys.customerPhone.tr} *",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: MySize.getHeight(12),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: MySize.getHeight(8)),
+                                    CupertinoTextField(
+                                      controller:
+                                          controller.customerPhoneController,
+                                      prefix: _buildCountryPicker(context),
+                                      placeholder:
+                                          TranslationKeys.enterPhoneNumber.tr,
+                                      keyboardType: TextInputType.phone,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.bgColor,
+                                        borderRadius: BorderRadius.circular(
+                                          MySize.getHeight(8),
+                                        ),
+                                        border: Border.all(
+                                          color: ColorConstants.grey9E9E9E,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: MySize.getWidth(8),
+                                        vertical: MySize.getHeight(12),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        color: Colors.black,
+                                      ),
+                                      placeholderStyle: TextStyle(
+                                        color: ColorConstants.grey600,
+                                        fontSize: MySize.getHeight(14),
+                                      ),
+                                      onChanged: (value) {
+                                        controller.validatePhone(value);
                                       },
-                                      child: Container(
+                                    ),
+                                    SizedBox(height: MySize.getHeight(10)),
+                                    Text(
+                                      TranslationKeys.customerEmail.tr,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: MySize.getHeight(12),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: MySize.getHeight(8)),
+                                    CupertinoTextField(
+                                      controller:
+                                          controller.customerEmailController,
+                                      placeholder:
+                                          TranslationKeys.enterCustomerEmail.tr,
+                                      keyboardType: TextInputType.emailAddress,
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.bgColor,
+                                        borderRadius: BorderRadius.circular(
+                                          MySize.getHeight(8),
+                                        ),
+                                        border: Border.all(
+                                          color: ColorConstants.grey9E9E9E,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: MySize.getWidth(8),
+                                        vertical: MySize.getHeight(12),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(14),
+                                        color: Colors.black,
+                                      ),
+                                      placeholderStyle: TextStyle(
+                                        color: ColorConstants.grey600,
+                                        fontSize: MySize.getHeight(14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: MySize.getHeight(20)),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: MySize.getWidth(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: MySize.getWidth(16),
+                                            vertical: MySize.getHeight(8),
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              MySize.getHeight(8),
+                                            ),
+                                            border: Border.all(
+                                              color: ColorConstants.grey9E9E9E,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            TranslationKeys.cancel.tr,
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: MySize.getHeight(14),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: MySize.getWidth(16),
                                           vertical: MySize.getHeight(8),
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: ColorConstants.primaryColor,
                                           borderRadius: BorderRadius.circular(
                                             MySize.getHeight(8),
                                           ),
-                                          border: Border.all(
-                                            color: ColorConstants.grey9E9E9E,
-                                            width: 1,
-                                          ),
                                         ),
                                         child: Text(
-                                          TranslationKeys.cancel.tr,
+                                          TranslationKeys.reserveNow.tr,
                                           style: TextStyle(
-                                            color: Colors.black,
+                                            color: Colors.white,
                                             fontSize: MySize.getHeight(14),
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: MySize.getWidth(16),
-                                        vertical: MySize.getHeight(8),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: ColorConstants.primaryColor,
-                                        borderRadius: BorderRadius.circular(
-                                          MySize.getHeight(8),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        TranslationKeys.reserveNow.tr,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: MySize.getHeight(14),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: MySize.getHeight(20)),
-                            ],
+                                SizedBox(height: MySize.getHeight(20)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+            ),
           ),
     );
   }
@@ -942,71 +1021,84 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   ) {
     if (timeSlots.isEmpty) return const SizedBox.shrink();
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final itemsPerRow = 4;
-    final parentPadding = MySize.getWidth(8) * 2; // Parent container padding
-    final spacing = MySize.getWidth(4);
-    final itemWidth =
-        (screenWidth - parentPadding - (spacing * (itemsPerRow - 1))) /
-        itemsPerRow;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemsPerRow = 4;
+        final spacing = MySize.getWidth(6);
+        final availableWidth = constraints.maxWidth;
+        final itemWidth =
+            (availableWidth - (spacing * (itemsPerRow - 1))) / itemsPerRow;
 
-    final rows = <Widget>[];
-    for (int i = 0; i < timeSlots.length; i += itemsPerRow) {
-      final rowItems = <Widget>[];
-      for (int j = 0; j < itemsPerRow && i + j < timeSlots.length; j++) {
-        if (j > 0) rowItems.add(SizedBox(width: spacing));
-        rowItems.add(
-          SizedBox(
-            width: itemWidth,
-            child: GestureDetector(
-              onTap: () => controller.selectedTimeSlot.value = timeSlots[i + j],
-              child: Obx(
-                () => Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MySize.getWidth(4),
-                    vertical: MySize.getHeight(8),
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        controller.selectedTimeSlot.value == timeSlots[i + j]
-                            ? ColorConstants.primaryColor.withValues(alpha: 0.1)
-                            : Colors.white,
-                    border: Border.all(
-                      color:
-                          controller.selectedTimeSlot.value == timeSlots[i + j]
-                              ? ColorConstants.primaryColor
-                              : ColorConstants.grey9E9E9E,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      timeSlots[i + j],
-                      style: TextStyle(
-                        fontSize: MySize.getHeight(12),
+        final rows = <Widget>[];
+        for (int i = 0; i < timeSlots.length; i += itemsPerRow) {
+          final rowItems = <Widget>[];
+          for (int j = 0; j < itemsPerRow && i + j < timeSlots.length; j++) {
+            if (j > 0) rowItems.add(SizedBox(width: spacing));
+            rowItems.add(
+              SizedBox(
+                width: itemWidth,
+                child: GestureDetector(
+                  onTap:
+                      () =>
+                          controller.selectedTimeSlot.value = timeSlots[i + j],
+                  child: Obx(
+                    () => Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(2),
+                        vertical: MySize.getHeight(8),
+                      ),
+                      decoration: BoxDecoration(
                         color:
                             controller.selectedTimeSlot.value ==
                                     timeSlots[i + j]
-                                ? ColorConstants.primaryColor
-                                : Colors.black,
+                                ? ColorConstants.primaryColor.withValues(
+                                  alpha: 0.1,
+                                )
+                                : Colors.white,
+                        border: Border.all(
+                          color:
+                              controller.selectedTimeSlot.value ==
+                                      timeSlots[i + j]
+                                  ? ColorConstants.primaryColor
+                                  : ColorConstants.grey9E9E9E,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(8),
+                        ),
+                      ),
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            timeSlots[i + j],
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(11),
+                              color:
+                                  controller.selectedTimeSlot.value ==
+                                          timeSlots[i + j]
+                                      ? ColorConstants.primaryColor
+                                      : Colors.black,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+            );
+          }
+          rows.add(
+            Padding(
+              padding: EdgeInsets.only(bottom: MySize.getHeight(6)),
+              child: Row(children: rowItems),
             ),
-          ),
-        );
-      }
-      rows.add(
-        Padding(
-          padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
-          child: Row(children: rowItems),
-        ),
-      );
-    }
-    return Column(children: rows);
+          );
+        }
+        return Column(children: rows);
+      },
+    );
   }
 
   Widget _buildAddDatePicker(
@@ -1045,7 +1137,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       child: Obx(
         () => Container(
           padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(12),
+            horizontal: MySize.getWidth(6),
             vertical: MySize.getHeight(10),
           ),
           decoration: BoxDecoration(
@@ -1055,11 +1147,16 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           ),
           child: Row(
             children: [
-              Icon(Icons.date_range_rounded, size: MySize.getHeight(16)),
-              SizedBox(width: MySize.getWidth(8)),
-              Text(
-                controller.formattedDateReservation,
-                style: TextStyle(fontSize: MySize.getHeight(14)),
+              Icon(Icons.date_range_rounded, size: MySize.getHeight(14)),
+              SizedBox(width: MySize.getWidth(4)),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    controller.formattedDateReservation,
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1417,39 +1514,40 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   Widget _buildCountryPicker(BuildContext context) {
     return InkWell(
       onTap: () => _showCountrySelectionSheet(context),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: MySize.getWidth(10)),
-        decoration: BoxDecoration(
-          border: Border(
-            right: BorderSide(color: ColorConstants.grey9E9E9E, width: 0.5),
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(4),
+            right: MySize.getWidth(8),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Obx(
-              () => Text(
-                controller.selectedCountryFlag.value,
-                style: TextStyle(fontSize: MySize.getHeight(18)),
-              ),
-            ),
-            SizedBox(width: MySize.getWidth(4)),
-            Obx(
-              () => Text(
-                controller.selectedCountryCode.value,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: MySize.getHeight(14),
-                  fontWeight: FontWeight.w500,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Obx(
+                () => Text(
+                  controller.selectedCountryFlag.value,
+                  style: TextStyle(fontSize: MySize.getHeight(16)),
                 ),
               ),
-            ),
-            Icon(
-              Icons.arrow_drop_down,
-              color: ColorConstants.grey9E9E9E,
-              size: MySize.getHeight(20),
-            ),
-          ],
+              SizedBox(width: MySize.getWidth(4)),
+              Obx(
+                () => Text(
+                  controller.selectedCountryCode.value,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: MySize.getHeight(14),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_drop_down,
+                color: ColorConstants.grey9E9E9E,
+                size: MySize.getHeight(18),
+              ),
+            ],
+          ),
         ),
       ),
     );

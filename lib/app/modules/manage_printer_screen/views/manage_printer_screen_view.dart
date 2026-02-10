@@ -3,15 +3,15 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
-import '../controllers/printer_screen_controller.dart';
+import '../controllers/manage_printer_screen_controller.dart';
 
-class PrinterScreenView extends GetWidget<PrinterScreenController> {
-  const PrinterScreenView({super.key});
+class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
+  const ManagePrinterScreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PrinterScreenController>(
-      init: PrinterScreenController(),
+    return GetBuilder<ManagePrinterScreenController>(
+      init: ManagePrinterScreenController(),
       assignId: true,
       builder: (controller) {
         return Scaffold(
@@ -31,7 +31,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                     ),
                     child: Center(
                       child: Text(
-                        TranslationKeys.printerSettings.tr,
+                        TranslationKeys.managePrinters.tr,
                         style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
@@ -141,7 +141,7 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                         children: [
                                           Icon(
                                             Icons.check_circle,
-                                            color: Colors.green,
+                                            color: ColorConstants.successGreen,
                                             size: 24,
                                           ),
                                           SizedBox(width: 12),
@@ -151,7 +151,9 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  TranslationKeys.connectedPrinter.tr,
+                                                  TranslationKeys
+                                                      .connectedPrinter
+                                                      .tr,
                                                   style: TextStyle(
                                                     fontSize: 14,
                                                     color: Colors.grey,
@@ -192,16 +194,24 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                               Get.dialog(
                                                 AlertDialog(
                                                   title: Text(
-                                                    TranslationKeys.disconnectPrinter.tr,
+                                                    TranslationKeys
+                                                        .disconnectPrinter
+                                                        .tr,
                                                   ),
                                                   content: Text(
-                                                    TranslationKeys.areYouSureDisconnect.tr,
+                                                    TranslationKeys
+                                                        .areYouSureDisconnect
+                                                        .tr,
                                                   ),
                                                   actions: [
                                                     TextButton(
                                                       onPressed:
                                                           () => Get.back(),
-                                                      child: Text(TranslationKeys.cancel.tr),
+                                                      child: Text(
+                                                        TranslationKeys
+                                                            .cancel
+                                                            .tr,
+                                                      ),
                                                     ),
                                                     TextButton(
                                                       onPressed: () {
@@ -210,7 +220,9 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                                             .disconnectDevice();
                                                       },
                                                       child: Text(
-                                                        TranslationKeys.disconnect.tr,
+                                                        TranslationKeys
+                                                            .disconnect
+                                                            .tr,
                                                         style: TextStyle(
                                                           color: Colors.red,
                                                         ),
@@ -581,7 +593,9 @@ class PrinterScreenView extends GetWidget<PrinterScreenController> {
                                             isConnectedDevice
                                                 ? Icon(
                                                   Icons.check_circle,
-                                                  color: Colors.green,
+                                                  color:
+                                                      ColorConstants
+                                                          .successGreen,
                                                 )
                                                 : Obx(() {
                                                   return controller

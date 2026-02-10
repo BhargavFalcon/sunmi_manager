@@ -26,7 +26,7 @@ class ImageConstant {
   static const delete = "${imagePath}delete.png";
   static const allOrders = "${imagePath}all-orders.png";
   static const warning = "${imagePath}warning.png";
-  static const takeOrder = "${imagePath}takeOrder.png";
+  static const deliveryPickup = "${imagePath}takeOrder.png";
   static const access = "${imagePath}access.png";
   static const waiter = "${imagePath}waiter.png";
 }

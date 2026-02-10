@@ -11,6 +11,11 @@ import '../model/cancelResonModel.dart' as cancelReasonModel;
 import '../model/getorderModel.dart' as orderModel;
 import '../routes/app_pages.dart';
 import '../utils/currency_formatter.dart';
+import 'order_payment_dialog.dart';
+import 'new_order_details_bottom_sheet.dart';
+import '../services/sunmi_invoice_printer_service.dart';
+import '../constants/translation_keys.dart';
+import 'dart:io';
 
 class RunningTableService {
   static final NetworkClient networkClient = NetworkClient();
@@ -21,11 +26,11 @@ class RunningTableService {
   static Map<String, dynamic>? _extractData(dynamic responseData) {
     if (responseData == null || responseData is! Map<String, dynamic>)
       return null;
-    final data = responseData as Map<String, dynamic>;
-    if (data.containsKey('data') && data['data'] is Map<String, dynamic>) {
-      return data['data'] as Map<String, dynamic>;
+    if (responseData.containsKey('data') &&
+        responseData['data'] is Map<String, dynamic>) {
+      return responseData['data'] as Map<String, dynamic>;
     }
-    return data;
+    return responseData;
   }
 
   static String? _getOrderUuid(Tables table) => table.activeOrder?.uuid;
@@ -45,7 +50,7 @@ class RunningTableService {
       'Success',
       message,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green,
+      backgroundColor: ColorConstants.successGreen,
       colorText: Colors.white,
     );
   }
@@ -78,26 +83,42 @@ class RunningTableService {
       final response = await networkClient.get(
         ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
       );
-      if (_isSuccessStatus(response.statusCode)) {
-        if (response.data != null) {
-          try {
-            if (response.data is Map<String, dynamic>) {
-              return orderModel.GetOrderModel.fromJson(
-                response.data as Map<String, dynamic>,
-              );
-            }
-          } catch (_) {}
-        }
+      if (!_isSuccessStatus(response.statusCode) ||
+          response.data is! Map<String, dynamic>) {
+        return null;
       }
-      return null;
+      return orderModel.GetOrderModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } catch (_) {
       return null;
     }
   }
 
+  /// Build [Tables] from order details (e.g. for delivery/pickup orders without a table).
+  static Tables? tablesFromOrderDetails(orderModel.GetOrderModel? orderDetails) {
+    final order = orderDetails?.data?.order;
+    if (order == null) return null;
+    final orderNum = int.tryParse(order.orderNumber?.toString() ?? '');
+    final activeOrder = ActiveOrder(
+      id: order.id,
+      uuid: order.uuid,
+      orderNumber: orderNum,
+      status: order.status,
+      total: order.totals?.total,
+    );
+    final orderTable = order.table;
+    return Tables(
+      id: orderTable?.id,
+      tableCode: orderTable?.tableCode ?? order.orderType ?? 'Order',
+      activeOrder: activeOrder,
+    );
+  }
+
   static Future<void> navigateToTakeOrderScreen(
     Tables table, {
     String? sourceScreen,
+    bool hideTableSection = false,
   }) async {
     final orderUuid = _getOrderUuid(table);
     final order = orderUuid != null ? await fetchOrderDetails(orderUuid) : null;
@@ -105,6 +126,7 @@ class RunningTableService {
       ArgumentConstant.tableKey: table,
       if (order != null) ArgumentConstant.orderKey: order,
       if (sourceScreen != null) ArgumentConstant.sourceScreenKey: sourceScreen,
+      ArgumentConstant.hideTableSectionKey: hideTableSection,
     };
     Get.toNamed(Routes.TAKE_ORDER_SCREEN, arguments: arguments);
   }
@@ -271,6 +293,21 @@ class RunningTableDialog {
   static const _dialogPadding = EdgeInsets.all(20);
   static const _borderRadius16 = BorderRadius.all(Radius.circular(16));
   static const _borderRadius8 = BorderRadius.all(Radius.circular(8));
+  static const _loadingDialog = Center(
+    child: CupertinoActivityIndicator(color: Colors.white),
+  );
+
+  static Future<orderModel.GetOrderModel?> _fetchOrderDetailsWithLoader(
+    String orderUuid,
+  ) async {
+    Get.dialog(_loadingDialog, barrierDismissible: false);
+    final details = await RunningTableService.fetchOrderDetails(orderUuid);
+    Get.back();
+    return details;
+  }
+
+  static Widget get _buttonSpacer =>
+      SizedBox(height: MySize.getHeight(12));
 
   static TextStyle _textStyle(
     double fontSize, {
@@ -284,23 +321,34 @@ class RunningTableDialog {
 
   static void showRunningTablePopup({
     required BuildContext context,
-    required int tableId,
+    int? tableId,
+    String? orderUuid,
     VoidCallback? onRefreshTables,
     Function(bool)? onSetLoader,
     String? sourceScreen,
+    bool hideChangeTable = false,
   }) async {
     onSetLoader?.call(true);
     await Future.delayed(_delayDuration);
-    final table = await RunningTableService.fetchTableDetails(tableId);
+
+    Tables? finalTable;
+    if (tableId != null) {
+      final table = await RunningTableService.fetchTableDetails(tableId);
+      finalTable = table ?? Tables(id: tableId);
+    } else if (orderUuid != null) {
+      final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
+      finalTable = RunningTableService.tablesFromOrderDetails(orderDetails);
+    }
     onSetLoader?.call(false);
 
-    final finalTable = table ?? Tables(id: tableId);
+    if (finalTable == null) return;
+
     final activeOrder = finalTable.activeOrder;
     final orderNumber = activeOrder?.orderNumber ?? 0;
-    final orderTotal =
-        activeOrder?.total != null
-            ? CurrencyFormatter.formatPriceFromDouble(activeOrder!.total!)
-            : CurrencyFormatter.formatPriceFromDouble(0.0);
+    final orderTotal = CurrencyFormatter.formatPriceFromDouble(
+      activeOrder?.total ?? 0.0,
+    );
+    final displayTableId = finalTable.id ?? tableId ?? 0;
 
     showDialog(
       context: context,
@@ -308,13 +356,14 @@ class RunningTableDialog {
       builder:
           (context) => _buildMainDialog(
             context,
-            finalTable,
-            tableId,
+            finalTable!,
+            displayTableId,
             orderNumber,
             orderTotal,
             onRefreshTables,
             onSetLoader,
             sourceScreen,
+            hideChangeTable: hideChangeTable,
           ),
     );
   }
@@ -327,8 +376,9 @@ class RunningTableDialog {
     String orderTotal,
     VoidCallback? onRefreshTables,
     Function(bool)? onSetLoader,
-    String? sourceScreen,
-  ) {
+    String? sourceScreen, {
+    bool hideChangeTable = false,
+  }) {
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: _borderRadius16),
@@ -379,6 +429,7 @@ class RunningTableDialog {
               onRefreshTables,
               onSetLoader,
               sourceScreen,
+              hideChangeTable: hideChangeTable,
             ),
           ],
         ),
@@ -391,33 +442,52 @@ class RunningTableDialog {
     Tables finalTable,
     VoidCallback? onRefreshTables,
     Function(bool)? onSetLoader,
-    String? sourceScreen,
-  ) {
-    return [
+    String? sourceScreen, {
+    bool hideChangeTable = false,
+  }) {
+    final buttons = <Widget>[
       _buildActionButton(
         imagePath: ImageConstant.continueOrder,
         label: 'Continue to order',
-        onTap:
-            () => _handleContinueToOrder(
-              context,
-              finalTable,
-              onSetLoader,
-              sourceScreen,
-            ),
+        onTap: () => _handleContinueToOrder(
+          context,
+          finalTable,
+          onSetLoader,
+          sourceScreen,
+          hideTableSection: hideChangeTable,
+        ),
       ),
-      SizedBox(height: MySize.getHeight(12)),
+      _buttonSpacer,
+      _buildActionButton(
+        icon: Icons.visibility_outlined,
+        label: TranslationKeys.viewOrder.tr,
+        onTap: () => _handleShowOrder(context, finalTable),
+      ),
+      _buttonSpacer,
       _buildActionButton(
         imagePath: ImageConstant.pay,
         label: 'Pay',
         onTap: () => _handlePay(context, finalTable, onRefreshTables),
       ),
-      SizedBox(height: MySize.getHeight(12)),
+      _buttonSpacer,
       _buildActionButton(
-        imagePath: ImageConstant.changeTable,
-        label: 'Change table',
-        onTap: () => _handleChangeTable(context, finalTable, onRefreshTables),
+        icon: Icons.local_printshop_outlined,
+        label: TranslationKeys.print.tr,
+        onTap: () => _handlePrint(context, finalTable),
       ),
-      SizedBox(height: MySize.getHeight(12)),
+    ];
+    if (!hideChangeTable) {
+      buttons.addAll([
+        _buttonSpacer,
+        _buildActionButton(
+          imagePath: ImageConstant.changeTable,
+          label: 'Change table',
+          onTap: () => _handleChangeTable(context, finalTable, onRefreshTables),
+        ),
+      ]);
+    }
+    buttons.addAll([
+      _buttonSpacer,
       _buildActionButton(
         imagePath: ImageConstant.close,
         label: 'Cancel order',
@@ -425,7 +495,7 @@ class RunningTableDialog {
         imageColor: Colors.red,
         onTap: () => _handleCancelOrder(context, finalTable, onRefreshTables),
       ),
-      SizedBox(height: MySize.getHeight(12)),
+      _buttonSpacer,
       _buildActionButton(
         imagePath: ImageConstant.delete,
         label: 'Delete order',
@@ -433,21 +503,24 @@ class RunningTableDialog {
         imageColor: Colors.red,
         onTap: () => _handleDeleteOrder(context, finalTable, onRefreshTables),
       ),
-    ];
+    ]);
+    return buttons;
   }
 
   static Future<void> _handleContinueToOrder(
     BuildContext context,
     Tables finalTable,
     Function(bool)? onSetLoader,
-    String? sourceScreen,
-  ) async {
+    String? sourceScreen, {
+    bool hideTableSection = false,
+  }) async {
     Navigator.of(context).pop();
     onSetLoader?.call(true);
     await Future.delayed(_delayDuration);
     await RunningTableService.navigateToTakeOrderScreen(
       finalTable,
       sourceScreen: sourceScreen,
+      hideTableSection: hideTableSection,
     );
     onSetLoader?.call(false);
   }
@@ -457,9 +530,24 @@ class RunningTableDialog {
     Tables finalTable,
     VoidCallback? onRefreshTables,
   ) async {
-    Navigator.of(context).pop();
-    final success = await RunningTableService.createPayment(finalTable);
-    if (success) onRefreshTables?.call();
+    Get.back();
+    final orderUuid = RunningTableService._getOrderUuid(finalTable);
+    if (orderUuid == null) {
+      RunningTableService._showError(
+        'No active order found to process payment',
+      );
+      return;
+    }
+    final orderDetails = await _fetchOrderDetailsWithLoader(orderUuid);
+    if (orderDetails == null) {
+      RunningTableService._showError('Failed to fetch order details');
+      return;
+    }
+    final success = await OrderPaymentDialog.show(
+      orderDetails: orderDetails,
+      table: finalTable,
+    );
+    if (success == true) onRefreshTables?.call();
   }
 
   static void _handleChangeTable(
@@ -500,6 +588,51 @@ class RunningTableDialog {
       table: finalTable,
       onRefreshTables: onRefreshTables,
     );
+  }
+
+  static Future<void> _handleShowOrder(
+    BuildContext context,
+    Tables finalTable,
+  ) async {
+    final orderUuid = RunningTableService._getOrderUuid(finalTable);
+    if (orderUuid == null) {
+      RunningTableService._showError('No active order found to show');
+      return;
+    }
+    final orderDetails = await _fetchOrderDetailsWithLoader(orderUuid);
+    if (orderDetails?.data == null) {
+      RunningTableService._showError('Failed to fetch order details');
+      return;
+    }
+    NewOrderDetailsBottomSheet.show(orderDetails!.data!);
+  }
+
+  static Future<void> _handlePrint(
+    BuildContext context,
+    Tables finalTable,
+  ) async {
+    if (Platform.isIOS) {
+      RunningTableService._showError(
+        TranslationKeys.printOnlyAvailableOnAndroid.tr,
+      );
+      return;
+    }
+    final orderUuid = RunningTableService._getOrderUuid(finalTable);
+    if (orderUuid == null) {
+      RunningTableService._showError('No active order found to print');
+      return;
+    }
+    final orderDetails = await _fetchOrderDetailsWithLoader(orderUuid);
+    if (orderDetails?.data == null) {
+      RunningTableService._showError('Failed to fetch order details');
+      return;
+    }
+    try {
+      await SunmiInvoicePrinterService().printInvoice(orderDetails!.data!);
+      RunningTableService._showSuccess('Print job sent successfully');
+    } catch (e) {
+      RunningTableService._showError('Failed to print: $e');
+    }
   }
 
   static void showDeleteOrderConfirmationDialog({
@@ -1072,7 +1205,7 @@ class RunningTableDialog {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CupertinoActivityIndicator(
-              radius: MySize.getHeight(12),
+              radius: MySize.getHeight(8),
               color: ColorConstants.primaryColor,
             ),
             SizedBox(height: MySize.getHeight(16)),

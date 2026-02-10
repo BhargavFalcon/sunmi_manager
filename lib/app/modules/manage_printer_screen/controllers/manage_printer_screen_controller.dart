@@ -15,7 +15,7 @@ import '../../../constants/sizeConstant.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
 
-class PrinterScreenController extends GetxController {
+class ManagePrinterScreenController extends GetxController {
   late PrinterService printerService;
   final isLoading = false.obs;
   final isScanning = false.obs;
@@ -245,13 +245,21 @@ class PrinterScreenController extends GetxController {
         _showSnackbar(
           TranslationKeys.success.tr,
           TranslationKeys.printerConnectedSuccessfully.tr,
-          Colors.green,
+          ColorConstants.successGreen,
         );
       } else {
-        _showSnackbar(TranslationKeys.error.tr, TranslationKeys.failedToConnectPrinter.tr, Colors.red);
+        _showSnackbar(
+          TranslationKeys.error.tr,
+          TranslationKeys.failedToConnectPrinter.tr,
+          Colors.red,
+        );
       }
     } catch (e) {
-      _showSnackbar(TranslationKeys.error.tr, TranslationKeys.failedToConnectPrinter.tr, Colors.red);
+      _showSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.failedToConnectPrinter.tr,
+        Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -859,12 +867,24 @@ class PrinterScreenController extends GetxController {
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
       if (result == true) {
-        _showSnackbar(TranslationKeys.printSent.tr, TranslationKeys.receiptSentSuccessfully.tr, Colors.green);
+        _showSnackbar(
+          TranslationKeys.printSent.tr,
+          TranslationKeys.receiptSentSuccessfully.tr,
+          ColorConstants.successGreen,
+        );
       } else {
-        _showSnackbar(TranslationKeys.printFailed.tr, TranslationKeys.failedToSendPrintData.tr, Colors.red);
+        _showSnackbar(
+          TranslationKeys.printFailed.tr,
+          TranslationKeys.failedToSendPrintData.tr,
+          Colors.red,
+        );
       }
     } catch (e) {
-      _showSnackbar(TranslationKeys.printError.tr, '${TranslationKeys.printError.tr}: ${e.toString()}', Colors.red);
+      _showSnackbar(
+        TranslationKeys.printError.tr,
+        '${TranslationKeys.printError.tr}: ${e.toString()}',
+        Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -1162,10 +1182,14 @@ class PrinterScreenController extends GetxController {
       _showSnackbar(
         TranslationKeys.printSent.tr,
         TranslationKeys.sunmiReceiptSentSuccessfully.tr,
-        Colors.green,
+        ColorConstants.successGreen,
       );
     } catch (e) {
-      _showSnackbar(TranslationKeys.printError.tr, '${TranslationKeys.printError.tr}: ${e.toString()}', Colors.red);
+      _showSnackbar(
+        TranslationKeys.printError.tr,
+        '${TranslationKeys.printError.tr}: ${e.toString()}',
+        Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -1197,7 +1221,10 @@ class PrinterScreenController extends GetxController {
               children: [
                 Text(
                   TranslationKeys.bluetoothDisabled.tr,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -1225,12 +1252,12 @@ class PrinterScreenController extends GetxController {
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                            child: Center(
-                              child: Text(
-                                TranslationKeys.cancel.tr,
-                                style: const TextStyle(color: Colors.black),
-                              ),
+                          child: Center(
+                            child: Text(
+                              TranslationKeys.cancel.tr,
+                              style: const TextStyle(color: Colors.black),
                             ),
+                          ),
                         ),
                       ),
                     ),
@@ -1273,7 +1300,9 @@ class PrinterScreenController extends GetxController {
                                     )
                                     : Text(
                                       TranslationKeys.onBluetooth.tr,
-                                      style: const TextStyle(color: Colors.white),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
                           ),
                         ),
@@ -1339,7 +1368,7 @@ class PrinterScreenController extends GetxController {
       _showSnackbar(
         TranslationKeys.bluetoothEnabled.tr,
         TranslationKeys.bluetoothEnabledSuccessfully.tr,
-        Colors.green,
+        ColorConstants.successGreen,
       );
       await Future.delayed(_bluetoothInitDelay);
     } else {
@@ -1373,7 +1402,7 @@ class PrinterScreenController extends GetxController {
       _showSnackbar(
         TranslationKeys.bluetoothEnabled.tr,
         TranslationKeys.bluetoothEnabledSuccessfully.tr,
-        Colors.green,
+        ColorConstants.successGreen,
       );
       await Future.delayed(_bluetoothInitDelay);
       _loadSavedPrinter();

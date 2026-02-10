@@ -7,6 +7,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
+import 'package:managerapp/app/widgets/order_payment_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../../../constants/image_constants.dart';
@@ -157,7 +158,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             style: TextStyle(
                                                               fontSize:
                                                                   MySize.getHeight(
-                                                                    12,
+                                                                    13,
                                                                   ),
                                                               fontWeight:
                                                                   FontWeight
@@ -211,7 +212,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                       style: TextStyle(
                                                         fontSize:
                                                             MySize.getHeight(
-                                                              12,
+                                                              13,
                                                             ),
                                                       ),
                                                     ),
@@ -282,7 +283,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                           style: TextStyle(
                                                             fontSize:
                                                                 MySize.getHeight(
-                                                                  12,
+                                                                  13,
                                                                 ),
                                                             fontWeight:
                                                                 FontWeight.w500,
@@ -319,7 +320,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                       style: TextStyle(
                                                         fontSize:
                                                             MySize.getHeight(
-                                                              12,
+                                                              13,
                                                             ),
                                                       ),
                                                     ),
@@ -536,7 +537,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       controller.allOrders.isEmpty) {
                                     return Center(
                                       child: CupertinoActivityIndicator(
-                                        radius: MySize.getHeight(12),
+                                        radius: MySize.getHeight(8),
                                         color: ColorConstants.primaryColor,
                                       ),
                                     );
@@ -556,7 +557,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     color: Colors.black.withOpacity(0.2),
                     child: Center(
                       child: Container(
-                        padding: EdgeInsets.all(MySize.getWidth(20)),
+                        padding: EdgeInsets.all(MySize.getWidth(12)),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(
@@ -571,7 +572,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ],
                         ),
                         child: CupertinoActivityIndicator(
-                          radius: MySize.getHeight(12),
+                          radius: MySize.getHeight(8),
                           color: ColorConstants.primaryColor,
                         ),
                       ),
@@ -604,7 +605,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 child: Text(
                   TranslationKeys.noOrdersFound.tr,
                   style: TextStyle(
-                    fontSize: MySize.getHeight(18),
+                    fontSize: MySize.getHeight(19),
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
                   ),
@@ -627,7 +628,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 padding: EdgeInsets.all(MySize.getWidth(16)),
                 child: Center(
                   child: CupertinoActivityIndicator(
-                    radius: MySize.getHeight(12),
+                    radius: MySize.getHeight(8),
                     color: ColorConstants.primaryColor,
                   ),
                 ),
@@ -642,15 +643,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
               onTap: () {
                 final isKotStatus = order.status?.toLowerCase() == 'kot';
                 final hasTable = order.table != null && order.table!.id != null;
-                if (isKotStatus && hasTable) {
+                final isDeliveryOrPickup =
+                    order.orderType?.toLowerCase() == 'delivery' ||
+                    order.orderType?.toLowerCase() == 'pickup';
+                final showRunningDialog =
+                    isKotStatus && (hasTable || isDeliveryOrPickup);
+                if (showRunningDialog) {
                   RunningTableDialog.showRunningTablePopup(
                     context: context,
-                    tableId: order.table!.id!,
+                    tableId: hasTable ? order.table!.id! : null,
+                    orderUuid: !hasTable ? order.uuid : null,
                     onRefreshTables: () => controller.fetchAllOrders(),
                     onSetLoader:
                         (bool show) =>
                             controller.isNavigatingToOrder.value = show,
                     sourceScreen: Routes.ORDER_SCREEN,
+                    hideChangeTable: isDeliveryOrPickup,
                   );
                 } else {
                   showOrderBottomSheet(context, controller, order);
@@ -785,7 +793,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 child: _buildOrderDetailsOrError(context, controller, order),
               ),
             ),
-            if (orderData != null) _buildStickyButtons(context, orderData),
+            if (orderData != null)
+              _buildStickyButtons(context, controller, orderData),
           ],
         );
       }),
@@ -794,8 +803,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildStickyButtons(
     BuildContext context,
+    OrderScreenController controller,
     orderDetailsModel.Data orderData,
   ) {
+    final showAddPayment = _hasPaymentDue(orderData);
     return Container(
       padding: EdgeInsets.only(
         top: MySize.getHeight(8),
@@ -832,7 +843,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   TranslationKeys.close.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: MySize.getHeight(14),
+                    fontSize: MySize.getHeight(15),
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -842,56 +853,114 @@ class OrderScreenView extends GetView<OrderScreenController> {
           ),
           SizedBox(width: MySize.getWidth(12)),
           Expanded(
-            child: Obx(() {
-              final isPrinting = controller.isPrinting.value;
-              return InkWell(
-                onTap:
-                    isPrinting
-                        ? null
-                        : () => _printInvoice(context, controller, orderData),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MySize.getWidth(16),
-                    vertical: MySize.getHeight(10),
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isPrinting
-                            ? const Color(0xFF0E9F6E).withOpacity(0.7)
-                            : const Color(0xFF0E9F6E),
-                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                    boxShadow: ColorConstants.getShadow2,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isPrinting)
-                        CupertinoActivityIndicator(
-                          radius: MySize.getHeight(8),
-                          color: Colors.white,
-                        )
-                      else
-                        Icon(
-                          Icons.print,
-                          color: Colors.white,
-                          size: MySize.getHeight(18),
+            child:
+                showAddPayment
+                    ? InkWell(
+                      onTap:
+                          () => _openAddPaymentFromSheet(context, controller),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(16),
+                          vertical: MySize.getHeight(10),
                         ),
-                      if (!isPrinting) SizedBox(width: MySize.getWidth(6)),
-                      if (!isPrinting)
-                        Text(
-                          TranslationKeys.print.tr,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(14),
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                        decoration: BoxDecoration(
+                          color: ColorConstants.primaryColor,
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
+                          ),
+                          boxShadow: ColorConstants.getShadow2,
+                        ),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.payment,
+                                  color: Colors.white,
+                                  size: MySize.getHeight(18),
+                                ),
+                                SizedBox(width: MySize.getWidth(6)),
+                                Text(
+                                  TranslationKeys.addPayment.tr,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(15),
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+                      ),
+                    )
+                    : Obx(() {
+                      final isPrinting = controller.isPrinting.value;
+                      return InkWell(
+                        onTap:
+                            isPrinting
+                                ? null
+                                : () => _printInvoice(
+                                  context,
+                                  controller,
+                                  orderData,
+                                ),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(16),
+                            vertical: MySize.getHeight(10),
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isPrinting
+                                    ? const Color(0xFF0E9F6E).withOpacity(0.7)
+                                    : const Color(0xFF0E9F6E),
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(8),
+                            ),
+                            boxShadow: ColorConstants.getShadow2,
+                          ),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (isPrinting)
+                                    CupertinoActivityIndicator(
+                                      radius: MySize.getHeight(8),
+                                      color: Colors.white,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.print,
+                                      color: Colors.white,
+                                      size: MySize.getHeight(18),
+                                    ),
+                                  if (!isPrinting)
+                                    SizedBox(width: MySize.getWidth(6)),
+                                  if (!isPrinting)
+                                    Text(
+                                      TranslationKeys.print.tr,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(15),
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
           ),
         ],
       ),
@@ -910,13 +979,18 @@ class OrderScreenView extends GetView<OrderScreenController> {
       return _buildErrorView(context);
     }
 
-    return _buildOrderDetailsContent(context, orderDetails!.data!, order);
+    return _buildOrderDetailsContent(
+      context,
+      controller,
+      orderDetails!.data!,
+      order,
+    );
   }
 
   Widget _buildLoadingView() {
     return Center(
       child: Container(
-        padding: EdgeInsets.all(MySize.getWidth(24)),
+        padding: EdgeInsets.all(MySize.getWidth(12)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(MySize.getHeight(8)),
@@ -950,7 +1024,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           Text(
             TranslationKeys.failedToLoadOrderDetails.tr,
             style: TextStyle(
-              fontSize: MySize.getHeight(16),
+              fontSize: MySize.getHeight(17),
               color: Colors.grey,
             ),
           ),
@@ -970,7 +1044,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 TranslationKeys.close.tr,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: MySize.getHeight(14),
+                  fontSize: MySize.getHeight(15),
                 ),
               ),
             ),
@@ -983,10 +1057,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildOrderDetailsContent(
     BuildContext context,
+    OrderScreenController controller,
     orderDetailsModel.Data orderData,
     orderModel.Orders order,
   ) {
     final orderDetails = orderData.order;
+    final couponCode = orderDetails?.couponCode;
+    final placedVia = orderDetails?.placedVia;
+
     return Padding(
       padding: EdgeInsets.all(MySize.getWidth(8)),
       child: Column(
@@ -994,17 +1072,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
         children: [
           Row(
             children: [
-              Image.asset(
-                ImageConstant.order,
-                height: MySize.getHeight(24),
-                width: MySize.getHeight(24),
-              ),
-              SizedBox(width: MySize.getWidth(8)),
               Expanded(
                 child: Text(
                   '${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${_formatOrderType(orderDetails?.orderType)})',
                   style: TextStyle(
-                    fontSize: MySize.getHeight(16),
+                    fontSize: MySize.getHeight(17),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1013,16 +1085,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
           ),
           SizedBox(height: MySize.getHeight(8)),
           // Coupon and Placed Via badges
-          if ((orderDetails?.couponCode != null &&
-                  orderDetails!.couponCode!.isNotEmpty) ||
-              (orderDetails?.placedVia != null &&
-                  orderDetails!.placedVia!.isNotEmpty))
+          if ((couponCode != null && couponCode.isNotEmpty) ||
+              (placedVia != null && placedVia.isNotEmpty))
             Padding(
               padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
               child: Row(
                 children: [
-                  if (orderDetails?.couponCode != null &&
-                      orderDetails!.couponCode!.isNotEmpty)
+                  if (couponCode != null && couponCode.isNotEmpty)
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -1036,25 +1105,24 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         ),
                       ),
                       child: Text(
-                        '${TranslationKeys.coupon.tr.toUpperCase()}: ${orderDetails!.couponCode!.toUpperCase()}',
+                        '${TranslationKeys.coupon.tr.toUpperCase()}: ${couponCode.toUpperCase()}',
                         style: TextStyle(
                           color: Colors.purple.shade700,
-                          fontSize: MySize.getHeight(10),
+                          fontSize: MySize.getHeight(11),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                  if (orderDetails?.couponCode != null &&
-                      orderDetails!.couponCode!.isNotEmpty &&
-                      orderDetails.placedVia != null &&
-                      orderDetails.placedVia!.isNotEmpty)
+                  if (couponCode != null &&
+                      couponCode.isNotEmpty &&
+                      placedVia != null &&
+                      placedVia.isNotEmpty)
                     SizedBox(width: MySize.getWidth(8)),
-                  if (orderDetails?.placedVia != null &&
-                      orderDetails!.placedVia!.isNotEmpty)
+                  if (placedVia != null && placedVia.isNotEmpty)
                     Builder(
                       builder: (context) {
                         final placedViaColor = _getPlacedViaColorStatic(
-                          orderDetails.placedVia!,
+                          placedVia,
                         );
                         return Container(
                           padding: EdgeInsets.symmetric(
@@ -1072,10 +1140,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             ),
                           ),
                           child: Text(
-                            _formatPlacedViaTextStatic(orderDetails.placedVia!),
+                            _formatPlacedViaTextStatic(placedVia),
                             style: TextStyle(
                               color: placedViaColor,
-                              fontSize: MySize.getHeight(10),
+                              fontSize: MySize.getHeight(11),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1114,10 +1182,235 @@ class OrderScreenView extends GetView<OrderScreenController> {
           _buildOrderItemsTable(orderData),
           SizedBox(height: MySize.getHeight(8)),
           _buildPriceSummary(orderData),
+          if (_hasPaymentDue(orderData)) ...[
+            SizedBox(height: MySize.getHeight(8)),
+            _buildPaymentsTable(context, orderData, controller),
+          ],
           SizedBox(height: MySize.getHeight(16)),
         ],
       ),
     );
+  }
+
+  bool _hasPaymentDue(orderDetailsModel.Data orderData) {
+    return orderData.order?.payments?.any(
+          (p) => p.paymentMethod?.toLowerCase() == 'due',
+        ) ??
+        false;
+  }
+
+  Widget _buildPaymentsTable(
+    BuildContext context,
+    orderDetailsModel.Data orderData,
+    OrderScreenController controller,
+  ) {
+    final payments = orderData.order?.payments ?? [];
+    if (payments.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: ColorConstants.getShadow2,
+      ),
+      child: Table(
+        columnWidths: const {
+          0: FlexColumnWidth(1),
+          1: FlexColumnWidth(1.05),
+          2: FlexColumnWidth(1.30),
+          3: FlexColumnWidth(2),
+        },
+        children: [
+          TableRow(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(MySize.getHeight(8)),
+              ),
+            ),
+            children: [
+              _tableHeaderCell(TranslationKeys.amount.tr),
+              _tableHeaderCell(TranslationKeys.paymentMethod.tr),
+              _tableHeaderCell(TranslationKeys.dateAndTime.tr),
+              _tableHeaderCell(TranslationKeys.action.tr),
+            ],
+          ),
+          ...payments.map((payment) {
+            final method = payment.paymentMethod?.toLowerCase() ?? '';
+            final isDue = method == 'due';
+            final amountStr =
+                payment.amount != null
+                    ? CurrencyFormatter.formatPrice(payment.amount!.toString())
+                    : '—';
+            final methodLabel =
+                isDue
+                    ? TranslationKeys.due.tr
+                    : (method == 'cash'
+                        ? TranslationKeys.cash.tr
+                        : (payment.paymentMethod ?? '—'));
+            final dateTimeStr =
+                payment.createdAt != null && payment.createdAt!.isNotEmpty
+                    ? DateTimeFormatter.formatDateTime(payment.createdAt)
+                    : '—';
+            return TableRow(
+              decoration: const BoxDecoration(
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: Colors.grey, width: 0.5),
+                ),
+              ),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(MySize.getHeight(8)),
+                  child: Text(
+                    amountStr,
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(MySize.getHeight(8)),
+                  child: Text(
+                    methodLabel,
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(MySize.getHeight(8)),
+                  child: Text(
+                    dateTimeStr,
+                    style: TextStyle(fontSize: MySize.getHeight(12)),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(MySize.getHeight(8)),
+                  child:
+                      isDue
+                          ? _outlinedButton(
+                            label: TranslationKeys.addPayment.tr,
+                            onTap:
+                                () => _openAddPaymentFromSheet(
+                                  context,
+                                  controller,
+                                ),
+                          )
+                          : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _outlinedButton(
+                                label: TranslationKeys.view.tr,
+                                icon: Icons.visibility_outlined,
+                                onTap: () {},
+                                iconOnly: true,
+                              ),
+                              SizedBox(width: MySize.getWidth(6)),
+                              _outlinedButton(
+                                label: TranslationKeys.print.tr,
+                                icon: Icons.print,
+                                iconOnly: true,
+                                onTap:
+                                    () => _printInvoice(
+                                      context,
+                                      controller,
+                                      orderData,
+                                    ),
+                              ),
+                            ],
+                          ),
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _tableHeaderCell(String text) {
+    return Padding(
+      padding: EdgeInsets.all(MySize.getHeight(8)),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: MySize.getHeight(11),
+          color: Colors.grey.shade700,
+        ),
+      ),
+    );
+  }
+
+  Widget _outlinedButton({
+    required String label,
+    IconData? icon,
+    required VoidCallback onTap,
+    bool? iconOnly,
+  }) {
+    final showLabel = iconOnly != true;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: showLabel ? MySize.getWidth(8) : MySize.getWidth(10),
+          vertical: showLabel ? MySize.getHeight(6) : MySize.getHeight(8),
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color:
+                icon == Icons.print
+                    ? Colors.red.shade300
+                    : (icon == Icons.visibility_outlined
+                        ? Colors.blue.shade300
+                        : Colors.grey.shade400),
+          ),
+          borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: MySize.getHeight(20),
+                color:
+                    icon == Icons.print
+                        ? Colors.red
+                        : (icon == Icons.visibility_outlined
+                            ? Colors.blue
+                            : Colors.grey),
+              ),
+              if (showLabel) SizedBox(width: MySize.getWidth(4)),
+            ],
+            if (showLabel)
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: MySize.getHeight(11),
+                  color:
+                      icon == Icons.print
+                          ? Colors.red
+                          : (icon == Icons.visibility_outlined
+                              ? Colors.blue
+                              : Colors.grey.shade700),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Future<void> _openAddPaymentFromSheet(
+    BuildContext context,
+    OrderScreenController controller,
+  ) async {
+    Navigator.pop(context);
+    final getOrderModel = controller.orderDetails.value;
+    if (getOrderModel == null) return;
+    final table = RunningTableService.tablesFromOrderDetails(getOrderModel);
+    if (table == null) return;
+    await OrderPaymentDialog.show(orderDetails: getOrderModel, table: table);
+    controller.fetchAllOrders();
   }
 
   Widget _buildOrderTimeInfo(dynamic orderDetails) {
@@ -1180,7 +1473,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           child: Text(
                             entry.value,
                             style: TextStyle(
-                              fontSize: MySize.getHeight(12),
+                              fontSize: MySize.getHeight(13),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1239,7 +1532,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           child: Text(
             TranslationKeys.noItemsFound.tr,
             style: TextStyle(
-              fontSize: MySize.getHeight(18),
+              fontSize: MySize.getHeight(19),
               color: Colors.grey,
               fontWeight: FontWeight.w500,
             ),
@@ -1256,11 +1549,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       child: Table(
         columnWidths: const {
-          0: FlexColumnWidth(0.7),
-          1: FlexColumnWidth(2),
-          2: FlexColumnWidth(0.8),
+          0: FlexColumnWidth(2),
+          1: FlexColumnWidth(0.8),
+          2: FlexColumnWidth(1),
           3: FlexColumnWidth(1),
-          4: FlexColumnWidth(1),
         },
         children: [
           TableRow(
@@ -1274,20 +1566,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
               Padding(
                 padding: EdgeInsets.all(MySize.getWidth(6)),
                 child: Text(
-                  TranslationKeys.noHeader.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(MySize.getWidth(6)),
-                child: Text(
                   TranslationKeys.itemNames.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
+                    fontSize: MySize.getHeight(11),
                   ),
                 ),
               ),
@@ -1297,7 +1579,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   TranslationKeys.qty.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
+                    fontSize: MySize.getHeight(11),
                   ),
                 ),
               ),
@@ -1307,7 +1589,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   TranslationKeys.priceHeader.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
+                    fontSize: MySize.getHeight(11),
                   ),
                 ),
               ),
@@ -1317,16 +1599,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   TranslationKeys.amountHeader.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
+                    fontSize: MySize.getHeight(11),
                   ),
                 ),
               ),
             ],
           ),
           ...items.asMap().entries.map((entry) {
-            final index = entry.key;
             final item = entry.value;
-            final itemNumber = item.itemNumber ?? 'M${index + 1}';
             final modifiers = item.modifiers ?? [];
             final details =
                 modifiers
@@ -1353,7 +1633,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
               qty: item.quantity?.toString() ?? '0',
               price: CurrencyFormatter.formatPrice(priceStr),
               amount: CurrencyFormatter.formatPrice(amountStr),
-              itemNumber: itemNumber,
             );
           }).toList(),
         ],
@@ -1367,7 +1646,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
     required String qty,
     required String price,
     required String amount,
-    String itemNumber = 'M1',
   }) {
     return TableRow(
       decoration: BoxDecoration(
@@ -1378,16 +1656,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
       children: [
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(
-            itemNumber,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: MySize.getHeight(12),
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1395,7 +1663,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 itemName,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: MySize.getHeight(12),
+                  fontSize: MySize.getHeight(13),
                 ),
               ),
               if (details.isNotEmpty)
@@ -1407,7 +1675,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                             (detail) => Text(
                               detail,
                               style: TextStyle(
-                                fontSize: MySize.getHeight(12),
+                                fontSize: MySize.getHeight(13),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -1419,15 +1687,15 @@ class OrderScreenView extends GetView<OrderScreenController> {
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(qty, style: TextStyle(fontSize: MySize.getHeight(12))),
+          child: Text(qty, style: TextStyle(fontSize: MySize.getHeight(13))),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(price, style: TextStyle(fontSize: MySize.getHeight(12))),
+          child: Text(price, style: TextStyle(fontSize: MySize.getHeight(13))),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(amount, style: TextStyle(fontSize: MySize.getHeight(12))),
+          child: Text(amount, style: TextStyle(fontSize: MySize.getHeight(13))),
         ),
       ],
     );
@@ -1463,7 +1731,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: MySize.getHeight(14),
+              fontSize: MySize.getHeight(15),
             ),
           ),
           SizedBox(height: MySize.getHeight(8)),
@@ -1597,7 +1865,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
               Text(
                 TranslationKeys.customerDetails.tr,
                 style: TextStyle(
-                  fontSize: MySize.getHeight(14),
+                  fontSize: MySize.getHeight(15),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1676,7 +1944,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
               Text(
                 TranslationKeys.waiter.tr,
                 style: TextStyle(
-                  fontSize: MySize.getHeight(14),
+                  fontSize: MySize.getHeight(15),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1709,7 +1977,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             child: Text(
               '$label:',
               style: TextStyle(
-                fontSize: MySize.getHeight(12),
+                fontSize: MySize.getHeight(13),
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade700,
               ),
@@ -1719,7 +1987,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: MySize.getHeight(12),
+                fontSize: MySize.getHeight(13),
                 color: Colors.black87,
               ),
             ),
@@ -1820,14 +2088,14 @@ Widget _buildPriceRow(
         Text(
           label,
           style: TextStyle(
-            fontSize: MySize.getHeight(12),
+            fontSize: MySize.getHeight(13),
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: MySize.getHeight(12),
+            fontSize: MySize.getHeight(13),
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: valueColor ?? Colors.black,
           ),
@@ -1922,7 +2190,7 @@ class OrderCard extends StatelessWidget {
                             style: TextStyle(
                               color: ColorConstants.primaryColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: MySize.getHeight(10),
+                              fontSize: MySize.getHeight(11),
                             ),
                           ),
                 ),
@@ -1936,7 +2204,7 @@ class OrderCard extends StatelessWidget {
                         orderNumber,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: MySize.getHeight(11),
+                          fontSize: MySize.getHeight(12),
                         ),
                       ),
                       if (order.customer != null && customerName.isNotEmpty)
@@ -1944,7 +2212,7 @@ class OrderCard extends StatelessWidget {
                           customerName,
                           style: TextStyle(
                             color: ColorConstants.grey600,
-                            fontSize: MySize.getHeight(10),
+                            fontSize: MySize.getHeight(11),
                           ),
                         ),
                     ],
@@ -1962,7 +2230,7 @@ class OrderCard extends StatelessWidget {
                     formattedDateTime,
                     style: TextStyle(
                       color: ColorConstants.grey600,
-                      fontSize: MySize.getHeight(11),
+                      fontSize: MySize.getHeight(12),
                     ),
                   ),
                 ),
@@ -1970,7 +2238,7 @@ class OrderCard extends StatelessWidget {
                   "$itemsCount ${TranslationKeys.itemsPlural.tr}",
                   style: TextStyle(
                     color: ColorConstants.grey600,
-                    fontSize: MySize.getHeight(11),
+                    fontSize: MySize.getHeight(12),
                   ),
                 ),
               ],
@@ -1986,7 +2254,7 @@ class OrderCard extends StatelessWidget {
                   formattedPrice,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(14),
+                    fontSize: MySize.getHeight(15),
                   ),
                 ),
                 if (waiterName.isNotEmpty) SizedBox(width: MySize.getWidth(10)),
@@ -2002,7 +2270,7 @@ class OrderCard extends StatelessWidget {
                       SizedBox(width: MySize.getWidth(6)),
                       Text(
                         waiterName,
-                        style: TextStyle(fontSize: MySize.getHeight(11)),
+                        style: TextStyle(fontSize: MySize.getHeight(12)),
                       ),
                     ],
                   ),
@@ -2022,7 +2290,7 @@ class OrderCard extends StatelessWidget {
                       '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
                       style: TextStyle(
                         color: Colors.purple.shade700,
-                        fontSize: MySize.getHeight(10),
+                        fontSize: MySize.getHeight(11),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -2054,7 +2322,7 @@ class OrderCard extends StatelessWidget {
                           _formatPlacedViaTextStatic(order.placedVia!),
                           style: TextStyle(
                             color: placedViaColor,
-                            fontSize: MySize.getHeight(10),
+                            fontSize: MySize.getHeight(11),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2109,34 +2377,6 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  // Helper method to get color for placed_via badge
-  Color _getPlacedViaColor(String placedVia) {
-    switch (placedVia.toLowerCase()) {
-      case 'ios':
-        return const Color(0xFF4A4A4A); // Charcoal/dark grey
-      case 'android':
-        return ColorConstants.statusPaid; // Green like paid
-      case 'pos':
-        return ColorConstants.primaryColor; // Dinemetrics pink
-      case 'qr':
-        return Colors.orange; // Yellow/Orange like kitchen
-      case 'shop':
-        return ColorConstants.statusBilled; // Blue like billed
-      default:
-        return Colors.grey;
-    }
-  }
-
-  // Helper method to format placed_via text
-  String _formatPlacedViaText(String placedVia) {
-    switch (placedVia.toLowerCase()) {
-      case 'ios':
-        return 'iOS'; // Proper iOS formatting
-      default:
-        return placedVia.toUpperCase();
-    }
-  }
-
   Widget _statusBadge(String label, Color color) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -2153,7 +2393,7 @@ class OrderCard extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: MySize.getHeight(9),
+          fontSize: MySize.getHeight(10),
         ),
       ),
     );
@@ -2288,7 +2528,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
                                 ? Text(
                                   widget.label,
                                   style: TextStyle(
-                                    fontSize: MySize.getHeight(12),
+                                    fontSize: MySize.getHeight(13),
                                     color:
                                         widget.isSelected
                                             ? ColorConstants.primaryColor
@@ -2308,7 +2548,7 @@ class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
                                     child: Text(
                                       widget.label,
                                       style: TextStyle(
-                                        fontSize: MySize.getHeight(12),
+                                        fontSize: MySize.getHeight(13),
                                         color:
                                             widget.isSelected
                                                 ? ColorConstants.primaryColor

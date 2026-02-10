@@ -115,18 +115,90 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                         .toggleNewShopOrderNotifications(),
                           ),
                         ),
-                        if (Platform.isAndroid) ...[
-                          SizedBox(height: MySize.getHeight(8)),
-                          _buildSettingItem(
-                            icon: Icons.print,
-                            title: TranslationKeys.printerSettings.tr,
-                            color: ColorConstants.primaryColor,
-                            onTap: () {
-                              Get.toNamed(Routes.PRINTER_SCREEN);
-                            },
-                            showArrow: true,
+                        SizedBox(height: MySize.getHeight(8)),
+                        Obx(
+                          () => Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(14),
+                              ),
+                              border: Border.all(
+                                color: ColorConstants.primaryColor.withValues(
+                                  alpha: 0.2,
+                                ),
+                                width: MySize.getWidth(1),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: MySize.getWidth(6),
+                                  offset: Offset(0, MySize.getHeight(2)),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSettingItemNoCard(
+                                  icon: Icons.print,
+                                  title: TranslationKeys.printerSettings.tr,
+                                  color: ColorConstants.primaryColor,
+                                  onTap:
+                                      () => controller.togglePrinterSection(),
+                                  showArrow: true,
+                                  isExpanded:
+                                      controller.isPrinterSectionExpanded.value,
+                                ),
+                                if (controller
+                                    .isPrinterSectionExpanded
+                                    .value) ...[
+                                  Divider(
+                                    height: 1,
+                                    color: ColorConstants.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    indent: MySize.getWidth(10),
+                                    endIndent: MySize.getWidth(10),
+                                  ),
+                                  _buildSettingItemNoCardIndented(
+                                    title: TranslationKeys.managePrinters.tr,
+                                    color: ColorConstants.primaryColor,
+                                    onTap: () {
+                                      Get.toNamed(Routes.MANAGE_PRINTER_SCREEN);
+                                    },
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: ColorConstants.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    indent: MySize.getWidth(10),
+                                    endIndent: MySize.getWidth(10),
+                                  ),
+                                  _buildSettingItemNoCardIndented(
+                                    title: TranslationKeys.printingRules.tr,
+                                    color: ColorConstants.primaryColor,
+                                    onTap: () {
+                                      Get.toNamed(Routes.PRINTING_RULES);
+                                    },
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: ColorConstants.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    indent: MySize.getWidth(10),
+                                    endIndent: MySize.getWidth(10),
+                                  ),
+                                  _buildSettingItemNoCardIndented(
+                                    title: TranslationKeys.printService.tr,
+                                    color: ColorConstants.primaryColor,
+                                    onTap: () {
+                                      Get.toNamed(Routes.PRINT_SERVICE);
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                         SizedBox(height: MySize.getHeight(8)),
                         _buildSettingItem(
                           icon: Icons.power_settings_new_sharp,
@@ -822,6 +894,96 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingItemNoCard({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+    required bool showArrow,
+    bool isExpanded = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: MySize.getHeight(50),
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(10),
+          vertical: MySize.getHeight(6),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(MySize.getHeight(6)),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+              ),
+              child: Icon(icon, color: color, size: MySize.getHeight(24)),
+            ),
+            SizedBox(width: MySize.getWidth(12)),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: MySize.getHeight(12),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (showArrow)
+              Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: color.withValues(alpha: 0.6),
+                size: MySize.getHeight(18),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingItemNoCardIndented({
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: MySize.getHeight(50),
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(10),
+          vertical: MySize.getHeight(6),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: MySize.getWidth(42),
+            ), // Indent to align with text above
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: MySize.getHeight(12),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: color.withValues(alpha: 0.6),
+              size: MySize.getHeight(14),
+            ),
+          ],
         ),
       ),
     );

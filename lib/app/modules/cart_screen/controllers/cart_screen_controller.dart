@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
@@ -33,8 +34,12 @@ class CartScreenController extends GetxController {
   final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
   final RxBool isSubmittingOrder = false.obs;
   RxString currentOrderType = 'Pickup'.obs;
+  bool hideTableSection = false;
 
   bool get hasTable => selectedTable.value != null;
+
+  /// When true, show the table/Pax row at top (hidden for delivery/pickup).
+  bool get showTableSection => hasTable && !hideTableSection;
 
   @override
   void onInit() {
@@ -54,6 +59,10 @@ class CartScreenController extends GetxController {
 
     final sourceScreenValue = arguments[ArgumentConstant.sourceScreenKey];
     sourceScreen = sourceScreenValue is String ? sourceScreenValue : null;
+
+    final hideTableSectionValue =
+        arguments[ArgumentConstant.hideTableSectionKey];
+    hideTableSection = hideTableSectionValue == true;
 
     final table = arguments[ArgumentConstant.tableKey];
     final order = arguments[ArgumentConstant.orderKey];
@@ -113,7 +122,9 @@ class CartScreenController extends GetxController {
     String status = 'kot',
   }) async {
     try {
-      if (!hasTable) {
+      final bool isExistingOrder =
+          existingOrderId != null && existingOrderId!.isNotEmpty;
+      if (!isExistingOrder && !hasTable) {
         safeGetSnackbar(
           TranslationKeys.error.tr,
           TranslationKeys.pleaseSelectTableFirst.tr,
@@ -159,7 +170,7 @@ class CartScreenController extends GetxController {
       }
 
       final tableId = selectedTable.value?.id;
-      if (tableId == null) {
+      if (!isExistingOrder && tableId == null) {
         safeGetSnackbar(
           TranslationKeys.error.tr,
           TranslationKeys.tableInformationMissing.tr,
@@ -170,9 +181,6 @@ class CartScreenController extends GetxController {
         isSubmittingOrder.value = false;
         return;
       }
-
-      final bool isExistingOrder =
-          existingOrderId != null && existingOrderId!.isNotEmpty;
 
       final itemsList =
           cartItems.map((item) {
@@ -302,7 +310,7 @@ class CartScreenController extends GetxController {
           TranslationKeys.success.tr,
           TranslationKeys.paymentCreatedSuccessfully.tr,
           snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
+          backgroundColor: ColorConstants.successGreen,
           colorText: Colors.white,
         );
         cartItems.clear();

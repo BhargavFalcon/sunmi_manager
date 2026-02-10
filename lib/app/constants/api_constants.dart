@@ -23,11 +23,15 @@ class ArgumentConstant {
   static const addOrderItemsEndpoint =
       "api/v1/pos/orders/:order_uuid/items/sync";
   static const paymentsEndpoint = "api/v1/pos/payments";
+  static const splitPaymentEndpoint =
+      "api/v1/pos/orders/:order_uuid/payments/split";
   static const allOrdersEndpoint = "api/v1/pos/orders";
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
+  static const customersEndpoint = "api/v1/pos/customers";
   static const orderKey = "order";
   static const sourceScreenKey = "source_screen";
+  static const hideTableSectionKey = "hide_table_section";
 
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";
@@ -41,4 +45,9 @@ class ArgumentConstant {
   static const selectedLanguageKey = "selected_language";
   static const newShopOrderNotificationsKey =
       "new_shop_order_notifications_enabled";
+
+  // Print Service Keys
+  static const printServiceUrlKey = "print_service_url";
+  static const printServiceApiKeyKey = "print_service_api_key";
+  static const isPrintServiceConnectedKey = "is_print_service_connected";
 }

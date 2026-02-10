@@ -22,6 +22,7 @@ class TranslationKeys {
   static const String print = 'print';
   static const String name = 'name';
   static const String email = 'email';
+  static const String emailAddress = 'emailAddress';
   static const String phone = 'phone';
   static const String address = 'address';
   static const String quantity = 'quantity';
@@ -217,6 +218,9 @@ class TranslationKeys {
   static const String onBluetooth = 'onBluetooth';
   static const String paymentMethod = 'paymentMethod';
   static const String cash = 'cash';
+  static const String addPayment = 'addPayment';
+  static const String view = 'view';
+  static const String due = 'due';
 
   // Additional Cart Screen
   static const String pleaseSelectTableFirst = 'pleaseSelectTableFirst';
@@ -290,6 +294,7 @@ class TranslationKeys {
   static const String newReservation = 'newReservation';
   static const String anySpecialRequest = 'anySpecialRequest';
   static const String customerName = 'customerName';
+  static const String customerEmail = 'customerEmail';
   static const String guests = 'guests';
   static const String yesterday = 'yesterday';
   static const String last30Days = 'last30Days';
@@ -318,7 +323,7 @@ class TranslationKeys {
   static const String dine = 'dine';
 
   // Main Home Screen
-  static const String takeOrder = 'takeOrder';
+  static const String deliveryPickup = 'deliveryPickup';
   static const String settings = 'settings';
 
   // Printer Screen
@@ -341,4 +346,65 @@ class TranslationKeys {
   static const String noInternetMessage = 'noInternetMessage';
   static const String accessLimited = 'accessLimited';
   static const String featureNotEnabled = 'featureNotEnabled';
+
+  // Pre-Order DateTime Picker
+  static const String selectDateAndTime = 'selectDateAndTime';
+  static const String reset = 'reset';
+  static const String resetPreOrder = 'resetPreOrder';
+
+  // Add Customer Dialog
+  static const String addCustomer = 'addCustomer';
+  static const String enterCustomerName = 'enterCustomerName';
+  static const String enterCustomerPhone = 'enterCustomerPhone';
+  static const String enterCustomerEmail = 'enterCustomerEmail';
+  static const String zipcode = 'zipcode';
+  static const String houseNumber = 'houseNumber';
+  static const String deliveryDisclaimer = 'deliveryDisclaimer';
+  static const String enterCustomerAddress = 'enterCustomerAddress';
+
+  // Printer Sub-Screens
+  static const String managePrinters = 'managePrinters';
+  static const String printingRules = 'printingRules';
+  static const String printService = 'printService';
+  static const String connection = 'connection';
+  static const String domainUrl = 'domainUrl';
+  static const String apiKey = 'apiKey';
+  static const String testConnection = 'testConnection';
+  static const String connectedAndPolling = 'connectedAndPolling';
+  static const String configure = 'configure';
+  static const String url = 'url';
+  static const String key = 'key';
+  static const String domainHint = 'domainHint';
+  static const String apiKeyHint = 'apiKeyHint';
+
+  // Order Payment Dialog
+  static const String pay = 'pay';
+  static const String paymentProcessedSuccessfully =
+      'paymentProcessedSuccessfully';
+  static const String failedToProcessPayment = 'failedToProcessPayment';
+  static const String card = 'card';
+  static const String upi = 'upi';
+  static const String bankTransfer = 'bankTransfer';
+  static const String amountToPay = 'amountToPay';
+  static const String addTip = 'addTip';
+  static const String totalAmount = 'totalAmount';
+  static const String payableAmount = 'payableAmount';
+  static const String dueAmount = 'dueAmount';
+  static const String enterCustomAmount = 'enterCustomAmount';
+  static const String custom = 'custom';
+  static const String enterValue = 'enterValue';
+  static const String tipAdded = 'tipAdded';
+
+  // Split Bill
+  static const String availableItems = 'availableItems';
+  static const String clickItemToAdd = 'clickItemToAdd';
+  static const String itemsInSplit = 'itemsInSplit';
+  static const String noItemsInSplit = 'noItemsInSplit';
+  static const String removeItem = 'removeItem';
+  static const String all = 'all';
+  static const String returnAmount = 'returnAmount';
+  static const String considerReturnAsTip = 'considerReturnAsTip';
+  static const String makePayment = 'makePayment';
+  static const String switchingToFullPayment = 'switchingToFullPayment';
+  static const String allSplitItemsWillBeCleared = 'allSplitItemsWillBeCleared';
 }

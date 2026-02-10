@@ -48,6 +48,20 @@ class TakeOrderController extends GetxController {
       Rx<orderModel.GetOrderModel?>(null);
 
   String? sourceScreen;
+  bool hideTableSection = false;
+
+  final Rx<DateTime?> selectedPreOrderDate = Rx<DateTime?>(null);
+  final Rx<TimeOfDay?> selectedPreOrderTime = Rx<TimeOfDay?>(null);
+
+  final RxString customerName = "".obs;
+  final RxString customerPhone = "".obs;
+  final RxString customerEmail = "".obs;
+  final RxString customerPhoneCode = "+49".obs;
+  final RxString customerZipcode = "".obs;
+  final RxString customerHouseNumber = "".obs;
+  final RxString customerAddress = "".obs;
+
+  bool get hasCustomer => customerName.value.isNotEmpty;
 
   bool get hasTable => selectedTable.value != null;
 
@@ -60,13 +74,13 @@ class TakeOrderController extends GetxController {
     _fetchTableFromArguments();
     _fetchOrderFromArguments();
     _fetchSourceScreenFromArguments();
+    _fetchHideTableSectionFromArguments();
     loadMenuItemsFromStorage();
     _updateCartCount();
 
     searchController.addListener(() {
       searchText.value = searchController.text;
     });
-
   }
 
   void _checkAndShowDialog() {
@@ -112,6 +126,14 @@ class TakeOrderController extends GetxController {
     if (arguments != null && arguments is Map) {
       final sourceScreenValue = arguments[ArgumentConstant.sourceScreenKey];
       sourceScreen = sourceScreenValue is String ? sourceScreenValue : null;
+    }
+  }
+
+  void _fetchHideTableSectionFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      final value = arguments[ArgumentConstant.hideTableSectionKey];
+      hideTableSection = value == true;
     }
   }
 
@@ -255,6 +277,39 @@ class TakeOrderController extends GetxController {
     scrollToCenter(stickyCategoryScrollController);
   }
 
+  void updatePreOrderDateTime(DateTime? date, TimeOfDay? time) {
+    selectedPreOrderDate.value = date;
+    selectedPreOrderTime.value = time;
+  }
+
+  void updateCustomerDetails({
+    required String name,
+    required String phone,
+    required String email,
+    required String phoneCode,
+    String? zipcode,
+    String? houseNumber,
+    String? address,
+  }) {
+    customerName.value = name;
+    customerPhone.value = phone;
+    customerEmail.value = email;
+    customerPhoneCode.value = phoneCode;
+    customerZipcode.value = zipcode ?? "";
+    customerHouseNumber.value = houseNumber ?? "";
+    customerAddress.value = address ?? "";
+  }
+
+  void clearCustomerDetails() {
+    customerName.value = "";
+    customerPhone.value = "";
+    customerEmail.value = "";
+    customerPhoneCode.value = "+49";
+    customerZipcode.value = "";
+    customerHouseNumber.value = "";
+    customerAddress.value = "";
+  }
+
   Map<String, List<Map<String, dynamic>>> get filteredGroupedItems {
     if (groupedItems.isEmpty) {
       return {};
@@ -293,7 +348,6 @@ class TakeOrderController extends GetxController {
     selectedCategory.value = category;
     _scrollCategoryToCenter(category);
   }
-
 
   String _getBasePrice(Items item, String orderType) {
     switch (orderType) {

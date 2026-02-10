@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
@@ -19,11 +20,16 @@ class SettingScreenController extends GetxController {
   final beepSoundEnabled = true.obs;
   final newShopOrderNotificationsEnabled = true.obs;
   final selectedLanguage = 'en'.obs;
+  final isPrinterSectionExpanded = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadSettings();
+  }
+
+  void togglePrinterSection() {
+    isPrinterSectionExpanded.value = !isPrinterSectionExpanded.value;
   }
 
   void _loadSettings() {
@@ -88,7 +94,7 @@ class SettingScreenController extends GetxController {
               TranslationKeys.success.tr,
               TranslationKeys.menuSyncedSuccessfully.tr,
               snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.green,
+              backgroundColor: ColorConstants.successGreen,
               colorText: Colors.white,
             );
             return;

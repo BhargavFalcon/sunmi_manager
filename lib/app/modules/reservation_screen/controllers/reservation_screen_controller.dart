@@ -15,6 +15,7 @@ class ReservationScreenController extends GetxController {
   // Text Editing Controllers
   final TextEditingController customerNameController = TextEditingController();
   final TextEditingController customerPhoneController = TextEditingController();
+  final TextEditingController customerEmailController = TextEditingController();
   final TextEditingController specialRequestController =
       TextEditingController();
 
@@ -60,13 +61,7 @@ class ReservationScreenController extends GetxController {
     'No Show',
   ];
 
-  List<String> statusOptions = [
-    'Pending',
-    'Confirmed',
-    'Cancelled',
-    'Checked In',
-    'No Show',
-  ];
+  List<String> statusOptions = ['Pending', 'Confirmed'];
 
   List<String> personOptions = [
     '1 Person',
@@ -531,6 +526,7 @@ class ReservationScreenController extends GetxController {
     // Dispose controllers to prevent memory leaks
     customerNameController.dispose();
     customerPhoneController.dispose();
+    customerEmailController.dispose();
     specialRequestController.dispose();
     super.onClose();
   }
@@ -612,6 +608,7 @@ class ReservationScreenController extends GetxController {
   void clearForm() {
     customerNameController.clear();
     customerPhoneController.clear();
+    customerEmailController.clear();
     specialRequestController.clear();
     selectedCountryCode.value = '+49';
     selectedCountryFlag.value = '🇩🇪';
@@ -662,6 +659,7 @@ class ReservationScreenController extends GetxController {
       'name': customerNameController.text.trim(),
       'phone':
           '${selectedCountryCode.value} ${customerPhoneController.text.trim()}',
+      'email': customerEmailController.text.trim(),
       'status': selectedReservationStatus.value,
       'specialRequest': specialRequestController.text.trim(),
     };
@@ -674,8 +672,8 @@ class ReservationScreenController extends GetxController {
       TranslationKeys.success.tr,
       TranslationKeys.reservationCreatedSuccessfully.tr,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.green.shade700,
+      backgroundColor: ColorConstants.successGreen.withOpacity(0.2),
+      colorText: ColorConstants.successGreen,
     );
 
     // Clear form and close bottom sheet

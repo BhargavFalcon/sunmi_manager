@@ -8,6 +8,7 @@ class ColorConstants {
   static const Color grey800 = Color(0xff424242);
   static const Color grey9E9E9E = Color(0xFF9E9E9E);
   static const Color green = Color(0xff4CAF50);
+  static const Color successGreen = Color(0xFF0E9F6E);
   static const Color tableGreen = Color(0xFF2A9F6E);
   static const Color tableBlue = Color(0xFF3F82F8);
   static const Color red = Color(0xFFF44336);
