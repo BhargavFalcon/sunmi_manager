@@ -376,6 +376,17 @@ class TranslationKeys {
   static const String key = 'key';
   static const String domainHint = 'domainHint';
   static const String apiKeyHint = 'apiKeyHint';
+  static const String printerSetup = 'printerSetup';
+  static const String refreshPrinters = 'refreshPrinters';
+  static const String mapEachKitchenToPrinter = 'mapEachKitchenToPrinter';
+  static const String failedToFetchPrinters = 'failedToFetchPrinters';
+  static const String printerMappingsFound = 'printerMappingsFound';
+  static const String kitchenName = 'kitchenName';
+  static const String printerAlias = 'printerAlias';
+  static const String assignedLocalPrinter = 'assignedLocalPrinter';
+  static const String thermal = 'thermal';
+  static const String cashDrawerSettings = 'cashDrawerSettings';
+  static const String openDrawerAfterPrint = 'openDrawerAfterPrint';
 
   // Order Payment Dialog
   static const String pay = 'pay';

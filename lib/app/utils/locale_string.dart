@@ -350,6 +350,18 @@ class LocaleString extends Translations {
       'key': 'Key',
       'domainHint': 'https://your-domain.com',
       'apiKeyHint': 'Enter your API key',
+      'printerSetup': 'Printer Setup',
+      'refreshPrinters': 'Refresh Printers',
+      'mapEachKitchenToPrinter':
+          'Map each kitchen to a local printer on your system.',
+      'failedToFetchPrinters': 'Failed to fetch printers.',
+      'printerMappingsFound': 'Printer Mappings (%s found)',
+      'kitchenName': 'Kitchen Name',
+      'printerAlias': 'Printer Alias',
+      'assignedLocalPrinter': 'Assigned Local Printer',
+      'thermal': 'Thermal',
+      'cashDrawerSettings': 'Cash Drawer Settings',
+      'openDrawerAfterPrint': 'Open drawer after print',
 
       // Order Payment Dialog
       'pay': 'PAY',

@@ -50,4 +50,6 @@ class ArgumentConstant {
   static const printServiceUrlKey = "print_service_url";
   static const printServiceApiKeyKey = "print_service_api_key";
   static const isPrintServiceConnectedKey = "is_print_service_connected";
+  static const printServiceOpenDrawerAfterPrintKey =
+      "print_service_open_drawer_after_print";
 }
