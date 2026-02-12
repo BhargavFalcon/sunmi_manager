@@ -58,6 +58,7 @@ class TranslationKeys {
   static const String pickup = 'pickup';
   static const String delivery = 'delivery';
   static const String noOrdersFound = 'noOrdersFound';
+  static const String noReservationsFound = 'noReservationsFound';
   static const String noItemsFound = 'noItemsFound';
   static const String failedToLoadOrderDetails = 'failedToLoadOrderDetails';
   static const String orderUuidNotFound = 'orderUuidNotFound';
@@ -106,6 +107,7 @@ class TranslationKeys {
 
   // Date Filters
   static const String today = 'today';
+  static const String nextWeek = 'nextWeek';
   static const String currentWeek = 'currentWeek';
   static const String lastWeek = 'lastWeek';
   static const String last7Days = 'last7Days';
@@ -230,6 +232,9 @@ class TranslationKeys {
   static const String failedToSubmitOrder = 'failedToSubmitOrder';
   static const String paymentCreatedSuccessfully = 'paymentCreatedSuccessfully';
   static const String failedToCreatePayment = 'failedToCreatePayment';
+  static const String pleaseSelectCustomerFirst = 'pleaseSelectCustomerFirst';
+  static const String pleaseSelectCustomerFirstPickup = 'pleaseSelectCustomerFirstPickup';
+  static const String deliveryAddressRequired = 'deliveryAddressRequired';
 
   // Take Order Screen
   static const String itemVariations = 'itemVariations';
@@ -358,6 +363,7 @@ class TranslationKeys {
   static const String enterCustomerPhone = 'enterCustomerPhone';
   static const String enterCustomerEmail = 'enterCustomerEmail';
   static const String zipcode = 'zipcode';
+  static const String validZipcodeRequired = 'validZipcodeRequired';
   static const String houseNumber = 'houseNumber';
   static const String deliveryDisclaimer = 'deliveryDisclaimer';
   static const String enterCustomerAddress = 'enterCustomerAddress';

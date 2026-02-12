@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/pusher_service.dart';
 import '../../../data/NetworkClient.dart';
+import '../../order_screen/controllers/order_screen_controller.dart';
 import '../../table_screen/controllers/table_screen_controller.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
+import '../../take_order_screen/controllers/take_order_controller.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/translation_keys.dart';
@@ -39,7 +41,9 @@ class MainHomeScreenController extends GetxController {
           await pusherService.subscribeToOrders(restaurantId);
         }
       }
-    } catch (e) {}
+    } catch (_) {
+      // Pusher subscribe failed
+    }
   }
 
   void changeTab(int index) {
@@ -151,6 +155,7 @@ class MainHomeScreenController extends GetxController {
   void _performTabChange(int index) {
     if (index == 2 && selectedIndex.value != 2) {
       _clearCartIfExists();
+      _resetTakeOrderForNewOrder();
     }
 
     selectedIndex.value = index;
@@ -161,6 +166,25 @@ class MainHomeScreenController extends GetxController {
     );
 
     _previousIndex = index;
+
+    // Refresh data when switching to All Orders or Dine In (e.g. when returning from cart/order update)
+    if (index == 0) {
+      try {
+        if (Get.isRegistered<OrderScreenController>()) {
+          Get.find<OrderScreenController>().fetchAllOrders();
+        }
+      } catch (_) {
+        // OrderScreenController not registered
+      }
+    } else if (index == 1) {
+      try {
+        if (Get.isRegistered<TableScreenController>()) {
+          Get.find<TableScreenController>().fetchTablesAreas();
+        }
+      } catch (_) {
+        // TableScreenController not registered
+      }
+    }
   }
 
   void updateSelectedIndex(int index) {
@@ -170,15 +194,27 @@ class MainHomeScreenController extends GetxController {
   void onPageChanged(int index) {
     if (index == 2 && _previousIndex != 2) {
       _clearCartIfExists();
+      _resetTakeOrderForNewOrder();
     }
 
     selectedIndex.value = index;
 
-    if (index == 1) {
+    if (index == 0) {
+      try {
+        if (Get.isRegistered<OrderScreenController>()) {
+          final orderController = Get.find<OrderScreenController>();
+          orderController.fetchAllOrders();
+        }
+      } catch (_) {
+        // OrderScreenController not registered
+      }
+    } else if (index == 1) {
       try {
         final tableController = Get.find<TableScreenController>();
         tableController.fetchTablesAreas();
-      } catch (e) {}
+      } catch (_) {
+        // TableScreenController not registered
+      }
     }
 
     _previousIndex = index;
@@ -190,7 +226,19 @@ class MainHomeScreenController extends GetxController {
         final cartController = Get.find<CartScreenController>();
         cartController.clearCart();
       }
-    } catch (e) {}
+    } catch (_) {
+      // Controller not registered or already disposed
+    }
+  }
+
+  void _resetTakeOrderForNewOrder() {
+    try {
+      if (Get.isRegistered<TakeOrderController>()) {
+        Get.find<TakeOrderController>().resetForNewOrder();
+      }
+    } catch (_) {
+      // Controller not registered or already disposed
+    }
   }
 
   Future<void> _fetchMobileAppModules() async {
@@ -219,12 +267,16 @@ class MainHomeScreenController extends GetxController {
                   ArgumentConstant.mobileAppModulesKey,
                   modulesModel.toJson(),
                 );
-              } catch (e) {}
+              } catch (_) {
+                // Module parse/store failed
+              }
             }
           }
         }
       }
-    } catch (e) {}
+    } catch (_) {
+      // Mobile app modules fetch failed
+    }
   }
 
   Future<void> _fetchRestaurantDetails() async {
@@ -251,11 +303,15 @@ class MainHomeScreenController extends GetxController {
                   ArgumentConstant.restaurantDetailsKey,
                   restaurantModel.toJson(),
                 );
-              } catch (e) {}
+              } catch (_) {
+                // Restaurant model parse/store failed
+              }
             }
           }
         }
       }
-    } catch (e) {}
+    } catch (_) {
+      // Restaurant details fetch failed
+    }
   }
 }

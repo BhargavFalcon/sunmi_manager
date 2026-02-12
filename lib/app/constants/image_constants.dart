@@ -29,4 +29,5 @@ class ImageConstant {
   static const deliveryPickup = "${imagePath}takeOrder.png";
   static const access = "${imagePath}access.png";
   static const waiter = "${imagePath}waiter.png";
+  static const emptyBox = "${imagePath}empty_box.png";
 }

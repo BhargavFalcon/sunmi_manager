@@ -77,6 +77,7 @@ class LocaleString extends Translations {
       'kitchenStatus': 'KITCHEN',
       'pendingVerificationStatus': 'PENDING VERIFICATION',
       'today': 'Today',
+      'nextWeek': 'Next Week',
       'currentWeek': 'Current Week',
       'lastWeek': 'Last Week',
       'last7Days': 'Last 7 Days',
@@ -150,6 +151,7 @@ class LocaleString extends Translations {
       'enterCustomerPhone': '123 4567890',
       'enterCustomerEmail': 'Please enter customer email address',
       'zipcode': 'Zipcode',
+      'validZipcodeRequired': 'Please enter a valid zipcode.',
       'houseNumber': 'House Number',
       'deliveryDisclaimer':
           'If you do not see your zipcode in the dropdown, it means we do not deliver there currently.',
@@ -182,6 +184,12 @@ class LocaleString extends Translations {
       'failedToSubmitOrder': 'Failed to submit order. Please try again.',
       'paymentCreatedSuccessfully': 'Payment created successfully',
       'failedToCreatePayment': 'Failed to create payment. Please try again.',
+      'pleaseSelectCustomerFirst':
+          'Please select a customer from Customer Information for delivery.',
+      'pleaseSelectCustomerFirstPickup':
+          'Please select a customer from Customer Information for pickup.',
+      'deliveryAddressRequired':
+          'Delivery address is required. Add address in Customer Information.',
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'All Orders',
@@ -189,6 +197,7 @@ class LocaleString extends Translations {
       'pickup': 'Pickup',
       'delivery': 'Delivery',
       'noOrdersFound': 'No orders found',
+      'noReservationsFound': 'No reservations found',
       'noItemsFound': 'No items found',
       'failedToLoadOrderDetails': 'Failed to load order details',
       'orderUuidNotFound': 'Order UUID not found',
@@ -469,6 +478,7 @@ class LocaleString extends Translations {
       'kitchenStatus': 'KØKKEN',
       'pendingVerificationStatus': 'AFVENTER VERIFIKATION',
       'today': 'I dag',
+      'nextWeek': 'Næste uge',
       'currentWeek': 'Nuværende uge',
       'lastWeek': 'Sidste uge',
       'last7Days': 'Sidste 7 dage',
@@ -543,6 +553,7 @@ class LocaleString extends Translations {
       'enterCustomerPhone': '123 4567890',
       'enterCustomerEmail': 'Indtast venligst kundens e-mailadresse',
       'zipcode': 'Postnummer',
+      'validZipcodeRequired': 'Indtast venligst en gyldig postnummer.',
       'houseNumber': 'Husnummer',
       'deliveryDisclaimer':
           'Hvis du ikke ser dit postnummer i rullemenuen, betyder det, at vi ikke leverer der i øjeblikket.',
@@ -577,6 +588,12 @@ class LocaleString extends Translations {
       'paymentCreatedSuccessfully': 'Betaling oprettet',
       'failedToCreatePayment':
           'Kunne ikke oprette betaling. Prøv venligst igen.',
+      'pleaseSelectCustomerFirst':
+          'Vælg venligst en kunde fra kundeoplysninger til levering.',
+      'pleaseSelectCustomerFirstPickup':
+          'Vælg venligst en kunde fra kundeoplysninger til afhentning.',
+      'deliveryAddressRequired':
+          'Leveringsadresse er påkrævet. Tilføj adresse under kundeoplysninger.',
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle bestillinger',
@@ -584,6 +601,7 @@ class LocaleString extends Translations {
       'pickup': 'Afhentning',
       'delivery': 'Levering',
       'noOrdersFound': 'Ingen bestillinger fundet',
+      'noReservationsFound': 'Ingen reservationer fundet',
       'noItemsFound': 'Ingen varer fundet',
       'failedToLoadOrderDetails': 'Kunne ikke indlæse bestillingsdetaljer',
       'orderUuidNotFound': 'Bestillings-UUID ikke fundet',
@@ -821,6 +839,7 @@ class LocaleString extends Translations {
       'kitchenStatus': 'KÜCHE',
       'pendingVerificationStatus': 'AUSSTEHENDE VERIFIZIERUNG',
       'today': 'Heute',
+      'nextWeek': 'Nächste Woche',
       'currentWeek': 'Aktuelle Woche',
       'lastWeek': 'Letzte Woche',
       'last7Days': 'Letzte 7 Tage',
@@ -899,6 +918,7 @@ class LocaleString extends Translations {
       'enterCustomerPhone': '123 4567890',
       'enterCustomerEmail': 'Bitte geben Sie die E-Mail-Adresse des Kunden ein',
       'zipcode': 'Postleitzahl',
+      'validZipcodeRequired': 'Bitte geben Sie eine gültige Postleitzahl ein.',
       'houseNumber': 'Hausnummer',
       'deliveryDisclaimer':
           'Wenn Sie Ihre Postleitzahl nicht im Dropdown-Menü sehen, bedeutet dies, dass wir dort derzeit nicht liefern.',
@@ -933,6 +953,12 @@ class LocaleString extends Translations {
       'paymentCreatedSuccessfully': 'Zahlung erfolgreich erstellt',
       'failedToCreatePayment':
           'Zahlung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+      'pleaseSelectCustomerFirst':
+          'Bitte wählen Sie einen Kunden aus den Kundeninformationen für die Lieferung.',
+      'pleaseSelectCustomerFirstPickup':
+          'Bitte wählen Sie einen Kunden aus den Kundeninformationen für die Abholung.',
+      'deliveryAddressRequired':
+          'Lieferadresse ist erforderlich. Fügen Sie die Adresse in den Kundeninformationen hinzu.',
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle Bestellungen',
@@ -940,6 +966,7 @@ class LocaleString extends Translations {
       'pickup': 'Abholung',
       'delivery': 'Lieferung',
       'noOrdersFound': 'Keine Bestellungen gefunden',
+      'noReservationsFound': 'Keine Reservierungen gefunden',
       'noItemsFound': 'Keine Artikel gefunden',
       'failedToLoadOrderDetails': 'Bestelldetails konnten nicht geladen werden',
       'orderUuidNotFound': 'Bestell-UUID nicht gefunden',
@@ -1182,6 +1209,7 @@ class LocaleString extends Translations {
       'kitchenStatus': 'KEUKEN',
       'pendingVerificationStatus': 'IN AFWACHTING VAN VERIFICATIE',
       'today': 'Vandaag',
+      'nextWeek': 'Volgende week',
       'currentWeek': 'Huidige week',
       'lastWeek': 'Vorige week',
       'last7Days': 'Laatste 7 dagen',
@@ -1256,6 +1284,7 @@ class LocaleString extends Translations {
       'enterCustomerPhone': '123 4567890',
       'enterCustomerEmail': 'Voer het e-mailadres van de klant in',
       'zipcode': 'Postcode',
+      'validZipcodeRequired': 'Voer een geldige postcode in.',
       'houseNumber': 'Huisnummer',
       'deliveryDisclaimer':
           'Als u uw postcode niet in de dropdown ziet staan, betekent dit dat we daar momenteel niet bezorgen.',
@@ -1290,6 +1319,12 @@ class LocaleString extends Translations {
       'paymentCreatedSuccessfully': 'Betaling succesvol aangemaakt',
       'failedToCreatePayment':
           'Betaling kon niet worden aangemaakt. Probeer het opnieuw.',
+      'pleaseSelectCustomerFirst':
+          'Selecteer een klant uit klantgegevens voor bezorging.',
+      'pleaseSelectCustomerFirstPickup':
+          'Selecteer een klant uit klantgegevens voor afhalen.',
+      'deliveryAddressRequired':
+          'Bezorgadres is verplicht. Voeg adres toe in klantgegevens.',
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle bestellingen',
@@ -1297,6 +1332,7 @@ class LocaleString extends Translations {
       'pickup': 'Afhalen',
       'delivery': 'Bezorging',
       'noOrdersFound': 'Geen bestellingen gevonden',
+      'noReservationsFound': 'Geen reserveringen gevonden',
       'noItemsFound': 'Geen items gevonden',
       'failedToLoadOrderDetails': 'Bestelgegevens konden niet worden geladen',
       'orderUuidNotFound': 'Bestel-UUID niet gevonden',

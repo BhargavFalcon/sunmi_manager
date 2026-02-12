@@ -10,30 +10,31 @@ import '../utils/date_time_formatter.dart';
 import '../data/NetworkClient.dart';
 import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
+import '../utils/order_helpers.dart' as helpers;
 
 class OrderPaymentController extends GetxController {
   final orderModel.GetOrderModel orderDetails;
   final Tables table;
+  final bool allowSplit;
   final NetworkClient networkClient = NetworkClient();
 
-  OrderPaymentController({required this.orderDetails, required this.table});
+  OrderPaymentController({
+    required this.orderDetails,
+    required this.table,
+    this.allowSplit = true,
+  });
 
-  var paymentType = 'Full Payment'.obs; // 'Full Payment' or 'Split Bill'
+  var paymentType = 'Full Payment'.obs;
   var selectedMethod = 'Cash'.obs;
   var amountToPayController = TextEditingController();
   var tipAmount = 0.0.obs;
   var discountAmount = 0.0.obs;
-  /// 'fixed' or 'percentage' - sent to API when discount > 0
   var discountType = 'fixed'.obs;
-  /// When discountType is 'percentage', the raw % value (e.g. 10 for 10%)
   var discountPercentage = 0.0.obs;
   var isProcessing = false.obs;
   var enteredAmount = 0.0.obs;
-  var considerReturnAsTip = false.obs; // Switch to convert return amount to tip
-
-  // Split Bill - Map of item index to available quantity
+  var considerReturnAsTip = false.obs;
   var availableQty = <int, int>{}.obs;
-  // Split Bill - Map of item index to split quantity
   var splitQty = <int, int>{}.obs;
 
   @override
@@ -52,8 +53,11 @@ class OrderPaymentController extends GetxController {
       }
     });
 
-    // Initialize available quantities from order items
     _initializeSplitBill();
+
+    if (!allowSplit) {
+      paymentType.value = 'Full Payment';
+    }
   }
 
   @override
@@ -70,13 +74,11 @@ class OrderPaymentController extends GetxController {
     }
   }
 
-  // Reset split when switching payment type
   void resetSplit() {
     _initializeSplitBill();
     _updateSplitAmount();
   }
 
-  // Add qty to split from available
   void addToSplit(int index, int qty) {
     final available = availableQty[index] ?? 0;
     final toAdd = qty > available ? available : qty;
@@ -89,13 +91,11 @@ class OrderPaymentController extends GetxController {
     }
   }
 
-  // Add all remaining qty to split
   void addAllToSplit(int index) {
     final available = availableQty[index] ?? 0;
     addToSplit(index, available);
   }
 
-  // Remove qty from split back to available
   void removeFromSplit(int index, int qty) {
     final currentSplit = splitQty[index] ?? 0;
     final toRemove = qty > currentSplit ? currentSplit : qty;
@@ -108,7 +108,6 @@ class OrderPaymentController extends GetxController {
     }
   }
 
-  // Remove all qty from split
   void removeAllFromSplit(int index) {
     final currentSplit = splitQty[index] ?? 0;
     removeFromSplit(index, currentSplit);
@@ -123,7 +122,6 @@ class OrderPaymentController extends GetxController {
     return total;
   }
 
-  // Calculate split tax (proportional)
   double get splitTax {
     if (totalAmount == 0) return 0.0;
     return (splitTotal / subtotal) * totalTax;
@@ -168,13 +166,11 @@ class OrderPaymentController extends GetxController {
     return diff > 0 ? diff : 0.0;
   }
 
-  // Can pay only when entered amount >= payable amount (with small tolerance for floating point)
   bool get canPay => enteredAmount.value >= (payableAmount - 0.01);
 
   bool get hasSplitItems => splitQty.values.any((qty) => qty > 0);
 
   void updatePaymentType(String type, {bool confirmed = false}) {
-    // If switching from Split Bill to Full Payment and has split items, show confirmation
     if (paymentType.value == 'Split Bill' &&
         type == 'Full Payment' &&
         hasSplitItems &&
@@ -187,7 +183,6 @@ class OrderPaymentController extends GetxController {
     if (type == 'Split Bill') {
       resetSplit();
     } else {
-      // Reset to full payment amount
       amountToPayController.text = totalAmount.toStringAsFixed(2);
       enteredAmount.value = totalAmount;
     }
@@ -313,7 +308,6 @@ class OrderPaymentController extends GetxController {
 
   void updateMethod(String method) {
     selectedMethod.value = method;
-    // Hide tip and return as tip for card payments
     if (method == TranslationKeys.card.tr) {
       addTip(0);
       considerReturnAsTip.value = false;
@@ -325,18 +319,22 @@ class OrderPaymentController extends GetxController {
     _updateAmountToPayWithPayable();
   }
 
-  void addDiscount(double amount, {String type = 'fixed', double? percentageValue}) {
+  void addDiscount(
+    double amount, {
+    String type = 'fixed',
+    double? percentageValue,
+  }) {
     discountAmount.value = amount;
     if (amount <= 0) {
       discountType.value = 'fixed';
       discountPercentage.value = 0;
     } else {
       discountType.value = type;
-      discountPercentage.value = (type == 'percentage' && percentageValue != null)
-          ? percentageValue
-          : 0;
+      discountPercentage.value =
+          (type == 'percentage' && percentageValue != null)
+              ? percentageValue
+              : 0;
     }
-    // Auto-enable "return as tip" if bill becomes 0
     final bool isInclusive = orderDetails.data?.taxInclusive ?? true;
     final baseAmountValue =
         paymentType.value == 'Split Bill'
@@ -351,18 +349,17 @@ class OrderPaymentController extends GetxController {
   }
 
   void _updateAmountToPayWithPayable() {
-    // Update immediately with current calculated bill
     final bill = totalBillWithTip;
     enteredAmount.value = bill;
     amountToPayController.text = bill.toStringAsFixed(2);
   }
 
-  /// Maps UI payment method label (can be translated) to API value.
   String _paymentMethodForApi(String displayMethod) {
     if (displayMethod == TranslationKeys.cash.tr) return 'cash';
     if (displayMethod == TranslationKeys.card.tr) return 'card';
     if (displayMethod == TranslationKeys.upi.tr) return 'upi';
-    if (displayMethod == TranslationKeys.bankTransfer.tr) return 'bank transfer';
+    if (displayMethod == TranslationKeys.bankTransfer.tr)
+      return 'bank transfer';
     return displayMethod.toLowerCase();
   }
 
@@ -384,16 +381,12 @@ class OrderPaymentController extends GetxController {
     );
   }
 
-  bool _isSuccessStatus(int? code) =>
-      code == 200 || code == 201;
-
   Future<void> completePayment() async {
     isProcessing.value = true;
     try {
       final amountToPay =
           double.tryParse(amountToPayController.text) ?? payableAmount;
 
-      // Calculate final tip including surplus if switch is ON
       final billWithoutSurplus = totalBillWithTip;
 
       double finalTip = tipAmount.value;
@@ -419,7 +412,7 @@ class OrderPaymentController extends GetxController {
         data: data,
       );
 
-      if (_isSuccessStatus(response.statusCode)) {
+      if (helpers.isSuccessStatus(response.statusCode)) {
         Get.back(result: true);
         _showPaymentSuccess();
       } else {
@@ -432,7 +425,6 @@ class OrderPaymentController extends GetxController {
     }
   }
 
-  /// Split payment (items split type): POST orders/:order_uuid/payments/split
   Future<void> completeSplitPayment() async {
     final orderUuid = orderDetails.data?.order?.uuid;
     if (orderUuid == null || orderUuid.isEmpty) {
@@ -447,10 +439,7 @@ class OrderPaymentController extends GetxController {
       for (int i = 0; i < items.length; i++) {
         final qty = splitQty[i] ?? 0;
         if (qty > 0 && items[i].id != null) {
-          splitItems.add({
-            'order_item_id': items[i].id,
-            'quantity': qty,
-          });
+          splitItems.add({'order_item_id': items[i].id, 'quantity': qty});
         }
       }
       if (splitItems.isEmpty) {
@@ -470,7 +459,8 @@ class OrderPaymentController extends GetxController {
         'payment_method': _paymentMethodForApi(selectedMethod.value),
         'amount': amountToPay.toStringAsFixed(2),
       };
-      if (finalTip > 0) splitPayload['tip_amount'] = finalTip.toStringAsFixed(2);
+      if (finalTip > 0)
+        splitPayload['tip_amount'] = finalTip.toStringAsFixed(2);
       if (discountAmount.value > 0) {
         splitPayload['discount_type'] = discountType.value;
         splitPayload['discount_amount'] = (discountType.value == 'percentage'
@@ -484,15 +474,10 @@ class OrderPaymentController extends GetxController {
       );
       final response = await networkClient.post(
         endpoint,
-        data: {
-          'split_type': 'items',
-          'split': splitPayload,
-        },
+        data: {'split_type': 'items', 'split': splitPayload},
       );
 
-      if (_isSuccessStatus(response.statusCode)) {
-        Get.back(); // Close split payment popup
-        Get.back(result: true); // Close main payment dialog
+      if (helpers.isSuccessStatus(response.statusCode)) {
         _showPaymentSuccess();
       } else {
         _showPaymentError();
@@ -518,19 +503,24 @@ class OrderPaymentDialog extends StatelessWidget {
   static Future<bool?> show({
     required orderModel.GetOrderModel orderDetails,
     required Tables table,
+    bool allowSplit = true,
   }) {
-    // Register controller before showing dialog
     if (Get.isRegistered<OrderPaymentController>()) {
       Get.delete<OrderPaymentController>();
     }
-    Get.put(OrderPaymentController(orderDetails: orderDetails, table: table));
+    Get.put(
+      OrderPaymentController(
+        orderDetails: orderDetails,
+        table: table,
+        allowSplit: allowSplit,
+      ),
+    );
 
     return Get.dialog<bool>(
       OrderPaymentDialog(orderDetails: orderDetails, table: table),
       barrierDismissible: true,
       useSafeArea: true,
     ).then((result) {
-      // Clean up controller after dialog is closed
       if (Get.isRegistered<OrderPaymentController>()) {
         Get.delete<OrderPaymentController>();
       }
@@ -540,8 +530,6 @@ class OrderPaymentDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MySize initialization is best handled once,
-    // but ensured here if not already done.
     MySize().init(context);
     final controller = Get.find<OrderPaymentController>();
     final isWide = MediaQuery.of(context).size.width > 600;
@@ -559,13 +547,9 @@ class OrderPaymentDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            // Simplified Header: Row with spaceBetween is much more stable
-            // for semantics than nested SingleChildScrollView + Spacer.
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Mobile: Tabs on left, View Order on right
-                // Desktop: View Order, Tabs center, Total right
                 if (!isWide) ...[
                   _buildPaymentTypeToggle(controller),
                   _buildPaymentInfoButton(),
@@ -577,29 +561,28 @@ class OrderPaymentDialog extends StatelessWidget {
               ],
             ),
             SizedBox(height: MySize.getHeight(20)),
-            // Show different content based on payment type
-            Obx(
-              () =>
-                  controller.paymentType.value == 'Split Bill'
-                      ? Expanded(
-                        child: _buildSplitBillView(context, controller),
-                      )
-                      : Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: _buildRightColumnContent(
-                                  context,
-                                  controller,
-                                ),
-                              ),
+            Obx(() {
+              final currentType = controller.paymentType.value;
+              final showSplit =
+                  controller.allowSplit && currentType == 'Split Bill';
+              return showSplit
+                  ? Expanded(child: _buildSplitBillView(context, controller))
+                  : Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: _buildRightColumnContent(
+                              context,
+                              controller,
                             ),
-                            _buildRightColumnButtons(controller),
-                          ],
+                          ),
                         ),
-                      ),
-            ),
+                        _buildRightColumnButtons(controller),
+                      ],
+                    ),
+                  );
+            }),
           ],
         ),
       ),
@@ -618,7 +601,8 @@ class OrderPaymentDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildToggleButton(controller, 'Full Payment'),
-            _buildToggleButton(controller, 'Split Bill'),
+            if (controller.allowSplit)
+              _buildToggleButton(controller, 'Split Bill'),
           ],
         ),
       ),
@@ -729,7 +713,6 @@ class OrderPaymentDialog extends StatelessWidget {
                 ),
               ),
               const Divider(height: 16),
-              // Items List
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -762,7 +745,6 @@ class OrderPaymentDialog extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Taxes
                       if (orderDetails.data?.taxes != null &&
                           orderDetails.data!.taxes!.isNotEmpty) ...[
                         const Divider(height: 12),
@@ -782,6 +764,36 @@ class OrderPaymentDialog extends StatelessWidget {
                                 Text(
                                   CurrencyFormatter.formatPrice(
                                     tax.amount.toString(),
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: MySize.getHeight(12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (orderDetails.data?.order?.charges != null &&
+                          orderDetails.data!.order!.charges!.isNotEmpty) ...[
+                        const Divider(height: 12),
+                        ...?orderDetails.data?.order?.charges?.map(
+                          (charge) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  charge.chargeName ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: MySize.getHeight(12),
+                                  ),
+                                ),
+                                Text(
+                                  CurrencyFormatter.formatPrice(
+                                    (charge.amount ?? 0).toString(),
                                   ),
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
@@ -854,11 +866,17 @@ class OrderPaymentDialog extends StatelessWidget {
   }
 
   static List<({String label, IconData icon})> _getPaymentMethodConfig() => [
-        (label: TranslationKeys.cash.tr, icon: Icons.account_balance_wallet_outlined),
-        (label: TranslationKeys.card.tr, icon: Icons.credit_card_outlined),
-        (label: TranslationKeys.upi.tr, icon: Icons.qr_code_scanner_outlined),
-        (label: TranslationKeys.bankTransfer.tr, icon: Icons.account_balance_outlined),
-      ];
+    (
+      label: TranslationKeys.cash.tr,
+      icon: Icons.account_balance_wallet_outlined,
+    ),
+    (label: TranslationKeys.card.tr, icon: Icons.credit_card_outlined),
+    (label: TranslationKeys.upi.tr, icon: Icons.qr_code_scanner_outlined),
+    (
+      label: TranslationKeys.bankTransfer.tr,
+      icon: Icons.account_balance_outlined,
+    ),
+  ];
 
   Widget _buildPaymentMethodsRow(OrderPaymentController controller) {
     final methods = _getPaymentMethodConfig();
@@ -913,28 +931,29 @@ class OrderPaymentDialog extends StatelessWidget {
             height: MySize.getHeight(35),
             child: Obx(
               () => ElevatedButton(
-                onPressed: (controller.isProcessing.value || !canPay)
-                    ? null
-                    : onPay,
+                onPressed:
+                    (controller.isProcessing.value || !canPay) ? null : onPay,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  backgroundColor: canPay
-                      ? ColorConstants.successGreen
-                      : Colors.grey.shade400,
+                  backgroundColor:
+                      canPay
+                          ? ColorConstants.successGreen
+                          : Colors.grey.shade400,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: controller.isProcessing.value
-                    ? const CupertinoActivityIndicator(color: Colors.white)
-                    : Text(
-                        TranslationKeys.pay.tr,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: MySize.getHeight(16),
+                child:
+                    controller.isProcessing.value
+                        ? const CupertinoActivityIndicator(color: Colors.white)
+                        : Text(
+                          TranslationKeys.pay.tr,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: MySize.getHeight(16),
+                          ),
                         ),
-                      ),
               ),
             ),
           ),
@@ -1756,9 +1775,11 @@ class OrderPaymentDialog extends StatelessWidget {
                           if (amount > controller.currentSubtotal) {
                             amount = controller.currentSubtotal;
                           }
-                          controller.addDiscount(amount,
-                              type: 'percentage',
-                              percentageValue: rawInput.clamp(0.0, 100.0));
+                          controller.addDiscount(
+                            amount,
+                            type: 'percentage',
+                            percentageValue: rawInput.clamp(0.0, 100.0),
+                          );
                         } else {
                           if (amount > controller.currentSubtotal) {
                             amount = controller.currentSubtotal;

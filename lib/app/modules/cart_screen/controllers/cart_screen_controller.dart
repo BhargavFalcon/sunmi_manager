@@ -5,16 +5,18 @@ import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/RestaurantDetailsModel.dart';
-import '../../../model/tableModel.dart' as tableModel;
-import '../../../model/getorderModel.dart' as orderModel;
+import '../../../model/tableModel.dart' as table_model;
+import '../../../model/getorderModel.dart' as order_model;
+import '../../../widgets/running_table_dialog.dart';
+import '../../../widgets/order_payment_dialog.dart';
 import '../../../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
+import '../../../modules/take_order_screen/controllers/take_order_controller.dart';
 import '../../../routes/app_pages.dart';
 
 class CartScreenController extends GetxController {
@@ -25,20 +27,28 @@ class CartScreenController extends GetxController {
   RxDouble discountValue = 0.0.obs;
   RxString discountType = 'Fixed'.obs;
   RxBool isTaxIncluded = false.obs;
-  final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
+  final Rx<table_model.Tables?> selectedTable = Rx<table_model.Tables?>(null);
   String? existingOrderId;
-  orderModel.GetOrderModel? existingOrder;
+  order_model.GetOrderModel? existingOrder;
   String? sourceScreen;
   final RxInt pax = 1.obs;
   final TextEditingController paxController = TextEditingController();
-  final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
+  final RxList<table_model.Data> tableAreasList = <table_model.Data>[].obs;
   final RxBool isSubmittingOrder = false.obs;
   RxString currentOrderType = 'Pickup'.obs;
   bool hideTableSection = false;
+  int? deliveryCustomerId;
+  String? deliveryPreOrderDateTime;
+  double deliveryTipAmount = 0.0;
+  String? deliveryAddress;
 
   bool get hasTable => selectedTable.value != null;
 
-  /// When true, show the table/Pax row at top (hidden for delivery/pickup).
+  bool get isDeliveryOrder =>
+      currentOrderType.value.toLowerCase() == 'delivery';
+
+  bool get isPickupOrder => currentOrderType.value.toLowerCase() == 'pickup';
+
   bool get showTableSection => hasTable && !hideTableSection;
 
   @override
@@ -47,7 +57,7 @@ class CartScreenController extends GetxController {
     fetchTableFromArguments();
     fetchTablesAreas();
     _checkTaxIncluded();
-    _syncOrderTypeFromCartItems();
+    syncOrderTypeFromCartItems();
   }
 
   void fetchTableFromArguments() {
@@ -67,8 +77,9 @@ class CartScreenController extends GetxController {
     final table = arguments[ArgumentConstant.tableKey];
     final order = arguments[ArgumentConstant.orderKey];
     existingOrderId = null;
+    existingOrder = null;
 
-    if (table is tableModel.Tables) {
+    if (table is table_model.Tables) {
       selectedTable.value = table;
       final capacity = table.seatingCapacity ?? 1;
       pax.value = capacity;
@@ -77,12 +88,69 @@ class CartScreenController extends GetxController {
       _resetTableData(clearSourceScreen: false);
     }
 
-    if (order is orderModel.GetOrderModel) {
+    if (order is order_model.GetOrderModel) {
       existingOrder = order;
       existingOrderId =
           order.data?.order?.uuid?.toString() ??
           order.data?.order?.id?.toString();
     }
+
+    _parseDeliveryArgsFromMap(arguments);
+  }
+
+  void _refreshDeliveryArgsFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments == null || arguments is! Map) return;
+    _parseDeliveryArgsFromMap(arguments);
+  }
+
+  void _parseDeliveryArgsFromMap(Map<dynamic, dynamic> args) {
+    if (args.containsKey(ArgumentConstant.deliveryCustomerIdKey)) {
+      final v = args[ArgumentConstant.deliveryCustomerIdKey];
+      deliveryCustomerId = v is int ? v : (v is num ? v.toInt() : null);
+    }
+    if (args.containsKey(ArgumentConstant.deliveryPreOrderDateTimeKey)) {
+      deliveryPreOrderDateTime = _argString(
+        args[ArgumentConstant.deliveryPreOrderDateTimeKey],
+      );
+    }
+    if (args.containsKey(ArgumentConstant.deliveryTipAmountKey)) {
+      deliveryTipAmount =
+          _argDouble(args[ArgumentConstant.deliveryTipAmountKey]) ?? 0.0;
+    }
+    if (args.containsKey(ArgumentConstant.deliveryAddressKey)) {
+      deliveryAddress = _argString(args[ArgumentConstant.deliveryAddressKey]);
+    }
+  }
+
+  static String? _argString(dynamic v) {
+    if (v == null) return null;
+    if (v is String) return v.isEmpty ? null : v;
+    return v.toString();
+  }
+
+  static double? _argDouble(dynamic v) {
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v);
+    return null;
+  }
+
+  Map<String, String>? get _discountPayload =>
+      discountValue.value > 0
+          ? {
+            'discount_type': discountType.value.toLowerCase(),
+            'discount_value': discountValue.value.toString(),
+          }
+          : null;
+
+  void _showErrorSnackbar(String message) {
+    safeGetSnackbar(
+      TranslationKeys.error.tr,
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
 
   void _resetTableData({bool clearSourceScreen = true}) {
@@ -107,14 +175,149 @@ class CartScreenController extends GetxController {
       );
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data is Map<String, dynamic>) {
-        final tableModelData = tableModel.TableModel.fromJson(
+        final tableModelData = table_model.TableModel.fromJson(
           response.data as Map<String, dynamic>,
         );
         if (tableModelData.data != null) {
           tableAreasList.assignAll(tableModelData.data!);
         }
       }
-    } catch (e) {}
+    } catch (_) {
+      // Tables fetch failed; tableAreasList remains empty
+    }
+  }
+
+  String? _validateForSubmit(bool isExistingOrder, int? waiterId) {
+    if (cartItems.isEmpty) return TranslationKeys.cartIsEmpty.tr;
+    if (!isExistingOrder && !isDeliveryOrder && !isPickupOrder && !hasTable) {
+      return TranslationKeys.pleaseSelectTableFirst.tr;
+    }
+    if (!isExistingOrder && isDeliveryOrder) {
+      _refreshDeliveryArgsFromArguments();
+      if (deliveryCustomerId == null)
+        return TranslationKeys.pleaseSelectCustomerFirst.tr;
+      if (deliveryAddress == null || deliveryAddress!.trim().isEmpty) {
+        return TranslationKeys.deliveryAddressRequired.tr;
+      }
+    }
+    if (!isExistingOrder && isPickupOrder) {
+      _refreshDeliveryArgsFromArguments();
+      if (deliveryCustomerId == null)
+        return TranslationKeys.pleaseSelectCustomerFirstPickup.tr;
+    }
+    if (waiterId == null) return TranslationKeys.unableToGetUserInfo.tr;
+    if (!isExistingOrder &&
+        !isDeliveryOrder &&
+        !isPickupOrder &&
+        selectedTable.value?.id == null) {
+      return TranslationKeys.tableInformationMissing.tr;
+    }
+    return null;
+  }
+
+  List<Map<String, dynamic>> _buildOrderItemsList() {
+    return cartItems.map((item) {
+      final itemData = <String, dynamic>{
+        'menu_item_id': item.id,
+        'quantity': item.quantity.value,
+      };
+      if (item.selectedVariation != null)
+        itemData['menu_item_variation_id'] = item.selectedVariation!.id;
+      final optionIds =
+          item.selectedExtras
+              ?.where((o) => o.id != null)
+              .map((o) => o.id!)
+              .toList();
+      if (optionIds != null && optionIds.isNotEmpty)
+        itemData['modifier_option_ids'] = optionIds;
+      if (item.cartNote != null && item.cartNote!.isNotEmpty)
+        itemData['note'] = item.cartNote;
+      if (existingOrderId != null &&
+          existingOrderId!.isNotEmpty &&
+          item.cartKotItemId != null) {
+        itemData['kot_item_id'] = item.cartKotItemId;
+      }
+      return itemData;
+    }).toList();
+  }
+
+  /// Parses order id from API response (supports dine-in, delivery and pickup response shapes).
+  String? _parseOrderIdFromResponse(Map<String, dynamic> res) {
+    final data = res['data'];
+    if (data != null && data is Map<String, dynamic>) {
+      final order = data['order'];
+      if (order != null && order is Map<String, dynamic>) {
+        final id = order['uuid']?.toString() ?? order['id']?.toString();
+        if (id != null && id.isNotEmpty) return id;
+      }
+      final id = data['uuid']?.toString() ?? data['id']?.toString();
+      if (id != null && id.isNotEmpty) return id;
+    }
+    final id =
+        res['order_id']?.toString() ??
+        res['uuid']?.toString() ??
+        res['id']?.toString();
+    return (id != null && id.isNotEmpty) ? id : null;
+  }
+
+  ({Map<String, dynamic> body, String endpoint}) _buildRequestAndEndpoint({
+    required List<Map<String, dynamic>> itemsList,
+    required String status,
+    required int waiterId,
+  }) {
+    final isExisting = existingOrderId != null && existingOrderId!.isNotEmpty;
+    if (isExisting) {
+      return (
+        body: {'items': itemsList},
+        endpoint: ArgumentConstant.addOrderItemsEndpoint.replaceAll(
+          ':order_uuid',
+          existingOrderId!,
+        ),
+      );
+    }
+    if (isDeliveryOrder) {
+      final body = <String, dynamic>{
+        'order_type': 'delivery',
+        'customer_id': deliveryCustomerId!,
+        'via': 'pos',
+        'items': itemsList,
+        'status': status,
+        'delivery_address': (deliveryAddress ?? '').trim(),
+      };
+      if (deliveryPreOrderDateTime != null &&
+          deliveryPreOrderDateTime!.isNotEmpty)
+        body['date_time'] = deliveryPreOrderDateTime;
+      if (deliveryTipAmount > 0)
+        body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
+      if (_discountPayload != null) body.addAll(_discountPayload!);
+      return (body: body, endpoint: ArgumentConstant.deliveryOrdersEndpoint);
+    }
+    if (isPickupOrder) {
+      final body = <String, dynamic>{
+        'order_type': 'pickup',
+        'customer_id': deliveryCustomerId!,
+        'via': 'pos',
+        'items': itemsList,
+        'status': status,
+      };
+      if (deliveryPreOrderDateTime != null &&
+          deliveryPreOrderDateTime!.isNotEmpty)
+        body['date_time'] = deliveryPreOrderDateTime;
+      if (deliveryTipAmount > 0)
+        body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
+      if (_discountPayload != null) body.addAll(_discountPayload!);
+      return (body: body, endpoint: ArgumentConstant.pickupOrdersEndpoint);
+    }
+    final body = <String, dynamic>{
+      'order_type': 'dine_in',
+      'table_id': selectedTable.value!.id,
+      'waiter_id': waiterId,
+      'number_of_pax': pax.value,
+      'items': itemsList,
+      'status': status,
+    };
+    if (_discountPayload != null) body.addAll(_discountPayload!);
+    return (body: body, endpoint: ArgumentConstant.ordersEndpoint);
   }
 
   Future<void> submitOrder({
@@ -122,226 +325,130 @@ class CartScreenController extends GetxController {
     String status = 'kot',
   }) async {
     try {
-      final bool isExistingOrder =
+      final isExistingOrder =
           existingOrderId != null && existingOrderId!.isNotEmpty;
-      if (!isExistingOrder && !hasTable) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.pleaseSelectTableFirst.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+      int? waiterId;
+      try {
+        final loginData = box.read(ArgumentConstant.loginModelKey);
+        if (loginData is Map<String, dynamic>) {
+          waiterId = LoginModel.fromJson(loginData).data?.user?.id;
+        }
+      } catch (_) {}
+
+      final validationError = _validateForSubmit(isExistingOrder, waiterId);
+      if (validationError != null) {
+        _showErrorSnackbar(validationError);
         return;
       }
 
-      if (cartItems.isEmpty) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.cartIsEmpty.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+      if (createPayment &&
+          existingOrderId != null &&
+          ((existingOrder?.data?.order?.status ?? '')
+                  .toString()
+                  .toLowerCase() ==
+              'billed')) {
+        await _openPaymentDialog(existingOrderId!);
         return;
       }
 
       isSubmittingOrder.value = true;
 
-      int? waiterId;
-      try {
-        final loginData = box.read(ArgumentConstant.loginModelKey);
-        if (loginData != null && loginData is Map<String, dynamic>) {
-          final loginModel = LoginModel.fromJson(loginData);
-          waiterId = loginModel.data?.user?.id;
-        }
-      } catch (e) {}
-
-      if (waiterId == null) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.unableToGetUserInfo.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        isSubmittingOrder.value = false;
-        return;
-      }
-
-      final tableId = selectedTable.value?.id;
-      if (!isExistingOrder && tableId == null) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.tableInformationMissing.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        isSubmittingOrder.value = false;
-        return;
-      }
-
-      final itemsList =
-          cartItems.map((item) {
-            final itemData = <String, dynamic>{
-              'menu_item_id': item.id,
-              'quantity': item.quantity.value,
-            };
-
-            if (item.selectedVariation != null) {
-              itemData['menu_item_variation_id'] = item.selectedVariation!.id;
-            }
-
-            final optionIds =
-                item.selectedExtras
-                    ?.where((option) => option.id != null)
-                    .map((option) => option.id!)
-                    .toList();
-            if (optionIds != null && optionIds.isNotEmpty) {
-              itemData['modifier_option_ids'] = optionIds;
-            }
-
-            if (item.cartNote != null && item.cartNote!.isNotEmpty) {
-              itemData['note'] = item.cartNote;
-            }
-
-            if (isExistingOrder && item.cartKotItemId != null) {
-              itemData['kot_item_id'] = item.cartKotItemId;
-            }
-
-            return itemData;
-          }).toList();
-
-      final requestBody =
-          isExistingOrder
-              ? {'items': itemsList}
-              : {
-                'order_type': 'dine_in',
-                'table_id': tableId,
-                'waiter_id': waiterId,
-                'number_of_pax': pax.value,
-                'items': itemsList,
-                'status': status,
-                if (discountValue.value > 0) ...{
-                  'discount_type': discountType.value.toLowerCase(),
-                  'discount_value': discountValue.value.toString(),
-                },
-              };
-
-      final endpoint =
-          isExistingOrder
-              ? ArgumentConstant.addOrderItemsEndpoint.replaceAll(
-                ':order_uuid',
-                existingOrderId!,
-              )
-              : ArgumentConstant.ordersEndpoint;
+      final itemsList = _buildOrderItemsList();
+      final request = _buildRequestAndEndpoint(
+        itemsList: itemsList,
+        status: status,
+        waiterId: waiterId!,
+      );
 
       final response =
           isExistingOrder
-              ? await networkClient.put(endpoint, data: requestBody)
-              : await networkClient.post(endpoint, data: requestBody);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        String? orderId = existingOrderId;
+              ? await networkClient.put(request.endpoint, data: request.body)
+              : await networkClient.post(request.endpoint, data: request.body);
 
-        if (!isExistingOrder && response.data is Map<String, dynamic>) {
-          final responseData = response.data as Map<String, dynamic>;
-          final data = responseData['data'] as Map<String, dynamic>?;
-          orderId =
-              data?['uuid']?.toString() ??
-              data?['id']?.toString() ??
-              responseData['order_id']?.toString() ??
-              responseData['uuid']?.toString() ??
-              responseData['id']?.toString();
-        }
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        _showErrorSnackbar(TranslationKeys.failedToSubmitOrder.tr);
+        return;
+      }
 
-        if (createPayment && orderId != null) {
-          await _createPayment(orderId);
-        } else {
-          cartItems.clear();
-          _navigateBackAfterSubmit();
-        }
-      } else {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.failedToSubmitOrder.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+      String? orderId = existingOrderId;
+      if (!isExistingOrder && response.data is Map<String, dynamic>) {
+        orderId = _parseOrderIdFromResponse(
+          response.data as Map<String, dynamic>,
         );
       }
+
+      final isBilledStatus = status.toLowerCase() == 'billed';
+      if (isBilledStatus) {
+        cartItems.clear();
+        _resetTakeOrderDeliveryPickupIfNeeded();
+      }
+
+      if (createPayment && orderId != null) {
+        await _openPaymentDialog(orderId);
+      } else {
+        if (!isBilledStatus) {
+          cartItems.clear();
+          _resetTakeOrderDeliveryPickupIfNeeded();
+        }
+        _navigateBackAfterSubmit();
+      }
     } on ApiException catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showErrorSnackbar(e.message);
     } catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        TranslationKeys.failedToSubmitOrder.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showErrorSnackbar(TranslationKeys.failedToSubmitOrder.tr);
     } finally {
       isSubmittingOrder.value = false;
     }
   }
 
-  Future<void> _createPayment(String orderId) async {
+  Future<void> _openPaymentDialog(String orderId) async {
     try {
-      final paymentBody = {
-        'order_id': orderId,
-        'amount': finalTotal.toStringAsFixed(2),
-        'payment_method': 'cash',
-      };
+      final orderDetails = await RunningTableService.fetchOrderDetails(orderId);
+      if (orderDetails == null) {
+        _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
+        return;
+      }
 
-      final paymentResponse = await networkClient.post(
-        ArgumentConstant.paymentsEndpoint,
-        data: paymentBody,
+      existingOrder = orderDetails;
+      existingOrderId = orderDetails.data?.order?.uuid ?? orderId;
+
+      final table = RunningTableService.tablesFromOrderDetails(orderDetails);
+      if (table == null) {
+        _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
+        return;
+      }
+
+      final orderType =
+          (orderDetails.data?.order?.orderType ?? '').toLowerCase();
+      final allowSplit = orderType.contains('dine');
+
+      final success = await OrderPaymentDialog.show(
+        orderDetails: orderDetails,
+        table: table,
+        allowSplit: allowSplit,
       );
 
-      if (paymentResponse.statusCode == 200 ||
-          paymentResponse.statusCode == 201) {
-        safeGetSnackbar(
-          TranslationKeys.success.tr,
-          TranslationKeys.paymentCreatedSuccessfully.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: ColorConstants.successGreen,
-          colorText: Colors.white,
-        );
+      if (success == true) {
         cartItems.clear();
+        _resetTakeOrderDeliveryPickupIfNeeded();
         await Future.delayed(const Duration(milliseconds: 500));
         _navigateBackAfterSubmit();
-      } else {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
-          TranslationKeys.failedToCreatePayment.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
       }
     } on ApiException catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        TranslationKeys.failedToCreatePayment.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showErrorSnackbar(e.message);
+    } catch (_) {
+      _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
     }
+  }
+
+  void _resetTakeOrderDeliveryPickupIfNeeded() {
+    final orderType = currentOrderType.value.toLowerCase();
+    if (orderType != 'delivery' && orderType != 'pickup') return;
+    try {
+      if (Get.isRegistered<TakeOrderController>()) {
+        Get.find<TakeOrderController>().resetDeliveryPickupOrderState();
+      }
+    } catch (_) {}
   }
 
   void _navigateBackAfterSubmit() {
@@ -400,10 +507,6 @@ class CartScreenController extends GetxController {
     }
   }
 
-  void _syncOrderTypeFromCartItems() {
-    syncOrderTypeFromCartItems();
-  }
-
   @override
   void onReady() {
     super.onReady();
@@ -425,37 +528,46 @@ class CartScreenController extends GetxController {
     if (item != null) {
       item.quantity.value = newQuantity;
       cartItems.refresh();
+      update([]);
     }
   }
 
   void removeItem(String cartItemId) {
     cartItems.removeWhere((item) => item.cartItemId == cartItemId);
+    update([]);
+  }
+
+  bool _itemMatches(Items existing, Items newItem) {
+    if (existing.id != newItem.id) return false;
+    if (existing.selectedVariation?.id != newItem.selectedVariation?.id)
+      return false;
+    final existingExtras = existing.selectedExtras;
+    final newExtras = newItem.selectedExtras;
+    if ((existingExtras == null || existingExtras.isEmpty) &&
+        (newExtras == null || newExtras.isEmpty)) {
+      return true;
+    }
+    if (existingExtras != null &&
+        newExtras != null &&
+        existingExtras.length == newExtras.length) {
+      final a = existingExtras.map((e) => e.id).toList()..sort();
+      final b = newExtras.map((e) => e.id).toList()..sort();
+      return a.toString() == b.toString();
+    }
+    return false;
   }
 
   Items? findExistingCartItem(Items newItem) {
     for (var existingItem in cartItems) {
-      if (existingItem.id != newItem.id) continue;
-      if (existingItem.selectedVariation?.id != newItem.selectedVariation?.id) {
-        continue;
-      }
+      if (_itemMatches(existingItem, newItem)) return existingItem;
+    }
+    return null;
+  }
 
-      final existingExtras = existingItem.selectedExtras;
-      final newExtras = newItem.selectedExtras;
-
-      if ((existingExtras == null || existingExtras.isEmpty) &&
-          (newExtras == null || newExtras.isEmpty)) {
-        return existingItem;
-      }
-
-      if (existingExtras != null &&
-          newExtras != null &&
-          existingExtras.length == newExtras.length) {
-        final existingIds = existingExtras.map((e) => e.id).toList()..sort();
-        final newIds = newExtras.map((e) => e.id).toList()..sort();
-        if (existingIds.toString() == newIds.toString()) {
-          return existingItem;
-        }
-      }
+  Items? _findNewlyAddedMatchingItem(Items newItem) {
+    for (var existingItem in cartItems) {
+      if (existingItem.cartKotItemId != null) continue;
+      if (_itemMatches(existingItem, newItem)) return existingItem;
     }
     return null;
   }
@@ -463,17 +575,15 @@ class CartScreenController extends GetxController {
   void addToCart(Items item) {
     final isExistingOrder =
         existingOrderId != null && existingOrderId!.isNotEmpty;
-
-    if (isExistingOrder) {
-      cartItems.add(item);
+    final existingItem =
+        isExistingOrder
+            ? _findNewlyAddedMatchingItem(item)
+            : findExistingCartItem(item);
+    if (existingItem != null) {
+      existingItem.quantity.value = existingItem.quantity.value + 1;
+      cartItems.refresh();
     } else {
-      final existingItem = findExistingCartItem(item);
-      if (existingItem != null) {
-        existingItem.quantity.value = existingItem.quantity.value + 1;
-        cartItems.refresh();
-      } else {
-        cartItems.add(item);
-      }
+      cartItems.add(item);
     }
 
     if (box.read(ArgumentConstant.hapticFeedbackKey) ?? true) {
@@ -502,6 +612,8 @@ class CartScreenController extends GetxController {
   int get totalItems {
     return cartItems.fold<int>(0, (sum, item) => sum + item.quantity.value);
   }
+
+  int get lineItemCount => cartItems.length;
 
   Items? _findItemById(String cartItemId) {
     return cartItems.firstWhereOrNull((item) => item.cartItemId == cartItemId);
@@ -563,6 +675,46 @@ class CartScreenController extends GetxController {
     cartItems.clear();
     discountValue.value = 0.0;
     discountType.value = 'Fixed';
+    existingOrderId = null;
+    existingOrder = null;
+    _resetTableData(clearSourceScreen: true);
+  }
+
+  void applyArguments(Map<String, dynamic>? arguments) {
+    if (arguments == null || arguments.isEmpty) {
+      _resetTableData();
+      return;
+    }
+
+    final sourceScreenValue = arguments[ArgumentConstant.sourceScreenKey];
+    sourceScreen = sourceScreenValue is String ? sourceScreenValue : null;
+
+    final hideTableSectionValue =
+        arguments[ArgumentConstant.hideTableSectionKey];
+    hideTableSection = hideTableSectionValue == true;
+
+    final table = arguments[ArgumentConstant.tableKey];
+    final order = arguments[ArgumentConstant.orderKey];
+    existingOrderId = null;
+    existingOrder = null;
+
+    if (table is table_model.Tables) {
+      selectedTable.value = table;
+      final capacity = table.seatingCapacity ?? 1;
+      pax.value = capacity;
+      paxController.text = capacity.toString();
+    } else {
+      _resetTableData(clearSourceScreen: false);
+    }
+
+    if (order is order_model.GetOrderModel) {
+      existingOrder = order;
+      existingOrderId =
+          order.data?.order?.uuid?.toString() ??
+          order.data?.order?.id?.toString();
+    }
+
+    _parseDeliveryArgsFromMap(arguments);
   }
 
   double get discountAmount {
@@ -585,7 +737,42 @@ class CartScreenController extends GetxController {
     currentOrderType.value = orderType;
   }
 
+  String get _orderTypeTaxKey {
+    final t = currentOrderType.value.toLowerCase();
+    if (t == 'dine in') return 'dine_in';
+    if (t == 'delivery') return 'delivery';
+    return 'pickup';
+  }
+
   Map<String, double> get groupedTaxes {
+    if (cartItems.isNotEmpty) {
+      final taxMap = <String, double>{};
+      final taxKey = _orderTypeTaxKey;
+      for (var item in cartItems) {
+        final itemPrice = item.cartTotalPrice ?? 0.0;
+        final quantity = item.quantity.value;
+        final taxesList = item.taxes?[taxKey];
+
+        if (taxesList != null && taxesList.isNotEmpty) {
+          for (var tax in taxesList) {
+            if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
+              try {
+                final taxPercent = double.parse(tax.taxPercent!);
+                final taxName = tax.taxName ?? 'Tax';
+                final taxMapKey =
+                    '$taxName (${taxPercent.toStringAsFixed(2)}%)';
+                final taxForThisItem =
+                    itemPrice * (taxPercent / (100 + taxPercent));
+                taxMap[taxMapKey] =
+                    (taxMap[taxMapKey] ?? 0.0) + (taxForThisItem * quantity);
+              } catch (_) {}
+            }
+          }
+        }
+      }
+      return taxMap;
+    }
+
     if (existingOrder != null) {
       final orderData = existingOrder!.data!;
       if (orderData.taxes != null && orderData.taxes!.isNotEmpty) {
@@ -607,43 +794,10 @@ class CartScreenController extends GetxController {
       }
     }
 
-    final taxMap = <String, double>{};
-    final orderTypeLower = currentOrderType.value.toLowerCase();
-    final taxKey =
-        orderTypeLower == 'dine in'
-            ? 'dine_in'
-            : orderTypeLower == 'pickup'
-            ? 'pickup'
-            : orderTypeLower == 'delivery'
-            ? 'delivery'
-            : 'pickup';
-
-    for (var item in cartItems) {
-      final itemPrice = item.cartTotalPrice ?? 0.0;
-      final quantity = item.quantity.value;
-      final taxesList = item.taxes?[taxKey];
-
-      if (taxesList != null && taxesList.isNotEmpty) {
-        for (var tax in taxesList) {
-          if (tax.taxPercent != null && tax.taxPercent!.isNotEmpty) {
-            try {
-              final taxPercent = double.parse(tax.taxPercent!);
-              final taxName = tax.taxName ?? 'Tax';
-              final taxMapKey = '$taxName (${taxPercent.toStringAsFixed(2)}%)';
-              final taxForThisItem =
-                  itemPrice * (taxPercent / (100 + taxPercent));
-              taxMap[taxMapKey] =
-                  (taxMap[taxMapKey] ?? 0.0) + (taxForThisItem * quantity);
-            } catch (_) {}
-          }
-        }
-      }
-    }
-
-    return taxMap;
+    return {};
   }
 
-  List<orderModel.Charges> get orderCharges {
+  List<order_model.Charges> get orderCharges {
     if (existingOrder != null) {
       final orderData = existingOrder!.data?.order;
       return orderData?.charges ?? [];
@@ -651,11 +805,92 @@ class CartScreenController extends GetxController {
     return [];
   }
 
+  String get _orderTypeForCharges => currentOrderType.value.toLowerCase();
+
+  List<({String label, double amount})> get _restaurantAdditionalCharges {
+    if (_orderTypeForCharges == 'dine in') return [];
+    final raw = <({String label, double amount})>[];
+    try {
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      if (storedData == null || storedData is! Map<String, dynamic>)
+        return _mergeChargesByLabel(raw);
+      final restaurantModel = RestaurantModel.fromJson(storedData);
+      final branches = restaurantModel.data?.branches;
+      if (branches == null || branches.isEmpty)
+        return _mergeChargesByLabel(raw);
+      final additionalCharges = branches.first.additionalCharges;
+      if (additionalCharges == null || additionalCharges.isEmpty)
+        return _mergeChargesByLabel(raw);
+      final orderType = _orderTypeForCharges;
+      final baseAmount = subTotalAfterDiscount;
+      for (final charge in additionalCharges) {
+        if (charge.isEnabled != 1) continue;
+        final orderTypes = charge.orderTypes;
+        if (orderTypes != null &&
+            orderTypes.isNotEmpty &&
+            !orderTypes.any((t) => t.toLowerCase() == orderType))
+          continue;
+        final rate = double.tryParse(charge.rate?.toString() ?? '') ?? 0.0;
+        final amount =
+            (charge.type?.toLowerCase() == 'percent')
+                ? (baseAmount * rate / 100)
+                : rate;
+        if (amount > 0) {
+          raw.add((label: charge.name ?? 'Charge', amount: amount));
+        }
+      }
+    } catch (_) {}
+    return _mergeChargesByLabel(raw);
+  }
+
+  List<({String label, double amount})> _mergeChargesByLabel(
+    List<({String label, double amount})> charges,
+  ) {
+    if (charges.isEmpty) return [];
+    final map = <String, double>{};
+    for (final c in charges) {
+      map[c.label] = (map[c.label] ?? 0) + c.amount;
+    }
+    return map.entries.map((e) => (label: e.key, amount: e.value)).toList();
+  }
+
+  List<({String label, double amount})> get displayCharges {
+    if (existingOrder != null) {
+      final list = <({String label, double amount})>[];
+      for (final c in orderCharges) {
+        final amount = c.amount ?? 0.0;
+        if (amount > 0)
+          list.add((label: c.chargeName ?? 'Charge', amount: amount));
+      }
+      return list;
+    }
+    return _restaurantAdditionalCharges;
+  }
+
   double get totalTax {
     return groupedTaxes.values.fold<double>(0.0, (sum, value) => sum + value);
   }
 
-  double get finalTotal => subTotalAfterDiscount;
+  double get totalChargesAmount {
+    if (existingOrder != null) {
+      return orderCharges.fold<double>(0.0, (sum, charge) {
+        final amount =
+            charge.amount is num
+                ? (charge.amount as num).toDouble()
+                : double.tryParse(charge.amount?.toString() ?? '0') ?? 0.0;
+        return sum + amount;
+      });
+    }
+    return _restaurantAdditionalCharges.fold<double>(
+      0.0,
+      (sum, c) => sum + c.amount,
+    );
+  }
+
+  double get finalTotal =>
+      subTotalAfterDiscount +
+      totalChargesAmount +
+      (isTaxIncluded.value ? 0.0 : totalTax);
 
   Future<void> _playBeepSound() async {
     try {

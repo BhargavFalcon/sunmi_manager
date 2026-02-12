@@ -8,6 +8,7 @@ import '../../../constants/translation_keys.dart';
 import '../../../constants/api_constants.dart';
 import '../../../model/MobileAppModulesModel.dart';
 import '../../../model/tableModel.dart' as tableModel;
+import '../../../model/reservation_list_model.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../../main.dart';
 
@@ -27,7 +28,7 @@ class ReservationScreenController extends GetxController {
   RxString selectedMonth = 'Today'.obs;
   Rx<DateTime> startDate = DateTime.now().obs;
   Rx<DateTime> endDate = DateTime.now().obs;
-  RxString selectedOrderFilter = 'Pending'.obs;
+  RxString selectedOrderFilter = 'All'.obs;
   final RxBool showAccessDialog = false.obs;
   // Validation
   RxBool isNameValid = false.obs;
@@ -45,23 +46,46 @@ class ReservationScreenController extends GetxController {
   final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
   final RxBool isTableExpanded = false.obs;
 
+  final RxBool isReservationsLoading = false.obs;
+  final RxBool isReservationsLoadingMore = false.obs;
+  final RxInt currentReservationsPage = 1.obs;
+  final RxInt lastReservationsPage = 1.obs;
+  static const int reservationsPerPage = 20;
+  final ScrollController reservationsScrollController = ScrollController();
+
+  bool get hasMoreReservations =>
+      currentReservationsPage.value < lastReservationsPage.value;
+
+  // Same date options as All Orders page
   final List<String> dateOptions = [
     'Today',
-    'Yesterday',
+    'Current Week',
+    'Last Week',
     'Last 7 Days',
-    'Last 30 Days',
+    'Current Month',
+    'Last Month',
+    'Current Year',
+    'Last Year',
     'Custom Date',
   ];
 
   final List<String> orderFilterOptions = [
-    'Pending',
+    'All',
     'Confirmed',
-    'Cancelled',
     'Checked In',
+    'Cancelled',
     'No Show',
+    'Pending',
   ];
 
-  List<String> statusOptions = ['Pending', 'Confirmed'];
+  // Same 5 statuses as filter dropdown (for per-card status change)
+  List<String> statusOptions = [
+    'Confirmed',
+    'Checked In',
+    'Cancelled',
+    'No Show',
+    'Pending',
+  ];
 
   List<String> personOptions = [
     '1 Person',
@@ -104,34 +128,28 @@ class ReservationScreenController extends GetxController {
     switch (selectedMonth.value) {
       case 'Today':
         return formatDate(DateTime.now());
-      case 'Yesterday':
-        return formatDate(DateTime.now().subtract(const Duration(days: 1)));
       case 'Last 7 Days':
         return "${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
-      case 'Last 30 Days':
-        return "${formatDate(DateTime.now().subtract(const Duration(days: 29)))} - ${formatDate(DateTime.now())}";
       case 'Custom Date':
+        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+      case 'Current Week':
+      case 'Last Week':
+      case 'Current Month':
+      case 'Last Month':
+      case 'Current Year':
+      case 'Last Year':
         return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
       default:
         return formatDate(DateTime.now());
     }
   }
 
+  /// Same as All Orders: raw key for menu, Custom Date shows range.
   String getDropdownDisplayText() {
-    switch (selectedMonth.value) {
-      case 'Today':
-        return TranslationKeys.today.tr;
-      case 'Yesterday':
-        return TranslationKeys.yesterday.tr;
-      case 'Last 7 Days':
-        return TranslationKeys.last7Days.tr;
-      case 'Last 30 Days':
-        return TranslationKeys.last30Days.tr;
-      case 'Custom Date':
-        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
-      default:
-        return selectedMonth.value;
+    if (selectedMonth.value == 'Custom Date') {
+      return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
     }
+    return selectedMonth.value;
   }
 
   void selectReservationStatus(String status) {
@@ -162,50 +180,7 @@ class ReservationScreenController extends GetxController {
     return months[month - 1];
   }
 
-  RxList<Map<String, dynamic>> reservations =
-      [
-        {
-          'guests': 3,
-          'note': 'Allergic to peanuts',
-          'time': '26 June, 12:00 PM',
-          'name': 'Foggy Nelson',
-          'phone': '+91 98765 43210',
-          'status': 'Pending',
-        },
-        {
-          'guests': 6,
-          'note': 'Requires wheelchair access',
-          'time': '26 June, 08:00 PM',
-          'name': 'Karen Page',
-          'phone': '+91 45620 45620',
-          'status': 'Confirmed',
-          'table': 'T5',
-        },
-        {
-          'guests': 2,
-          'note': 'Vegetarian meal requested',
-          'time': '26 June, 09:30 AM',
-          'name': 'Wilson Fisk',
-          'phone': '+91 88812 88812',
-          'status': 'Cancelled',
-        },
-        {
-          'guests': 4,
-          'note': 'Celebrating anniversary',
-          'time': '26 June, 07:00 PM',
-          'name': 'Matt Murdock',
-          'phone': '+91 12345 67890',
-          'status': 'Checked In',
-        },
-        {
-          'guests': 5,
-          'note': 'Requires high chair for child',
-          'time': '26 June, 10:00 AM',
-          'name': 'Jessica Jones',
-          'phone': '+91 23456 78901',
-          'status': 'No Show',
-        },
-      ].obs;
+  RxList<Map<String, dynamic>> reservations = <Map<String, dynamic>>[].obs;
 
   @override
   void onInit() {
@@ -220,6 +195,17 @@ class ReservationScreenController extends GetxController {
     });
     _updateDatesByOption('Today');
     fetchTablesAreas();
+    fetchReservations();
+    reservationsScrollController.addListener(_onReservationsScroll);
+  }
+
+  void _onReservationsScroll() {
+    if (isReservationsLoading.value || isReservationsLoadingMore.value) return;
+    if (!hasMoreReservations) return;
+    final pos = reservationsScrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent * 0.8) {
+      loadMoreReservations();
+    }
   }
 
   @override
@@ -243,7 +229,10 @@ class ReservationScreenController extends GetxController {
     }
   }
 
-  void updateOrderFilter(String value) => selectedOrderFilter.value = value;
+  void updateOrderFilter(String value) {
+    selectedOrderFilter.value = value;
+    fetchReservations();
+  }
 
   void updateDateOption(String option) {
     selectedMonth.value = option;
@@ -251,6 +240,7 @@ class ReservationScreenController extends GetxController {
       // Date picker will be opened from the view
     } else {
       _updateDatesByOption(option);
+      fetchReservations();
     }
   }
 
@@ -259,42 +249,55 @@ class ReservationScreenController extends GetxController {
 
     switch (option) {
       case 'Today':
-        startDate.value = DateTime(now.year, now.month, now.day);
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        _setDateRange(now, now);
         break;
-      case 'Yesterday':
-        final yesterday = now.subtract(const Duration(days: 1));
-        startDate.value = DateTime(
-          yesterday.year,
-          yesterday.month,
-          yesterday.day,
-        );
-        endDate.value = DateTime(
-          yesterday.year,
-          yesterday.month,
-          yesterday.day,
-          23,
-          59,
-          59,
-        );
+      case 'Current Week':
+        final monday = _getMonday(now);
+        final sunday = monday.add(const Duration(days: 6));
+        _setDateRange(monday, sunday);
+        break;
+      case 'Last Week':
+        final lastWeekMonday = _getMonday(
+          now,
+        ).subtract(const Duration(days: 7));
+        final lastWeekSunday = lastWeekMonday.add(const Duration(days: 6));
+        _setDateRange(lastWeekMonday, lastWeekSunday);
         break;
       case 'Last 7 Days':
-        startDate.value = DateTime(
-          now.year,
-          now.month,
-          now.day,
-        ).subtract(const Duration(days: 6));
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final start = now.subtract(const Duration(days: 6));
+        _setDateRange(start, now);
         break;
-      case 'Last 30 Days':
-        startDate.value = DateTime(
-          now.year,
-          now.month,
-          now.day,
-        ).subtract(const Duration(days: 29));
-        endDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      case 'Current Month':
+        final monthStart = DateTime(now.year, now.month, 1);
+        final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+        _setDateRange(monthStart, lastDayOfMonth);
+        break;
+      case 'Last Month':
+        final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+        final lastMonthEnd = DateTime(now.year, now.month, 0);
+        _setDateRange(lastMonthStart, lastMonthEnd);
+        break;
+      case 'Current Year':
+        final yearStart = DateTime(now.year, 1, 1);
+        final yearEnd = DateTime(now.year, 12, 31);
+        _setDateRange(yearStart, yearEnd);
+        break;
+      case 'Last Year':
+        final lastYearStart = DateTime(now.year - 1, 1, 1);
+        final lastYearEnd = DateTime(now.year - 1, 12, 31);
+        _setDateRange(lastYearStart, lastYearEnd);
         break;
     }
+  }
+
+  DateTime _getMonday(DateTime date) {
+    final daysFromMonday = date.weekday - 1;
+    return date.subtract(Duration(days: daysFromMonday));
+  }
+
+  void _setDateRange(DateTime start, DateTime end) {
+    startDate.value = DateTime(start.year, start.month, start.day);
+    endDate.value = DateTime(end.year, end.month, end.day, 23, 59, 59);
   }
 
   Future<void> showCustomDateRangePickerPop(BuildContext context) async {
@@ -487,6 +490,7 @@ class ReservationScreenController extends GetxController {
                               endDate.value = end;
                               selectedMonth.value = 'Custom Date';
                               Navigator.of(dialogContext).pop();
+                              fetchReservations();
                             } else {
                               Navigator.of(dialogContext).pop();
                             }
@@ -523,7 +527,8 @@ class ReservationScreenController extends GetxController {
 
   @override
   void onClose() {
-    // Dispose controllers to prevent memory leaks
+    reservationsScrollController.removeListener(_onReservationsScroll);
+    reservationsScrollController.dispose();
     customerNameController.dispose();
     customerPhoneController.dispose();
     customerEmailController.dispose();
@@ -537,8 +542,61 @@ class ReservationScreenController extends GetxController {
     selectedTimeSlot.value = timeSlot;
   }
 
-  void updateStatus(int index, String newStatus) {
-    reservations[index]['status'] = newStatus;
+  /// -1 means no card is updating
+  final RxInt statusUpdatingReservationIndex = (-1).obs;
+
+  String _statusToApiValue(String status) {
+    switch (status) {
+      case 'No Show':
+        return 'No_Show';
+      case 'Checked In':
+        return 'Checked_In';
+      case 'Cancelled':
+        return 'Cancelled';
+      case 'Confirmed':
+        return 'Confirmed';
+      case 'Pending':
+        return 'Pending';
+      default:
+        return status.replaceAll(' ', '_');
+    }
+  }
+
+  Future<void> updateReservationStatus(int index, String newStatus) async {
+    if (index < 0 || index >= reservations.length) return;
+    final id = reservations[index]['id'];
+    if (id == null) return;
+    statusUpdatingReservationIndex.value = index;
+    try {
+      final apiStatus = _statusToApiValue(newStatus);
+      final endpoint = ArgumentConstant.reservationStatusEndpoint.replaceAll(
+        ':reservation_id',
+        id.toString(),
+      );
+      final response = await networkClient.patch(
+        endpoint,
+        data: {'status': apiStatus},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        reservations[index]['status'] = newStatus;
+        reservations.refresh();
+      }
+    } catch (e) {
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        e.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade900,
+      );
+    } finally {
+      statusUpdatingReservationIndex.value = -1;
+    }
+  }
+
+  void assignTableToReservationAt(int index, tableModel.Tables table) {
+    if (index < 0 || index >= reservations.length) return;
+    reservations[index]['table'] = table.tableCode ?? '${table.id}';
     reservations.refresh();
   }
 
@@ -605,6 +663,137 @@ class ReservationScreenController extends GetxController {
     } catch (e) {}
   }
 
+  String _statusToApiFilter(String filter) {
+    switch (filter) {
+      case 'No Show':
+        return 'No_Show';
+      case 'Checked In':
+        return 'Checked_In';
+      case 'Cancelled':
+        return 'Cancelled';
+      case 'Confirmed':
+        return 'Confirmed';
+      case 'Pending':
+        return 'Pending';
+      default:
+        return filter.replaceAll(' ', '_');
+    }
+  }
+
+  String _formatReservationTime(String? date, String? time) {
+    if (date == null || date.isEmpty) return '';
+    try {
+      final parts = date.split('-');
+      if (parts.length != 3) return date;
+      final d = int.tryParse(parts[2]) ?? 0;
+      final m = int.tryParse(parts[1]) ?? 1;
+      final y = int.tryParse(parts[0]) ?? 0;
+      String timeStr = time ?? '00:00:00';
+      final timeParts = timeStr.split(':');
+      final hour = int.tryParse(timeParts.isNotEmpty ? timeParts[0] : '0') ?? 0;
+      final minute =
+          timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 0) : 0;
+      final dt = DateTime(y, m, d, hour, minute);
+      return DateFormat('dd MMM, hh:mm a').format(dt);
+    } catch (_) {
+      return '$date ${time ?? ''}';
+    }
+  }
+
+  List<Map<String, dynamic>> _mapReservationList(
+    List<ReservationListItem> list,
+  ) {
+    return list.map((r) {
+      final tableLabel =
+          (r.table != null && r.table!.isNotEmpty)
+              ? (r.table!.first.raw?['table_code'] ??
+                  r.table!.first.raw?['name'] ??
+                  '')
+              : null;
+      return <String, dynamic>{
+        'id': r.id,
+        'guests': r.partySize ?? 0,
+        'note': r.specialRequests ?? '',
+        'time': _formatReservationTime(r.reservationDate, r.reservationTime),
+        'name': r.customer?.name ?? '',
+        'phone': r.customer?.phone ?? '',
+        'email': r.customer?.email ?? '',
+        'status': r.statusLabel ?? r.reservationStatus ?? 'Pending',
+        if (tableLabel != null && tableLabel.toString().isNotEmpty)
+          'table': tableLabel.toString(),
+      };
+    }).toList();
+  }
+
+  Future<void> fetchReservations({bool loadMore = false}) async {
+    if (loadMore) {
+      if (!hasMoreReservations || isReservationsLoadingMore.value) return;
+      isReservationsLoadingMore.value = true;
+    } else {
+      isReservationsLoading.value = true;
+      currentReservationsPage.value = 1;
+      lastReservationsPage.value = 1;
+    }
+
+    try {
+      final page = loadMore ? currentReservationsPage.value + 1 : 1;
+      final queryParams = <String, dynamic>{
+        'date_from': _formatDateForApi(startDate.value),
+        'date_to': _formatDateForApi(endDate.value),
+        'per_page': reservationsPerPage,
+        'page': page,
+      };
+      if (selectedOrderFilter.value != 'All') {
+        queryParams['status'] = _statusToApiFilter(selectedOrderFilter.value);
+      }
+      final response = await networkClient.get(
+        ArgumentConstant.reservationsEndpoint,
+        queryParameters: queryParams,
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map<String, dynamic>) {
+        final model = ReservationListModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        final list = model.data?.reservations ?? [];
+        final pagination = model.data?.pagination;
+        if (pagination != null) {
+          currentReservationsPage.value = pagination.currentPage ?? page;
+          lastReservationsPage.value = pagination.lastPage ?? 1;
+        }
+        final mapped = _mapReservationList(list);
+        if (loadMore) {
+          reservations.addAll(mapped);
+        } else {
+          reservations.assignAll(mapped);
+        }
+      } else {
+        if (!loadMore) reservations.clear();
+      }
+    } catch (e) {
+      if (!loadMore) reservations.clear();
+    } finally {
+      if (loadMore) {
+        isReservationsLoadingMore.value = false;
+      } else {
+        isReservationsLoading.value = false;
+      }
+    }
+  }
+
+  Future<void> loadMoreReservations() async {
+    await fetchReservations(loadMore: true);
+  }
+
+  Future<void> onRefresh() async {
+    currentReservationsPage.value = 1;
+    await fetchReservations();
+  }
+
+  String _formatDateForApi(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
   void clearForm() {
     customerNameController.clear();
     customerPhoneController.clear();
@@ -635,7 +824,7 @@ class ReservationScreenController extends GetxController {
         TranslationKeys.pleaseFillAllRequiredFields.tr,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade700,
+        colorText: Colors.red.shade900,
       );
       return;
     }

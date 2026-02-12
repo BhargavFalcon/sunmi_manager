@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../main.dart';
@@ -11,9 +11,11 @@ import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
 import '../../../model/tableModel.dart';
-import '../../../model/getorderModel.dart' as orderModel;
+import '../../../model/address_list_model.dart';
+import '../../../model/getorderModel.dart' as order_model;
 import '../../../model/MobileAppModulesModel.dart';
 import '../../../utils/currency_formatter.dart';
+import '../../../routes/app_pages.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
 
 class TakeOrderController extends GetxController {
@@ -44,8 +46,8 @@ class TakeOrderController extends GetxController {
 
   final Rx<Tables?> selectedTable = Rx<Tables?>(null);
 
-  final Rx<orderModel.GetOrderModel?> currentOrder =
-      Rx<orderModel.GetOrderModel?>(null);
+  final Rx<order_model.GetOrderModel?> currentOrder =
+      Rx<order_model.GetOrderModel?>(null);
 
   String? sourceScreen;
   bool hideTableSection = false;
@@ -60,6 +62,9 @@ class TakeOrderController extends GetxController {
   final RxString customerZipcode = "".obs;
   final RxString customerHouseNumber = "".obs;
   final RxString customerAddress = "".obs;
+  final Rx<int?> selectedCustomerId = Rx<int?>(null);
+
+  final RxList<AddressItem> zipcodeList = <AddressItem>[].obs;
 
   bool get hasCustomer => customerName.value.isNotEmpty;
 
@@ -77,10 +82,24 @@ class TakeOrderController extends GetxController {
     _fetchHideTableSectionFromArguments();
     loadMenuItemsFromStorage();
     _updateCartCount();
+    fetchZipcodes();
 
     searchController.addListener(() {
       searchText.value = searchController.text;
     });
+  }
+
+  Future<void> fetchZipcodes() async {
+    try {
+      final response = await networkClient.get(ArgumentConstant.zipcodesEndpoint);
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map<String, dynamic>) {
+        final model = AddressListModel.fromJson(response.data as Map<String, dynamic>);
+        if (model.success == true && model.data != null) {
+          zipcodeList.assignAll(model.data!);
+        }
+      }
+    } catch (_) {}
   }
 
   void _checkAndShowDialog() {
@@ -95,8 +114,8 @@ class TakeOrderController extends GetxController {
           });
         }
       }
-    } catch (e) {
-      // Handle error silently
+    } catch (_) {
+      // Module check / dialog failed
     }
   }
 
@@ -115,7 +134,7 @@ class TakeOrderController extends GetxController {
     final arguments = Get.arguments;
     if (arguments != null && arguments is Map) {
       final order = arguments[ArgumentConstant.orderKey];
-      if (order != null && order is orderModel.GetOrderModel) {
+      if (order != null && order is order_model.GetOrderModel) {
         currentOrder.value = order;
       }
     }
@@ -182,7 +201,9 @@ class TakeOrderController extends GetxController {
           items.map((item) => item.toJson()).toList();
       final jsonString = json.encode(itemsJson);
       box.write(ArgumentConstant.menuItemsKey, jsonString);
-    } catch (e) {}
+    } catch (_) {
+      // Menu items save to storage failed
+    }
   }
 
   void _processMenuItems() {
@@ -243,10 +264,12 @@ class TakeOrderController extends GetxController {
               _processMenuItems();
               saveMenuItemsToStorage(itemMenu.data!.items!);
             }
-          } catch (e) {}
+          } catch (_) {
+            // Menu items parse failed
+          }
         }
       }
-    } catch (e) {
+    } catch (_) {
       isLoading.value = false;
     }
   }
@@ -260,7 +283,7 @@ class TakeOrderController extends GetxController {
     if (index == -1) return;
 
     const itemWidth = 100.0;
-    final scrollToCenter = (ScrollController controller) {
+    void scrollToCenter(ScrollController controller) {
       if (!controller.hasClients) return;
       final screenWidth = controller.position.viewportDimension;
       final itemPosition = index * itemWidth;
@@ -271,7 +294,7 @@ class TakeOrderController extends GetxController {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    };
+    }
 
     scrollToCenter(categoryScrollController);
     scrollToCenter(stickyCategoryScrollController);
@@ -282,6 +305,15 @@ class TakeOrderController extends GetxController {
     selectedPreOrderTime.value = time;
   }
 
+  String? get preOrderDateTimeISO {
+    final d = selectedPreOrderDate.value;
+    final t = selectedPreOrderTime.value;
+    if (d == null || t == null) return null;
+    final dt = DateTime(d.year, d.month, d.day, t.hour, t.minute);
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}'
+        'T${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:00';
+  }
+
   void updateCustomerDetails({
     required String name,
     required String phone,
@@ -290,6 +322,7 @@ class TakeOrderController extends GetxController {
     String? zipcode,
     String? houseNumber,
     String? address,
+    int? customerId,
   }) {
     customerName.value = name;
     customerPhone.value = phone;
@@ -298,6 +331,10 @@ class TakeOrderController extends GetxController {
     customerZipcode.value = zipcode ?? "";
     customerHouseNumber.value = houseNumber ?? "";
     customerAddress.value = address ?? "";
+    selectedCustomerId.value = customerId;
+    if (kDebugMode && customerId != null) {
+      debugPrint('[TakeOrder] selectedCustomerId set to: $customerId');
+    }
   }
 
   void clearCustomerDetails() {
@@ -308,6 +345,15 @@ class TakeOrderController extends GetxController {
     customerZipcode.value = "";
     customerHouseNumber.value = "";
     customerAddress.value = "";
+    selectedCustomerId.value = null;
+  }
+
+  /// Clears customer info and pre-order date/time. Call after a delivery/pickup
+  /// order is successfully placed so the next order starts fresh.
+  void resetDeliveryPickupOrderState() {
+    clearCustomerDetails();
+    selectedPreOrderDate.value = null;
+    selectedPreOrderTime.value = null;
   }
 
   Map<String, List<Map<String, dynamic>>> get filteredGroupedItems {
@@ -342,7 +388,103 @@ class TakeOrderController extends GetxController {
     return filtered;
   }
 
-  void updateOrderType(String value) => selectedOrderType.value = value;
+  void updateOrderType(String value) {
+    if (selectedOrderType.value == value) return;
+    selectedOrderType.value = value;
+    if (value == 'Delivery' || value == 'Pickup') {
+      currentOrder.value = null;
+      selectedTable.value = null;
+      if (Get.isRegistered<CartScreenController>()) {
+        Get.find<CartScreenController>().clearCart();
+      }
+    }
+  }
+
+  String get _deliveryAddressString {
+    final parts =
+        [
+          customerAddress.value,
+          customerZipcode.value,
+          customerHouseNumber.value,
+        ].where((s) => s.trim().isNotEmpty).toList();
+    return parts.isEmpty ? '' : parts.join(', ');
+  }
+
+  bool get _isDelivery => selectedOrderType.value == 'Delivery';
+
+  /// Call when user switches to Take Order tab for a new order so the previous
+  /// "continue to order" state does not get passed to cart.
+  void resetForNewOrder() {
+    currentOrder.value = null;
+    selectedTable.value = null;
+    sourceScreen = null;
+  }
+
+  void navigateToCart() {
+    final arguments = <String, dynamic>{};
+    if (hasTable) {
+      arguments[ArgumentConstant.tableKey] = selectedTable.value;
+    }
+    if (hasTable && currentOrder.value != null) {
+      arguments[ArgumentConstant.orderKey] = currentOrder.value;
+    }
+    if (sourceScreen != null) {
+      arguments[ArgumentConstant.sourceScreenKey] = sourceScreen;
+    }
+    if (hideTableSection) {
+      arguments[ArgumentConstant.hideTableSectionKey] = true;
+    }
+
+    final customerId = selectedCustomerId.value;
+    final preOrderIso = preOrderDateTimeISO;
+    final isPickup = selectedOrderType.value == 'Pickup';
+
+    if (_isDelivery) {
+      if (customerId != null) {
+        arguments[ArgumentConstant.deliveryCustomerIdKey] = customerId;
+      }
+      final addr = _deliveryAddressString;
+      if (addr.isNotEmpty) {
+        arguments[ArgumentConstant.deliveryAddressKey] = addr;
+      }
+    }
+    if (isPickup && customerId != null) {
+      arguments[ArgumentConstant.deliveryCustomerIdKey] = customerId;
+    }
+    if (preOrderIso != null && (_isDelivery || isPickup)) {
+      arguments[ArgumentConstant.deliveryPreOrderDateTimeKey] = preOrderIso;
+    }
+
+    _ensureCartControllerAndSetDeliveryOrPickup(customerId, preOrderIso);
+
+    final cart = Get.find<CartScreenController>();
+    cart.applyArguments(arguments.isEmpty ? null : arguments);
+
+    Get.toNamed(
+      Routes.CART_SCREEN,
+      arguments: arguments.isEmpty ? null : arguments,
+    );
+  }
+
+  void _ensureCartControllerAndSetDeliveryOrPickup(
+    int? customerId,
+    String? preOrderIso,
+  ) {
+    if (!Get.isRegistered<CartScreenController>()) {
+      Get.put<CartScreenController>(CartScreenController(), permanent: true);
+    }
+    final cart = Get.find<CartScreenController>();
+    final isPickup = selectedOrderType.value == 'Pickup';
+    if (!_isDelivery && !isPickup) return;
+    cart.deliveryCustomerId = customerId;
+    cart.deliveryPreOrderDateTime = preOrderIso;
+    if (_isDelivery) {
+      cart.deliveryAddress =
+          _deliveryAddressString.isEmpty ? null : _deliveryAddressString;
+    } else if (isPickup) {
+      cart.deliveryAddress = null;
+    }
+  }
 
   void updateCategory(String category) {
     selectedCategory.value = category;
@@ -389,7 +531,6 @@ class TakeOrderController extends GetxController {
       return _getBasePrice(item, orderType);
     }
 
-    // Calculate minimum price from all variations using fold
     final minPrice = variations
         .map((v) => _getVariationPrice(v, orderType))
         .whereType<String>()
@@ -779,7 +920,7 @@ class TakeOrderController extends GetxController {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   SizedBox(height: MySize.getHeight(16)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1196,7 +1337,7 @@ class TakeOrderController extends GetxController {
                                     );
                                   },
                                 );
-                              }).toList(),
+                              }),
                             ],
                             if (modifierErrors[index] == true) ...[
                               SizedBox(height: MySize.getHeight(8)),
@@ -1243,7 +1384,7 @@ class TakeOrderController extends GetxController {
                         ),
                       );
                     });
-                  }).toList(),
+                  }),
                   SizedBox(height: MySize.getHeight(24)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1470,7 +1611,9 @@ class TakeOrderController extends GetxController {
                   selectedOption.isSelected.value = true;
                   selectedExtras.add(selectedOption);
                   break;
-                } catch (e) {}
+                } catch (_) {
+                  // Option add failed
+                }
               }
             }
           }
@@ -1593,8 +1736,16 @@ class TakeOrderController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
-    categoryScrollController.dispose();
-    stickyCategoryScrollController.dispose();
+    Future.delayed(const Duration(milliseconds: 400), () {
+      try {
+        if (categoryScrollController.hasClients) return;
+        categoryScrollController.dispose();
+      } catch (_) {}
+      try {
+        if (stickyCategoryScrollController.hasClients) return;
+        stickyCategoryScrollController.dispose();
+      } catch (_) {}
+    });
     super.onClose();
   }
 }

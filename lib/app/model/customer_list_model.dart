@@ -107,18 +107,20 @@ class CustomerListItem {
 class CustomerAddress {
   int? id;
   String? address;
+  String? houseNumber;
+  String? zipCode;
   String? city;
   String? state;
-  String? zipCode;
   String? country;
   bool? isDefault;
 
   CustomerAddress({
     this.id,
     this.address,
+    this.houseNumber,
+    this.zipCode,
     this.city,
     this.state,
-    this.zipCode,
     this.country,
     this.isDefault,
   });
@@ -126,10 +128,11 @@ class CustomerAddress {
   CustomerAddress.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     address = json['address'];
-    city = json['city'];
-    state = json['state'];
-    zipCode = json['zip_code'];
-    country = json['country'];
+    houseNumber = json['house_number']?.toString();
+    zipCode = json['zip_code']?.toString();
+    city = json['city']?.toString();
+    state = json['state']?.toString();
+    country = json['country']?.toString();
     isDefault = json['is_default'];
   }
 
@@ -137,9 +140,10 @@ class CustomerAddress {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['address'] = address;
+    data['house_number'] = houseNumber;
+    data['zip_code'] = zipCode;
     data['city'] = city;
     data['state'] = state;
-    data['zip_code'] = zipCode;
     data['country'] = country;
     data['is_default'] = isDefault;
     return data;

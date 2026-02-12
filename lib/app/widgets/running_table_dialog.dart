@@ -11,6 +11,7 @@ import '../model/cancelResonModel.dart' as cancelReasonModel;
 import '../model/getorderModel.dart' as orderModel;
 import '../routes/app_pages.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/order_helpers.dart' as helpers;
 import 'order_payment_dialog.dart';
 import 'new_order_details_bottom_sheet.dart';
 import '../services/sunmi_invoice_printer_service.dart';
@@ -19,9 +20,6 @@ import 'dart:io';
 
 class RunningTableService {
   static final NetworkClient networkClient = NetworkClient();
-
-  static bool _isSuccessStatus(int? statusCode) =>
-      statusCode == 200 || statusCode == 201 || statusCode == 204;
 
   static Map<String, dynamic>? _extractData(dynamic responseData) {
     if (responseData == null || responseData is! Map<String, dynamic>)
@@ -66,7 +64,7 @@ class RunningTableService {
           tableId.toString(),
         ),
       );
-      if (_isSuccessStatus(response.statusCode)) {
+      if (helpers.isSuccessStatus(response.statusCode)) {
         final data = _extractData(response.data);
         if (data != null) return Tables.fromJson(data);
       }
@@ -83,7 +81,7 @@ class RunningTableService {
       final response = await networkClient.get(
         ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
       );
-      if (!_isSuccessStatus(response.statusCode) ||
+      if (!helpers.isSuccessStatus(response.statusCode) ||
           response.data is! Map<String, dynamic>) {
         return null;
       }
@@ -96,7 +94,9 @@ class RunningTableService {
   }
 
   /// Build [Tables] from order details (e.g. for delivery/pickup orders without a table).
-  static Tables? tablesFromOrderDetails(orderModel.GetOrderModel? orderDetails) {
+  static Tables? tablesFromOrderDetails(
+    orderModel.GetOrderModel? orderDetails,
+  ) {
     final order = orderDetails?.data?.order;
     if (order == null) return null;
     final orderNum = int.tryParse(order.orderNumber?.toString() ?? '');
@@ -153,7 +153,7 @@ class RunningTableService {
               : method == 'patch'
               ? await networkClient.patch(finalEndpoint, data: requestBody)
               : await networkClient.post(finalEndpoint, data: requestBody);
-      if (_isSuccessStatus(response.statusCode)) {
+      if (helpers.isSuccessStatus(response.statusCode)) {
         _showSuccess(successMsg);
         return true;
       }
@@ -204,7 +204,7 @@ class RunningTableService {
           'payment_method': 'cash',
         },
       );
-      if (_isSuccessStatus(response.statusCode)) {
+      if (helpers.isSuccessStatus(response.statusCode)) {
         _showSuccess('Payment processed successfully');
         return true;
       }
@@ -221,7 +221,8 @@ class RunningTableService {
       final response = await networkClient.get(
         ArgumentConstant.cancelReasonsEndpoint,
       );
-      if (_isSuccessStatus(response.statusCode) && response.data != null) {
+      if (helpers.isSuccessStatus(response.statusCode) &&
+          response.data != null) {
         final model = cancelReasonModel.CancelReasonModel.fromJson(
           response.data as Map<String, dynamic>,
         );
@@ -242,7 +243,7 @@ class RunningTableService {
       final response = await networkClient.get(
         ArgumentConstant.tablesAreasEndpoint,
       );
-      if (_isSuccessStatus(response.statusCode) &&
+      if (helpers.isSuccessStatus(response.statusCode) &&
           response.data is Map<String, dynamic>) {
         return TableModel.fromJson(response.data as Map<String, dynamic>);
       }
@@ -275,7 +276,7 @@ class RunningTableService {
         ),
         data: requestBody,
       );
-      if (_isSuccessStatus(response.statusCode)) {
+      if (helpers.isSuccessStatus(response.statusCode)) {
         _showSuccess('Order cancelled successfully');
         return true;
       }
@@ -306,8 +307,7 @@ class RunningTableDialog {
     return details;
   }
 
-  static Widget get _buttonSpacer =>
-      SizedBox(height: MySize.getHeight(12));
+  static Widget get _buttonSpacer => SizedBox(height: MySize.getHeight(12));
 
   static TextStyle _textStyle(
     double fontSize, {
@@ -336,7 +336,9 @@ class RunningTableDialog {
       final table = await RunningTableService.fetchTableDetails(tableId);
       finalTable = table ?? Tables(id: tableId);
     } else if (orderUuid != null) {
-      final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
+      final orderDetails = await RunningTableService.fetchOrderDetails(
+        orderUuid,
+      );
       finalTable = RunningTableService.tablesFromOrderDetails(orderDetails);
     }
     onSetLoader?.call(false);
@@ -449,13 +451,14 @@ class RunningTableDialog {
       _buildActionButton(
         imagePath: ImageConstant.continueOrder,
         label: 'Continue to order',
-        onTap: () => _handleContinueToOrder(
-          context,
-          finalTable,
-          onSetLoader,
-          sourceScreen,
-          hideTableSection: hideChangeTable,
-        ),
+        onTap:
+            () => _handleContinueToOrder(
+              context,
+              finalTable,
+              onSetLoader,
+              sourceScreen,
+              hideTableSection: hideChangeTable,
+            ),
       ),
       _buttonSpacer,
       _buildActionButton(
@@ -543,9 +546,12 @@ class RunningTableDialog {
       RunningTableService._showError('Failed to fetch order details');
       return;
     }
+    final orderType = orderDetails.data?.order?.orderType?.toLowerCase() ?? '';
+    final allowSplit = orderType.contains('dine');
     final success = await OrderPaymentDialog.show(
       orderDetails: orderDetails,
       table: finalTable,
+      allowSplit: allowSplit,
     );
     if (success == true) onRefreshTables?.call();
   }

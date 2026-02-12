@@ -17,6 +17,8 @@ class ArgumentConstant {
   static const tableDetailsEndpoint = "api/v1/pos/tables/:id";
   static const tableKey = "table";
   static const ordersEndpoint = "api/v1/pos/orders/dine-in";
+  static const deliveryOrdersEndpoint = "api/v1/pos/orders/delivery";
+  static const pickupOrdersEndpoint = "api/v1/pos/orders/pickup";
   static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const deleteOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const changeOrderTableEndpoint = "api/v1/pos/orders/:order_uuid/table";
@@ -29,9 +31,17 @@ class ArgumentConstant {
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
   static const customersEndpoint = "api/v1/pos/customers";
+  static const zipcodesEndpoint = "api/v1/pos/zipcodes";
+  static const reservationsEndpoint = "api/v1/pos/reservations";
+  static const reservationStatusEndpoint =
+      "api/v1/pos/reservations/:reservation_id/status";
   static const orderKey = "order";
   static const sourceScreenKey = "source_screen";
   static const hideTableSectionKey = "hide_table_section";
+  static const deliveryCustomerIdKey = "delivery_customer_id";
+  static const deliveryPreOrderDateTimeKey = "delivery_pre_order_date_time";
+  static const deliveryTipAmountKey = "delivery_tip_amount";
+  static const deliveryAddressKey = "delivery_address";
 
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";

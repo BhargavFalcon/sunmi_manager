@@ -36,238 +36,248 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     children: [
                       SizedBox(height: MediaQuery.of(context).padding.top),
                       Expanded(
-                        child: SingleChildScrollView(
-                          child: Padding(
-                            padding: EdgeInsets.all(MySize.getWidth(16)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: MenuAnchor(
-                                        style: MenuStyle(
-                                          backgroundColor:
-                                              WidgetStateProperty.all(
-                                                Colors.white,
+                        child: Padding(
+                          padding: EdgeInsets.all(MySize.getHeight(8)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Same filter container as All Orders page
+                              Container(
+                                  padding: EdgeInsets.all(MySize.getHeight(5)),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(
+                                      MySize.getHeight(12),
+                                    ),
+                                    boxShadow: ColorConstants.getShadow2,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: MenuAnchor(
+                                              style: MenuStyle(
+                                                backgroundColor:
+                                                    WidgetStateProperty.all(
+                                                      Colors.white,
+                                                    ),
                                               ),
-                                        ),
-                                        builder: (
-                                          context,
-                                          controllerMenu,
-                                          child,
-                                        ) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              if (controllerMenu.isOpen) {
-                                                controllerMenu.close();
-                                              } else {
-                                                controllerMenu.open();
-                                              }
-                                            },
-                                            child: Obx(() {
-                                              return Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: MySize.getWidth(
-                                                    8,
-                                                  ),
-                                                  vertical: MySize.getHeight(
-                                                    10,
-                                                  ),
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                    width: 1.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        MySize.getHeight(8),
+                                              builder: (
+                                                context,
+                                                controllerMenu,
+                                                child,
+                                              ) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    if (controllerMenu.isOpen) {
+                                                      controllerMenu.close();
+                                                    } else {
+                                                      controllerMenu.open();
+                                                    }
+                                                  },
+                                                  child: Obx(() {
+                                                    return Container(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal:
+                                                                MySize.getWidth(5),
+                                                            vertical:
+                                                                MySize.getHeight(6),
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        border: Border.all(
+                                                          color: Colors.grey.shade300,
+                                                          width: 1.5,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(8),
                                                       ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Expanded(
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              _translateDateOption(
+                                                                controller.getDropdownDisplayText(),
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow.ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize:
+                                                                    MySize.getHeight(13),
+                                                                fontWeight:
+                                                                    FontWeight.w500,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.keyboard_arrow_down,
+                                                            size: MySize.getHeight(20),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }),
+                                                );
+                                              },
+                                              menuChildren:
+                                                  controller.dateOptions.map((
+                                                    option,
+                                                  ) {
+                                                    return MenuItemButton(
+                                                      onPressed: () {
+                                                        controller.updateDateOption(
+                                                          option,
+                                                        );
+                                                        if (option == 'Custom Date') {
+                                                          Future.delayed(
+                                                            const Duration(
+                                                              milliseconds: 10,
+                                                            ),
+                                                            () {
+                                                              controller
+                                                                  .showCustomDateRangePickerPop(
+                                                                    context,
+                                                                  );
+                                                            },
+                                                          );
+                                                        }
+                                                      },
                                                       child: Text(
-                                                        controller
-                                                            .getDropdownDisplayText(),
-                                                        overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
+                                                        _translateDateOption(option),
                                                         style: TextStyle(
                                                           fontSize:
-                                                              MySize.getHeight(
-                                                                12,
-                                                              ),
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                              MySize.getHeight(13),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Icon(
-                                                      Icons.keyboard_arrow_down,
-                                                      size: MySize.getHeight(
-                                                        16,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }),
-                                          );
-                                        },
-                                        menuChildren:
-                                            controller.dateOptions.map((
-                                              option,
-                                            ) {
-                                              return MenuItemButton(
-                                                onPressed: () {
-                                                  controller.updateDateOption(
-                                                    option,
-                                                  );
-                                                  if (option == 'Custom Date') {
-                                                    Future.delayed(
-                                                      const Duration(
-                                                        milliseconds: 10,
-                                                      ),
-                                                      () {
-                                                        controller
-                                                            .showCustomDateRangePickerPop(
-                                                              context,
-                                                            );
-                                                      },
                                                     );
-                                                  }
-                                                },
-                                                child: Text(
-                                                  _translateDateOption(option),
-                                                  style: TextStyle(
-                                                    fontSize: MySize.getHeight(
-                                                      12,
+                                                  }).toList(),
+                                            ),
+                                          ),
+                                          SizedBox(width: MySize.getWidth(4)),
+                                          Expanded(
+                                            child: MenuAnchor(
+                                              style: MenuStyle(
+                                                backgroundColor:
+                                                    WidgetStateProperty.all(
+                                                      Colors.white,
                                                     ),
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                      ),
-                                    ),
-                                    SizedBox(width: MySize.getWidth(12)),
-                                    Expanded(
-                                      child: MenuAnchor(
-                                        style: MenuStyle(
-                                          backgroundColor:
-                                              WidgetStateProperty.all(
-                                                Colors.white,
                                               ),
-                                        ),
-                                        builder: (
-                                          context,
-                                          controllerMenu,
-                                          child,
-                                        ) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              if (controllerMenu.isOpen) {
-                                                controllerMenu.close();
-                                              } else {
-                                                controllerMenu.open();
-                                              }
-                                            },
-                                            child: Obx(() {
-                                              return Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: MySize.getWidth(
-                                                    8,
-                                                  ),
-                                                  vertical: MySize.getHeight(
-                                                    10,
-                                                  ),
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                    width: 1.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        MySize.getHeight(8),
-                                                      ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      _translateOrderFilter(
-                                                        controller
-                                                            .selectedOrderFilter
-                                                            .value,
-                                                      ),
-                                                      style: TextStyle(
-                                                        fontSize:
-                                                            MySize.getHeight(
-                                                              12,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    Icon(
-                                                      Icons.keyboard_arrow_down,
-                                                      size: MySize.getHeight(
-                                                        16,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }),
-                                          );
-                                        },
-                                        menuChildren:
-                                            controller.orderFilterOptions.map((
-                                              option,
-                                            ) {
-                                              return MenuItemButton(
-                                                onPressed:
-                                                    () => controller
-                                                        .updateOrderFilter(
-                                                          option,
+                                              builder: (
+                                                context,
+                                                controllerMenu,
+                                                child,
+                                              ) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    if (controllerMenu.isOpen) {
+                                                      controllerMenu.close();
+                                                    } else {
+                                                      controllerMenu.open();
+                                                    }
+                                                  },
+                                                  child: Obx(() {
+                                                    return Container(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal:
+                                                                MySize.getWidth(6),
+                                                            vertical:
+                                                                MySize.getHeight(6),
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        border: Border.all(
+                                                          color: Colors.grey.shade300,
+                                                          width: 1.5,
                                                         ),
-                                                child: Text(
-                                                  _translateOrderFilter(option),
-                                                  style: TextStyle(
-                                                    fontSize: MySize.getHeight(
-                                                      12,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
+                                                        borderRadius:
+                                                            BorderRadius.circular(8),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              _translateOrderFilter(
+                                                                controller
+                                                                    .selectedOrderFilter
+                                                                    .value,
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow.ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize:
+                                                                    MySize.getHeight(13),
+                                                                fontWeight:
+                                                                    FontWeight.w500,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.keyboard_arrow_down,
+                                                            size: MySize.getHeight(20),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }),
+                                                );
+                                              },
+                                              menuChildren:
+                                                  controller.orderFilterOptions.map((
+                                                    option,
+                                                  ) {
+                                                    return MenuItemButton(
+                                                      onPressed:
+                                                          () => controller
+                                                              .updateOrderFilter(
+                                                                option,
+                                                              ),
+                                                      child: Text(
+                                                        _translateOrderFilter(option),
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              MySize.getHeight(13),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(height: MySize.getHeight(12)),
-                                ListView.builder(
-                                  padding: EdgeInsets.zero,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: controller.reservations.length,
-                                  itemBuilder: (context, index) {
-                                    return _buildReservationCard(
-                                      context,
-                                      controller,
-                                      index,
+                              SizedBox(height: MySize.getHeight(12)),
+                              Expanded(
+                                child: Obx(() {
+                                  if (controller.isReservationsLoading.value &&
+                                      controller.reservations.isEmpty) {
+                                    return Center(
+                                      child: CupertinoActivityIndicator(
+                                        radius: MySize.getHeight(8),
+                                        color: ColorConstants.primaryColor,
+                                      ),
                                     );
-                                  },
-                                ),
-                              ],
-                            ),
+                                  }
+                                  return _buildReservationList(
+                                    controller,
+                                    context,
+                                  );
+                                }),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -281,6 +291,63 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           }),
         );
       },
+    );
+  }
+
+  Widget _buildReservationList(
+    ReservationScreenController controller,
+    BuildContext context,
+  ) {
+    return RefreshIndicator(
+      onRefresh: controller.onRefresh,
+      color: ColorConstants.primaryColor,
+      child: Obx(() {
+        if (controller.reservations.isEmpty &&
+            !controller.isReservationsLoading.value) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MySize.getHeight(400),
+              child: Center(
+                child: Text(
+                  TranslationKeys.noReservationsFound.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(19),
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+        return ListView.separated(
+          controller: controller.reservationsScrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: controller.reservations.length +
+              (controller.isReservationsLoadingMore.value ? 1 : 0),
+          separatorBuilder: (_, __) => SizedBox(height: MySize.getHeight(4)),
+          itemBuilder: (context, index) {
+            if (index == controller.reservations.length) {
+              return Padding(
+                padding: EdgeInsets.all(MySize.getWidth(16)),
+                child: Center(
+                  child: CupertinoActivityIndicator(
+                    radius: MySize.getHeight(8),
+                    color: ColorConstants.primaryColor,
+                  ),
+                ),
+              );
+            }
+            return _buildReservationCard(
+              context,
+              controller,
+              index,
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -1174,7 +1241,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       final item = controller.reservations[index];
 
       return Container(
-        margin: EdgeInsets.only(bottom: MySize.getHeight(16)),
+        margin: EdgeInsets.only(bottom: MySize.getHeight(4)),
         padding: EdgeInsets.all(MySize.getHeight(12)),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1273,20 +1340,27 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
             SizedBox(height: MySize.getHeight(10)),
             Row(
               children: [
-                Icon(Icons.note_alt_outlined, size: MySize.getHeight(16)),
-                SizedBox(width: MySize.getWidth(4)),
-                Expanded(
-                  child: Text(
-                    "${item['note']}",
-                    style: TextStyle(fontSize: MySize.getHeight(12)),
-                    overflow: TextOverflow.ellipsis,
+                if (_hasNote(item)) ...[
+                  Icon(Icons.note_alt_outlined, size: MySize.getHeight(16)),
+                  SizedBox(width: MySize.getWidth(4)),
+                  Expanded(
+                    child: Text(
+                      "${item['note']}",
+                      style: TextStyle(fontSize: MySize.getHeight(12)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                SizedBox(width: MySize.getWidth(8)),
+                  SizedBox(width: MySize.getWidth(8)),
+                ] else
+                  const Spacer(),
                 GestureDetector(
                   onTap:
                       () =>
-                          _showAvailableTablesBottomSheet(context, controller),
+                          _showAvailableTablesBottomSheet(
+                            context,
+                            controller,
+                            index,
+                          ),
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: MySize.getWidth(12),
@@ -1361,47 +1435,70 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                     ),
                   ),
                   builder: (context, menuController, _) {
-                    return GestureDetector(
-                      onTap: () {
-                        menuController.isOpen
-                            ? menuController.close()
-                            : menuController.open();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: MySize.getWidth(16),
-                          vertical: MySize.getHeight(8),
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: ColorConstants.grey9E9E9E,
-                            width: 1,
+                    return Obx(() {
+                      final isUpdating =
+                          controller.statusUpdatingReservationIndex.value ==
+                              index;
+                      return GestureDetector(
+                        onTap: () {
+                          if (isUpdating) return;
+                          menuController.isOpen
+                              ? menuController.close()
+                              : menuController.open();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(16),
+                            vertical: MySize.getHeight(8),
                           ),
-                          borderRadius: BorderRadius.circular(
-                            MySize.getHeight(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: ColorConstants.grey9E9E9E,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(8),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isUpdating)
+                                SizedBox(
+                                  width: MySize.getHeight(18),
+                                  height: MySize.getHeight(18),
+                                  child: CupertinoActivityIndicator(
+                                    radius: MySize.getHeight(8),
+                                    color: ColorConstants.primaryColor,
+                                  ),
+                                )
+                              else ...[
+                                Text(
+                                  _translateStatus(item['status']),
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                  ),
+                                ),
+                                SizedBox(width: MySize.getWidth(4)),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: MySize.getHeight(18),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Text(
-                              _translateStatus(item['status']),
-                              style: TextStyle(fontSize: MySize.getHeight(12)),
-                            ),
-                            SizedBox(width: MySize.getWidth(4)),
-                            Icon(
-                              Icons.keyboard_arrow_down,
-                              size: MySize.getHeight(18),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                      );
+                    });
                   },
                   menuChildren:
                       controller.statusOptions.map((status) {
                         return MenuItemButton(
                           onPressed:
-                              () => controller.updateStatus(index, status),
+                              () => controller.updateReservationStatus(
+                                index,
+                                status,
+                              ),
                           child: Text(
                             _translateStatus(status),
                             style: TextStyle(fontSize: MySize.getHeight(12)),
@@ -1433,16 +1530,30 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
     });
   }
 
+  /// Same keys as All Orders page date filter
+  bool _hasNote(Map<String, dynamic> item) {
+    final note = item['note'];
+    return note != null && note.toString().trim().isNotEmpty;
+  }
+
   String _translateDateOption(String option) {
     switch (option) {
       case 'Today':
         return TranslationKeys.today.tr;
-      case 'Yesterday':
-        return TranslationKeys.yesterday.tr;
+      case 'Current Week':
+        return TranslationKeys.currentWeek.tr;
+      case 'Last Week':
+        return TranslationKeys.lastWeek.tr;
       case 'Last 7 Days':
         return TranslationKeys.last7Days.tr;
-      case 'Last 30 Days':
-        return TranslationKeys.last30Days.tr;
+      case 'Current Month':
+        return TranslationKeys.currentMonth.tr;
+      case 'Last Month':
+        return TranslationKeys.lastMonth.tr;
+      case 'Current Year':
+        return TranslationKeys.currentYear.tr;
+      case 'Last Year':
+        return TranslationKeys.lastYear.tr;
       case 'Custom Date':
         return TranslationKeys.customDate.tr;
       default:
@@ -1452,6 +1563,8 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
 
   String _translateOrderFilter(String option) {
     switch (option) {
+      case 'All':
+        return TranslationKeys.all.tr;
       case 'Pending':
         return TranslationKeys.pending.tr;
       case 'Confirmed':
@@ -1650,6 +1763,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   void _showAvailableTablesBottomSheet(
     BuildContext context,
     ReservationScreenController controller,
+    int reservationIndex,
   ) {
     showModalBottomSheet(
       context: context,
@@ -1784,6 +1898,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                               _buildTableItem(
                                                 availableTables[tableIndex],
                                                 controller,
+                                                reservationIndex,
                                               ),
                                     ),
                                   SizedBox(height: MySize.getHeight(20)),
@@ -1803,12 +1918,19 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   Widget _buildTableItem(
     tableModel.Tables table,
     ReservationScreenController controller,
+    int reservationIndex,
   ) {
     return Obx(() {
-      final isSelected = controller.selectedTable.value?.id == table.id;
+      final assignedTable =
+          controller.reservations.length > reservationIndex
+              ? (controller.reservations[reservationIndex]['table'] ??
+                  controller.reservations[reservationIndex]['tableCode'])
+              : null;
+      final isSelected =
+          assignedTable != null && assignedTable == table.tableCode;
       return GestureDetector(
         onTap: () {
-          controller.selectedTable.value = table;
+          controller.assignTableToReservationAt(reservationIndex, table);
           Get.back();
         },
         child: Container(

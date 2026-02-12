@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
-import 'package:managerapp/app/utils/currency_formatter.dart';
-import 'package:managerapp/app/utils/date_time_formatter.dart';
 import '../model/getorderModel.dart' as orderModel;
-import '../model/RestaurantDetailsModel.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
-import '../../main.dart';
-import '../constants/api_constants.dart';
+import '../utils/order_helpers.dart' as helpers;
+import '../widgets/shared/order_detail_widgets.dart';
 
 class NewOrderDetailsBottomSheet {
   static final RxBool isPrinting = false.obs;
@@ -112,7 +109,7 @@ class NewOrderDetailsBottomSheet {
             children: [
               Expanded(
                 child: Text(
-                  '${orderDetails.formattedOrderNumber ?? orderDetails.id?.toString() ?? ''} (${_formatOrderType(orderDetails.orderType)})',
+                  '${orderDetails.formattedOrderNumber ?? orderDetails.id?.toString() ?? ''} (${helpers.formatOrderType(orderDetails.orderType)})',
                   style: TextStyle(
                     fontSize: MySize.getHeight(16),
                     fontWeight: FontWeight.bold,
@@ -122,35 +119,51 @@ class NewOrderDetailsBottomSheet {
             ],
           ),
           SizedBox(height: MySize.getHeight(8)),
-          _buildOrderTimeInfo(orderDetails),
+          OrderDetailWidgets.buildOrderTimeInfo(orderDetails, fontSize: 12),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails.customer != null &&
-              _hasCustomerInfo(orderDetails.customer!))
-            _buildCustomerDetails(orderDetails.customer!),
+              helpers.hasCustomerInfo(orderDetails.customer!))
+            OrderDetailWidgets.buildCustomerDetails(
+              orderDetails.customer!,
+              fontSize: 12,
+              titleFontSize: 14,
+            ),
           if (orderDetails.customer != null &&
-              _hasCustomerInfo(orderDetails.customer!))
+              helpers.hasCustomerInfo(orderDetails.customer!))
             SizedBox(height: MySize.getHeight(8)),
           Builder(
             builder: (context) {
               final shouldShowWaiter =
                   (orderDetails.customer == null ||
-                      !_hasCustomerInfo(orderDetails.customer)) &&
-                  _isDineInOrder(orderDetails.orderType) &&
-                  _hasWaiterInfo(orderDetails.waiter);
+                      !helpers.hasCustomerInfo(orderDetails.customer)) &&
+                  helpers.isDineInOrder(orderDetails.orderType) &&
+                  helpers.hasWaiterInfo(orderDetails.waiter);
 
               if (!shouldShowWaiter) return const SizedBox.shrink();
 
               return Column(
                 children: [
-                  _buildWaiterDetails(orderDetails.waiter!),
+                  OrderDetailWidgets.buildWaiterDetails(
+                    orderDetails.waiter!,
+                    fontSize: 12,
+                    titleFontSize: 14,
+                  ),
                   SizedBox(height: MySize.getHeight(8)),
                 ],
               );
             },
           ),
-          _buildOrderItemsTable(orderData),
+          OrderDetailWidgets.buildOrderItemsTable(
+            orderData,
+            fontSize: 12,
+            headerFontSize: 10,
+          ),
           SizedBox(height: MySize.getHeight(8)),
-          _buildPriceSummary(orderData),
+          OrderDetailWidgets.buildPriceSummary(
+            orderData,
+            fontSize: 12,
+            titleFontSize: 14,
+          ),
           SizedBox(height: MySize.getHeight(16)),
         ],
       ),
@@ -254,637 +267,6 @@ class NewOrderDetailsBottomSheet {
     );
   }
 
-  static Widget _buildOrderTimeInfo(orderModel.Order orderDetails) {
-    final createdAt = orderDetails.createdAt ?? '';
-    final orderType = orderDetails.orderType?.toLowerCase() ?? '';
-    final dateTimeString = orderDetails.dateTime ?? '';
-
-    final List<String> timeInfoList = [];
-
-    if (createdAt.isNotEmpty) {
-      final formattedCreatedAt = DateTimeFormatter.formatDateTime(createdAt);
-      timeInfoList.add(
-        '${TranslationKeys.orderCreated.tr}: $formattedCreatedAt',
-      );
-    }
-
-    if (dateTimeString.isNotEmpty) {
-      final formattedDateTime = DateTimeFormatter.formatDateTime(
-        dateTimeString,
-      );
-      final timeLabel = _getTimeLabel(orderType);
-      if (timeLabel != null) {
-        timeInfoList.add('$timeLabel: $formattedDateTime');
-      }
-    }
-
-    if (timeInfoList.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: EdgeInsets.all(MySize.getHeight(12)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: ColorConstants.getShadow2,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:
-            timeInfoList
-                .asMap()
-                .entries
-                .map(
-                  (entry) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom:
-                          entry.key < timeInfoList.length - 1
-                              ? MySize.getHeight(8)
-                              : 0,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: MySize.getHeight(18),
-                          color: ColorConstants.primaryColor,
-                        ),
-                        SizedBox(width: MySize.getWidth(8)),
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(12),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-      ),
-    );
-  }
-
-  static String? _getTimeLabel(String orderType) {
-    if (orderType == 'delivery' || orderType == 'delivery_order') {
-      return TranslationKeys.deliveryTime.tr;
-    } else if (orderType == 'pickup' || orderType == 'pickup_order') {
-      return TranslationKeys.pickupTime.tr;
-    }
-    return null;
-  }
-
-  static String _formatOrderType(String? orderType) {
-    if (orderType == null || orderType.isEmpty) {
-      return TranslationKeys.na.tr;
-    }
-    switch (orderType.toLowerCase()) {
-      case 'dine_in':
-        return TranslationKeys.dineIn.tr;
-      case 'pickup':
-        return TranslationKeys.pickup.tr;
-      case 'delivery':
-        return TranslationKeys.delivery.tr;
-      default:
-        return TranslationKeys.na.tr;
-    }
-  }
-
-  static Widget _buildOrderItemsTable(orderModel.Data orderData) {
-    final orderDetails = orderData.order;
-    final items = orderDetails?.items ?? [];
-    if (items.isEmpty) {
-      return Container(
-        padding: EdgeInsets.all(MySize.getHeight(16)),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: ColorConstants.getShadow2,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-        ),
-        child: Center(
-          child: Text(
-            TranslationKeys.noItemsFound.tr,
-            style: TextStyle(
-              fontSize: MySize.getHeight(14),
-              color: Colors.grey,
-            ),
-          ),
-        ),
-      );
-    }
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: ColorConstants.getShadow2,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-      ),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(2),
-          1: FlexColumnWidth(0.8),
-          2: FlexColumnWidth(1),
-          3: FlexColumnWidth(1),
-        },
-        children: [
-          TableRow(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(MySize.getHeight(8)),
-              ),
-            ),
-            children: [
-              Padding(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                child: Text(
-                  TranslationKeys.itemNames.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                child: Text(
-                  TranslationKeys.qty.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                child: Text(
-                  TranslationKeys.priceHeader.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                child: Text(
-                  TranslationKeys.amountHeader.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          ...items.asMap().entries.map((entry) {
-            final item = entry.value;
-            final modifiers = item.modifiers ?? [];
-            final details =
-                modifiers
-                    .map(
-                      (m) =>
-                          '${m.name ?? ''}${m.price != null && m.price! > 0 ? ' : ${CurrencyFormatter.formatPrice(m.price!.toString())}' : ''}',
-                    )
-                    .toList();
-            if (item.variationName != null && item.variationName!.isNotEmpty) {
-              details.insert(0, 'Variation: ${item.variationName}');
-            }
-            final priceStr =
-                item.price is num
-                    ? item.price.toString()
-                    : (item.price?.toString() ?? '0');
-            final amountStr =
-                item.amount is num
-                    ? item.amount.toString()
-                    : (item.amount?.toString() ?? '0');
-
-            return _buildTableRow(
-              itemName: item.itemName ?? 'N/A',
-              details: details,
-              qty: item.quantity?.toString() ?? '0',
-              price: CurrencyFormatter.formatPrice(priceStr),
-              amount: CurrencyFormatter.formatPrice(amountStr),
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-
-  static TableRow _buildTableRow({
-    required String itemName,
-    required List<String> details,
-    required String qty,
-    required String price,
-    required String amount,
-  }) {
-    return TableRow(
-      decoration: const BoxDecoration(
-        border: Border.symmetric(
-          horizontal: BorderSide(color: Colors.grey, width: 0.5),
-        ),
-      ),
-      children: [
-        Padding(
-          padding: EdgeInsets.all(MySize.getHeight(6)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                itemName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: MySize.getHeight(12),
-                ),
-              ),
-              if (details.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children:
-                      details
-                          .map(
-                            (detail) => Text(
-                              detail,
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(12),
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(MySize.getHeight(6)),
-          child: Text(qty, style: TextStyle(fontSize: MySize.getHeight(12))),
-        ),
-        Padding(
-          padding: EdgeInsets.all(MySize.getHeight(6)),
-          child: Text(price, style: TextStyle(fontSize: MySize.getHeight(12))),
-        ),
-        Padding(
-          padding: EdgeInsets.all(MySize.getHeight(6)),
-          child: Text(amount, style: TextStyle(fontSize: MySize.getHeight(12))),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildPriceSummary(orderModel.Data orderData) {
-    final orderDetails = orderData.order;
-    final totals = orderDetails?.totals;
-    final itemsCount = orderDetails?.items?.length ?? 0;
-    final taxes = orderData.taxes ?? [];
-    final charges = orderDetails?.charges ?? [];
-    final isTaxIncluded = _isTaxIncluded(orderData);
-
-    return Container(
-      padding: EdgeInsets.all(MySize.getHeight(8)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: MySize.getHeight(3),
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: MySize.getHeight(14),
-            ),
-          ),
-          SizedBox(height: MySize.getHeight(8)),
-
-          if (totals?.subTotal != null)
-            _buildPriceRow(
-              '${TranslationKeys.subTotal.tr}:',
-              CurrencyFormatter.formatPrice(totals!.subTotal.toString()),
-            ),
-
-          if (charges.isNotEmpty)
-            ...charges.map((charge) {
-              final chargeAmount =
-                  charge.amount is num
-                      ? (charge.amount as num).toDouble()
-                      : double.tryParse(charge.amount?.toString() ?? '0') ??
-                          0.0;
-              if (chargeAmount <= 0) return const SizedBox.shrink();
-              return _buildPriceRow(
-                charge.chargeName ?? TranslationKeys.charge.tr,
-                CurrencyFormatter.formatPrice(chargeAmount.toString()),
-              );
-            }),
-
-          if (taxes.isNotEmpty)
-            ...taxes.map((tax) {
-              final taxAmount =
-                  tax.amount is num
-                      ? (tax.amount as num).toDouble()
-                      : double.tryParse(tax.amount?.toString() ?? '0') ?? 0.0;
-              if (taxAmount <= 0) return const SizedBox.shrink();
-
-              final formattedAmount = CurrencyFormatter.formatPrice(
-                taxAmount.toString(),
-              );
-              final percent = tax.percent?.toString() ?? '';
-              final taxSuffix =
-                  isTaxIncluded ? ' ${TranslationKeys.incl.tr}:' : ':';
-              final taxLabel =
-                  percent.isNotEmpty
-                      ? '${tax.taxName ?? TranslationKeys.tax.tr} ($percent%)$taxSuffix'
-                      : '${tax.taxName ?? TranslationKeys.tax.tr}$taxSuffix';
-              return _buildPriceRow(taxLabel, formattedAmount);
-            }),
-
-          ...() {
-            if (totals?.tipAmount == null) return <Widget>[];
-            final tipAmountStr =
-                totals!.tipAmount is num
-                    ? totals.tipAmount.toString()
-                    : (totals.tipAmount?.toString() ?? '0');
-            if (!_isValidAmount(tipAmountStr)) return <Widget>[];
-            return [
-              _buildPriceRow(
-                '${TranslationKeys.tip.tr}:',
-                CurrencyFormatter.formatPrice(tipAmountStr),
-              ),
-            ];
-          }(),
-          ...() {
-            if (orderDetails!.totals!.discountAmount == null) return <Widget>[];
-            final discountValue =
-                orderDetails.totals!.discountAmount is num
-                    ? (orderDetails.totals!.discountAmount as num).toDouble()
-                    : double.tryParse(
-                          orderDetails.totals!.discountAmount.toString(),
-                        ) ??
-                        0.0;
-            if (discountValue <= 0) return <Widget>[];
-            final couponCode = orderDetails.couponCode;
-            final discountLabel =
-                couponCode != null && couponCode.isNotEmpty
-                    ? '${TranslationKeys.discount.tr} ($couponCode):'
-                    : '${TranslationKeys.discount.tr}:';
-            return [
-              _buildPriceRow(
-                discountLabel,
-                '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
-                valueColor: const Color(0xFF0B9F6E),
-              ),
-            ];
-          }(),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
-            child: const Divider(height: 1, thickness: 1, color: Colors.grey),
-          ),
-
-          if (totals?.total != null)
-            _buildPriceRow(
-              '${TranslationKeys.total.tr}:',
-              CurrencyFormatter.formatPrice(totals!.total.toString()),
-              isBold: true,
-              valueColor: Colors.red,
-            ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildPriceRow(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? valueColor,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MySize.getHeight(4)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: MySize.getHeight(12),
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: MySize.getHeight(12),
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor ?? Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildCustomerDetails(orderModel.Customer customer) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.person,
-                size: MySize.getHeight(20),
-                color: ColorConstants.primaryColor,
-              ),
-              SizedBox(width: MySize.getWidth(8)),
-              Text(
-                TranslationKeys.customerDetails.tr,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(14),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: MySize.getHeight(12)),
-          if (customer.name != null && customer.name!.isNotEmpty)
-            _buildDetailRow(TranslationKeys.name.tr, customer.name!),
-          if (customer.email != null && customer.email!.isNotEmpty)
-            _buildDetailRow(TranslationKeys.email.tr, customer.email!),
-          if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
-            _buildDetailRow(
-              TranslationKeys.phone.tr,
-              '${customer.phoneCode ?? ''}${customer.phoneNumber}',
-            ),
-        ],
-      ),
-    );
-  }
-
-  static bool _hasCustomerInfo(orderModel.Customer? customer) {
-    if (customer == null) return false;
-    return (customer.name != null && customer.name!.isNotEmpty) ||
-        (customer.email != null && customer.email!.isNotEmpty) ||
-        (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty);
-  }
-
-  static bool _isDineInOrder(String? orderType) {
-    if (orderType == null) return false;
-    final type = orderType.toLowerCase().replaceAll(' ', '_');
-    return type == 'dine_in' || type == 'dinein' || type == 'dine in';
-  }
-
-  static bool _hasWaiterInfo(orderModel.Waiter? waiter) {
-    if (waiter == null) return false;
-    return (waiter.name != null && waiter.name!.trim().isNotEmpty) ||
-        waiter.id != null ||
-        (waiter.email != null && waiter.email!.trim().isNotEmpty) ||
-        (waiter.phoneNumber != null && waiter.phoneNumber!.trim().isNotEmpty);
-  }
-
-  static Widget _buildWaiterDetails(orderModel.Waiter waiter) {
-    final hasName = waiter.name != null && waiter.name!.trim().isNotEmpty;
-    final hasId = waiter.id != null;
-
-    if (!hasName && !hasId) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.restaurant,
-                size: MySize.getHeight(20),
-                color: ColorConstants.primaryColor,
-              ),
-              SizedBox(width: MySize.getWidth(8)),
-              Text(
-                TranslationKeys.waiter.tr,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(14),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: MySize.getHeight(12)),
-          if (waiter.name != null && waiter.name!.trim().isNotEmpty)
-            _buildDetailRow(TranslationKeys.name.tr, waiter.name!),
-          if (waiter.email != null && waiter.email!.trim().isNotEmpty)
-            _buildDetailRow(TranslationKeys.email.tr, waiter.email!),
-          if (waiter.phoneNumber != null &&
-              waiter.phoneNumber!.trim().isNotEmpty)
-            _buildDetailRow(
-              TranslationKeys.phone.tr,
-              '${waiter.phoneCode ?? ''}${waiter.phoneNumber}',
-            ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: MySize.getWidth(80),
-            child: Text(
-              '$label:',
-              style: TextStyle(
-                fontSize: MySize.getHeight(12),
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: MySize.getHeight(12),
-                color: Colors.black87,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Branches? _getBranch() {
-    try {
-      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
-      if (storedData == null || storedData is! Map<String, dynamic>) {
-        return null;
-      }
-      final restaurantDetails = RestaurantModel.fromJson(storedData);
-      if (restaurantDetails.data?.branches == null ||
-          restaurantDetails.data!.branches!.isEmpty) {
-        return null;
-      }
-      return restaurantDetails.data!.branches!.first;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  static bool _isTaxIncluded(orderModel.Data orderData) {
-    if (orderData.taxInclusive != null) {
-      return orderData.taxInclusive == true;
-    }
-    final branch = _getBranch();
-    return branch?.taxesIncluded == true;
-  }
-
   static Future<void> _printInvoice(orderModel.Data orderData) async {
     if (Platform.isIOS) {
       safeGetSnackbar(
@@ -913,18 +295,5 @@ class NewOrderDetailsBottomSheet {
     } finally {
       isPrinting.value = false;
     }
-  }
-
-  static bool _isValidAmount(String? amount) {
-    if (amount == null ||
-        amount.isEmpty ||
-        amount == 'null' ||
-        amount == '0' ||
-        amount == '0.0' ||
-        amount == '0.00') {
-      return false;
-    }
-    final value = double.tryParse(amount);
-    return value != null && value > 0;
   }
 }

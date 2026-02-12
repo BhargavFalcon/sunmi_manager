@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
@@ -10,13 +9,45 @@ import 'package:managerapp/app/model/menuItemsModel.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
 import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
-import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/widgets/add_customer_dialog.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/widgets/pre_order_datetime_picker.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
+
+  static void openCustomerDialog(TakeOrderController controller) {
+    Get.dialog(
+      AddCustomerDialog(
+        initialName: controller.customerName.value,
+        initialPhone: controller.customerPhone.value,
+        initialEmail: controller.customerEmail.value,
+        initialPhoneCode: controller.customerPhoneCode.value,
+        initialZipcode: controller.customerZipcode.value,
+        initialHouseNumber: controller.customerHouseNumber.value,
+        initialAddress: controller.customerAddress.value,
+        isDelivery: controller.selectedOrderType.value == 'Delivery',
+        zipcodeList: controller.zipcodeList.toList(),
+        onCustomerSelected: (customer) {
+          if (customer.id != null && Get.isRegistered<TakeOrderController>()) {
+            Get.find<TakeOrderController>().selectedCustomerId.value = customer.id;
+          }
+        },
+        onSave: ({required name, required phone, required email, required phoneCode, zipcode, houseNumber, address, customerId}) {
+          controller.updateCustomerDetails(
+            name: name,
+            phone: phone,
+            email: email,
+            phoneCode: phoneCode,
+            zipcode: zipcode,
+            houseNumber: houseNumber,
+            address: address,
+            customerId: customerId,
+          );
+        },
+      ),
+    );
+  }
 
   CartScreenController? _getCartController() {
     if (Get.isRegistered<CartScreenController>()) {
@@ -34,9 +65,9 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
       builder: (controller) {
         final cartController = _getCartController();
 
-        return PopScope(
+        return PopScope<Object?>(
           canPop: cartController == null || cartController.cartItems.isEmpty,
-          onPopInvoked: (didPop) {
+          onPopInvokedWithResult: (didPop, _) {
             if (!didPop &&
                 cartController != null &&
                 cartController.cartItems.isNotEmpty) {
@@ -136,7 +167,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                               color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: MySize.getHeight(4),
                                   offset: Offset(0, -MySize.getHeight(2)),
                                 ),
@@ -180,40 +211,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                   SizedBox(width: MySize.getWidth(8)),
                                   Expanded(
                                     child: InkWell(
-                                      onTap: () {
-                                        final Map<String, dynamic> arguments =
-                                            {};
-
-                                        if (controller.hasTable) {
-                                          arguments[ArgumentConstant.tableKey] =
-                                              controller.selectedTable.value;
-                                        }
-
-                                        if (controller.currentOrder.value !=
-                                            null) {
-                                          arguments[ArgumentConstant.orderKey] =
-                                              controller.currentOrder.value;
-                                        }
-
-                                        if (controller.sourceScreen != null) {
-                                          arguments[ArgumentConstant
-                                                  .sourceScreenKey] =
-                                              controller.sourceScreen;
-                                        }
-
-                                        if (controller.hideTableSection) {
-                                          arguments[ArgumentConstant
-                                                  .hideTableSectionKey] = true;
-                                        }
-
-                                        Get.toNamed(
-                                          Routes.CART_SCREEN,
-                                          arguments:
-                                              arguments.isEmpty
-                                                  ? null
-                                                  : arguments,
-                                        );
-                                      },
+                                      onTap: controller.navigateToCart,
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
                                           vertical: MySize.getHeight(12),
@@ -226,7 +224,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
-                                          'Next (${cartCount})',
+                                          'Next ($cartCount)',
                                           style: TextStyle(
                                             fontSize: MySize.getHeight(14),
                                             fontWeight: FontWeight.w500,
@@ -403,61 +401,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 );
                               }),
                               SizedBox(width: MySize.getWidth(6)),
-                              Obx(() {
-                                return _buildActionButton(
-                                  icon: Icons.person,
-                                  label:
-                                      controller.hasCustomer
-                                          ? controller.customerName.value
-                                          : TranslationKeys.customer.tr,
-                                  onTap: () {
-                                    Get.dialog(
-                                      AddCustomerDialog(
-                                        initialName:
-                                            controller.customerName.value,
-                                        initialPhone:
-                                            controller.customerPhone.value,
-                                        initialEmail:
-                                            controller.customerEmail.value,
-                                        initialPhoneCode:
-                                            controller.customerPhoneCode.value,
-                                        initialZipcode:
-                                            controller.customerZipcode.value,
-                                        initialHouseNumber:
-                                            controller
-                                                .customerHouseNumber
-                                                .value,
-                                        initialAddress:
-                                            controller.customerAddress.value,
-                                        isDelivery:
-                                            controller
-                                                .selectedOrderType
-                                                .value ==
-                                            'Delivery',
-                                        onSave: ({
-                                          required name,
-                                          required phone,
-                                          required email,
-                                          required phoneCode,
-                                          zipcode,
-                                          houseNumber,
-                                          address,
-                                        }) {
-                                          controller.updateCustomerDetails(
-                                            name: name,
-                                            phone: phone,
-                                            email: email,
-                                            phoneCode: phoneCode,
-                                            zipcode: zipcode,
-                                            houseNumber: houseNumber,
-                                            address: address,
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                );
-                              }),
+                              Obx(() => _buildActionButton(
+                                icon: Icons.person,
+                                label: controller.hasCustomer ? controller.customerName.value : TranslationKeys.customer.tr,
+                                onTap: () => TakeOrderView.openCustomerDialog(controller),
+                              )),
                               SizedBox(width: MySize.getWidth(8)),
                               Expanded(
                                 flex: 4,
@@ -622,61 +570,11 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 );
                               }),
                               SizedBox(width: MySize.getWidth(6)),
-                              Obx(() {
-                                return _buildActionButton(
-                                  icon: Icons.person,
-                                  label:
-                                      controller.hasCustomer
-                                          ? controller.customerName.value
-                                          : TranslationKeys.customer.tr,
-                                  onTap: () {
-                                    Get.dialog(
-                                      AddCustomerDialog(
-                                        initialName:
-                                            controller.customerName.value,
-                                        initialPhone:
-                                            controller.customerPhone.value,
-                                        initialEmail:
-                                            controller.customerEmail.value,
-                                        initialPhoneCode:
-                                            controller.customerPhoneCode.value,
-                                        initialZipcode:
-                                            controller.customerZipcode.value,
-                                        initialHouseNumber:
-                                            controller
-                                                .customerHouseNumber
-                                                .value,
-                                        initialAddress:
-                                            controller.customerAddress.value,
-                                        isDelivery:
-                                            controller
-                                                .selectedOrderType
-                                                .value ==
-                                            'Delivery',
-                                        onSave: ({
-                                          required name,
-                                          required phone,
-                                          required email,
-                                          required phoneCode,
-                                          zipcode,
-                                          houseNumber,
-                                          address,
-                                        }) {
-                                          controller.updateCustomerDetails(
-                                            name: name,
-                                            phone: phone,
-                                            email: email,
-                                            phoneCode: phoneCode,
-                                            zipcode: zipcode,
-                                            houseNumber: houseNumber,
-                                            address: address,
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                );
-                              }),
+                              Obx(() => _buildActionButton(
+                                icon: Icons.person,
+                                label: controller.hasCustomer ? controller.customerName.value : TranslationKeys.customer.tr,
+                                onTap: () => TakeOrderView.openCustomerDialog(controller),
+                              )),
                             ],
                           ),
                 ),
@@ -955,8 +853,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
     final isTablet = screenWidth >= 600;
     final isLandscape = screenWidth > MediaQuery.of(context).size.height;
     final itemsPerRow = isTablet ? (isLandscape ? 3 : 2) : 1;
-
-    // Calculate item width
     final padding = MySize.getWidth(8) * 2;
     final spacing = MySize.getWidth(4);
     final itemWidth =
@@ -1073,7 +969,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                         orderType,
                       );
                     } else {
-                      // Use base price for items without variations or for Dine In
                       switch (orderType) {
                         case 'Pickup':
                           price = itemObject.pickupPrice ?? '0';
