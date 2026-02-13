@@ -322,6 +322,7 @@ class OrderDetailWidgets {
         children: [
           Text(
             '${TranslationKeys.items.tr}${itemsCount > 0 ? ' ($itemsCount)' : ''}',
+            textAlign: TextAlign.start,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: MySize.getHeight(titleFontSize),
@@ -499,7 +500,7 @@ class OrderDetailWidgets {
     );
   }
 
-  /// Builds the waiter details card.
+  /// Builds the waiter details card: icon + waiter name only.
   /// Uses dynamic to work with both orderModel.Waiter and orderDetailsModel.Waiter.
   static Widget buildWaiterDetails(
     dynamic waiter, {
@@ -512,6 +513,8 @@ class OrderDetailWidgets {
     if (!hasName && !hasId) {
       return const SizedBox.shrink();
     }
+
+    final waiterName = waiter.name?.trim() ?? '';
 
     return Container(
       padding: EdgeInsets.all(MySize.getWidth(12)),
@@ -528,46 +531,23 @@ class OrderDetailWidgets {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.restaurant,
-                size: MySize.getHeight(20),
-                color: ColorConstants.primaryColor,
-              ),
-              SizedBox(width: MySize.getWidth(8)),
-              Text(
-                TranslationKeys.waiter.tr,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(titleFontSize),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Icon(
+            Icons.restaurant,
+            size: MySize.getHeight(20),
+            color: ColorConstants.primaryColor,
           ),
-          SizedBox(height: MySize.getHeight(12)),
-          if (waiter.name != null && waiter.name!.trim().isNotEmpty)
-            buildDetailRow(
-              TranslationKeys.name.tr,
-              waiter.name!,
-              fontSize: fontSize,
+          SizedBox(width: MySize.getWidth(8)),
+          Expanded(
+            child: Text(
+              waiterName.isNotEmpty ? waiterName : '—',
+              style: TextStyle(
+                fontSize: MySize.getHeight(titleFontSize),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          if (waiter.email != null && waiter.email!.trim().isNotEmpty)
-            buildDetailRow(
-              TranslationKeys.email.tr,
-              waiter.email!,
-              fontSize: fontSize,
-            ),
-          if (waiter.phoneNumber != null &&
-              waiter.phoneNumber!.trim().isNotEmpty)
-            buildDetailRow(
-              TranslationKeys.phone.tr,
-              '${waiter.phoneCode ?? ''}${waiter.phoneNumber}',
-              fontSize: fontSize,
-            ),
+          ),
         ],
       ),
     );

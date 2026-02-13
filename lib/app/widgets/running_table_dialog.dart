@@ -7,6 +7,7 @@ import '../constants/image_constants.dart';
 import '../constants/sizeConstant.dart';
 import '../data/NetworkClient.dart';
 import '../model/tableModel.dart';
+import '../model/split_payment_remaining_model.dart';
 import '../model/cancelResonModel.dart' as cancelReasonModel;
 import '../model/getorderModel.dart' as orderModel;
 import '../routes/app_pages.dart';
@@ -86,6 +87,28 @@ class RunningTableService {
         return null;
       }
       return orderModel.GetOrderModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<SplitPaymentRemainingModel?> fetchRemainingSplitItems(
+    String orderUuid,
+  ) async {
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.remainingSplitItemsEndpoint.replaceAll(
+          ':order_uuid',
+          orderUuid,
+        ),
+      );
+      if (!helpers.isSuccessStatus(response.statusCode) ||
+          response.data is! Map<String, dynamic>) {
+        return null;
+      }
+      return SplitPaymentRemainingModel.fromJson(
         response.data as Map<String, dynamic>,
       );
     } catch (_) {

@@ -14,6 +14,7 @@ import '../../../constants/image_constants.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
+import '../../../model/split_payment_remaining_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../utils/date_time_formatter.dart';
@@ -751,9 +752,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // API call only once when bottom sheet opens
-    if (!controller.isLoadingOrderDetails.value &&
-        controller.orderDetails.value?.data?.order?.uuid != orderUuid) {
+    // Always refresh order details when a card is tapped
+    if (!controller.isLoadingOrderDetails.value) {
       controller.fetchOrderDetails(orderUuid);
     }
 
@@ -881,7 +881,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           vertical: MySize.getHeight(10),
                         ),
                         decoration: BoxDecoration(
-                          color: ColorConstants.primaryColor,
+                          color: ColorConstants.successGreen,
                           borderRadius: BorderRadius.circular(
                             MySize.getHeight(8),
                           ),
@@ -901,7 +901,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 ),
                                 SizedBox(width: MySize.getWidth(6)),
                                 Text(
-                                  TranslationKeys.addPayment.tr,
+                                  TranslationKeys.pay.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: MySize.getHeight(15),
@@ -1277,62 +1277,48 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
               ),
               children: [
+                _centeredTableCell(amountStr),
+                _centeredTableCell(methodLabel),
+                _centeredTableCell(dateTimeStr),
                 Padding(
                   padding: EdgeInsets.all(MySize.getHeight(8)),
-                  child: Text(
-                    amountStr,
-                    style: TextStyle(fontSize: MySize.getHeight(12)),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(MySize.getHeight(8)),
-                  child: Text(
-                    methodLabel,
-                    style: TextStyle(fontSize: MySize.getHeight(12)),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(MySize.getHeight(8)),
-                  child: Text(
-                    dateTimeStr,
-                    style: TextStyle(fontSize: MySize.getHeight(12)),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(MySize.getHeight(8)),
-                  child:
-                      isDue
-                          ? _outlinedButton(
-                            label: TranslationKeys.addPayment.tr,
-                            onTap:
-                                () => _openAddPaymentFromSheet(
-                                  context,
-                                  controller,
+                  child: Center(
+                    child:
+                        isDue
+                            ? _outlinedButton(
+                              label: TranslationKeys.pay.tr,
+                              onTap:
+                                  () => _openAddPaymentFromSheet(
+                                    context,
+                                    controller,
+                                  ),
+                              backgroundColor: ColorConstants.successGreen,
+                            )
+                            : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _outlinedButton(
+                                  label: TranslationKeys.view.tr,
+                                  icon: Icons.visibility_outlined,
+                                  onTap: () {},
+                                  iconOnly: true,
                                 ),
-                          )
-                          : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _outlinedButton(
-                                label: TranslationKeys.view.tr,
-                                icon: Icons.visibility_outlined,
-                                onTap: () {},
-                                iconOnly: true,
-                              ),
-                              SizedBox(width: MySize.getWidth(6)),
-                              _outlinedButton(
-                                label: TranslationKeys.print.tr,
-                                icon: Icons.print,
-                                iconOnly: true,
-                                onTap:
-                                    () => _printInvoice(
-                                      context,
-                                      controller,
-                                      orderData,
-                                    ),
-                              ),
-                            ],
-                          ),
+                                SizedBox(width: MySize.getWidth(6)),
+                                _outlinedButton(
+                                  label: TranslationKeys.print.tr,
+                                  icon: Icons.print,
+                                  iconOnly: true,
+                                  onTap:
+                                      () => _printInvoice(
+                                        context,
+                                        controller,
+                                        orderData,
+                                      ),
+                                ),
+                              ],
+                            ),
+                  ),
                 ),
               ],
             );
@@ -1342,18 +1328,35 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  Widget _tableHeaderCell(String text) {
+  /// Reusable centered table cell for payment table (header and data).
+  Widget _centeredTableCell(
+    String text, {
+    double fontSize = 12,
+    FontWeight? fontWeight,
+    Color? color,
+  }) {
     return Padding(
       padding: EdgeInsets.all(MySize.getHeight(8)),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: MySize.getHeight(11),
-          color: Colors.grey.shade700,
+      child: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: MySize.getHeight(fontSize),
+            fontWeight: fontWeight,
+            color: color ?? Colors.black,
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _tableHeaderCell(String text) {
+    return _centeredTableCell(
+      text,
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: Colors.grey.shade700,
     );
   }
 
@@ -1362,8 +1365,28 @@ class OrderScreenView extends GetView<OrderScreenController> {
     IconData? icon,
     required VoidCallback onTap,
     bool? iconOnly,
+    Color? borderColor,
+    Color? textColor,
+    Color? backgroundColor,
   }) {
     final showLabel = iconOnly != true;
+    final isFilled = backgroundColor != null;
+    final effectiveBorderColor =
+        borderColor ??
+        (icon == Icons.print
+            ? Colors.red.shade300
+            : (icon == Icons.visibility_outlined
+                ? Colors.blue.shade300
+                : Colors.grey.shade400));
+    final effectiveTextColor =
+        isFilled
+            ? Colors.white
+            : (textColor ??
+                (icon == Icons.print
+                    ? Colors.red
+                    : (icon == Icons.visibility_outlined
+                        ? Colors.blue
+                        : Colors.grey)));
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -1372,46 +1395,34 @@ class OrderScreenView extends GetView<OrderScreenController> {
           vertical: showLabel ? MySize.getHeight(6) : MySize.getHeight(8),
         ),
         decoration: BoxDecoration(
-          border: Border.all(
-            color:
-                icon == Icons.print
-                    ? Colors.red.shade300
-                    : (icon == Icons.visibility_outlined
-                        ? Colors.blue.shade300
-                        : Colors.grey.shade400),
-          ),
+          color: backgroundColor,
+          border: isFilled ? null : Border.all(color: effectiveBorderColor),
           borderRadius: BorderRadius.circular(MySize.getHeight(6)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: MySize.getHeight(20),
-                color:
-                    icon == Icons.print
-                        ? Colors.red
-                        : (icon == Icons.visibility_outlined
-                            ? Colors.blue
-                            : Colors.grey),
-              ),
-              if (showLabel) SizedBox(width: MySize.getWidth(4)),
-            ],
-            if (showLabel)
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(11),
-                  color:
-                      icon == Icons.print
-                          ? Colors.red
-                          : (icon == Icons.visibility_outlined
-                              ? Colors.blue
-                              : Colors.grey.shade700),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: MySize.getHeight(20),
+                  color: effectiveTextColor,
                 ),
-              ),
-          ],
+                if (showLabel) SizedBox(width: MySize.getWidth(4)),
+              ],
+              if (showLabel)
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(11),
+                    color: effectiveTextColor,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -1426,14 +1437,36 @@ class OrderScreenView extends GetView<OrderScreenController> {
     if (getOrderModel == null) return;
     final table = RunningTableService.tablesFromOrderDetails(getOrderModel);
     if (table == null) return;
-    final orderType = getOrderModel.data?.order?.orderType?.toLowerCase() ?? '';
+    final orderData = getOrderModel.data?.order;
+    final orderType = orderData?.orderType?.toLowerCase() ?? '';
     final allowSplit = orderType.contains('dine');
-    await OrderPaymentDialog.show(
+    final status = orderData?.status;
+    final hasAnyPayment = (orderData?.payments?.isNotEmpty ?? false);
+    final isPaymentDue = status == 'payment_due';
+
+    SplitPaymentData? remainingSplitData;
+    var splitOnly = false;
+
+    if (allowSplit && isPaymentDue && hasAnyPayment) {
+      final orderUuid = orderData?.uuid;
+      if (orderUuid != null && orderUuid.isNotEmpty) {
+        final remainingModel =
+            await RunningTableService.fetchRemainingSplitItems(orderUuid);
+        remainingSplitData = remainingModel?.data;
+        splitOnly = true;
+      }
+    }
+
+    final success = await OrderPaymentDialog.show(
       orderDetails: getOrderModel,
       table: table,
       allowSplit: allowSplit,
+      splitOnly: splitOnly,
+      remainingSplitData: remainingSplitData,
     );
-    controller.fetchAllOrders();
+    if (success == true) {
+      controller.fetchAllOrders();
+    }
   }
 
   static Future<void> _openPaymentForOrderCard(
@@ -1462,13 +1495,30 @@ class OrderScreenView extends GetView<OrderScreenController> {
       return;
     }
 
-    final orderType = orderDetails.data?.order?.orderType?.toLowerCase() ?? '';
+    final orderData = orderDetails.data?.order;
+    final orderType = orderData?.orderType?.toLowerCase() ?? '';
     final allowSplit = orderType.contains('dine');
+    final status = orderData?.status ?? order.status;
+    final hasAnyPayment = (orderData?.payments?.isNotEmpty ?? false);
+    final isPaymentDue = status == 'payment_due';
+
+    SplitPaymentData? remainingSplitData;
+    var splitOnly = false;
+
+    if (allowSplit && isPaymentDue && hasAnyPayment) {
+      final remainingModel = await RunningTableService.fetchRemainingSplitItems(
+        orderUuid,
+      );
+      remainingSplitData = remainingModel?.data;
+      splitOnly = true;
+    }
 
     final success = await OrderPaymentDialog.show(
       orderDetails: orderDetails,
       table: table,
       allowSplit: allowSplit,
+      splitOnly: splitOnly,
+      remainingSplitData: remainingSplitData,
     );
 
     if (success == true) {

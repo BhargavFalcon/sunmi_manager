@@ -9,6 +9,9 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart';
 import '../../../model/getorderModel.dart' as orderModel;
 import '../../../model/MobileAppModulesModel.dart';
+import '../../../model/split_payment_remaining_model.dart';
+import '../../../widgets/order_payment_dialog.dart';
+import '../../../widgets/running_table_dialog.dart';
 import '../../../../main.dart';
 
 class OrderScreenController extends GetxController {
@@ -68,6 +71,52 @@ class OrderScreenController extends GetxController {
     _setupScrollListener();
     fetchAllOrders();
     _checkAndShowDialog();
+    _checkPendingPaymentAndOpenDialog();
+  }
+
+  void _checkPendingPaymentAndOpenDialog() {
+    try {
+      final orderId =
+          box.read<String?>(ArgumentConstant.pendingPaymentOrderIdKey);
+      if (orderId != null && orderId.isNotEmpty) {
+        box.remove(ArgumentConstant.pendingPaymentOrderIdKey);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          openPaymentDialogForOrderId(orderId);
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> openPaymentDialogForOrderId(String orderUuid) async {
+    final orderDetails =
+        await RunningTableService.fetchOrderDetails(orderUuid);
+    if (orderDetails == null) return;
+    final table = RunningTableService.tablesFromOrderDetails(orderDetails);
+    if (table == null) return;
+    final orderData = orderDetails.data?.order;
+    final orderType = orderData?.orderType?.toLowerCase() ?? '';
+    final allowSplit = orderType.contains('dine');
+    final status = orderData?.status ?? '';
+    final hasAnyPayment = orderData?.payments?.isNotEmpty ?? false;
+    final isPaymentDue = status == 'payment_due';
+    SplitPaymentData? remainingSplitData;
+    var splitOnly = false;
+    if (allowSplit && isPaymentDue && hasAnyPayment) {
+      final remainingModel =
+          await RunningTableService.fetchRemainingSplitItems(orderUuid);
+      remainingSplitData = remainingModel?.data;
+      splitOnly = true;
+    }
+    final success = await OrderPaymentDialog.show(
+      orderDetails: orderDetails,
+      table: table,
+      allowSplit: allowSplit,
+      splitOnly: splitOnly,
+      remainingSplitData: remainingSplitData,
+    );
+    if (success == true) {
+      fetchAllOrders();
+    }
   }
 
   void _setupScrollListener() {

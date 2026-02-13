@@ -13,9 +13,8 @@ import '../../../model/menuItemsModel.dart';
 import '../../../model/RestaurantDetailsModel.dart';
 import '../../../model/tableModel.dart' as table_model;
 import '../../../model/getorderModel.dart' as order_model;
-import '../../../widgets/running_table_dialog.dart';
-import '../../../widgets/order_payment_dialog.dart';
 import '../../../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
+import '../../../modules/order_screen/controllers/order_screen_controller.dart';
 import '../../../modules/take_order_screen/controllers/take_order_controller.dart';
 import '../../../routes/app_pages.dart';
 
@@ -347,7 +346,7 @@ class CartScreenController extends GetxController {
                   .toString()
                   .toLowerCase() ==
               'billed')) {
-        await _openPaymentDialog(existingOrderId!);
+        _navigateToOrderScreenAndOpenPayment(existingOrderId!);
         return;
       }
 
@@ -384,7 +383,7 @@ class CartScreenController extends GetxController {
       }
 
       if (createPayment && orderId != null) {
-        await _openPaymentDialog(orderId);
+        _navigateToOrderScreenAndOpenPayment(orderId);
       } else {
         if (!isBilledStatus) {
           cartItems.clear();
@@ -401,46 +400,6 @@ class CartScreenController extends GetxController {
     }
   }
 
-  Future<void> _openPaymentDialog(String orderId) async {
-    try {
-      final orderDetails = await RunningTableService.fetchOrderDetails(orderId);
-      if (orderDetails == null) {
-        _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
-        return;
-      }
-
-      existingOrder = orderDetails;
-      existingOrderId = orderDetails.data?.order?.uuid ?? orderId;
-
-      final table = RunningTableService.tablesFromOrderDetails(orderDetails);
-      if (table == null) {
-        _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
-        return;
-      }
-
-      final orderType =
-          (orderDetails.data?.order?.orderType ?? '').toLowerCase();
-      final allowSplit = orderType.contains('dine');
-
-      final success = await OrderPaymentDialog.show(
-        orderDetails: orderDetails,
-        table: table,
-        allowSplit: allowSplit,
-      );
-
-      if (success == true) {
-        cartItems.clear();
-        _resetTakeOrderDeliveryPickupIfNeeded();
-        await Future.delayed(const Duration(milliseconds: 500));
-        _navigateBackAfterSubmit();
-      }
-    } on ApiException catch (e) {
-      _showErrorSnackbar(e.message);
-    } catch (_) {
-      _showErrorSnackbar(TranslationKeys.failedToCreatePayment.tr);
-    }
-  }
-
   void _resetTakeOrderDeliveryPickupIfNeeded() {
     final orderType = currentOrderType.value.toLowerCase();
     if (orderType != 'delivery' && orderType != 'pickup') return;
@@ -451,22 +410,33 @@ class CartScreenController extends GetxController {
     } catch (_) {}
   }
 
+  void _navigateToMainHomeWithTab(int tabIndex,
+      {Duration delay = const Duration(milliseconds: 100)}) {
+    Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
+    Future.delayed(delay, () {
+      try {
+        Get.find<MainHomeScreenController>().changeTab(tabIndex);
+      } catch (_) {}
+    });
+  }
+
+  void _navigateToOrderScreenAndOpenPayment(String orderId) {
+    box.write(ArgumentConstant.pendingPaymentOrderIdKey, orderId);
+    try {
+      if (Get.isRegistered<OrderScreenController>()) {
+        Get.delete<OrderScreenController>(force: true);
+      }
+    } catch (_) {}
+    _navigateToMainHomeWithTab(0,
+        delay: const Duration(milliseconds: 150));
+  }
+
   void _navigateBackAfterSubmit() {
     if (sourceScreen != null && sourceScreen!.isNotEmpty) {
       if (sourceScreen == Routes.ORDER_SCREEN) {
-        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
-        Future.delayed(const Duration(milliseconds: 100), () {
-          try {
-            Get.find<MainHomeScreenController>().changeTab(0);
-          } catch (_) {}
-        });
+        _navigateToMainHomeWithTab(0);
       } else if (sourceScreen == Routes.TABLE_SCREEN) {
-        Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
-        Future.delayed(const Duration(milliseconds: 100), () {
-          try {
-            Get.find<MainHomeScreenController>().changeTab(1);
-          } catch (_) {}
-        });
+        _navigateToMainHomeWithTab(1);
       } else {
         Get.back();
       }

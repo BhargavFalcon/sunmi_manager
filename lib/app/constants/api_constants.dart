@@ -27,6 +27,8 @@ class ArgumentConstant {
   static const paymentsEndpoint = "api/v1/pos/payments";
   static const splitPaymentEndpoint =
       "api/v1/pos/orders/:order_uuid/payments/split";
+  static const remainingSplitItemsEndpoint =
+      "api/v1/pos/orders/:order_uuid/remaining-split-items";
   static const allOrdersEndpoint = "api/v1/pos/orders";
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
@@ -42,6 +44,7 @@ class ArgumentConstant {
   static const deliveryPreOrderDateTimeKey = "delivery_pre_order_date_time";
   static const deliveryTipAmountKey = "delivery_tip_amount";
   static const deliveryAddressKey = "delivery_address";
+  static const pendingPaymentOrderIdKey = "pending_payment_order_id";
 
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";

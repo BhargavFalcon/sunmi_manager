@@ -5,6 +5,7 @@ import '../constants/color_constant.dart';
 import '../constants/sizeConstant.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../model/tableModel.dart';
+import '../model/split_payment_remaining_model.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_time_formatter.dart';
 import '../data/NetworkClient.dart';
@@ -16,12 +17,19 @@ class OrderPaymentController extends GetxController {
   final orderModel.GetOrderModel orderDetails;
   final Tables table;
   final bool allowSplit;
+  final bool splitOnly;
+  final SplitPaymentData? remainingSplitData;
   final NetworkClient networkClient = NetworkClient();
+
+  /// Updated after a split payment so Available Items list removes paid items.
+  final Rx<SplitPaymentData?> currentRemainingData = Rx<SplitPaymentData?>(null);
 
   OrderPaymentController({
     required this.orderDetails,
     required this.table,
     this.allowSplit = true,
+    this.splitOnly = false,
+    this.remainingSplitData,
   });
 
   var paymentType = 'Full Payment'.obs;
@@ -40,7 +48,10 @@ class OrderPaymentController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final total = orderDetails.data?.order?.totals?.total ?? 0.0;
+    final total =
+        remainingSplitData?.totalRemainingAmount ??
+        orderDetails.data?.order?.totals?.total ??
+        0.0;
     amountToPayController.text = total.toStringAsFixed(2);
     enteredAmount.value = total;
 
@@ -53,9 +64,17 @@ class OrderPaymentController extends GetxController {
       }
     });
 
+    if (remainingSplitData != null) {
+      currentRemainingData.value = remainingSplitData;
+    }
     _initializeSplitBill();
 
-    if (!allowSplit) {
+    if (splitOnly) {
+      paymentType.value = 'Split Bill';
+      // In split-only mode, start with 0 amount until user selects items.
+      amountToPayController.text = '0.00';
+      enteredAmount.value = 0.0;
+    } else if (!allowSplit) {
       paymentType.value = 'Full Payment';
     }
   }
@@ -68,15 +87,70 @@ class OrderPaymentController extends GetxController {
 
   void _initializeSplitBill() {
     final items = orderDetails.data?.order?.items ?? [];
-    for (int i = 0; i < items.length; i++) {
-      availableQty[i] = items[i].quantity ?? 0;
-      splitQty[i] = 0;
+    availableQty.clear();
+    splitQty.clear();
+
+    final data = currentRemainingData.value ?? remainingSplitData;
+    final remainingItems = data?.remainingItems;
+    if (remainingItems != null && remainingItems.isNotEmpty) {
+      final remainingByOrderItemId = <int, int>{};
+      for (final item in remainingItems) {
+        final id = item.orderItemId;
+        final qty = item.remainingQuantity ?? 0;
+        if (id != null && qty > 0) {
+          remainingByOrderItemId[id] = qty;
+        }
+      }
+
+      for (int i = 0; i < items.length; i++) {
+        final itemId = items[i].id;
+        final remainingQty =
+            itemId != null ? (remainingByOrderItemId[itemId] ?? 0) : 0;
+        availableQty[i] = remainingQty;
+        splitQty[i] = 0;
+      }
+    } else {
+      for (int i = 0; i < items.length; i++) {
+        availableQty[i] = items[i].quantity ?? 0;
+        splitQty[i] = 0;
+      }
     }
   }
 
   void resetSplit() {
     _initializeSplitBill();
     _updateSplitAmount();
+  }
+
+  /// After a split payment, fetch updated remaining items and update list (remove paid items).
+  /// Returns true if there is nothing left to pay (all paid).
+  Future<bool> refreshRemainingAfterPayment() async {
+    final orderUuid = orderDetails.data?.order?.uuid;
+    if (orderUuid == null || orderUuid.isEmpty) return true;
+    try {
+      final endpoint = ArgumentConstant.remainingSplitItemsEndpoint
+          .replaceAll(':order_uuid', orderUuid);
+      final response = await networkClient.get(endpoint);
+      if (!helpers.isSuccessStatus(response.statusCode) ||
+          response.data is! Map<String, dynamic>) {
+        return true;
+      }
+      final model = SplitPaymentRemainingModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      final newData = model.data;
+      currentRemainingData.value = newData;
+      _initializeSplitBill();
+      _updateSplitAmount();
+      amountToPayController.text = '0.00';
+      enteredAmount.value = 0.0;
+      final totalRemaining = newData?.totalRemainingAmount ?? 0.0;
+      final hasItems = newData?.remainingItems != null &&
+          newData!.remainingItems!.isNotEmpty;
+      return totalRemaining <= 0 || !hasItems;
+    } catch (_) {
+      return true;
+    }
   }
 
   void addToSplit(int index, int qty) {
@@ -479,6 +553,9 @@ class OrderPaymentController extends GetxController {
 
       if (helpers.isSuccessStatus(response.statusCode)) {
         _showPaymentSuccess();
+        final allPaid = await refreshRemainingAfterPayment();
+        if (Get.isDialogOpen == true) Get.back();
+        if (allPaid && Get.isDialogOpen == true) Get.back(result: true);
       } else {
         _showPaymentError();
       }
@@ -504,6 +581,8 @@ class OrderPaymentDialog extends StatelessWidget {
     required orderModel.GetOrderModel orderDetails,
     required Tables table,
     bool allowSplit = true,
+    bool splitOnly = false,
+    SplitPaymentData? remainingSplitData,
   }) {
     if (Get.isRegistered<OrderPaymentController>()) {
       Get.delete<OrderPaymentController>();
@@ -513,6 +592,8 @@ class OrderPaymentDialog extends StatelessWidget {
         orderDetails: orderDetails,
         table: table,
         allowSplit: allowSplit,
+        splitOnly: splitOnly,
+        remainingSplitData: remainingSplitData,
       ),
     );
 
@@ -600,7 +681,8 @@ class OrderPaymentDialog extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildToggleButton(controller, 'Full Payment'),
+            if (!controller.splitOnly)
+              _buildToggleButton(controller, 'Full Payment'),
             if (controller.allowSplit)
               _buildToggleButton(controller, 'Split Bill'),
           ],

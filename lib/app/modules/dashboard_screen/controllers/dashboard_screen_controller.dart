@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../constants/color_constant.dart';
-
-import '../../../../main.dart';
-import '../../../constants/api_constants.dart';
-import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../routes/app_pages.dart';
 import '../../../model/chartModel.dart';
 
 class DashboardScreenController extends GetxController {
