@@ -62,12 +62,12 @@ class DateTimeFormatter {
     final locale = _currentLocale();
     final localeString = '${locale.languageCode}_${locale.countryCode}';
     try {
-      return DateFormat('d MMM yyyy, hh:mm a', localeString);
+      return DateFormat('d MMM yyyy,hh:mm a', localeString);
     } catch (_) {
       try {
-        return DateFormat('d MMM yyyy, hh:mm a', 'en_US');
+        return DateFormat('d MMM yyyy,hh:mm a', 'en_US');
       } catch (_) {
-        return DateFormat('d MMM yyyy, hh:mm a');
+        return DateFormat('d MMM yyyy,hh:mm a');
       }
     }
   }
@@ -87,7 +87,9 @@ class DateTimeFormatter {
     try {
       return DateTime.parse(dateTimeString);
     } catch (_) {
-      return _parseCustomFormat(dateTimeString);
+      final custom = _parseCustomFormat(dateTimeString);
+      if (custom != null) return custom;
+      return _parseLongMonthFormat(dateTimeString);
     }
   }
 
@@ -110,5 +112,24 @@ class DateTimeFormatter {
     } catch (_) {
       return null;
     }
+  }
+
+  static DateTime? _parseLongMonthFormat(String dateTimeString) {
+    final patterns = [
+      'MMMM d, yyyy hh:mm a',
+      'MMMM d, yyyy h:mm a',
+      'MMMM d,yyyy hh:mm a',
+      'MMMM d,yyyy h:mm a',
+      'MMM d, yyyy hh:mm a',
+      'MMM d, yyyy h:mm a',
+      'MMM d,yyyy hh:mm a',
+      'MMM d,yyyy h:mm a',
+    ];
+    for (final pattern in patterns) {
+      try {
+        return DateFormat(pattern, 'en_US').parse(dateTimeString);
+      } catch (_) {}
+    }
+    return null;
   }
 }

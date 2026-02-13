@@ -65,11 +65,11 @@ class PusherService {
 
       _refreshOrderList();
 
+      final orderNumber = _extractOrderNumber(order);
+      final fetchedOrderData = await _fetchAndPrintInvoice(orderUuid);
+
       final notificationsEnabled =
           box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
-
-      final orderNumber = _extractOrderNumber(order);
-      orderModel.Data? fetchedOrderData;
 
       if (notificationsEnabled) {
         NewOrderDialog.show(
@@ -81,8 +81,6 @@ class PusherService {
           },
         );
       }
-
-      fetchedOrderData = await _fetchAndPrintInvoice(orderUuid);
     } catch (_) {}
   }
 

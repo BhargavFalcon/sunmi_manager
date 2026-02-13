@@ -30,4 +30,5 @@ class ImageConstant {
   static const access = "${imagePath}access.png";
   static const waiter = "${imagePath}waiter.png";
   static const emptyBox = "${imagePath}empty_box.png";
+  static const noReservation = "${imagePath}no_reservation.png";
 }

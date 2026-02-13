@@ -6,10 +6,28 @@ import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_time_formatter.dart';
 import '../model/getorderModel.dart' as orderModel;
+import '../model/receipt_order_response_model.dart';
 import '../constants/translation_keys.dart';
 
 class SunmiInvoicePrinterService {
   static final Dio _dio = Dio();
+
+  static const String _separator = '--------------------------------';
+  static const int _fontSizeTitle = 30;
+  static const int _fontSizeSub = 22;
+  static const int _fontSizeBody = 20;
+  static const int _fontSizeSmall = 18;
+  static const int _fontSizeTotal = 25;
+  static const int _itemQtyWidth = 4;
+  static const int _itemNameWidth = 15;
+  static const int _itemPriceWidth = 10;
+  static const String _paymentTableHeader = 'Amount Payment Method   Date & Time';
+
+  Future<void> _printSep() async => SunmiPrinter.lineWrap(5);
+  Future<void> _printLine() async {
+    await SunmiPrinter.printText(_separator);
+    await _printSep();
+  }
 
   Future<Uint8List?> _downloadNetworkImage(String imageUrl) async {
     try {
@@ -62,10 +80,19 @@ class SunmiInvoicePrinterService {
     return '$label$spacing$value';
   }
 
-  List<String> _wrapText(String text, int maxWidth) {
-    if (text.length <= maxWidth) {
-      return [text];
+  List<String> _splitLongWord(String word, int maxWidth) {
+    final List<String> chunks = [];
+    int start = 0;
+    while (start < word.length) {
+      final end = (start + maxWidth < word.length) ? start + maxWidth : word.length;
+      chunks.add(word.substring(start, end));
+      start = end;
     }
+    return chunks;
+  }
+
+  List<String> _wrapText(String text, int maxWidth) {
+    if (text.length <= maxWidth) return [text];
 
     final List<String> lines = [];
     final words = text.split(' ');
@@ -74,15 +101,7 @@ class SunmiInvoicePrinterService {
     for (final word in words) {
       if (currentLine.isEmpty) {
         if (word.length > maxWidth) {
-          int start = 0;
-          while (start < word.length) {
-            final end =
-                (start + maxWidth < word.length)
-                    ? start + maxWidth
-                    : word.length;
-            lines.add(word.substring(start, end));
-            start = end;
-          }
+          lines.addAll(_splitLongWord(word, maxWidth));
         } else {
           currentLine = word;
         }
@@ -93,15 +112,7 @@ class SunmiInvoicePrinterService {
         } else {
           lines.add(currentLine);
           if (word.length > maxWidth) {
-            int start = 0;
-            while (start < word.length) {
-              final end =
-                  (start + maxWidth < word.length)
-                      ? start + maxWidth
-                      : word.length;
-              lines.add(word.substring(start, end));
-              start = end;
-            }
+            lines.addAll(_splitLongWord(word, maxWidth));
             currentLine = '';
           } else {
             currentLine = word;
@@ -110,9 +121,7 @@ class SunmiInvoicePrinterService {
       }
     }
 
-    if (currentLine.isNotEmpty) {
-      lines.add(currentLine);
-    }
+    if (currentLine.isNotEmpty) lines.add(currentLine);
 
     return lines;
   }
@@ -218,7 +227,7 @@ class SunmiInvoicePrinterService {
               imageData,
               align: SunmiPrintAlign.CENTER,
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
 
@@ -226,35 +235,31 @@ class SunmiInvoicePrinterService {
           restaurant?.name ?? TranslationKeys.restaurant.tr,
           style: SunmiTextStyle(
             align: SunmiPrintAlign.CENTER,
-            fontSize: 30,
+            fontSize: _fontSizeTitle,
             bold: true,
           ),
         );
-        await SunmiPrinter.lineWrap(5);
-
+        await _printSep();
         if (branch?.address != null) {
           await SunmiPrinter.printText(
             branch!.address!,
-            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 22),
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeSub),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
-
         if (order.customer?.phoneNumber != null) {
           await SunmiPrinter.printText(
             '${TranslationKeys.phone.tr}: ${order.customer!.phoneNumber}',
-            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 22),
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeSub),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
-
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
+        await _printLine();
 
         final orderLine =
             '${TranslationKeys.order.tr}: ${order.formattedOrderNumber ?? TranslationKeys.na.tr}';
-        final formattedOrderDateTime = _formatDateTimeString(order.dateTime, data.restaurant?.timezone);
+        final formattedOrderDateTime = _formatDateTimeString(order.dateTime);
         final orderText =
             formattedOrderDateTime.isNotEmpty
                 ? '$orderLine   $formattedOrderDateTime'
@@ -262,29 +267,52 @@ class SunmiInvoicePrinterService {
 
         await SunmiPrinter.printText(
           orderText,
-          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
         );
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
 
+        final tableCode = order.table?.tableCode != null && order.table!.tableCode!.isNotEmpty
+            ? order.table!.tableCode!
+            : null;
+        final pax = order.numberOfPax;
+        if (tableCode != null || (pax != null && pax > 0)) {
+          final tablePart = tableCode != null
+              ? '${TranslationKeys.tableNo.tr}: $tableCode'
+              : '';
+          final paxPart = pax != null && pax > 0
+              ? '${TranslationKeys.pax.tr}: $pax'
+              : '';
+          final tablePaxLine = tablePart.isNotEmpty && paxPart.isNotEmpty
+              ? _formatLabelValue(tablePart, paxPart)
+              : (tablePart.isNotEmpty ? tablePart : paxPart);
+          await SunmiPrinter.printText(
+            tablePaxLine,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+          );
+          await _printSep();
+        }
+        if (order.waiter?.name != null && order.waiter!.name!.isNotEmpty) {
+          await SunmiPrinter.printText(
+            '${TranslationKeys.waiter.tr}: ${order.waiter!.name}',
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+          );
+          await _printSep();
+        }
         if (order.customer?.name != null) {
           await SunmiPrinter.printText(
             '${TranslationKeys.customer.tr}: ${order.customer!.name}',
-            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
-
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
+        await _printLine();
 
         await SunmiPrinter.printText(
           TranslationKeys.qtyItemNamePriceAmount.tr,
-          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeBody),
         );
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printLine();
 
         if (order.items?.isNotEmpty == true) {
           for (final item in order.items!) {
@@ -292,85 +320,60 @@ class SunmiInvoicePrinterService {
             final itemName = item.itemName ?? TranslationKeys.na.tr;
             final price = _formatPrice(null, item.price);
             final amount = _formatPrice(null, item.amount);
-
-            final qtyWidth = 4;
-            final itemNameWidth = 15;
-            final priceWidth = 10;
-            final priceAmountSpacing = '   ';
-
-            final qtyPadded = qty.padRight(qtyWidth);
-            final pricePadded = price.padLeft(priceWidth);
+            const priceAmountSpacing = '   ';
+            final qtyPadded = qty.padRight(_itemQtyWidth);
+            final pricePadded = price.padLeft(_itemPriceWidth);
             final priceAmountLine = '$pricePadded$priceAmountSpacing$amount';
 
-            if (itemName.length <= itemNameWidth) {
-              final itemNamePadded = itemName.padRight(itemNameWidth);
-              final itemLine = '$qtyPadded$itemNamePadded$priceAmountLine';
+            if (itemName.length <= _itemNameWidth) {
+              final itemNamePadded = itemName.padRight(_itemNameWidth);
               await SunmiPrinter.printText(
-                itemLine,
-                style: SunmiTextStyle(
-                  align: SunmiPrintAlign.LEFT,
-                  fontSize: 20,
-                ),
+                '$qtyPadded$itemNamePadded$priceAmountLine',
+                style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
               );
-              await SunmiPrinter.lineWrap(5);
+              await _printSep();
             } else {
-              final nameLines = _wrapText(itemName, itemNameWidth);
+              final nameLines = _wrapText(itemName, _itemNameWidth);
               for (int i = 0; i < nameLines.length; i++) {
                 if (i == 0) {
-                  final itemNamePadded = nameLines[i].padRight(itemNameWidth);
-                  final itemLine = '$qtyPadded$itemNamePadded$priceAmountLine';
+                  final itemNamePadded = nameLines[i].padRight(_itemNameWidth);
                   await SunmiPrinter.printText(
-                    itemLine,
-                    style: SunmiTextStyle(
-                      align: SunmiPrintAlign.LEFT,
-                      fontSize: 20,
-                    ),
+                    '$qtyPadded$itemNamePadded$priceAmountLine',
+                    style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
                   );
                 } else {
-                  final indent = ' '.padRight(qtyWidth);
-                  final itemNamePadded = nameLines[i].padRight(itemNameWidth);
+                  final indent = ' '.padRight(_itemQtyWidth);
+                  final itemNamePadded = nameLines[i].padRight(_itemNameWidth);
                   await SunmiPrinter.printText(
                     '$indent$itemNamePadded',
-                    style: SunmiTextStyle(
-                      align: SunmiPrintAlign.LEFT,
-                      fontSize: 20,
-                    ),
+                    style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
                   );
                 }
                 await SunmiPrinter.lineWrap(2);
               }
               await SunmiPrinter.lineWrap(3);
             }
-
             if (item.variationName?.isNotEmpty == true) {
               await SunmiPrinter.printText(
                 '  (${item.variationName})',
-                style: SunmiTextStyle(
-                  align: SunmiPrintAlign.LEFT,
-                  fontSize: 18,
-                ),
+                style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeSmall),
               );
-              await SunmiPrinter.lineWrap(5);
+              await _printSep();
             }
-
             if (item.modifiers?.isNotEmpty == true) {
               for (final modifier in item.modifiers!) {
                 final modifierPrice = _formatPrice(null, modifier.price);
                 await SunmiPrinter.printText(
                   '  • ${modifier.name ?? ''} (+$modifierPrice)',
-                  style: SunmiTextStyle(
-                    align: SunmiPrintAlign.LEFT,
-                    fontSize: 18,
-                  ),
+                  style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeSmall),
                 );
-                await SunmiPrinter.lineWrap(5);
+                await _printSep();
               }
             }
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
-
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
 
         if (order.totals?.subTotal != null) {
           final subTotalValue = _formatPrice(
@@ -379,9 +382,9 @@ class SunmiInvoicePrinterService {
           );
           await SunmiPrinter.printText(
             _formatLabelValue('${TranslationKeys.subTotal.tr}:', subTotalValue),
-            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
 
         final hasDiscount =
@@ -401,16 +404,16 @@ class SunmiInvoicePrinterService {
           );
           await SunmiPrinter.printText(
             _formatLabelValue(discountLabel, '-$discountValue'),
-            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
 
         if (order.charges?.isNotEmpty == true) {
           for (final charge in order.charges!) {
             final chargeValue = _formatPrice(null, charge.amount);
             await _printLabelValue('${charge.chargeName ?? ''}:', chargeValue);
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
 
@@ -419,9 +422,9 @@ class SunmiInvoicePrinterService {
           if (tipValue.isNotEmpty && tipValue != '0') {
             await SunmiPrinter.printText(
               _formatLabelValue('${TranslationKeys.tip.tr}:', tipValue),
-              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
 
@@ -438,20 +441,8 @@ class SunmiInvoicePrinterService {
                     ? '$taxName ($taxPercent%) incl.'
                     : '$taxName incl.';
             await _printLabelValue(taxLabel, formattedTaxAmount);
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
-        }
-
-        if (order.totals?.totalTaxAmount != null) {
-          final totalTaxValue = _formatPrice(
-            null,
-            order.totals!.totalTaxAmount,
-          );
-          await SunmiPrinter.printText(
-            _formatLabelValue('${TranslationKeys.totalTax.tr}:', totalTaxValue),
-            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
-          );
-          await SunmiPrinter.lineWrap(5);
         }
 
         if (order.payments?.isNotEmpty == true && order.totals?.total != null) {
@@ -468,14 +459,13 @@ class SunmiInvoicePrinterService {
                 '${TranslationKeys.balanceReturned.tr}:',
                 balanceValue,
               ),
-              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 20),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
 
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printLine();
 
         final totalValue = _formatPrice(null, order.totals?.total);
         if (totalValue.isNotEmpty && totalValue != '0') {
@@ -483,20 +473,19 @@ class SunmiInvoicePrinterService {
             '${TranslationKeys.total.tr}:                   $totalValue',
             style: SunmiTextStyle(
               align: SunmiPrintAlign.CENTER,
-              fontSize: 25,
+              fontSize: _fontSizeTotal,
               bold: true,
             ),
           );
         }
 
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
+        await _printLine();
         await SunmiPrinter.printText(
           TranslationKeys.thankYouForVisit.tr,
           style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
         );
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
         if (qrCodeUrl != null && qrCodeUrl.isNotEmpty) {
           final qrCodeData = await _downloadNetworkImage(qrCodeUrl);
           if (qrCodeData != null) {
@@ -504,32 +493,30 @@ class SunmiInvoicePrinterService {
               TranslationKeys.payFromYourPhone.tr.toUpperCase(),
               style: SunmiTextStyle(
                 align: SunmiPrintAlign.CENTER,
-                fontSize: 20,
+                fontSize: _fontSizeBody,
               ),
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
             await SunmiPrinter.printImage(
               qrCodeData,
               align: SunmiPrintAlign.CENTER,
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
           await SunmiPrinter.printText(
             TranslationKeys.scanQrCodeToPay.tr,
-            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeBody),
           );
-          await SunmiPrinter.lineWrap(5);
+          await _printSep();
         }
-        await SunmiPrinter.printText("--------------------------------");
-        await SunmiPrinter.lineWrap(5);
+        await _printLine();
 
         if (order.payments?.isNotEmpty == true) {
           await SunmiPrinter.printText(
-            "Amount Payment Method   Date & Time",
-            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20),
+            _paymentTableHeader,
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeBody),
           );
-          await SunmiPrinter.printText("--------------------------------");
-          await SunmiPrinter.lineWrap(5);
+          await _printLine();
 
           for (final payment in order.payments!) {
             final paymentAmount = _formatPrice(null, payment.amount);
@@ -544,18 +531,300 @@ class SunmiInvoicePrinterService {
               "$paymentAmount  $paymentMethod  $formattedPaymentTime",
               style: SunmiTextStyle(
                 align: SunmiPrintAlign.CENTER,
-                fontSize: 20,
+                fontSize: _fontSizeBody,
               ),
             );
-            await SunmiPrinter.lineWrap(5);
+            await _printSep();
           }
         }
 
-        await SunmiPrinter.lineWrap(5);
+        await _printSep();
         await SunmiPrinter.cutPaper();
       }
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> printReceiptFromApi(ReceiptOrderData d, {int copies = 1}) async {
+    try {
+      final restaurant = d.restaurant;
+      final branch = d.branch;
+      final order = d.order;
+      final summary = d.summary;
+      final payment = d.payment;
+      final items = d.receiptItems;
+      final timezone = restaurant?.timezone;
+
+      if (order == null || payment == null) return;
+
+      for (int i = 0; i < copies; i++) {
+        await SunmiPrinter.printText(
+          restaurant?.name ?? TranslationKeys.restaurant.tr,
+          style: SunmiTextStyle(
+            align: SunmiPrintAlign.CENTER,
+            fontSize: _fontSizeTitle,
+            bold: true,
+          ),
+        );
+        await _printSep();
+
+        if (branch?.address != null && branch!.address!.isNotEmpty) {
+          await SunmiPrinter.printText(
+            branch.address!,
+            style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeSub),
+          );
+          await _printSep();
+        }
+
+        await _printSep();
+        await _printLine();
+
+        final orderLine =
+            '${TranslationKeys.order.tr}: ${order.formattedOrderNumber ?? TranslationKeys.na.tr}';
+        final formattedOrderDateTime = _formatDateTimeString(order.dateTime);
+        final orderText =
+            formattedOrderDateTime.isNotEmpty
+                ? '$orderLine   $formattedOrderDateTime'
+                : orderLine;
+
+        await SunmiPrinter.printText(
+          orderText,
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+        );
+        await _printSep();
+
+        final tableCode = order.table?.tableCode != null && order.table!.tableCode!.isNotEmpty
+            ? order.table!.tableCode!
+            : null;
+        final pax = order.numberOfPax;
+        if (tableCode != null || (pax != null && pax > 0)) {
+          final tablePart = tableCode != null
+              ? '${TranslationKeys.tableNo.tr}: $tableCode'
+              : '';
+          final paxPart = pax != null && pax > 0
+              ? '${TranslationKeys.pax.tr}: $pax'
+              : '';
+          final tablePaxLine = tablePart.isNotEmpty && paxPart.isNotEmpty
+              ? _formatLabelValue(tablePart, paxPart)
+              : (tablePart.isNotEmpty ? tablePart : paxPart);
+          await SunmiPrinter.printText(
+            tablePaxLine,
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+          );
+          await _printSep();
+        }
+
+        if (order.waiter?.name != null && order.waiter!.name!.isNotEmpty) {
+          await SunmiPrinter.printText(
+            '${TranslationKeys.waiter.tr}: ${order.waiter!.name}',
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+          );
+          await _printSep();
+        }
+
+        final customerName = _receiptCustomerName(order.customer);
+        if (customerName != null && customerName.isNotEmpty) {
+          await SunmiPrinter.printText(
+            '${TranslationKeys.customer.tr}: $customerName',
+            style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+          );
+          await _printSep();
+        }
+
+        await _printSep();
+        await _printLine();
+
+        await SunmiPrinter.printText(
+          TranslationKeys.qtyItemNamePriceAmount.tr,
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeBody),
+        );
+        await _printLine();
+
+        if (items != null && items.isNotEmpty) {
+          for (final entry in items) {
+            final oi = entry.orderItem;
+            if (oi == null) continue;
+            final qty = entry.quantity?.toString() ?? oi.quantity?.toString() ?? '0';
+            final itemName = oi.displayItemName ?? TranslationKeys.na.tr;
+            final price = oi.formattedPrice ?? CurrencyFormatter.formatPriceFromDouble(oi.amount ?? 0);
+            final amount = oi.formattedLineAmount ?? CurrencyFormatter.formatPriceFromDouble((oi.amount ?? 0) * (oi.quantity ?? 1));
+
+            const priceAmountSpacing = '   ';
+            final qtyPadded = qty.padRight(_itemQtyWidth);
+            final pricePadded = price.padLeft(_itemPriceWidth);
+            final priceAmountLine = '$pricePadded$priceAmountSpacing$amount';
+
+            if (itemName.length <= _itemNameWidth) {
+              final itemNamePadded = itemName.padRight(_itemNameWidth);
+              await SunmiPrinter.printText(
+                '$qtyPadded$itemNamePadded$priceAmountLine',
+                style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+              );
+              await _printSep();
+            } else {
+              final nameLines = _wrapText(itemName, _itemNameWidth);
+              for (int j = 0; j < nameLines.length; j++) {
+                final itemNamePadded = nameLines[j].padRight(_itemNameWidth);
+                final prefix = j == 0 ? qtyPadded : ' '.padRight(_itemQtyWidth);
+                await SunmiPrinter.printText(
+                  '$prefix$itemNamePadded${j == 0 ? priceAmountLine : ''}',
+                  style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+                );
+                await SunmiPrinter.lineWrap(j == nameLines.length - 1 ? 5 : 2);
+              }
+              await SunmiPrinter.lineWrap(3);
+            }
+
+            if (oi.displayVariationName != null && oi.displayVariationName!.isNotEmpty) {
+              await SunmiPrinter.printText(
+                '  (${oi.displayVariationName})',
+                style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeSmall),
+              );
+              await _printSep();
+            }
+
+            if (oi.displayModifiers != null && oi.displayModifiers!.isNotEmpty) {
+              for (final m in oi.displayModifiers!) {
+                final modPrice = m.price ?? '';
+                await SunmiPrinter.printText(
+                  '  • ${m.name ?? ''}${modPrice.isNotEmpty ? ' (+$modPrice)' : ''}',
+                  style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeSmall),
+                );
+                await _printSep();
+              }
+            }
+            await _printSep();
+          }
+        }
+
+        await _printSep();
+
+        if (summary != null) {
+          if (summary.subTotal != null) {
+            await SunmiPrinter.printText(
+              _formatLabelValue(
+                '${TranslationKeys.subTotal.tr}:',
+                CurrencyFormatter.formatPriceFromDouble(summary.subTotal!),
+              ),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+            );
+            await _printSep();
+          }
+
+          if (summary.discount != null && summary.discount! > 0) {
+            await SunmiPrinter.printText(
+              _formatLabelValue(
+                TranslationKeys.discount.tr,
+                '-${CurrencyFormatter.formatPriceFromDouble(summary.discount!)}',
+              ),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+            );
+            await _printSep();
+          }
+
+          if (summary.tip != null && summary.tip! > 0) {
+            await SunmiPrinter.printText(
+              _formatLabelValue(
+                '${TranslationKeys.tip.tr}:',
+                CurrencyFormatter.formatPriceFromDouble(summary.tip!),
+              ),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+            );
+            await _printSep();
+          }
+
+          if (summary.taxes != null && summary.taxes!.isNotEmpty) {
+            for (final t in summary.taxes!) {
+              final label = t.isInclusive == true && t.percent != null
+                  ? '${t.name ?? ''} (${t.percent}%) incl.'
+                  : (t.name ?? '');
+              final val = t.amount != null
+                  ? CurrencyFormatter.formatPriceFromDouble(t.amount!)
+                  : '';
+              if (label.isNotEmpty && val.isNotEmpty) {
+                await _printLabelValue(label, val);
+                await _printSep();
+              }
+            }
+          }
+
+          if (payment.balance != null && payment.balance! > 0) {
+            await SunmiPrinter.printText(
+              _formatLabelValue(
+                '${TranslationKeys.balanceReturned.tr}:',
+                CurrencyFormatter.formatPriceFromDouble(payment.balance!),
+              ),
+              style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: _fontSizeBody),
+            );
+            await _printSep();
+          }
+        }
+
+        await _printLine();
+
+        final totalValue = summary?.total != null
+            ? CurrencyFormatter.formatPriceFromDouble(summary!.total!)
+            : (payment.amount != null
+                ? CurrencyFormatter.formatPriceFromDouble(payment.amount!)
+                : '');
+        if (totalValue.isNotEmpty && totalValue != '0') {
+          await SunmiPrinter.printText(
+            '${TranslationKeys.total.tr}:                   $totalValue',
+            style: SunmiTextStyle(
+              align: SunmiPrintAlign.CENTER,
+              fontSize: _fontSizeTotal,
+              bold: true,
+            ),
+          );
+        }
+
+        await _printSep();
+        await _printLine();
+        await SunmiPrinter.printText(
+          TranslationKeys.thankYouForVisit.tr,
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+        );
+        await _printSep();
+        await _printLine();
+
+        await SunmiPrinter.printText(
+          _paymentTableHeader,
+          style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: _fontSizeBody),
+        );
+        await _printLine();
+
+        final paymentAmount = payment.amount != null
+            ? CurrencyFormatter.formatPriceFromDouble(payment.amount!)
+            : CurrencyFormatter.formatPrice('0');
+        final paymentMethod =
+            payment.paymentMethod ?? TranslationKeys.cash.tr;
+        final formattedPaymentTime = _formatDateTimeString(
+          payment.createdAt ?? order.dateTime,
+          timezone,
+        );
+
+        await SunmiPrinter.printText(
+          "$paymentAmount  $paymentMethod  $formattedPaymentTime",
+          style: SunmiTextStyle(
+            align: SunmiPrintAlign.CENTER,
+            fontSize: _fontSizeBody,
+          ),
+        );
+        await _printSep();
+        await _printSep();
+        await SunmiPrinter.cutPaper();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String? _receiptCustomerName(dynamic customer) {
+    if (customer == null) return null;
+    if (customer is Map<String, dynamic>) {
+      return customer['name']?.toString();
+    }
+    return customer.toString();
   }
 }

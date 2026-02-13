@@ -123,10 +123,7 @@ class NewOrderDetailsBottomSheet {
           OrderDetailWidgets.buildOrderTimeInfo(
             orderDetails,
             fontSize: 12,
-            dateFormatter: (s) => DateTimeFormatter.formatDateTimeInTimezone(
-              s,
-              orderData.restaurant?.timezone,
-            ),
+            dateFormatter: (s) => DateTimeFormatter.formatDateTime(s),
           ),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails.customer != null &&

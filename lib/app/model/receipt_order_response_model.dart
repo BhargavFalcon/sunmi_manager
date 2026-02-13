@@ -1,5 +1,3 @@
-/// Model for receipt/order detail API response.
-
 double? _receiptToDouble(dynamic v) {
   if (v == null) return null;
   if (v is num) return v.toDouble();
@@ -21,15 +19,13 @@ class ReceiptOrderResponse {
 
   ReceiptOrderResponse.fromJson(Map<String, dynamic> json) {
     success = json['success'] as bool?;
-    data = json['data'] != null
-        ? ReceiptOrderData.fromJson(json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? ReceiptOrderData.fromJson(json['data'] as Map<String, dynamic>)
+            : null;
   }
 
-  Map<String, dynamic> toJson() => {
-        'success': success,
-        'data': data?.toJson(),
-      };
+  Map<String, dynamic> toJson() => {'success': success, 'data': data?.toJson()};
 }
 
 class ReceiptOrderData {
@@ -64,57 +60,68 @@ class ReceiptOrderData {
   });
 
   ReceiptOrderData.fromJson(Map<String, dynamic> json) {
-    restaurant = json['restaurant'] != null
-        ? ReceiptRestaurant.fromJson(
-            json['restaurant'] as Map<String, dynamic>)
-        : null;
-    branch = json['branch'] != null
-        ? ReceiptBranch.fromJson(json['branch'] as Map<String, dynamic>)
-        : null;
-    receiptSettings = json['receipt_settings'] != null
-        ? ReceiptSettings.fromJson(
-            json['receipt_settings'] as Map<String, dynamic>)
-        : null;
-    order = json['order'] != null
-        ? ReceiptOrder.fromJson(json['order'] as Map<String, dynamic>)
-        : null;
-    payment = json['payment'] != null
-        ? ReceiptPayment.fromJson(json['payment'] as Map<String, dynamic>)
-        : null;
+    restaurant =
+        json['restaurant'] != null
+            ? ReceiptRestaurant.fromJson(
+              json['restaurant'] as Map<String, dynamic>,
+            )
+            : null;
+    branch =
+        json['branch'] != null
+            ? ReceiptBranch.fromJson(json['branch'] as Map<String, dynamic>)
+            : null;
+    receiptSettings =
+        json['receipt_settings'] != null
+            ? ReceiptSettings.fromJson(
+              json['receipt_settings'] as Map<String, dynamic>,
+            )
+            : null;
+    order =
+        json['order'] != null
+            ? ReceiptOrder.fromJson(json['order'] as Map<String, dynamic>)
+            : null;
+    payment =
+        json['payment'] != null
+            ? ReceiptPayment.fromJson(json['payment'] as Map<String, dynamic>)
+            : null;
     isSplitOrder = json['is_split_order'] as bool?;
-    splitOrder = json['split_order'] != null
-        ? ReceiptSplitOrder.fromJson(
-            json['split_order'] as Map<String, dynamic>)
-        : null;
+    splitOrder =
+        json['split_order'] != null
+            ? ReceiptSplitOrder.fromJson(
+              json['split_order'] as Map<String, dynamic>,
+            )
+            : null;
     items = json['items'] as List<dynamic>?;
     if (json['receipt_items'] != null) {
-      receiptItems = (json['receipt_items'] as List)
-          .map((e) => ReceiptItemEntry.fromJson(e as Map<String, dynamic>))
-          .toList();
+      receiptItems =
+          (json['receipt_items'] as List)
+              .map((e) => ReceiptItemEntry.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
-    summary = json['summary'] != null
-        ? ReceiptSummary.fromJson(json['summary'] as Map<String, dynamic>)
-        : null;
+    summary =
+        json['summary'] != null
+            ? ReceiptSummary.fromJson(json['summary'] as Map<String, dynamic>)
+            : null;
     taxMode = json['tax_mode']?.toString();
     taxInclusive = json['tax_inclusive'] as bool?;
     currencyId = _receiptToInt(json['currency_id']);
   }
 
   Map<String, dynamic> toJson() => {
-        'restaurant': restaurant?.toJson(),
-        'branch': branch?.toJson(),
-        'receipt_settings': receiptSettings?.toJson(),
-        'order': order?.toJson(),
-        'payment': payment?.toJson(),
-        'is_split_order': isSplitOrder,
-        'split_order': splitOrder?.toJson(),
-        'items': items,
-        'receipt_items': receiptItems?.map((e) => e.toJson()).toList(),
-        'summary': summary?.toJson(),
-        'tax_mode': taxMode,
-        'tax_inclusive': taxInclusive,
-        'currency_id': currencyId,
-      };
+    'restaurant': restaurant?.toJson(),
+    'branch': branch?.toJson(),
+    'receipt_settings': receiptSettings?.toJson(),
+    'order': order?.toJson(),
+    'payment': payment?.toJson(),
+    'is_split_order': isSplitOrder,
+    'split_order': splitOrder?.toJson(),
+    'items': items,
+    'receipt_items': receiptItems?.map((e) => e.toJson()).toList(),
+    'summary': summary?.toJson(),
+    'tax_mode': taxMode,
+    'tax_inclusive': taxInclusive,
+    'currency_id': currencyId,
+  };
 }
 
 class ReceiptRestaurant {
@@ -136,20 +143,22 @@ class ReceiptRestaurant {
     name = json['name']?.toString();
     address = json['address']?.toString();
     phoneNumber = json['phone_number']?.toString();
-    receiptSetting = json['receipt_setting'] != null
-        ? ReceiptSettingRef.fromJson(
-            json['receipt_setting'] as Map<String, dynamic>)
-        : null;
+    receiptSetting =
+        json['receipt_setting'] != null
+            ? ReceiptSettingRef.fromJson(
+              json['receipt_setting'] as Map<String, dynamic>,
+            )
+            : null;
     timezone = json['timezone']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'address': address,
-        'phone_number': phoneNumber,
-        'receipt_setting': receiptSetting?.toJson(),
-        'timezone': timezone,
-      };
+    'name': name,
+    'address': address,
+    'phone_number': phoneNumber,
+    'receipt_setting': receiptSetting?.toJson(),
+    'timezone': timezone,
+  };
 }
 
 class ReceiptSettingRef {
@@ -177,11 +186,7 @@ class ReceiptBranch {
     address = json['address']?.toString();
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'address': address,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'address': address};
 }
 
 class ReceiptSettings {
@@ -214,14 +219,14 @@ class ReceiptSettings {
   }
 
   Map<String, dynamic> toJson() => {
-        'show_tax': showTax,
-        'show_table_number': showTableNumber,
-        'show_waiter': showWaiter,
-        'show_total_guest': showTotalGuest,
-        'show_order_type': showOrderType,
-        'show_customer_name': showCustomerName,
-        'show_customer_address': showCustomerAddress,
-      };
+    'show_tax': showTax,
+    'show_table_number': showTableNumber,
+    'show_waiter': showWaiter,
+    'show_total_guest': showTotalGuest,
+    'show_order_type': showOrderType,
+    'show_customer_name': showCustomerName,
+    'show_customer_address': showCustomerAddress,
+  };
 }
 
 class ReceiptOrder {
@@ -261,31 +266,33 @@ class ReceiptOrder {
     status = json['status']?.toString();
     orderStatus = json['order_status']?.toString();
     orderType = json['order_type']?.toString();
-    table = json['table'] != null
-        ? ReceiptOrderTable.fromJson(json['table'] as Map<String, dynamic>)
-        : null;
+    table =
+        json['table'] != null
+            ? ReceiptOrderTable.fromJson(json['table'] as Map<String, dynamic>)
+            : null;
     customer = json['customer'];
-    waiter = json['waiter'] != null
-        ? ReceiptWaiter.fromJson(json['waiter'] as Map<String, dynamic>)
-        : null;
+    waiter =
+        json['waiter'] != null
+            ? ReceiptWaiter.fromJson(json['waiter'] as Map<String, dynamic>)
+            : null;
     numberOfPax = _receiptToInt(json['number_of_pax']);
     deliveryAddress = json['delivery_address']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'order_number': orderNumber,
-        'formatted_order_number': formattedOrderNumber,
-        'date_time': dateTime,
-        'status': status,
-        'order_status': orderStatus,
-        'order_type': orderType,
-        'table': table?.toJson(),
-        'customer': customer,
-        'waiter': waiter?.toJson(),
-        'number_of_pax': numberOfPax,
-        'delivery_address': deliveryAddress,
-      };
+    'id': id,
+    'order_number': orderNumber,
+    'formatted_order_number': formattedOrderNumber,
+    'date_time': dateTime,
+    'status': status,
+    'order_status': orderStatus,
+    'order_type': orderType,
+    'table': table?.toJson(),
+    'customer': customer,
+    'waiter': waiter?.toJson(),
+    'number_of_pax': numberOfPax,
+    'delivery_address': deliveryAddress,
+  };
 }
 
 class ReceiptOrderTable {
@@ -355,17 +362,17 @@ class ReceiptPayment {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'amount': amount,
-        'payment_method': paymentMethod,
-        'tip_amount': tipAmount,
-        'tip_note': tipNote,
-        'discount_type': discountType,
-        'discount_value': discountValue,
-        'discount_amount': discountAmount,
-        'balance': balance,
-        'created_at': createdAt,
-      };
+    'id': id,
+    'amount': amount,
+    'payment_method': paymentMethod,
+    'tip_amount': tipAmount,
+    'tip_note': tipNote,
+    'discount_type': discountType,
+    'discount_value': discountValue,
+    'discount_amount': discountAmount,
+    'balance': balance,
+    'created_at': createdAt,
+  };
 }
 
 class ReceiptSplitOrder {
@@ -390,26 +397,28 @@ class ReceiptSplitOrder {
     subtotal = _receiptToDouble(json['subtotal']);
     extraCharges = json['extra_charges'] as List<dynamic>?;
     if (json['taxes'] != null) {
-      taxes = (json['taxes'] as List)
-          .map((e) => ReceiptTax.fromJson(e as Map<String, dynamic>))
-          .toList();
+      taxes =
+          (json['taxes'] as List)
+              .map((e) => ReceiptTax.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
     amount = _receiptToDouble(json['amount']);
     if (json['items'] != null) {
-      items = (json['items'] as List)
-          .map((e) => ReceiptItemEntry.fromJson(e as Map<String, dynamic>))
-          .toList();
+      items =
+          (json['items'] as List)
+              .map((e) => ReceiptItemEntry.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'subtotal': subtotal,
-        'extra_charges': extraCharges,
-        'taxes': taxes?.map((e) => e.toJson()).toList(),
-        'amount': amount,
-        'items': items?.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'subtotal': subtotal,
+    'extra_charges': extraCharges,
+    'taxes': taxes?.map((e) => e.toJson()).toList(),
+    'amount': amount,
+    'items': items?.map((e) => e.toJson()).toList(),
+  };
 }
 
 class ReceiptTax {
@@ -428,11 +437,11 @@ class ReceiptTax {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'amount': amount,
-        'percent': percent,
-        'is_inclusive': isInclusive,
-      };
+    'name': name,
+    'amount': amount,
+    'percent': percent,
+    'is_inclusive': isInclusive,
+  };
 }
 
 class ReceiptItemEntry {
@@ -443,16 +452,18 @@ class ReceiptItemEntry {
 
   ReceiptItemEntry.fromJson(Map<String, dynamic> json) {
     quantity = _receiptToInt(json['quantity']);
-    orderItem = json['order_item'] != null
-        ? ReceiptOrderItem.fromJson(
-            json['order_item'] as Map<String, dynamic>)
-        : null;
+    orderItem =
+        json['order_item'] != null
+            ? ReceiptOrderItem.fromJson(
+              json['order_item'] as Map<String, dynamic>,
+            )
+            : null;
   }
 
   Map<String, dynamic> toJson() => {
-        'quantity': quantity,
-        'order_item': orderItem?.toJson(),
-      };
+    'quantity': quantity,
+    'order_item': orderItem?.toJson(),
+  };
 }
 
 class ReceiptOrderItem {
@@ -478,10 +489,13 @@ class ReceiptOrderItem {
     displayItemName = json['display_item_name']?.toString();
     displayVariationName = json['display_variation_name']?.toString();
     if (json['display_modifiers'] != null) {
-      displayModifiers = (json['display_modifiers'] as List)
-          .map((e) =>
-              ReceiptDisplayModifier.fromJson(e as Map<String, dynamic>))
-          .toList();
+      displayModifiers =
+          (json['display_modifiers'] as List)
+              .map(
+                (e) =>
+                    ReceiptDisplayModifier.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
     }
     amount = _receiptToDouble(json['amount']);
     quantity = _receiptToInt(json['quantity']);
@@ -490,15 +504,14 @@ class ReceiptOrderItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'display_item_name': displayItemName,
-        'display_variation_name': displayVariationName,
-        'display_modifiers':
-            displayModifiers?.map((e) => e.toJson()).toList(),
-        'amount': amount,
-        'quantity': quantity,
-        'formatted_price': formattedPrice,
-        'formatted_line_amount': formattedLineAmount,
-      };
+    'display_item_name': displayItemName,
+    'display_variation_name': displayVariationName,
+    'display_modifiers': displayModifiers?.map((e) => e.toJson()).toList(),
+    'amount': amount,
+    'quantity': quantity,
+    'formatted_price': formattedPrice,
+    'formatted_line_amount': formattedLineAmount,
+  };
 }
 
 class ReceiptDisplayModifier {
@@ -546,21 +559,22 @@ class ReceiptSummary {
     extraCharges = json['extra_charges'] as List<dynamic>?;
     tip = _receiptToDouble(json['tip']);
     if (json['taxes'] != null) {
-      taxes = (json['taxes'] as List)
-          .map((e) => ReceiptTax.fromJson(e as Map<String, dynamic>))
-          .toList();
+      taxes =
+          (json['taxes'] as List)
+              .map((e) => ReceiptTax.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
     total = _receiptToDouble(json['total']);
   }
 
   Map<String, dynamic> toJson() => {
-        'sub_total': subTotal,
-        'discount': discount,
-        'discount_type': discountType,
-        'discount_value': discountValue,
-        'extra_charges': extraCharges,
-        'tip': tip,
-        'taxes': taxes?.map((e) => e.toJson()).toList(),
-        'total': total,
-      };
+    'sub_total': subTotal,
+    'discount': discount,
+    'discount_type': discountType,
+    'discount_value': discountValue,
+    'extra_charges': extraCharges,
+    'tip': tip,
+    'taxes': taxes?.map((e) => e.toJson()).toList(),
+    'total': total,
+  };
 }

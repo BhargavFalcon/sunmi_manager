@@ -11,10 +11,13 @@ import 'package:managerapp/app/widgets/order_payment_dialog.dart';
 import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
+import '../../../constants/api_constants.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../data/NetworkClient.dart';
 import '../../../model/AllOrdersModel.dart' as orderModel;
 import '../../../model/getorderModel.dart' as orderDetailsModel;
+import '../../../model/receipt_order_response_model.dart';
 import '../../../model/split_payment_remaining_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../utils/currency_formatter.dart';
@@ -1173,10 +1176,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             ),
           OrderDetailWidgets.buildOrderTimeInfo(
             orderDetails,
-            dateFormatter: (s) => DateTimeFormatter.formatDateTimeInTimezone(
-              s,
-              orderData.restaurant?.timezone,
-            ),
+            dateFormatter: (s) => DateTimeFormatter.formatDateTime(s),
           ),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails?.customer != null &&
@@ -1273,13 +1273,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     : (method == 'cash'
                         ? TranslationKeys.cash.tr
                         : (payment.paymentMethod ?? '—'));
-            final timezone = orderData.restaurant?.timezone;
             final dateTimeStr =
                 payment.createdAt != null && payment.createdAt!.isNotEmpty
-                    ? DateTimeFormatter.formatDateTimeInTimezone(
-                        payment.createdAt,
-                        timezone,
-                      )
+                    ? DateTimeFormatter.formatDateTime(payment.createdAt)
                     : '—';
             return TableRow(
               decoration: const BoxDecoration(
@@ -1318,9 +1314,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                       showDialog(
                                         context: context,
                                         barrierDismissible: true,
-                                        builder: (_) => PaymentReceiptDialog(
-                                          paymentId: id,
-                                        ),
+                                        builder:
+                                            (_) => PaymentReceiptDialog(
+                                              paymentId: id,
+                                            ),
                                       );
                                     }
                                   },
@@ -1331,12 +1328,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   label: TranslationKeys.print.tr,
                                   icon: Icons.print,
                                   iconOnly: true,
-                                  onTap:
-                                      () => _printInvoice(
-                                        context,
-                                        controller,
-                                        orderData,
-                                      ),
+                                  onTap: () {
+                                    final id = payment.id;
+                                    if (id != null) {
+                                      _printPaymentReceipt(context, controller, id);
+                                    } else {
+                                      _printInvoice(context, controller, orderData);
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -1409,18 +1408,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     : (icon == Icons.visibility_outlined
                         ? Colors.blue
                         : Colors.grey)));
-    final iconOnlyPadding = showLabel ? null : EdgeInsets.symmetric(
-      horizontal: MySize.getWidth(4),
-      vertical: MySize.getHeight(4),
-    );
+    final iconOnlyPadding =
+        showLabel
+            ? null
+            : EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(4),
+              vertical: MySize.getHeight(4),
+            );
     final iconSize = MySize.getHeight(20);
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: iconOnlyPadding ?? EdgeInsets.symmetric(
-          horizontal: MySize.getWidth(8),
-          vertical: MySize.getHeight(6),
-        ),
+        padding:
+            iconOnlyPadding ??
+            EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(8),
+              vertical: MySize.getHeight(6),
+            ),
         decoration: BoxDecoration(
           color: backgroundColor,
           border: isFilled ? null : Border.all(color: effectiveBorderColor),
@@ -1432,11 +1436,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: iconSize,
-                  color: effectiveTextColor,
-                ),
+                Icon(icon, size: iconSize, color: effectiveTextColor),
                 if (showLabel) SizedBox(width: MySize.getWidth(4)),
               ],
               if (showLabel)
@@ -1553,8 +1553,85 @@ class OrderScreenView extends GetView<OrderScreenController> {
     }
   }
 
+  /// Order card shows API time as-is (format only, no timezone conversion)
+  /// so e.g. 03:16 does not become 04:16 when API already sends local/restaurant time.
+  static String _formatOrderCardDateTime(String? dateTime, String? formattedDateTime) {
+    if (dateTime != null && dateTime.isNotEmpty) {
+      return DateTimeFormatter.formatDateTime(dateTime);
+    }
+    if (formattedDateTime != null && formattedDateTime.isNotEmpty) {
+      return DateTimeFormatter.formatDateTime(formattedDateTime);
+    }
+    return '';
+  }
+
   static String formatOrderDateTimeForCard(String? dateTimeString) {
-    return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString);
+    return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(
+      dateTimeString,
+    );
+  }
+
+  Future<void> _printPaymentReceipt(
+    BuildContext context,
+    OrderScreenController controller,
+    int paymentId,
+  ) async {
+    if (Platform.isIOS) {
+      safeGetSnackbar(
+        TranslationKeys.warning.tr,
+        TranslationKeys.printOnlyAvailableOnAndroid.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange.shade100,
+        colorText: Colors.orange.shade700,
+      );
+      return;
+    }
+
+    try {
+      controller.isPrinting.value = true;
+      final networkClient = NetworkClient();
+      final endpoint = ArgumentConstant.paymentReceiptEndpoint
+          .replaceAll(':id', paymentId.toString());
+      final response = await networkClient.get(endpoint);
+
+      if (!helpers.isSuccessStatus(response.statusCode)) {
+        safeGetSnackbar(
+          TranslationKeys.error.tr,
+          TranslationKeys.somethingWentWrong.tr,
+        );
+        return;
+      }
+
+      if (response.data is! Map<String, dynamic>) {
+        safeGetSnackbar(
+          TranslationKeys.error.tr,
+          TranslationKeys.somethingWentWrong.tr,
+        );
+        return;
+      }
+
+      final model = ReceiptOrderResponse.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+
+      if (model.success != true || model.data == null) {
+        safeGetSnackbar(
+          TranslationKeys.error.tr,
+          TranslationKeys.somethingWentWrong.tr,
+        );
+        return;
+      }
+
+      final printerService = SunmiInvoicePrinterService();
+      await printerService.printReceiptFromApi(model.data!);
+    } catch (e) {
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.somethingWentWrong.tr,
+      );
+    } finally {
+      controller.isPrinting.value = false;
+    }
   }
 
   Future<void> _printInvoice(
@@ -1631,10 +1708,7 @@ class OrderCard extends StatelessWidget {
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
-    final formattedDateTime =
-        order.dateTime != null && order.dateTime!.isNotEmpty
-            ? OrderScreenView.formatOrderDateTimeForCard(order.dateTime)
-            : (order.formattedDateTime ?? '');
+    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(order.dateTime, order.formattedDateTime);
     final itemsCount = order.itemsCount ?? 0;
     final formattedPrice = CurrencyFormatter.formatPrice(order.total ?? '0');
     final waiterName = order.waiter?.name ?? '';

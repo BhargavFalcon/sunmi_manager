@@ -8,6 +8,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/receipt_order_response_model.dart';
+import 'package:managerapp/app/services/sunmi_invoice_printer_service.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/utils/order_helpers.dart' as helpers;
@@ -133,7 +134,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     );
   }
 
-  void _onPrint() {
+  Future<void> _onPrint() async {
     if (Platform.isIOS) {
       safeGetSnackbar(
         TranslationKeys.warning.tr,
@@ -144,11 +145,25 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       );
       return;
     }
-    safeGetSnackbar(
-      TranslationKeys.warning.tr,
-      TranslationKeys.receiptPrintNotSupported.tr,
-      snackPosition: SnackPosition.TOP,
-    );
+    final receiptData = _data?.data;
+    if (receiptData == null) {
+      safeGetSnackbar(
+        TranslationKeys.warning.tr,
+        TranslationKeys.somethingWentWrong.tr,
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+    try {
+      final printerService = SunmiInvoicePrinterService();
+      await printerService.printReceiptFromApi(receiptData);
+    } catch (e) {
+      safeGetSnackbar(
+        TranslationKeys.error.tr,
+        TranslationKeys.somethingWentWrong.tr,
+        snackPosition: SnackPosition.TOP,
+      );
+    }
   }
 
   Widget _buildHeader() {
@@ -255,11 +270,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     final paymentIdStr = paymentId != null
         ? '${order?.formattedOrderNumber ?? ""}.$paymentId'
         : '';
-    final timezone = d.restaurant?.timezone;
-    final dateTime = DateTimeFormatter.formatDateTimeInTimezone(
-      order?.dateTime,
-      timezone,
-    );
+    final dateTime = DateTimeFormatter.formatDateTime(order?.dateTime);
     final tableCode = order?.table?.tableCode ?? '';
     final pax = order?.numberOfPax?.toString() ?? '';
     final waiterName = order?.waiter?.name ?? '';
@@ -530,11 +541,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     final methodDisplay = method.toLowerCase() == 'cash'
         ? TranslationKeys.cash.tr
         : method;
-    final timezone = d.restaurant?.timezone;
-    final dateTime = DateTimeFormatter.formatDateTimeInTimezone(
-      p.createdAt,
-      timezone,
-    );
+    final dateTime = DateTimeFormatter.formatDateTime(p.createdAt);
 
     return Container(
       decoration: BoxDecoration(
