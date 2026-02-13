@@ -231,6 +231,10 @@ class OrderScreenController extends GetxController {
       );
       if (orderDetailsModel.success == true) {
         orderDetails.value = orderDetailsModel;
+        final tz = orderDetailsModel.data?.restaurant?.timezone;
+        if (tz != null && tz.isNotEmpty) {
+          box.write(ArgumentConstant.restaurantTimezoneKey, tz);
+        }
       }
     }
     isLoadingOrderDetails.value = false;

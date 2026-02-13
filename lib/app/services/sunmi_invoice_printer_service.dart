@@ -46,7 +46,10 @@ class SunmiInvoicePrinterService {
     return CurrencyFormatter.formatPrice('0');
   }
 
-  String _formatDateTimeString(String? dateTimeString) {
+  String _formatDateTimeString(String? dateTimeString, [String? timezone]) {
+    if (timezone != null && timezone.isNotEmpty) {
+      return DateTimeFormatter.formatDateTimeInTimezone(dateTimeString, timezone);
+    }
     return DateTimeFormatter.formatDateTime(dateTimeString);
   }
 
@@ -251,7 +254,7 @@ class SunmiInvoicePrinterService {
 
         final orderLine =
             '${TranslationKeys.order.tr}: ${order.formattedOrderNumber ?? TranslationKeys.na.tr}';
-        final formattedOrderDateTime = _formatDateTimeString(order.dateTime);
+        final formattedOrderDateTime = _formatDateTimeString(order.dateTime, data.restaurant?.timezone);
         final orderText =
             formattedOrderDateTime.isNotEmpty
                 ? '$orderLine   $formattedOrderDateTime'
@@ -534,6 +537,7 @@ class SunmiInvoicePrinterService {
                 payment.paymentMethod ?? TranslationKeys.cash.tr;
             final formattedPaymentTime = _formatDateTimeString(
               payment.createdAt ?? order.dateTime,
+              data.restaurant?.timezone,
             );
 
             await SunmiPrinter.printText(

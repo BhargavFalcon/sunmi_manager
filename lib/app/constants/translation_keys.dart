@@ -344,6 +344,11 @@ class TranslationKeys {
   static const String noPrintersFound = 'noPrintersFound';
   static const String tapScanToSearch = 'tapScanToSearch';
   static const String dateAndTime = 'dateAndTime';
+  static const String payment = 'payment';
+  static const String paymentId = 'paymentId';
+  static const String tableNo = 'tableNo';
+  static const String pax = 'pax';
+  static const String receiptPrintNotSupported = 'receiptPrintNotSupported';
   static const String thankYouForVisit = 'thankYouForVisit';
   static const String totalTax = 'totalTax';
   static const String balanceReturned = 'balanceReturned';

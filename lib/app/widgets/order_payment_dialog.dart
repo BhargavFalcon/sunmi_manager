@@ -786,8 +786,9 @@ class OrderPaymentDialog extends StatelessWidget {
               ),
               SizedBox(height: MySize.getHeight(12)),
               Text(
-                DateTimeFormatter.formatDateTime(
+                DateTimeFormatter.formatDateTimeInTimezone(
                   orderDetails.data?.order?.createdAt,
+                  orderDetails.data?.restaurant?.timezone,
                 ),
                 style: TextStyle(
                   color: Colors.grey.shade500,
@@ -987,14 +988,14 @@ class OrderPaymentDialog extends StatelessWidget {
       children: [
         Expanded(
           child: SizedBox(
-            height: MySize.getHeight(35),
+            height: MySize.getHeight(32),
             child: OutlinedButton(
               onPressed: () => Get.back(),
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.zero,
                 side: BorderSide(color: Colors.grey.shade300),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(12)),
                 ),
               ),
               child: Text(
@@ -1010,7 +1011,7 @@ class OrderPaymentDialog extends StatelessWidget {
         SizedBox(width: MySize.getWidth(8)),
         Expanded(
           child: SizedBox(
-            height: MySize.getHeight(35),
+            height: MySize.getHeight(32),
             child: Obx(
               () => ElevatedButton(
                 onPressed:
@@ -1022,7 +1023,7 @@ class OrderPaymentDialog extends StatelessWidget {
                           ? ColorConstants.successGreen
                           : Colors.grey.shade400,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(12)),
                   ),
                 ),
                 child:
@@ -1175,7 +1176,7 @@ class OrderPaymentDialog extends StatelessWidget {
 
   Widget _buildRightColumnButtons(OrderPaymentController controller) {
     return Padding(
-      padding: EdgeInsets.only(top: MySize.getHeight(12)),
+      padding: EdgeInsets.only(top: MySize.getHeight(8)),
       child: Obx(
         () => _buildCancelPayRow(
           controller,
@@ -2839,20 +2840,20 @@ class OrderPaymentDialog extends StatelessWidget {
                 ],
               ),
             ),
-          SizedBox(height: MySize.getHeight(8)),
+          SizedBox(height: MySize.getHeight(4)),
           // Bottom bar with PAY button
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: MySize.getHeight(35),
+                  height: MySize.getHeight(32),
                   child: OutlinedButton(
                     onPressed: () => Get.back(),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.zero,
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(MySize.getHeight(12)),
                       ),
                     ),
                     child: Text(
@@ -2868,7 +2869,7 @@ class OrderPaymentDialog extends StatelessWidget {
               SizedBox(width: MySize.getWidth(8)),
               Expanded(
                 child: SizedBox(
-                  height: MySize.getHeight(35),
+                  height: MySize.getHeight(32),
                   child: Obx(
                     () => ElevatedButton(
                       onPressed:
@@ -2881,7 +2882,7 @@ class OrderPaymentDialog extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         backgroundColor: ColorConstants.successGreen,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(MySize.getHeight(12)),
                         ),
                       ),
                       child:
@@ -3157,7 +3158,7 @@ class OrderPaymentDialog extends StatelessWidget {
                     }
                     return const SizedBox.shrink();
                   }),
-                  SizedBox(height: MySize.getHeight(12)),
+                  SizedBox(height: MySize.getHeight(8)),
                   _buildCancelPayRow(
                     controller,
                     onPay: controller.completeSplitPayment,

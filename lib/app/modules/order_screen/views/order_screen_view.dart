@@ -8,6 +8,7 @@ import 'package:managerapp/app/modules/order_screen/controllers/order_screen_con
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/widgets/order_payment_dialog.dart';
+import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
 import '../../../constants/image_constants.dart';
@@ -1170,7 +1171,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ],
               ),
             ),
-          OrderDetailWidgets.buildOrderTimeInfo(orderDetails),
+          OrderDetailWidgets.buildOrderTimeInfo(
+            orderDetails,
+            dateFormatter: (s) => DateTimeFormatter.formatDateTimeInTimezone(
+              s,
+              orderData.restaurant?.timezone,
+            ),
+          ),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails?.customer != null &&
               helpers.hasCustomerInfo(orderDetails!.customer!))
@@ -1266,9 +1273,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     : (method == 'cash'
                         ? TranslationKeys.cash.tr
                         : (payment.paymentMethod ?? '—'));
+            final timezone = orderData.restaurant?.timezone;
             final dateTimeStr =
                 payment.createdAt != null && payment.createdAt!.isNotEmpty
-                    ? DateTimeFormatter.formatDateTime(payment.createdAt)
+                    ? DateTimeFormatter.formatDateTimeInTimezone(
+                        payment.createdAt,
+                        timezone,
+                      )
                     : '—';
             return TableRow(
               decoration: const BoxDecoration(
@@ -1301,10 +1312,21 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                 _outlinedButton(
                                   label: TranslationKeys.view.tr,
                                   icon: Icons.visibility_outlined,
-                                  onTap: () {},
+                                  onTap: () {
+                                    final id = payment.id;
+                                    if (id != null) {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        builder: (_) => PaymentReceiptDialog(
+                                          paymentId: id,
+                                        ),
+                                      );
+                                    }
+                                  },
                                   iconOnly: true,
                                 ),
-                                SizedBox(width: MySize.getWidth(6)),
+                                SizedBox(width: MySize.getWidth(4)),
                                 _outlinedButton(
                                   label: TranslationKeys.print.tr,
                                   icon: Icons.print,
@@ -1387,12 +1409,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     : (icon == Icons.visibility_outlined
                         ? Colors.blue
                         : Colors.grey)));
+    final iconOnlyPadding = showLabel ? null : EdgeInsets.symmetric(
+      horizontal: MySize.getWidth(4),
+      vertical: MySize.getHeight(4),
+    );
+    final iconSize = MySize.getHeight(20);
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: showLabel ? MySize.getWidth(8) : MySize.getWidth(10),
-          vertical: showLabel ? MySize.getHeight(6) : MySize.getHeight(8),
+        padding: iconOnlyPadding ?? EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(8),
+          vertical: MySize.getHeight(6),
         ),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -1407,7 +1434,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
               if (icon != null) ...[
                 Icon(
                   icon,
-                  size: MySize.getHeight(20),
+                  size: iconSize,
                   color: effectiveTextColor,
                 ),
                 if (showLabel) SizedBox(width: MySize.getWidth(4)),
@@ -1527,7 +1554,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   static String formatOrderDateTimeForCard(String? dateTimeString) {
-    return DateTimeFormatter.formatDateTime(dateTimeString);
+    return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString);
   }
 
   Future<void> _printInvoice(

@@ -16,6 +16,8 @@ class OrderDetailWidgets {
   OrderDetailWidgets._();
 
   /// Builds a single table row for an order item.
+  /// [fontSize] is either a logical size (when [fontSizeAlreadyScaled] is false)
+  /// scaled via MySize.getHeight, or an already-scaled size in pixels when true.
   static TableRow buildTableRow({
     required String itemName,
     required List<String> details,
@@ -23,7 +25,11 @@ class OrderDetailWidgets {
     required String price,
     required String amount,
     double fontSize = 13,
+    bool fontSizeAlreadyScaled = false,
   }) {
+    final effectiveFontSize = fontSizeAlreadyScaled
+        ? fontSize
+        : MySize.getHeight(fontSize);
     return TableRow(
       decoration: const BoxDecoration(
         border: Border.symmetric(
@@ -40,7 +46,7 @@ class OrderDetailWidgets {
                 itemName,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: MySize.getHeight(fontSize),
+                  fontSize: effectiveFontSize,
                 ),
               ),
               if (details.isNotEmpty)
@@ -52,7 +58,7 @@ class OrderDetailWidgets {
                             (detail) => Text(
                               detail,
                               style: TextStyle(
-                                fontSize: MySize.getHeight(fontSize),
+                                fontSize: effectiveFontSize,
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -66,21 +72,21 @@ class OrderDetailWidgets {
           padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Text(
             qty,
-            style: TextStyle(fontSize: MySize.getHeight(fontSize)),
+            style: TextStyle(fontSize: effectiveFontSize),
           ),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Text(
             price,
-            style: TextStyle(fontSize: MySize.getHeight(fontSize)),
+            style: TextStyle(fontSize: effectiveFontSize),
           ),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
           child: Text(
             amount,
-            style: TextStyle(fontSize: MySize.getHeight(fontSize)),
+            style: TextStyle(fontSize: effectiveFontSize),
           ),
         ),
       ],
@@ -563,7 +569,7 @@ class OrderDetailWidgets {
   }) {
     if (orderDetails == null) return const SizedBox.shrink();
 
-    final formatter = dateFormatter ?? DateTimeFormatter.formatDateTime;
+    final formatter = dateFormatter ?? DateTimeFormatter.formatDateTimeWithRestaurantTimezone;
     final createdAt = orderDetails.createdAt ?? '';
     final orderType = orderDetails.orderType?.toLowerCase() ?? '';
     final dateTimeString = orderDetails.dateTime ?? '';

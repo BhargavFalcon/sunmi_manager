@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
@@ -16,6 +17,7 @@ import 'app/utils/language_utils.dart';
 final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
   WakelockPlus.enable();
   await GetStorage.init();
 

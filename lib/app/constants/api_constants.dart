@@ -25,6 +25,7 @@ class ArgumentConstant {
   static const addOrderItemsEndpoint =
       "api/v1/pos/orders/:order_uuid/items/sync";
   static const paymentsEndpoint = "api/v1/pos/payments";
+  static const paymentReceiptEndpoint = "api/v1/pos/payments/:id/receipt";
   static const splitPaymentEndpoint =
       "api/v1/pos/orders/:order_uuid/payments/split";
   static const remainingSplitItemsEndpoint =
@@ -45,6 +46,7 @@ class ArgumentConstant {
   static const deliveryTipAmountKey = "delivery_tip_amount";
   static const deliveryAddressKey = "delivery_address";
   static const pendingPaymentOrderIdKey = "pending_payment_order_id";
+  static const restaurantTimezoneKey = "restaurant_timezone";
 
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";

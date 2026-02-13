@@ -30,10 +30,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         zipcodeList: controller.zipcodeList.toList(),
         onCustomerSelected: (customer) {
           if (customer.id != null && Get.isRegistered<TakeOrderController>()) {
-            Get.find<TakeOrderController>().selectedCustomerId.value = customer.id;
+            Get.find<TakeOrderController>().selectedCustomerId.value =
+                customer.id;
           }
         },
-        onSave: ({required name, required phone, required email, required phoneCode, zipcode, houseNumber, address, customerId}) {
+        onSave: ({
+          required name,
+          required phone,
+          required email,
+          required phoneCode,
+          zipcode,
+          houseNumber,
+          address,
+          customerId,
+        }) {
           controller.updateCustomerDetails(
             name: name,
             phone: phone,
@@ -401,11 +411,19 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 );
                               }),
                               SizedBox(width: MySize.getWidth(6)),
-                              Obx(() => _buildActionButton(
-                                icon: Icons.person,
-                                label: controller.hasCustomer ? controller.customerName.value : TranslationKeys.customer.tr,
-                                onTap: () => TakeOrderView.openCustomerDialog(controller),
-                              )),
+                              Obx(
+                                () => _buildActionButton(
+                                  icon: Icons.person,
+                                  label:
+                                      controller.hasCustomer
+                                          ? controller.customerName.value
+                                          : TranslationKeys.customer.tr,
+                                  onTap:
+                                      () => TakeOrderView.openCustomerDialog(
+                                        controller,
+                                      ),
+                                ),
+                              ),
                               SizedBox(width: MySize.getWidth(8)),
                               Expanded(
                                 flex: 4,
@@ -570,11 +588,19 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 );
                               }),
                               SizedBox(width: MySize.getWidth(6)),
-                              Obx(() => _buildActionButton(
-                                icon: Icons.person,
-                                label: controller.hasCustomer ? controller.customerName.value : TranslationKeys.customer.tr,
-                                onTap: () => TakeOrderView.openCustomerDialog(controller),
-                              )),
+                              Obx(
+                                () => _buildActionButton(
+                                  icon: Icons.person,
+                                  label:
+                                      controller.hasCustomer
+                                          ? controller.customerName.value
+                                          : TranslationKeys.customer.tr,
+                                  onTap:
+                                      () => TakeOrderView.openCustomerDialog(
+                                        controller,
+                                      ),
+                                ),
+                              ),
                             ],
                           ),
                 ),
@@ -907,7 +933,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
         }
       },
       child: Container(
-        height: MySize.getHeight(75),
+        height: MySize.getHeight(77),
         padding: EdgeInsets.all(MySize.getHeight(8)),
         decoration: BoxDecoration(
           color: Colors.white,

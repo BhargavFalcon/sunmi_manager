@@ -7,6 +7,7 @@ import '../model/getorderModel.dart' as orderModel;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
+import '../utils/date_time_formatter.dart';
 import '../utils/order_helpers.dart' as helpers;
 import '../widgets/shared/order_detail_widgets.dart';
 
@@ -119,7 +120,14 @@ class NewOrderDetailsBottomSheet {
             ],
           ),
           SizedBox(height: MySize.getHeight(8)),
-          OrderDetailWidgets.buildOrderTimeInfo(orderDetails, fontSize: 12),
+          OrderDetailWidgets.buildOrderTimeInfo(
+            orderDetails,
+            fontSize: 12,
+            dateFormatter: (s) => DateTimeFormatter.formatDateTimeInTimezone(
+              s,
+              orderData.restaurant?.timezone,
+            ),
+          ),
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails.customer != null &&
               helpers.hasCustomerInfo(orderDetails.customer!))
