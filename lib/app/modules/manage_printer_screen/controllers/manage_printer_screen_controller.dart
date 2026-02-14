@@ -867,24 +867,12 @@ class ManagePrinterScreenController extends GetxController {
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
       if (result == true) {
-        _showSnackbar(
-          TranslationKeys.printSent.tr,
-          TranslationKeys.receiptSentSuccessfully.tr,
-          ColorConstants.successGreen,
-        );
+        showPrintToast(TranslationKeys.printSuccessful.tr);
       } else {
-        _showSnackbar(
-          TranslationKeys.printFailed.tr,
-          TranslationKeys.failedToSendPrintData.tr,
-          Colors.red,
-        );
+        showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
       }
     } catch (e) {
-      _showSnackbar(
-        TranslationKeys.printError.tr,
-        '${TranslationKeys.printError.tr}: ${e.toString()}',
-        Colors.red,
-      );
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
     } finally {
       isLoading.value = false;
     }
@@ -1179,17 +1167,9 @@ class ManagePrinterScreenController extends GetxController {
         await SunmiPrinter.cutPaper();
       }
 
-      _showSnackbar(
-        TranslationKeys.printSent.tr,
-        TranslationKeys.sunmiReceiptSentSuccessfully.tr,
-        ColorConstants.successGreen,
-      );
+      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      _showSnackbar(
-        TranslationKeys.printError.tr,
-        '${TranslationKeys.printError.tr}: ${e.toString()}',
-        Colors.red,
-      );
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
     } finally {
       isLoading.value = false;
     }

@@ -101,7 +101,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             MediaQuery.of(context).padding.top +
                             MySize.getHeight(8),
                         child: Obx(() {
-                          if (controller.cartItems.isEmpty) {
+                          if (controller.cartItems.isEmpty ||
+                              controller.existingOrderId != null) {
                             return const SizedBox.shrink();
                           }
                           return InkWell(

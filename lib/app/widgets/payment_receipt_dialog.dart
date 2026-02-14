@@ -44,8 +44,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       _data = null;
     });
     try {
-      final endpoint = ArgumentConstant.paymentReceiptEndpoint
-          .replaceAll(':id', widget.paymentId.toString());
+      final endpoint = ArgumentConstant.paymentReceiptEndpoint.replaceAll(
+        ':id',
+        widget.paymentId.toString(),
+      );
       final response = await _networkClient.get(endpoint);
       if (!helpers.isSuccessStatus(response.statusCode)) {
         setState(() {
@@ -102,30 +104,32 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           children: [
             if (!_loading) _buildHeader(),
             Flexible(
-              child: _loading
-                  ? Center(
-                      child: CupertinoActivityIndicator(
-                        radius: MySize.getHeight(8),
-                        color: ColorConstants.primaryColor,
+              child:
+                  _loading
+                      ? Center(
+                        child: CupertinoActivityIndicator(
+                          radius: MySize.getHeight(8),
+                          color: ColorConstants.primaryColor,
+                        ),
+                      )
+                      : SingleChildScrollView(
+                        child:
+                            _error != null
+                                ? Padding(
+                                  padding: EdgeInsets.all(MySize.getHeight(24)),
+                                  child: Text(
+                                    _error!,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(14),
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                )
+                                : _data?.data != null
+                                ? _buildReceiptContent(_data!.data!)
+                                : const SizedBox.shrink(),
                       ),
-                    )
-                  : SingleChildScrollView(
-                      child: _error != null
-                          ? Padding(
-                              padding: EdgeInsets.all(MySize.getHeight(24)),
-                              child: Text(
-                                _error!,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(14),
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                            )
-                          : _data?.data != null
-                              ? _buildReceiptContent(_data!.data!)
-                              : const SizedBox.shrink(),
-                    ),
             ),
             if (!_loading) _buildFooter(),
           ],
@@ -157,12 +161,9 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     try {
       final printerService = SunmiInvoicePrinterService();
       await printerService.printReceiptFromApi(receiptData);
+      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        TranslationKeys.somethingWentWrong.tr,
-        snackPosition: SnackPosition.TOP,
-      );
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
     }
   }
 
@@ -267,9 +268,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     final order = d.order;
     final orderNum = order?.formattedOrderNumber ?? '';
     final paymentId = d.payment?.id;
-    final paymentIdStr = paymentId != null
-        ? '${order?.formattedOrderNumber ?? ""}.$paymentId'
-        : '';
+    final paymentIdStr =
+        paymentId != null
+            ? '${order?.formattedOrderNumber ?? ""}.$paymentId'
+            : '';
     final dateTime = DateTimeFormatter.formatDateTime(order?.dateTime);
     final tableCode = order?.table?.tableCode ?? '';
     final pax = order?.numberOfPax?.toString() ?? '';
@@ -383,9 +385,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
               details.add(oi.displayVariationName!);
             }
             for (final m in oi?.displayModifiers ?? []) {
-              final price = m.price != null && m.price!.isNotEmpty
-                  ? ' (+${m.price})'
-                  : '';
+              final price =
+                  m.price != null && m.price!.isNotEmpty
+                      ? ' (+${m.price})'
+                      : '';
               details.add('• ${m.name ?? ""}$price');
             }
             final price = oi?.formattedPrice ?? '';
@@ -420,17 +423,18 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                       if (details.isNotEmpty)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: details
-                              .map(
-                                (detail) => Text(
-                                  detail,
-                                  style: TextStyle(
-                                    fontSize: effectiveFontSize,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          children:
+                              details
+                                  .map(
+                                    (detail) => Text(
+                                      detail,
+                                      style: TextStyle(
+                                        fontSize: effectiveFontSize,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                         ),
                     ],
                   ),
@@ -461,12 +465,14 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     final s = d.summary;
     if (s == null) return const SizedBox.shrink();
 
-    final subTotalStr = s.subTotal != null
-        ? CurrencyFormatter.formatPrice(s.subTotal!.toString())
-        : '';
-    final totalStr = s.total != null
-        ? CurrencyFormatter.formatPrice(s.total!.toString())
-        : '';
+    final subTotalStr =
+        s.subTotal != null
+            ? CurrencyFormatter.formatPrice(s.subTotal!.toString())
+            : '';
+    final totalStr =
+        s.total != null
+            ? CurrencyFormatter.formatPrice(s.total!.toString())
+            : '';
     final balance = d.payment?.balance ?? 0.0;
     final balanceStr = CurrencyFormatter.formatPrice(balance.toString());
 
@@ -488,12 +494,14 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
             '+${CurrencyFormatter.formatPrice(s.tip!.toString())}',
           ),
         ...(s.taxes ?? []).map((t) {
-          final label = t.isInclusive == true
-              ? '${t.name ?? ""} (${t.percent ?? ""}%) incl.'
-              : (t.name ?? '');
-          final val = t.amount != null
-              ? CurrencyFormatter.formatPrice(t.amount!.toString())
-              : '';
+          final label =
+              t.isInclusive == true
+                  ? '${t.name ?? ""} (${t.percent ?? ""}%) incl.'
+                  : (t.name ?? '');
+          final val =
+              t.amount != null
+                  ? CurrencyFormatter.formatPrice(t.amount!.toString())
+                  : '';
           return _detailRow(label, val);
         }),
         Divider(
@@ -534,13 +542,13 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     final p = d.payment;
     if (p == null) return const SizedBox.shrink();
 
-    final amountStr = p.amount != null
-        ? CurrencyFormatter.formatPrice(p.amount!.toString())
-        : '';
+    final amountStr =
+        p.amount != null
+            ? CurrencyFormatter.formatPrice(p.amount!.toString())
+            : '';
     final method = p.paymentMethod ?? '';
-    final methodDisplay = method.toLowerCase() == 'cash'
-        ? TranslationKeys.cash.tr
-        : method;
+    final methodDisplay =
+        method.toLowerCase() == 'cash' ? TranslationKeys.cash.tr : method;
     final dateTime = DateTimeFormatter.formatDateTime(p.createdAt);
 
     return Container(
@@ -613,5 +621,4 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       ),
     );
   }
-
 }

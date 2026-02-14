@@ -203,6 +203,8 @@ class TranslationKeys {
   static const String printFailed = 'printFailed';
   static const String failedToSendPrintData = 'failedToSendPrintData';
   static const String printError = 'printError';
+  static const String printSuccessful = 'printSuccessful';
+  static const String errorInPrinting = 'errorInPrinting';
   static const String payFromYourPhone = 'payFromYourPhone';
   static const String scanQrCodeToPay = 'scanQrCodeToPay';
   static const String sunmiReceiptSentSuccessfully =

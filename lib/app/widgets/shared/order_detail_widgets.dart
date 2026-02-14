@@ -440,6 +440,16 @@ class OrderDetailWidgets {
     );
   }
 
+  /// Formats phone with + prefix for display (e.g. +91 1234567890).
+  static String _formatPhoneWithPlus(String? phoneCode, String? phoneNumber) {
+    final code = phoneCode?.trim() ?? '';
+    final num = phoneNumber?.trim() ?? '';
+    if (num.isEmpty) return '';
+    if (code.isEmpty) return num.startsWith('+') ? num : '+$num';
+    final plusCode = code.startsWith('+') ? code : '+$code';
+    return '$plusCode $num';
+  }
+
   /// Builds the customer details card.
   /// Uses dynamic to work with both orderModel.Customer and orderDetailsModel.Customer.
   static Widget buildCustomerDetails(
@@ -498,7 +508,7 @@ class OrderDetailWidgets {
           if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
             buildDetailRow(
               TranslationKeys.phone.tr,
-              '${customer.phoneCode ?? ''}${customer.phoneNumber}',
+              _formatPhoneWithPlus(customer.phoneCode, customer.phoneNumber),
               fontSize: fontSize,
             ),
         ],

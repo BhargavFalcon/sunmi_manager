@@ -10,6 +10,8 @@ import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
 import '../data/NetworkClient.dart';
 import '../constants/api_constants.dart';
+import '../constants/translation_keys.dart';
+import '../constants/sizeConstant.dart';
 
 class PusherService {
   final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -139,7 +141,14 @@ class PusherService {
       final autoPrintEnabled =
           box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
       if (autoPrintEnabled) {
-        _printerService.printInvoice(getOrderModel.data!);
+        final copies =
+            box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+        try {
+          await _printerService.printInvoice(getOrderModel.data!, copies: copies);
+          showPrintToast(TranslationKeys.printSuccessful.tr);
+        } catch (_) {
+          showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+        }
       }
 
       return getOrderModel.data;

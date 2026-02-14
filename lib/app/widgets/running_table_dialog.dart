@@ -658,9 +658,9 @@ class RunningTableDialog {
     }
     try {
       await SunmiInvoicePrinterService().printInvoice(orderDetails!.data!);
-      RunningTableService._showSuccess('Print job sent successfully');
+      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      RunningTableService._showError('Failed to print: $e');
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
     }
   }
 

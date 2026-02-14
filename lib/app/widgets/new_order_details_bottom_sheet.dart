@@ -292,11 +292,9 @@ class NewOrderDetailsBottomSheet {
       isPrinting.value = true;
       final printerService = SunmiInvoicePrinterService();
       await printerService.printInvoice(orderData);
+      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        TranslationKeys.somethingWentWrong.tr,
-      );
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
     } finally {
       isPrinting.value = false;
     }

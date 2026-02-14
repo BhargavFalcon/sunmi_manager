@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 
 class MySize {
@@ -383,6 +384,18 @@ void safeGetSnackbar(
     } catch (e) {
     }
   });
+}
+
+/// Shows a toast for print result (no snackbar).
+void showPrintToast(String message, {bool isError = false}) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    backgroundColor: isError ? Colors.red : const Color(0xFF333333),
+    textColor: Colors.white,
+    fontSize: 14.0,
+  );
 }
 
 void showDarkCupertinoErrorDialog(

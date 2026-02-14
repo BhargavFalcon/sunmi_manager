@@ -76,8 +76,9 @@ class OrderScreenController extends GetxController {
 
   void _checkPendingPaymentAndOpenDialog() {
     try {
-      final orderId =
-          box.read<String?>(ArgumentConstant.pendingPaymentOrderIdKey);
+      final orderId = box.read<String?>(
+        ArgumentConstant.pendingPaymentOrderIdKey,
+      );
       if (orderId != null && orderId.isNotEmpty) {
         box.remove(ArgumentConstant.pendingPaymentOrderIdKey);
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -88,8 +89,7 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> openPaymentDialogForOrderId(String orderUuid) async {
-    final orderDetails =
-        await RunningTableService.fetchOrderDetails(orderUuid);
+    final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
     if (orderDetails == null) return;
     final table = RunningTableService.tablesFromOrderDetails(orderDetails);
     if (table == null) return;
