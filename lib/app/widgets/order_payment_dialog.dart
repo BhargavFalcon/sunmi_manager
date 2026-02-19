@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../constants/color_constant.dart';
 import '../constants/sizeConstant.dart';
+import 'app_toast.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../model/tableModel.dart';
 import '../model/split_payment_remaining_model.dart';
@@ -438,20 +439,16 @@ class OrderPaymentController extends GetxController {
   }
 
   void _showPaymentSuccess() {
-    safeGetSnackbar(
-      TranslationKeys.success.tr,
+    AppToast.showSuccess(
       TranslationKeys.paymentProcessedSuccessfully.tr,
-      backgroundColor: ColorConstants.successGreen,
-      colorText: Colors.white,
+      title: TranslationKeys.success.tr,
     );
   }
 
   void _showPaymentError([String? message]) {
-    safeGetSnackbar(
-      TranslationKeys.error.tr,
+    AppToast.showError(
       message ?? TranslationKeys.failedToProcessPayment.tr,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
+      title: TranslationKeys.error.tr,
     );
   }
 

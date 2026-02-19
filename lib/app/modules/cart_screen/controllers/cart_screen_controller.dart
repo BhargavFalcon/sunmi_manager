@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/sizeConstant.dart';
+import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/LoginModels.dart';
@@ -143,13 +143,7 @@ class CartScreenController extends GetxController {
           : null;
 
   void _showErrorSnackbar(String message) {
-    safeGetSnackbar(
-      TranslationKeys.error.tr,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+    AppToast.showError(message, title: TranslationKeys.error.tr);
   }
 
   void _resetTableData({bool clearSourceScreen = true}) {

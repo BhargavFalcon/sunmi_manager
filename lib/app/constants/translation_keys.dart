@@ -235,7 +235,8 @@ class TranslationKeys {
   static const String paymentCreatedSuccessfully = 'paymentCreatedSuccessfully';
   static const String failedToCreatePayment = 'failedToCreatePayment';
   static const String pleaseSelectCustomerFirst = 'pleaseSelectCustomerFirst';
-  static const String pleaseSelectCustomerFirstPickup = 'pleaseSelectCustomerFirstPickup';
+  static const String pleaseSelectCustomerFirstPickup =
+      'pleaseSelectCustomerFirstPickup';
   static const String deliveryAddressRequired = 'deliveryAddressRequired';
 
   // Take Order Screen
@@ -274,6 +275,10 @@ class TranslationKeys {
       'pleaseChooseAtLeastOneOption';
   static const String section = 'section';
   static const String option = 'option';
+
+  // Kitchen Tickets Screen
+  static const String kitchenTickets = 'kitchenTickets';
+  static const String foodIsReady = 'foodIsReady';
 
   // Reservation Screen
   static const String reservation = 'reservation';
@@ -339,6 +344,11 @@ class TranslationKeys {
   static const String areYouSureDisconnect = 'areYouSureDisconnect';
   static const String disconnect = 'disconnect';
   static const String numberOfCopies = 'numberOfCopies';
+  static const String autoPrintKitchenTicket = 'autoPrintKitchenTicket';
+  static const String autoPrintKitchenTicketDesc = 'autoPrintKitchenTicketDesc';
+  static const String autoPrintReceiptWhenPaid = 'autoPrintReceiptWhenPaid';
+  static const String autoPrintReceiptWhenPaidDesc =
+      'autoPrintReceiptWhenPaidDesc';
   static const String printerWidth = 'printerWidth';
   static const String bluetoothPrinters = 'bluetoothPrinters';
   static const String scan = 'scan';

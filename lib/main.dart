@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:upgrader/upgrader.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -50,12 +53,23 @@ void main() async {
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => _setDeviceOrientation(),
         );
-        return OrientationBuilder(
-          builder:
-              (context, orientation) => MediaQuery(
-                data: MediaQuery.of(context),
-                child: child ?? const SizedBox.shrink(),
-              ),
+        return UpgradeAlert(
+          upgrader: Upgrader(),
+          barrierDismissible: false,
+          dialogStyle:
+              defaultTargetPlatform == TargetPlatform.iOS
+                  ? UpgradeDialogStyle.cupertino
+                  : UpgradeDialogStyle.material,
+          showIgnore: false,
+          showLater: false,
+          shouldPopScope: () => false,
+          child: OrientationBuilder(
+            builder:
+                (context, orientation) => MediaQuery(
+                  data: MediaQuery.of(context),
+                  child: child ?? const SizedBox.shrink(),
+                ),
+          ),
         );
       },
     ),

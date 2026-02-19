@@ -19,14 +19,22 @@ class PusherService {
   final SunmiInvoicePrinterService _printerService =
       SunmiInvoicePrinterService();
 
-  static const String key = "4b5739b24c754c883545";
-  static const String cluster = "eu";
+  static const String pusherAppCluster = "eu";
+  static const String pusherAppId = "zosPDO1J";
+  static const String pusherAppKey = "wxidjpbk1bfqn6nr9m9rmve2hkhasdq6";
+  static const String pusherAppSecret = "t03h0txssbxiqs9i9tq7wsixyigrao09";
+  static const String pusherHost = "soketi-production-85c0.up.railway.app";
+  static const int pusherPort = 443;
+  static const bool pusherUseTLS = true;
 
   Future<void> initPusher() async {
     try {
       await pusher.init(
-        apiKey: key,
-        cluster: cluster,
+        apiKey: pusherAppKey,
+        cluster: pusherAppCluster,
+        host: pusherHost, // ignore: undefined_named_parameter
+        wssPort: pusherPort, // ignore: undefined_named_parameter
+        useTLS: pusherUseTLS,
         onConnectionStateChange: (currentState, previousState) {},
         onError: (message, code, e) {},
       );
@@ -68,21 +76,24 @@ class PusherService {
       _refreshOrderList();
 
       final orderNumber = _extractOrderNumber(order);
-      final fetchedOrderData = await _fetchAndPrintInvoice(orderUuid);
-
       final notificationsEnabled =
           box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
 
+      // 1. Pehle notification dikhao
       if (notificationsEnabled) {
         NewOrderDialog.show(
           orderNumber: orderNumber,
-          onViewOrder: () {
-            if (fetchedOrderData != null) {
-              NewOrderDetailsBottomSheet.show(fetchedOrderData);
+          onViewOrder: () async {
+            final data = await _fetchOrderOnly(orderUuid);
+            if (data != null) {
+              NewOrderDetailsBottomSheet.show(data);
             }
           },
         );
       }
+
+      // 2. Phir print karo
+      await _fetchAndPrintInvoice(orderUuid);
     } catch (_) {}
   }
 
@@ -116,7 +127,8 @@ class PusherService {
     return data['order_number'].toString();
   }
 
-  Future<orderModel.Data?> _fetchAndPrintInvoice(String orderUuid) async {
+  /// Sirf order fetch karta hai, print nahi.
+  Future<orderModel.Data?> _fetchOrderOnly(String orderUuid) async {
     try {
       final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
         ':order_uuid',
@@ -138,23 +150,30 @@ class PusherService {
         return null;
       }
 
-      final autoPrintEnabled =
-          box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      if (autoPrintEnabled) {
-        final copies =
-            box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
-        try {
-          await _printerService.printInvoice(getOrderModel.data!, copies: copies);
-          showPrintToast(TranslationKeys.printSuccessful.tr);
-        } catch (_) {
-          showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
-        }
-      }
-
       return getOrderModel.data;
     } catch (_) {
       return null;
     }
+  }
+
+  Future<orderModel.Data?> _fetchAndPrintInvoice(String orderUuid) async {
+    final data = await _fetchOrderOnly(orderUuid);
+    if (data == null) return null;
+
+    final autoPrintEnabled =
+        box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+    if (autoPrintEnabled) {
+      final copies =
+          box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+      try {
+        await _printerService.printInvoice(data, copies: copies);
+        showPrintToast(TranslationKeys.printSuccessful.tr);
+      } catch (_) {
+        showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+      }
+    }
+
+    return data;
   }
 
   Future<void> _refreshOrderList() async {

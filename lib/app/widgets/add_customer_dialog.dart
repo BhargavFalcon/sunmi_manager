@@ -5,6 +5,7 @@ import 'package:country_picker/country_picker.dart';
 import '../constants/api_constants.dart';
 import '../constants/color_constant.dart';
 import '../constants/sizeConstant.dart';
+import 'app_toast.dart';
 import '../constants/translation_keys.dart';
 import '../data/NetworkClient.dart';
 import '../model/address_list_model.dart' as address_model;
@@ -162,12 +163,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
           .where((s) => s.isNotEmpty)
           .toSet();
       if (entered.isEmpty || !validZipcodes.contains(entered)) {
-        Get.snackbar(
-          TranslationKeys.error.tr,
+        AppToast.showError(
           TranslationKeys.validZipcodeRequired.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          title: TranslationKeys.error.tr,
         );
         return;
       }
@@ -203,12 +201,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
         data: body,
       );
       if (response.statusCode != 200 && response.statusCode != 201) {
-        Get.snackbar(
-          TranslationKeys.error.tr,
+        AppToast.showError(
           TranslationKeys.failedToSubmitOrder.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          title: TranslationKeys.error.tr,
         );
         return null;
       }
@@ -222,12 +217,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
         }
       }
     } catch (_) {
-      Get.snackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.failedToSubmitOrder.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        title: TranslationKeys.error.tr,
       );
     }
     return null;

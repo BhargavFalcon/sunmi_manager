@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:get_storage/get_storage.dart';
-import 'dart:io';
 import '../constants/api_constants.dart';
 
 class PrinterService extends GetxService {
@@ -31,7 +30,6 @@ class PrinterService extends GetxService {
   }
 
   Future<void> _checkConnection() async {
-    if (!Platform.isAndroid) return;
     try {
       if (connectedDevice != null) {
         final isPaired = await PrintBluetoothThermal.connectionStatus;

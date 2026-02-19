@@ -224,6 +224,10 @@ class LocaleString extends Translations {
       'remove': 'Remove',
       'assignTable': 'Assign Table',
 
+      // ========== KITCHEN TICKETS SCREEN ==========
+      'kitchenTickets': 'Kitchen Tickets',
+      'foodIsReady': 'Ready',
+
       // ========== RESERVATION SCREEN ==========
       'reservation': 'Reservation',
       'selectTimeSlot': 'Select Time Slot',
@@ -333,6 +337,12 @@ class LocaleString extends Translations {
       'areYouSureDisconnect': 'Are you sure you want to disconnect?',
       'disconnect': 'Disconnect',
       'numberOfCopies': 'Number of copies',
+      'autoPrintKitchenTicket': 'Auto print when new kitchen ticket is created',
+      'autoPrintKitchenTicketDesc':
+          'Prints automatically whenever an order is sent to the kitchen.',
+      'autoPrintReceiptWhenPaid': 'Auto print receipt when order is paid',
+      'autoPrintReceiptWhenPaidDesc':
+          'Prints the customer receipt after payment.',
       'printerWidth': 'Printer width',
       'bluetoothPrinters': 'Bluetooth Printers',
       'scan': 'Scan',
@@ -344,7 +354,8 @@ class LocaleString extends Translations {
       'paymentId': 'Payment ID',
       'tableNo': 'Table no.',
       'pax': 'Pax',
-      'receiptPrintNotSupported': 'Receipt print for this view is not yet supported.',
+      'receiptPrintNotSupported':
+          'Receipt print for this view is not yet supported.',
       'thankYouForVisit': 'Thank you for your visit!',
       'totalTax': 'Total Tax',
       'balanceReturned': 'Balance Returned',
@@ -635,6 +646,10 @@ class LocaleString extends Translations {
       'remove': 'Fjern',
       'assignTable': 'Tildel bord',
 
+      // ========== KITCHEN TICKETS SCREEN ==========
+      'kitchenTickets': 'Køkkenbilletter',
+      'foodIsReady': 'Klar',
+
       // ========== RESERVATION SCREEN ==========
       'reservation': 'Reservation',
       'selectTimeSlot': 'Vælg tidslot',
@@ -723,6 +738,13 @@ class LocaleString extends Translations {
       'areYouSureDisconnect': 'Er du sikker på, at du vil frakoble?',
       'disconnect': 'Frakobl',
       'numberOfCopies': 'Antal kopier',
+      'autoPrintKitchenTicket': 'Automatisk køkkenudskrift',
+      'autoPrintKitchenTicketDesc':
+          'Udskriver automatisk, når ordren sendes til køkkenet.',
+      'autoPrintReceiptWhenPaid':
+          'Udskriv kvittering automatisk efter betaling',
+      'autoPrintReceiptWhenPaidDesc':
+          'Udskriver kundekvittering efter betaling.',
       'printerWidth': 'Printerbredde',
       'bluetoothPrinters': 'Bluetooth-printere',
       'scan': 'Scan',
@@ -734,7 +756,8 @@ class LocaleString extends Translations {
       'paymentId': 'Betalings-ID',
       'tableNo': 'Bord nr.',
       'pax': 'Pax',
-      'receiptPrintNotSupported': 'Kvitteringsudskrivning for denne visning understøttes ikke endnu.',
+      'receiptPrintNotSupported':
+          'Kvitteringsudskrivning for denne visning understøttes ikke endnu.',
       'thankYouForVisit': 'Tak for dit besøg!',
       'totalTax': 'Total moms',
       'balanceReturned': 'Saldo returneret',
@@ -1007,6 +1030,10 @@ class LocaleString extends Translations {
       'remove': 'Entfernen',
       'assignTable': 'Tisch zuweisen',
 
+      // ========== KITCHEN TICKETS SCREEN ==========
+      'kitchenTickets': 'Küchenbons',
+      'foodIsReady': 'Fertig',
+
       // ========== RESERVATION SCREEN ==========
       'reservation': 'Reservierung',
       'selectTimeSlot': 'Zeitslot auswählen',
@@ -1098,6 +1125,12 @@ class LocaleString extends Translations {
           'Sind Sie sicher, dass Sie die Verbindung trennen möchten?',
       'disconnect': 'Trennen',
       'numberOfCopies': 'Anzahl der Kopien',
+      'autoPrintKitchenTicket': 'Küchenticket automatisch drucken',
+      'autoPrintKitchenTicketDesc':
+          'Automatischer Druck, wenn eine Bestellung an die Küche gesendet wird.',
+      'autoPrintReceiptWhenPaid': 'Beleg automatisch drucken, wenn bezahlt',
+      'autoPrintReceiptWhenPaidDesc':
+          'Druckt den Kundenbeleg nach der Zahlung.',
       'printerWidth': 'Druckerbreite',
       'bluetoothPrinters': 'Bluetooth-Drucker',
       'scan': 'Scannen',
@@ -1110,7 +1143,8 @@ class LocaleString extends Translations {
       'paymentId': 'Zahlungs-ID',
       'tableNo': 'Tisch Nr.',
       'pax': 'Pax',
-      'receiptPrintNotSupported': 'Belegdruck für diese Ansicht wird noch nicht unterstützt.',
+      'receiptPrintNotSupported':
+          'Belegdruck für diese Ansicht wird noch nicht unterstützt.',
       'thankYouForVisit': 'Vielen Dank für Ihren Besuch!',
       'totalTax': 'Gesamtsteuer',
       'balanceReturned': 'Zurückgegebener Betrag',
@@ -1380,6 +1414,10 @@ class LocaleString extends Translations {
       'remove': 'Verwijderen',
       'assignTable': 'Tafel toewijzen',
 
+      // ========== KITCHEN TICKETS SCREEN ==========
+      'kitchenTickets': 'Keukenbonnen',
+      'foodIsReady': 'Klaar',
+
       // ========== RESERVATION SCREEN ==========
       'reservation': 'Reservering',
       'selectTimeSlot': 'Selecteer tijdslot',
@@ -1467,6 +1505,11 @@ class LocaleString extends Translations {
       'areYouSureDisconnect': 'Weet u zeker dat u wilt loskoppelen?',
       'disconnect': 'Loskoppelen',
       'numberOfCopies': 'Aantal kopieën',
+      'autoPrintKitchenTicket': 'Keukenticket automatisch afdrukken',
+      'autoPrintKitchenTicketDesc':
+          'Drukt automatisch bij verzending naar de keuken.',
+      'autoPrintReceiptWhenPaid': 'Bon automatisch afdrukken na betaling',
+      'autoPrintReceiptWhenPaidDesc': 'Drukt de klantenbon na betaling af.',
       'printerWidth': 'Printerbreedte',
       'bluetoothPrinters': 'Bluetooth-printers',
       'scan': 'Scannen',
@@ -1478,7 +1521,8 @@ class LocaleString extends Translations {
       'paymentId': 'Betalings-ID',
       'tableNo': 'Tafel nr.',
       'pax': 'Pax',
-      'receiptPrintNotSupported': 'Bonprinten voor deze weergave wordt nog niet ondersteund.',
+      'receiptPrintNotSupported':
+          'Bonprinten voor deze weergave wordt nog niet ondersteund.',
       'thankYouForVisit': 'Bedankt voor uw bezoek!',
       'totalTax': 'Totale belasting',
       'balanceReturned': 'Teruggegeven saldo',

@@ -15,6 +15,8 @@ import '../modules/inventory_screen/bindings/inventory_screen_binding.dart';
 import '../modules/inventory_screen/views/inventory_screen_view.dart';
 import '../modules/login_screen/bindings/login_screen_binding.dart';
 import '../modules/login_screen/views/login_screen_view.dart';
+import '../modules/kitchen_tickets_screen/bindings/kitchen_tickets_screen_binding.dart';
+import '../modules/kitchen_tickets_screen/views/kitchen_tickets_screen_view.dart';
 import '../modules/mainHome_screen/bindings/main_home_screen_binding.dart';
 import '../modules/mainHome_screen/views/main_home_screen_view.dart';
 import '../modules/order_screen/bindings/order_screen_binding.dart';
@@ -57,6 +59,12 @@ class AppPages {
       name: _Paths.MAIN_HOME_SCREEN,
       page: () => const MainHomeScreenView(),
       binding: MainHomeScreenBinding(),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: _Paths.KITCHEN_TICKETS_SCREEN,
+      page: () => const KitchenTicketsScreenView(),
+      binding: KitchenTicketsScreenBinding(),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(

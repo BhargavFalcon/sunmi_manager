@@ -1,6 +1,6 @@
 class ArgumentConstant {
-  static const baseUrl = "https://partner.dinemetrics.app/";
-  // static const baseUrl = "https://dev.dinemetrics.app/";
+  // static const baseUrl = "https://partner.dinemetrics.app/";
+  static const baseUrl = "https://dev.dinemetrics.app/";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
@@ -36,6 +36,10 @@ class ArgumentConstant {
   static const customersEndpoint = "api/v1/pos/customers";
   static const zipcodesEndpoint = "api/v1/pos/zipcodes";
   static const reservationsEndpoint = "api/v1/pos/reservations";
+  static const reservationsAvailableTimeSlotsEndpoint =
+      "api/v1/pos/reservations/available-time-slots";
+  static const reservationsCheckAvailabilityEndpoint =
+      "api/v1/pos/reservations/check-availability";
   static const reservationStatusEndpoint =
       "api/v1/pos/reservations/:reservation_id/status";
   static const orderKey = "order";
@@ -51,6 +55,10 @@ class ArgumentConstant {
   // Printer Settings Keys
   static const printerAutoPrintKey = "printer_auto_print";
   static const printerNumberOfCopiesKey = "printer_number_of_copies";
+  static const printerAutoPrintReceiptWhenPaidKey =
+      "printer_auto_print_receipt_when_paid";
+  static const printerReceiptNumberOfCopiesKey =
+      "printer_receipt_number_of_copies";
   static const printerWidthKey = "printer_width";
   static const savedPrinterDeviceKey = "saved_printer_device";
 
@@ -61,10 +69,15 @@ class ArgumentConstant {
   static const newShopOrderNotificationsKey =
       "new_shop_order_notifications_enabled";
 
+  // Print Service
+  static const printServiceVerifyEndpoint = "api/v1/prn/verify";
+
   // Print Service Keys
-  static const printServiceUrlKey = "print_service_url";
   static const printServiceApiKeyKey = "print_service_api_key";
+  static const printServiceTokenKey = "print_service_token";
   static const isPrintServiceConnectedKey = "is_print_service_connected";
+  static const printServicePrinterSettingsKey =
+      "print_service_printer_settings";
   static const printServiceOpenDrawerAfterPrintKey =
       "print_service_open_drawer_after_print";
 }

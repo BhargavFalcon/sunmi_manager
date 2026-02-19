@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/color_constant.dart';
-import '../../../constants/sizeConstant.dart';
+import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/menuItemsModel.dart';
@@ -90,12 +88,9 @@ class SettingScreenController extends GetxController {
             box.write(ArgumentConstant.menuItemsKey, json.encode(itemsJson));
 
             isSyncingMenu.value = false;
-            safeGetSnackbar(
-              TranslationKeys.success.tr,
+            AppToast.showSuccess(
               TranslationKeys.menuSyncedSuccessfully.tr,
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: ColorConstants.successGreen,
-              colorText: Colors.white,
+              title: TranslationKeys.success.tr,
             );
             return;
           }
@@ -105,24 +100,18 @@ class SettingScreenController extends GetxController {
       }
 
       isSyncingMenu.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.failedToSyncMenu.tr,
-        snackPosition: SnackPosition.TOP,
+        title: TranslationKeys.error.tr,
       );
     } on ApiException catch (e) {
       isSyncingMenu.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.message,
-        snackPosition: SnackPosition.TOP,
-      );
+      AppToast.showError(e.message, title: TranslationKeys.error.tr);
     } catch (e) {
       isSyncingMenu.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.failedToSyncMenu.tr,
-        snackPosition: SnackPosition.TOP,
+        title: TranslationKeys.error.tr,
       );
     }
   }
@@ -134,11 +123,7 @@ class SettingScreenController extends GetxController {
       _clearUserData();
     } on ApiException catch (e) {
       isLoading.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.message,
-        snackPosition: SnackPosition.TOP,
-      );
+      AppToast.showError(e.message, title: TranslationKeys.error.tr);
     } catch (e) {
       isLoading.value = false;
       _clearUserData();

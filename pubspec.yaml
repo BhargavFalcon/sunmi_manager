@@ -46,7 +46,8 @@ dependencies:
   dio: ^5.4.0
   pretty_dio_logger: ^1.3.1
   get_storage: ^2.1.1
-  pusher_channels_flutter: ^2.2.1
+  pusher_channels_flutter:
+    path: local_packages/pusher_channels_flutter
   print_bluetooth_thermal: ^1.1.7
   flutter_esc_pos_utils: ^1.0.1
   sunmi_printer_plus: ^4.1.1
@@ -54,9 +55,15 @@ dependencies:
   audioplayers: ^6.0.0
   image: ^4.1.7
   connectivity_plus: ^6.0.5
+  device_info_plus: ^11.1.0
   path_provider: ^2.1.2
   country_picker: ^2.0.21
   fluttertoast: ^8.2.6
+  upgrader: ^12.5.0
+
+dependency_overrides:
+  pusher_channels_flutter:
+    path: local_packages/pusher_channels_flutter
 
 dev_dependencies:
   flutter_test:

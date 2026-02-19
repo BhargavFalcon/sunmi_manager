@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
@@ -745,9 +745,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
   ) async {
     final orderUuid = order.uuid;
     if (orderUuid == null || orderUuid.isEmpty) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.orderUuidNotFound.tr,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
@@ -1331,17 +1331,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   onTap: () {
                                     final id = payment.id;
                                     if (id != null) {
-                                      _printPaymentReceipt(
-                                        context,
-                                        controller,
-                                        id,
-                                      );
+                                      _printPaymentReceipt(context, controller, id);
                                     } else {
-                                      _printInvoice(
-                                        context,
-                                        controller,
-                                        orderData,
-                                      );
+                                      _printInvoice(context, controller, orderData);
                                     }
                                   },
                                 ),
@@ -1514,18 +1506,18 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
     final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
     if (orderDetails == null) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.failedToCreatePayment.tr,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
 
     final table = RunningTableService.tablesFromOrderDetails(orderDetails);
     if (table == null) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.failedToCreatePayment.tr,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
@@ -1563,10 +1555,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   /// Order card shows API time as-is (format only, no timezone conversion)
   /// so e.g. 03:16 does not become 04:16 when API already sends local/restaurant time.
-  static String _formatOrderCardDateTime(
-    String? dateTime,
-    String? formattedDateTime,
-  ) {
+  static String _formatOrderCardDateTime(String? dateTime, String? formattedDateTime) {
     if (dateTime != null && dateTime.isNotEmpty) {
       return DateTimeFormatter.formatDateTime(dateTime);
     }
@@ -1587,38 +1576,25 @@ class OrderScreenView extends GetView<OrderScreenController> {
     OrderScreenController controller,
     int paymentId,
   ) async {
-    if (Platform.isIOS) {
-      safeGetSnackbar(
-        TranslationKeys.warning.tr,
-        TranslationKeys.printOnlyAvailableOnAndroid.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade700,
-      );
-      return;
-    }
-
     try {
       controller.isPrinting.value = true;
       final networkClient = NetworkClient();
-      final endpoint = ArgumentConstant.paymentReceiptEndpoint.replaceAll(
-        ':id',
-        paymentId.toString(),
-      );
+      final endpoint = ArgumentConstant.paymentReceiptEndpoint
+          .replaceAll(':id', paymentId.toString());
       final response = await networkClient.get(endpoint);
 
       if (!helpers.isSuccessStatus(response.statusCode)) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
+        AppToast.showError(
           TranslationKeys.somethingWentWrong.tr,
+          title: TranslationKeys.error.tr,
         );
         return;
       }
 
       if (response.data is! Map<String, dynamic>) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
+        AppToast.showError(
           TranslationKeys.somethingWentWrong.tr,
+          title: TranslationKeys.error.tr,
         );
         return;
       }
@@ -1628,18 +1604,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
       );
 
       if (model.success != true || model.data == null) {
-        safeGetSnackbar(
-          TranslationKeys.error.tr,
+        AppToast.showError(
           TranslationKeys.somethingWentWrong.tr,
+          title: TranslationKeys.error.tr,
         );
         return;
       }
 
       final printerService = SunmiInvoicePrinterService();
       await printerService.printReceiptFromApi(model.data!);
-      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+      AppToast.showError(
+        TranslationKeys.somethingWentWrong.tr,
+        title: TranslationKeys.error.tr,
+      );
     } finally {
       controller.isPrinting.value = false;
     }
@@ -1650,21 +1628,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
     OrderScreenController controller,
     orderDetailsModel.Data orderData,
   ) async {
-    if (Platform.isIOS) {
-      safeGetSnackbar(
-        TranslationKeys.warning.tr,
-        TranslationKeys.printOnlyAvailableOnAndroid.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade700,
-      );
-      return;
-    }
-
     if (orderData.order == null) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.invoiceDataNotFound.tr,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
@@ -1673,9 +1640,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
       controller.isPrinting.value = true;
       final printerService = SunmiInvoicePrinterService();
       await printerService.printInvoice(orderData);
-      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+      AppToast.showError(
+        TranslationKeys.somethingWentWrong.tr,
+        title: TranslationKeys.error.tr,
+      );
     } finally {
       controller.isPrinting.value = false;
     }
@@ -1717,10 +1686,7 @@ class OrderCard extends StatelessWidget {
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
-    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(
-      order.dateTime,
-      order.formattedDateTime,
-    );
+    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(order.dateTime, order.formattedDateTime);
     final itemsCount = order.itemsCount ?? 0;
     final formattedPrice = CurrencyFormatter.formatPrice(order.total ?? '0');
     final waiterName = order.waiter?.name ?? '';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
-import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/LoginModels.dart';
@@ -39,19 +39,17 @@ class LoginScreenController extends GetxController {
 
   Future<void> login() async {
     if (emailController.text.trim().isEmpty) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.pleaseEnterEmail.tr,
-        snackPosition: SnackPosition.TOP,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
 
     if (passwordController.text.trim().isEmpty) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.pleaseEnterPassword.tr,
-        snackPosition: SnackPosition.TOP,
+        title: TranslationKeys.error.tr,
       );
       return;
     }
@@ -91,47 +89,38 @@ class LoginScreenController extends GetxController {
                 await _fetchRestaurantDetails(loginModel);
                 Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
               } else {
-                safeGetSnackbar(
-                  TranslationKeys.error.tr,
+                AppToast.showError(
                   TranslationKeys.failedToSaveAuthToken.tr,
-                  snackPosition: SnackPosition.TOP,
+                  title: TranslationKeys.error.tr,
                 );
               }
             } else {
-              safeGetSnackbar(
-                TranslationKeys.error.tr,
+              AppToast.showError(
                 TranslationKeys.tokenNotFound.tr,
-                snackPosition: SnackPosition.TOP,
+                title: TranslationKeys.error.tr,
               );
             }
           } catch (e) {
-            safeGetSnackbar(
-              TranslationKeys.error.tr,
+            AppToast.showError(
               TranslationKeys.failedToParseLoginResponse.tr,
-              snackPosition: SnackPosition.TOP,
+              title: TranslationKeys.error.tr,
             );
           }
         } else {
-          safeGetSnackbar(
-            TranslationKeys.error.tr,
+          AppToast.showError(
             TranslationKeys.invalidResponseFormat.tr,
-            snackPosition: SnackPosition.TOP,
+            title: TranslationKeys.error.tr,
           );
         }
       }
     } on ApiException catch (e) {
       isLoading.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.message,
-        snackPosition: SnackPosition.TOP,
-      );
+      AppToast.showError(e.message, title: TranslationKeys.error.tr);
     } catch (e) {
       isLoading.value = false;
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
+      AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
-        snackPosition: SnackPosition.TOP,
+        title: TranslationKeys.error.tr,
       );
     }
   }

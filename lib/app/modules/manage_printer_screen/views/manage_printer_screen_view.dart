@@ -245,7 +245,7 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
                           return SizedBox.shrink();
                         }),
 
-                        // Printer Settings Section
+                        SizedBox(height: 16),
                         Container(
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -253,162 +253,46 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: ColorConstants.getShadow2,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                TranslationKeys.printerSettings.tr,
+                                TranslationKeys.printerWidth.tr,
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                   color: Colors.black,
                                 ),
                               ),
-                              SizedBox(height: 16),
-
-                              // Auto-print Toggle
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Auto-print',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
+                              Obx(() {
+                                return Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: ColorConstants.primaryColor,
+                                      width: 1,
                                     ),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  Obx(() {
-                                    return Switch(
-                                      value: controller.autoPrint.value,
-                                      onChanged:
-                                          (value) =>
-                                              controller.toggleAutoPrint(),
-                                      activeColor: ColorConstants.primaryColor,
-                                    );
-                                  }),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-
-                              // Number of Copies
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    TranslationKeys.numberOfCopies.tr,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
+                                  child: DropdownButton<String>(
+                                    value: controller.printerWidth.value,
+                                    underline: SizedBox(),
+                                    items:
+                                        controller.printerWidthOptions.map((
+                                          String width,
+                                        ) {
+                                          return DropdownMenuItem<String>(
+                                            value: width,
+                                            child: Text(width),
+                                          );
+                                        }).toList(),
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        controller.setPrinterWidth(newValue);
+                                      }
+                                    },
                                   ),
-                                  Row(
-                                    children: [
-                                      Obx(() {
-                                        return IconButton(
-                                          onPressed:
-                                              controller.numberOfCopies.value >
-                                                      1
-                                                  ? () =>
-                                                      controller
-                                                          .decrementCopies()
-                                                  : null,
-                                          icon: Icon(
-                                            Icons.remove_circle_outline,
-                                          ),
-                                          color:
-                                              controller.numberOfCopies.value >
-                                                      1
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
-                                        );
-                                      }),
-                                      Obx(() {
-                                        return Container(
-                                          width: 40,
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            '${controller.numberOfCopies.value}',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                      Obx(() {
-                                        return IconButton(
-                                          onPressed:
-                                              controller.numberOfCopies.value <
-                                                      5
-                                                  ? () =>
-                                                      controller
-                                                          .incrementCopies()
-                                                  : null,
-                                          icon: Icon(Icons.add_circle_outline),
-                                          color:
-                                              controller.numberOfCopies.value <
-                                                      5
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-
-                              // Printer Width Dropdown
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    TranslationKeys.printerWidth.tr,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  Obx(() {
-                                    return Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: ColorConstants.primaryColor,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: DropdownButton<String>(
-                                        value: controller.printerWidth.value,
-                                        underline: SizedBox(),
-                                        items:
-                                            controller.printerWidthOptions.map((
-                                              String width,
-                                            ) {
-                                              return DropdownMenuItem<String>(
-                                                value: width,
-                                                child: Text(width),
-                                              );
-                                            }).toList(),
-                                        onChanged: (String? newValue) {
-                                          if (newValue != null) {
-                                            controller.setPrinterWidth(
-                                              newValue,
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              ),
+                                );
+                              }),
                             ],
                           ),
                         ),

@@ -4,8 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:managerapp/app/widgets/app_toast.dart';
 
 class MySize {
   static late MediaQueryData _mediaQueryData;
@@ -330,72 +330,13 @@ CachedNetworkImage getImageByLink({
   );
 }
 
-getSnackBar({
-  required BuildContext context,
-  String text = "",
-  double size = 16,
-  int duration = 500,
-}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(text, style: TextStyle(fontSize: MySize.getHeight(size))),
-      duration: Duration(milliseconds: duration),
-    ),
-  );
-}
-
-void safeGetSnackbar(
-  String title,
-  String message, {
-  SnackPosition snackPosition = SnackPosition.TOP,
-  Duration duration = const Duration(seconds: 2),
-  Color? backgroundColor,
-  Color? colorText,
-}) {
-  // Use addPostFrameCallback to ensure overlay is ready
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    try {
-      final context = Get.context;
-      if (context != null && context.mounted) {
-        // Check if overlay exists
-        try {
-          Overlay.of(context);
-          // Overlay exists, safe to use Get.snackbar
-          Get.snackbar(
-            title,
-            message,
-            snackPosition: snackPosition,
-            duration: duration,
-            backgroundColor: backgroundColor,
-            colorText: colorText,
-          );
-          return;
-        } catch (_) {
-          // Overlay not available, use ScaffoldMessenger as fallback
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$title: $message'),
-              backgroundColor: backgroundColor ?? Colors.red,
-              duration: duration,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-    }
-  });
-}
-
-/// Shows a toast for print result (no snackbar).
+/// Shows a toast for print result (uses common AppToast).
 void showPrintToast(String message, {bool isError = false}) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
-    backgroundColor: isError ? Colors.red : const Color(0xFF333333),
-    textColor: Colors.white,
-    fontSize: 14.0,
-  );
+  if (isError) {
+    AppToast.showError(message);
+  } else {
+    AppToast.showSuccess(message);
+  }
 }
 
 void showDarkCupertinoErrorDialog(

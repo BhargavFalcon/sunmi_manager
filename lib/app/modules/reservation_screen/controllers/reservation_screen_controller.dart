@@ -1,19 +1,24 @@
+import 'dart:async';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../constants/api_constants.dart';
 import '../../../model/MobileAppModulesModel.dart';
 import '../../../model/tableModel.dart' as tableModel;
 import '../../../model/reservation_list_model.dart';
+import '../../../model/available_time_slots_model.dart';
+import '../../../model/LoginModels.dart';
+import '../../../model/customer_list_model.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../../main.dart';
 
 class ReservationScreenController extends GetxController {
-  // Text Editing Controllers
   final TextEditingController customerNameController = TextEditingController();
   final TextEditingController customerPhoneController = TextEditingController();
   final TextEditingController customerEmailController = TextEditingController();
@@ -22,6 +27,7 @@ class ReservationScreenController extends GetxController {
 
   RxString selectedPerson = '1 Person'.obs;
   RxString selectedTimeSlot = ''.obs;
+  RxString selectedTimeSlotTitle = ''.obs;
   RxString selectedReservationStatus = 'Pending'.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   Rx<DateTime> selectedDateReservation = DateTime.now().obs;
@@ -30,21 +36,36 @@ class ReservationScreenController extends GetxController {
   Rx<DateTime> endDate = DateTime.now().obs;
   RxString selectedOrderFilter = 'All'.obs;
   final RxBool showAccessDialog = false.obs;
-  // Validation
   RxBool isNameValid = false.obs;
   RxBool isPhoneValid = false.obs;
   RxString nameError = ''.obs;
   RxString phoneError = ''.obs;
 
-  // Country Code Selection
   RxString selectedCountryCode = '+49'.obs;
   RxString selectedCountryFlag = '🇩🇪'.obs;
 
-  // Table Selection
   final networkClient = NetworkClient();
   final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
   final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
   final RxBool isTableExpanded = false.obs;
+
+  final FocusNode reservationNameFocusNode = FocusNode();
+  final FocusNode reservationPhoneFocusNode = FocusNode();
+  final GlobalKey reservationNameFieldKey = GlobalKey();
+  final GlobalKey reservationPhoneFieldKey = GlobalKey();
+  VoidCallback? onReservationPhoneFocusGained;
+  VoidCallback? onReservationNameFocusGained;
+
+  final RxList<CustomerListItem> customerSearchResults = <CustomerListItem>[].obs;
+  final RxBool isCustomerSearching = false.obs;
+  final Rx<CustomerListItem?> selectedReservationCustomer = Rx<CustomerListItem?>(null);
+  Timer? _customerSearchDebounce;
+  VoidCallback? onCustomerSearchResultsChanged;
+  bool _isPrefillingFromCustomerSelection = false;
+
+  bool get isReservationCustomerSelected => selectedReservationCustomer.value != null;
+
+  final RxBool isSavingReservation = false.obs;
 
   final RxBool isReservationsLoading = false.obs;
   final RxBool isReservationsLoadingMore = false.obs;
@@ -56,7 +77,6 @@ class ReservationScreenController extends GetxController {
   bool get hasMoreReservations =>
       currentReservationsPage.value < lastReservationsPage.value;
 
-  // Same date options as All Orders page
   final List<String> dateOptions = [
     'Today',
     'Current Week',
@@ -78,7 +98,6 @@ class ReservationScreenController extends GetxController {
     'Pending',
   ];
 
-  // Same 5 statuses as filter dropdown (for per-card status change)
   List<String> statusOptions = [
     'Confirmed',
     'Checked In',
@@ -100,25 +119,27 @@ class ReservationScreenController extends GetxController {
     '10 Persons',
   ];
 
-  List<String> timeSlots = [
-    '08:00 AM',
-    '08:30 AM',
-    '09:00 AM',
-    '09:30 AM',
-    '10:00 AM',
-    '10:30 AM',
-    '11:00 AM',
-    '11:30 AM',
-    '12:00 PM',
-    '12:30 PM',
-    '01:00 PM',
-    '01:30 PM',
-    '02:00 PM',
-    '02:30 PM',
-    '03:00 PM',
-    '03:30 PM',
-    '04:00 PM',
-  ];
+  final RxList<TimeSlotSection> timeSlotSections = <TimeSlotSection>[].obs;
+  final RxBool isTimeSlotsLoading = false.obs;
+  final RxBool isTimeSlotsClosed = false.obs;
+  final RxBool isCheckingAvailability = false.obs;
+  final RxString checkingSlotSectionTitle = ''.obs;
+  final RxString checkingSlotValue = ''.obs;
+
+  final RxInt editingReservationIndex = (-1).obs;
+
+  bool get isEditingReservation => editingReservationIndex.value >= 0;
+
+  List<String> get reservationFormStatusOptions {
+    if (!isEditingReservation || editingReservationIndex.value >= reservations.length) {
+      return ['Pending', 'Confirmed'];
+    }
+    final current = reservations[editingReservationIndex.value]['status'] as String?;
+    if (current == null || current == 'Pending' || current == 'Confirmed') {
+      return ['Pending', 'Confirmed'];
+    }
+    return ['Pending', 'Confirmed', current];
+  }
 
   String formatDate(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)} ${date.year}";
@@ -129,22 +150,21 @@ class ReservationScreenController extends GetxController {
       case 'Today':
         return formatDate(DateTime.now());
       case 'Last 7 Days':
-        return "${formatDate(DateTime.now().subtract(const Duration(days: 6)))} - ${formatDate(DateTime.now())}";
+        final now = DateTime.now();
+        return '${formatDate(now.subtract(const Duration(days: 6)))} - ${formatDate(now)}';
       case 'Custom Date':
-        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
       case 'Current Week':
       case 'Last Week':
       case 'Current Month':
       case 'Last Month':
       case 'Current Year':
       case 'Last Year':
-        return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
+        return '${formatDate(startDate.value)} - ${formatDate(endDate.value)}';
       default:
         return formatDate(DateTime.now());
     }
   }
 
-  /// Same as All Orders: raw key for menu, Custom Date shows range.
   String getDropdownDisplayText() {
     if (selectedMonth.value == 'Custom Date') {
       return "${formatDate(startDate.value)} - ${formatDate(endDate.value)}";
@@ -155,6 +175,145 @@ class ReservationScreenController extends GetxController {
   void selectReservationStatus(String status) {
     selectedReservationStatus.value = status;
   }
+
+  Future<void> fetchAvailableTimeSlots() async {
+    isTimeSlotsLoading.value = true;
+    isTimeSlotsClosed.value = false;
+    timeSlotSections.clear();
+    if (editingReservationIndex.value < 0) {
+      selectedTimeSlot.value = '';
+      selectedTimeSlotTitle.value = '';
+    }
+    try {
+      final branchId = _getBranchIdFromStorage();
+      if (branchId == null) return;
+
+      final dateStr = DateFormat('yyyy-MM-dd').format(selectedDateReservation.value);
+      final response = await networkClient.get(
+        ArgumentConstant.reservationsAvailableTimeSlotsEndpoint,
+        queryParameters: <String, dynamic>{'date': dateStr, 'branch_id': branchId},
+      );
+
+      if (!_isSuccessResponse(response)) return;
+
+      final model = AvailableTimeSlotsModel.fromJson(response.data as Map<String, dynamic>);
+      final data = model.data;
+      if (model.success != true || data == null) return;
+
+      isTimeSlotsClosed.value = data.isClosed ?? false;
+      final rawSlots = data.timeSlots;
+      if (rawSlots == null || rawSlots.isEmpty) return;
+
+      final sections = <TimeSlotSection>[];
+      for (final entry in rawSlots.entries) {
+        final displaySlots = entry.value.map(_timeSlotToDisplay).toList();
+        displaySlots.sort(_compareTimeSlotDisplay);
+        sections.add(TimeSlotSection(title: entry.key, slots: displaySlots));
+      }
+      timeSlotSections.assignAll(sections);
+      if (editingReservationIndex.value >= 0) _ensureEditingSlotInSections();
+    } catch (_) {
+      timeSlotSections.clear();
+    } finally {
+      isTimeSlotsLoading.value = false;
+    }
+  }
+
+  void _ensureEditingSlotInSections() {
+    if (editingReservationIndex.value < 0 ||
+        editingReservationIndex.value >= reservations.length) return;
+    final title = selectedTimeSlotTitle.value;
+    final display = selectedTimeSlot.value;
+    if (title.isEmpty && display.isEmpty) return;
+    final existing = timeSlotSections.where((s) => s.title == title).toList();
+    if (existing.isNotEmpty && existing.first.slots.contains(display)) return;
+    if (existing.isNotEmpty) {
+      final updated = existing.first.slots.toList()..add(display);
+      updated.sort(_compareTimeSlotDisplay);
+      timeSlotSections.remove(existing.first);
+      timeSlotSections.add(TimeSlotSection(title: title, slots: updated));
+    } else {
+      timeSlotSections.add(TimeSlotSection(title: title, slots: [display]));
+    }
+  }
+
+  void prefillForEdit(int index) {
+    if (index < 0 || index >= reservations.length) return;
+    editingReservationIndex.value = index;
+    final item = reservations[index];
+    final dateStr = item['reservationDate'] as String?;
+    if (dateStr != null && dateStr.isNotEmpty) {
+      final parsed = DateTime.tryParse(dateStr);
+      if (parsed != null) selectedDateReservation.value = parsed;
+    }
+    final timeStr = item['reservationTime'] as String?;
+    if (timeStr != null && timeStr.isNotEmpty) {
+      selectedTimeSlot.value = _timeSlotToDisplay(timeStr);
+      selectedTimeSlotTitle.value = (item['reservationSlotType'] as String?) ?? '';
+    }
+    final guests = (item['guests'] as int?) ?? 1;
+    selectedPerson.value = guests == 1 ? '1 Person' : '$guests Persons';
+    selectedReservationStatus.value = (item['status'] as String?) ?? 'Pending';
+    specialRequestController.text = (item['note'] as String?) ?? '';
+    customerNameController.text = (item['name'] as String?) ?? '';
+    customerPhoneController.text = (item['phone'] as String?) ?? '';
+    customerEmailController.text = (item['email'] as String?) ?? '';
+    selectedReservationCustomer.value = null;
+    nameError.value = '';
+    phoneError.value = '';
+    isNameValid.value = true;
+    isPhoneValid.value = true;
+    selectedTable.value = null;
+  }
+
+  int? _getBranchIdFromStorage() {
+    try {
+      final loginData = box.read(ArgumentConstant.loginModelKey);
+      if (loginData is! Map<String, dynamic>) return null;
+      final loginModel = LoginModel.fromJson(loginData);
+      return loginModel.data?.defaultBranchId ?? loginModel.data?.user?.branchId;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool _isSuccessResponse(dynamic response) {
+    final code = response.statusCode;
+    return (code == 200 || code == 201) && response.data is Map<String, dynamic>;
+  }
+
+  static int? _displayTimeToMinutes(String display) {
+    final match = RegExp(r'^(\d{1,2}):(\d{2})\s*(AM|PM)$', caseSensitive: false)
+        .firstMatch(display.trim());
+    if (match == null) return null;
+    var h = int.tryParse(match.group(1) ?? '0') ?? 0;
+    final m = int.tryParse(match.group(2) ?? '0') ?? 0;
+    final amPm = (match.group(3) ?? '').toUpperCase();
+    if (amPm == 'PM' && h != 12) h += 12;
+    if (amPm == 'AM' && h == 12) h = 0;
+    return h * 60 + m;
+  }
+
+  static String _displayTimeToApiTime(String display) {
+    final minutes = _displayTimeToMinutes(display);
+    if (minutes == null) return '12:00:00';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:00';
+  }
+
+  static String _timeSlotToDisplay(String apiTime) {
+    final parts = apiTime.split(':');
+    if (parts.length < 2) return apiTime;
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = int.tryParse(parts[1]) ?? 0;
+    final isPm = h >= 12;
+    final h12 = h > 12 ? h - 12 : (h == 0 ? 12 : h);
+    return '$h12:${m.toString().padLeft(2, '0')} ${isPm ? 'PM' : 'AM'}';
+  }
+
+  static int _compareTimeSlotDisplay(String a, String b) =>
+      (_displayTimeToMinutes(a) ?? 0).compareTo(_displayTimeToMinutes(b) ?? 0);
 
   String get formattedDate =>
       DateFormat('dd MMM yyyy').format(selectedDate.value);
@@ -188,11 +347,16 @@ class ReservationScreenController extends GetxController {
 
     customerNameController.addListener(() {
       validateName(customerNameController.text);
+      _onCustomerNameChangedForSearch();
     });
 
     customerPhoneController.addListener(() {
       validatePhone(customerPhoneController.text);
+      _onCustomerPhoneOrEmailChanged();
     });
+    customerEmailController.addListener(_onCustomerPhoneOrEmailChanged);
+    reservationNameFocusNode.addListener(_onReservationNameFocusChange);
+    reservationPhoneFocusNode.addListener(_onReservationPhoneFocusChange);
     _updateDatesByOption('Today');
     fetchTablesAreas();
     fetchReservations();
@@ -206,6 +370,113 @@ class ReservationScreenController extends GetxController {
     if (pos.pixels >= pos.maxScrollExtent * 0.8) {
       loadMoreReservations();
     }
+  }
+
+  void _onReservationNameFocusChange() {
+    if (reservationNameFocusNode.hasFocus) {
+      onReservationNameFocusGained?.call();
+    }
+  }
+
+  void _onReservationPhoneFocusChange() {
+    if (reservationPhoneFocusNode.hasFocus) {
+      onReservationPhoneFocusGained?.call();
+    }
+  }
+
+  void _onCustomerPhoneOrEmailChanged() {
+    if (_isPrefillingFromCustomerSelection) return;
+    if (isReservationCustomerSelected) {
+      selectedReservationCustomer.value = null;
+      customerSearchResults.clear();
+    }
+  }
+
+  void _onCustomerNameChangedForSearch() {
+    if (_isPrefillingFromCustomerSelection) return;
+    if (isReservationCustomerSelected) {
+      selectedReservationCustomer.value = null;
+    }
+    final query = customerNameController.text.trim();
+    if (query.length < 2) {
+      _customerSearchDebounce?.cancel();
+      customerSearchResults.clear();
+      onCustomerSearchResultsChanged?.call();
+      return;
+    }
+    _customerSearchDebounce?.cancel();
+    _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () {
+      fetchReservationCustomerSearch(query);
+    });
+  }
+
+  Future<void> fetchReservationCustomerSearch(String query) async {
+    if (query.trim().length < 2) return;
+    isCustomerSearching.value = true;
+    customerSearchResults.clear();
+    onCustomerSearchResultsChanged?.call();
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.customersEndpoint,
+        queryParameters: {'search': query.trim(), 'page': 1, 'per_page': 20},
+      );
+      if (!_isSuccessResponse(response)) return;
+      final model = CustomerListModel.fromJson(
+        response.data is Map ? response.data as Map<String, dynamic> : {},
+      );
+      if (model.data?.data != null) {
+        customerSearchResults.assignAll(model.data!.data!);
+      }
+      onCustomerSearchResultsChanged?.call();
+    } catch (_) {
+      customerSearchResults.clear();
+      onCustomerSearchResultsChanged?.call();
+    } finally {
+      isCustomerSearching.value = false;
+    }
+  }
+
+  void selectReservationCustomer(CustomerListItem customer) {
+    _isPrefillingFromCustomerSelection = true;
+    selectedReservationCustomer.value = customer;
+    customerNameController.text = customer.name ?? '';
+    customerEmailController.text = customer.email ?? '';
+    final phoneCode = (customer.phoneCode ?? '').toString().trim();
+    if (phoneCode.isNotEmpty && !phoneCode.startsWith('+')) {
+      selectedCountryCode.value = '+$phoneCode';
+    } else if (phoneCode.isNotEmpty) {
+      selectedCountryCode.value = phoneCode;
+    } else {
+      selectedCountryCode.value = '+49';
+    }
+    selectedCountryFlag.value = _flagFromPhoneCode(selectedCountryCode.value);
+    customerPhoneController.text = customer.phoneNumber ?? '';
+    validateName(customerNameController.text);
+    validatePhone(customerPhoneController.text);
+    customerSearchResults.clear();
+    onCustomerSearchResultsChanged?.call();
+    _customerSearchDebounce?.cancel();
+    _isPrefillingFromCustomerSelection = false;
+  }
+
+  void clearReservationCustomer() {
+    selectedReservationCustomer.value = null;
+    customerNameController.clear();
+    customerPhoneController.clear();
+    customerEmailController.clear();
+    selectedCountryCode.value = '+49';
+    selectedCountryFlag.value = '🇩🇪';
+    nameError.value = '';
+    phoneError.value = '';
+    isNameValid.value = false;
+    isPhoneValid.value = false;
+  }
+
+  static String _flagFromPhoneCode(String? phoneCode) {
+    final code = phoneCode?.replaceFirst(RegExp(r'^\+\s*'), '').trim();
+    if (code == null || code.isEmpty) return '🇩🇪';
+    final country = CountryParser.tryParsePhoneCode(code);
+    return country?.flagEmoji ?? '🇩🇪';
   }
 
   @override
@@ -224,9 +495,7 @@ class ReservationScreenController extends GetxController {
           showAccessDialog.value = true;
         }
       }
-    } catch (e) {
-      // Handle error silently
-    }
+    } catch (e) {}
   }
 
   void updateOrderFilter(String value) {
@@ -236,9 +505,7 @@ class ReservationScreenController extends GetxController {
 
   void updateDateOption(String option) {
     selectedMonth.value = option;
-    if (option == 'Custom Date') {
-      // Date picker will be opened from the view
-    } else {
+    if (option != 'Custom Date') {
       _updateDatesByOption(option);
       fetchReservations();
     }
@@ -420,7 +687,6 @@ class ReservationScreenController extends GetxController {
                               onSelectionChanged: (args) {
                                 if (args.value is PickerDateRange) {
                                   final range = args.value as PickerDateRange;
-                                  // Ensure dates are not in the past
                                   selectedStartDate =
                                       range.startDate != null &&
                                               range.startDate!.isBefore(today)
@@ -477,7 +743,6 @@ class ReservationScreenController extends GetxController {
                           onPressed: () {
                             if (selectedStartDate != null &&
                                 selectedEndDate != null) {
-                              // Ensure dates are not in the past
                               final start =
                                   selectedStartDate!.isBefore(today)
                                       ? today
@@ -527,6 +792,14 @@ class ReservationScreenController extends GetxController {
 
   @override
   void onClose() {
+    _customerSearchDebounce?.cancel();
+    onCustomerSearchResultsChanged = null;
+    reservationNameFocusNode.removeListener(_onReservationNameFocusChange);
+    reservationNameFocusNode.dispose();
+    reservationPhoneFocusNode.removeListener(_onReservationPhoneFocusChange);
+    reservationPhoneFocusNode.dispose();
+    onReservationNameFocusGained = null;
+    onReservationPhoneFocusGained = null;
     reservationsScrollController.removeListener(_onReservationsScroll);
     reservationsScrollController.dispose();
     customerNameController.dispose();
@@ -538,28 +811,77 @@ class ReservationScreenController extends GetxController {
 
   void selectPerson(String value) => selectedPerson.value = value;
 
-  void selectTimeSlot(String timeSlot) {
-    selectedTimeSlot.value = timeSlot;
+  Future<void> selectTimeSlot(String title, String timeSlot) async {
+    if (isCheckingAvailability.value) return;
+    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDateReservation.value);
+    final timeSlotApi = _displayTimeToApiTime(timeSlot);
+    isCheckingAvailability.value = true;
+    checkingSlotSectionTitle.value = title;
+    checkingSlotValue.value = timeSlot;
+    try {
+      final body = <String, dynamic>{'date': dateStr, 'time_slot': timeSlotApi};
+      final tableId = selectedTable.value?.id;
+      if (tableId != null) body['table_id'] = tableId;
+      final response = await networkClient.post(
+        ArgumentConstant.reservationsCheckAvailabilityEndpoint,
+        data: body,
+      );
+      final ok = response.statusCode == 200 || response.statusCode == 201;
+      if (ok && _isCheckAvailabilitySuccess(response)) {
+        selectedTimeSlotTitle.value = title;
+        selectedTimeSlot.value = timeSlot;
+      } else {
+        _showCheckAvailabilityError(response);
+      }
+    } catch (e) {
+      AppToast.showError(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      isCheckingAvailability.value = false;
+      checkingSlotSectionTitle.value = '';
+      checkingSlotValue.value = '';
+    }
   }
 
-  /// -1 means no card is updating
+  bool _isCheckAvailabilitySuccess(dynamic response) {
+    final data = response.data;
+    if (data is! Map<String, dynamic>) return false;
+    if (data['success'] != true) return false;
+    final inner = data['data'];
+    return inner is Map<String, dynamic> && inner['available'] == true;
+  }
+
+  void _showCheckAvailabilityError(dynamic response) {
+    String message = TranslationKeys.somethingWentWrong.tr;
+    if (response.data is Map<String, dynamic>) {
+      final data = response.data as Map<String, dynamic>;
+      final inner = data['data'];
+      if (inner is Map<String, dynamic> && inner['message'] is String) {
+        message = inner['message'] as String;
+      } else if (data['message'] is String) {
+        message = data['message'] as String;
+      } else if (data['error'] is String) {
+        message = data['error'] as String;
+      }
+    }
+    AppToast.showError(message);
+  }
+
   final RxInt statusUpdatingReservationIndex = (-1).obs;
 
-  String _statusToApiValue(String status) {
-    switch (status) {
-      case 'No Show':
-        return 'No_Show';
-      case 'Checked In':
-        return 'Checked_In';
-      case 'Cancelled':
-        return 'Cancelled';
-      case 'Confirmed':
-        return 'Confirmed';
-      case 'Pending':
-        return 'Pending';
-      default:
-        return status.replaceAll(' ', '_');
-    }
+  String _statusToApiValue(String status) => _statusToApi(status);
+
+  String _statusToApiFilter(String filter) => _statusToApi(filter);
+
+  static String _statusToApi(String status) {
+    const apiRequestStatuses = [
+      'Pending',
+      'Confirmed',
+      'Checked In',
+      'Cancelled',
+      'No Show',
+    ];
+    if (apiRequestStatuses.contains(status)) return status;
+    return status.replaceAll('_', ' ');
   }
 
   Future<void> updateReservationStatus(int index, String newStatus) async {
@@ -581,13 +903,11 @@ class ReservationScreenController extends GetxController {
         reservations[index]['status'] = newStatus;
         reservations.refresh();
       }
+    } on ApiException catch (e) {
+      AppToast.showError(e.message);
     } catch (e) {
-      safeGetSnackbar(
-        TranslationKeys.error.tr,
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade900,
+      AppToast.showError(
+        e is Exception ? e.toString().replaceFirst('Exception: ', '') : e.toString(),
       );
     } finally {
       statusUpdatingReservationIndex.value = -1;
@@ -600,44 +920,42 @@ class ReservationScreenController extends GetxController {
     reservations.refresh();
   }
 
-  // Validation Methods
   bool validateName(String name) {
     if (name.isEmpty) {
       nameError.value = TranslationKeys.customerNameRequired.tr;
       isNameValid.value = false;
       return false;
-    } else if (name.length < 2) {
+    }
+    if (name.length < 2) {
       nameError.value = TranslationKeys.nameMustBeAtLeast2Characters.tr;
       isNameValid.value = false;
       return false;
-    } else {
-      nameError.value = '';
-      isNameValid.value = true;
-      return true;
     }
+    nameError.value = '';
+    isNameValid.value = true;
+    return true;
   }
 
   bool validatePhone(String phone) {
-    // Remove spaces and special characters for validation
-    String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
     if (phone.isEmpty) {
       phoneError.value = TranslationKeys.phoneNumberRequired.tr;
       isPhoneValid.value = false;
       return false;
-    } else if (cleanPhone.length < 10) {
+    }
+    if (cleanPhone.length < 10) {
       phoneError.value = TranslationKeys.phoneNumberMustBeAtLeast10Digits.tr;
       isPhoneValid.value = false;
       return false;
-    } else if (cleanPhone.length > 15) {
+    }
+    if (cleanPhone.length > 15) {
       phoneError.value = TranslationKeys.phoneNumberTooLong.tr;
       isPhoneValid.value = false;
       return false;
-    } else {
-      phoneError.value = '';
-      isPhoneValid.value = true;
-      return true;
     }
+    phoneError.value = '';
+    isPhoneValid.value = true;
+    return true;
   }
 
   bool get isFormValid =>
@@ -648,36 +966,13 @@ class ReservationScreenController extends GetxController {
   Future<void> fetchTablesAreas() async {
     tableAreasList.clear();
     try {
-      final response = await networkClient.get(
-        ArgumentConstant.tablesAreasEndpoint,
-      );
-      if ((response.statusCode == 200 || response.statusCode == 201) &&
-          response.data is Map<String, dynamic>) {
-        final tableModelData = tableModel.TableModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
-        if (tableModelData.data != null) {
-          tableAreasList.assignAll(tableModelData.data!);
-        }
+      final response = await networkClient.get(ArgumentConstant.tablesAreasEndpoint);
+      if (!_isSuccessResponse(response)) return;
+      final tableModelData = tableModel.TableModel.fromJson(response.data as Map<String, dynamic>);
+      if (tableModelData.data != null) {
+        tableAreasList.assignAll(tableModelData.data!);
       }
-    } catch (e) {}
-  }
-
-  String _statusToApiFilter(String filter) {
-    switch (filter) {
-      case 'No Show':
-        return 'No_Show';
-      case 'Checked In':
-        return 'Checked_In';
-      case 'Cancelled':
-        return 'Cancelled';
-      case 'Confirmed':
-        return 'Confirmed';
-      case 'Pending':
-        return 'Pending';
-      default:
-        return filter.replaceAll(' ', '_');
-    }
+    } catch (_) {}
   }
 
   String _formatReservationTime(String? date, String? time) {
@@ -719,6 +1014,10 @@ class ReservationScreenController extends GetxController {
         'phone': r.customer?.phone ?? '',
         'email': r.customer?.email ?? '',
         'status': r.statusLabel ?? r.reservationStatus ?? 'Pending',
+        'reservationDate': r.reservationDate,
+        'reservationTime': r.reservationTime,
+        'reservationSlotType': r.reservationSlotType ?? '',
+        'customer_id': r.customer?.id,
         if (tableLabel != null && tableLabel.toString().isNotEmpty)
           'table': tableLabel.toString(),
       };
@@ -750,27 +1049,26 @@ class ReservationScreenController extends GetxController {
         ArgumentConstant.reservationsEndpoint,
         queryParameters: queryParams,
       );
-      if ((response.statusCode == 200 || response.statusCode == 201) &&
-          response.data is Map<String, dynamic>) {
-        final model = ReservationListModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
-        final list = model.data?.reservations ?? [];
-        final pagination = model.data?.pagination;
-        if (pagination != null) {
-          currentReservationsPage.value = pagination.currentPage ?? page;
-          lastReservationsPage.value = pagination.lastPage ?? 1;
-        }
-        final mapped = _mapReservationList(list);
-        if (loadMore) {
-          reservations.addAll(mapped);
-        } else {
-          reservations.assignAll(mapped);
-        }
-      } else {
+      if (!_isSuccessResponse(response)) {
         if (!loadMore) reservations.clear();
+        return;
       }
-    } catch (e) {
+      final model = ReservationListModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      final list = model.data?.reservations ?? [];
+      final pagination = model.data?.pagination;
+      if (pagination != null) {
+        currentReservationsPage.value = pagination.currentPage ?? page;
+        lastReservationsPage.value = pagination.lastPage ?? 1;
+      }
+      final mapped = _mapReservationList(list);
+      if (loadMore) {
+        reservations.addAll(mapped);
+      } else {
+        reservations.assignAll(mapped);
+      }
+    } catch (_) {
       if (!loadMore) reservations.clear();
     } finally {
       if (loadMore) {
@@ -790,11 +1088,14 @@ class ReservationScreenController extends GetxController {
     await fetchReservations();
   }
 
-  String _formatDateForApi(DateTime date) {
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-  }
+  String _formatDateForApi(DateTime date) =>
+      DateFormat('yyyy-MM-dd').format(date);
 
   void clearForm() {
+    editingReservationIndex.value = -1;
+    _customerSearchDebounce?.cancel();
+    selectedReservationCustomer.value = null;
+    customerSearchResults.clear();
     customerNameController.clear();
     customerPhoneController.clear();
     customerEmailController.clear();
@@ -803,6 +1104,7 @@ class ReservationScreenController extends GetxController {
     selectedCountryFlag.value = '🇩🇪';
     selectedPerson.value = '1 Person';
     selectedTimeSlot.value = '';
+    selectedTimeSlotTitle.value = '';
     selectedDateReservation.value = DateTime.now();
     nameError.value = '';
     phoneError.value = '';
@@ -813,111 +1115,136 @@ class ReservationScreenController extends GetxController {
     selectedReservationStatus.value = 'Pending';
   }
 
-  void saveReservation() {
-    // Validate all fields
-    bool nameValid = validateName(customerNameController.text);
-    bool phoneValid = validatePhone(customerPhoneController.text);
-
+  Future<void> saveReservation() async {
+    final nameValid = validateName(customerNameController.text);
+    final phoneValid = validatePhone(customerPhoneController.text);
     if (!nameValid || !phoneValid) {
-      safeGetSnackbar(
-        TranslationKeys.validationError.tr,
+      AppToast.showError(
         TranslationKeys.pleaseFillAllRequiredFields.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade900,
+        title: TranslationKeys.validationError.tr,
       );
       return;
     }
-
     if (selectedTimeSlot.value.isEmpty) {
-      safeGetSnackbar(
-        TranslationKeys.timeSlotRequired.tr,
+      AppToast.showWarning(
         TranslationKeys.pleaseSelectTimeSlot.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade700,
+        title: TranslationKeys.timeSlotRequired.tr,
       );
       return;
     }
 
-    // Create new reservation
-    Map<String, dynamic> newReservation = {
-      'guests': int.parse(selectedPerson.value.split(' ')[0]),
-      'time':
-          '${DateFormat('dd MMMM').format(selectedDateReservation.value)}, ${selectedTimeSlot.value}',
-      'name': customerNameController.text.trim(),
-      'phone':
-          '${selectedCountryCode.value} ${customerPhoneController.text.trim()}',
-      'email': customerEmailController.text.trim(),
-      'status': selectedReservationStatus.value,
-      'specialRequest': specialRequestController.text.trim(),
+    isSavingReservation.value = true;
+    try {
+      if (isEditingReservation) {
+        await _updateReservation();
+      } else {
+        await _createReservation();
+      }
+    } catch (e) {
+      AppToast.showError(
+        e.toString().replaceFirst('Exception: ', ''),
+        title: TranslationKeys.error.tr,
+      );
+    } finally {
+      isSavingReservation.value = false;
+    }
+  }
+
+  Map<String, dynamic> _reservationBody() {
+    final timeSlotApi = _displayTimeToApiTime(selectedTimeSlot.value);
+    final body = <String, dynamic>{
+      'date': DateFormat('yyyy-MM-dd').format(selectedDateReservation.value),
+      'time_slot': timeSlotApi,
+      'party_size': int.parse(selectedPerson.value.split(' ')[0]),
+      'reservation_status': _statusToApiValue(selectedReservationStatus.value),
+      'special_requests': specialRequestController.text.trim(),
+      'customer_name': customerNameController.text.trim(),
+      'customer_phone': customerPhoneController.text.trim(),
+      'customer_email': customerEmailController.text.trim(),
     };
+    if (selectedTable.value?.id != null) {
+      body['table_id'] = selectedTable.value!.id;
+    }
+    final customer = selectedReservationCustomer.value;
+    if (customer?.id != null) {
+      body['customer_id'] = customer!.id;
+    }
+    return body;
+  }
 
-    // Add to reservations list
-    reservations.add(newReservation);
-
-    // Show success message
-    safeGetSnackbar(
-      TranslationKeys.success.tr,
-      TranslationKeys.reservationCreatedSuccessfully.tr,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: ColorConstants.successGreen.withOpacity(0.2),
-      colorText: ColorConstants.successGreen,
+  Future<void> _createReservation() async {
+    final response = await networkClient.post(
+      ArgumentConstant.reservationsEndpoint,
+      data: _reservationBody(),
     );
-
-    // Clear form and close bottom sheet
+    if (!_isSuccessResponse(response)) {
+      AppToast.showError(
+        TranslationKeys.pleaseFillAllRequiredFields.tr,
+        title: TranslationKeys.error.tr,
+      );
+      return;
+    }
+    AppToast.showSuccess(
+      TranslationKeys.reservationCreatedSuccessfully.tr,
+      title: TranslationKeys.success.tr,
+    );
     clearForm();
     Get.back();
+    fetchReservations();
   }
 
-  Color getStatusColor(String status) {
-    switch (status) {
-      case 'Pending':
-        return const Color(0xFF723B13);
-      case 'Confirmed':
-        return const Color(0xFF03543F);
-      case 'Cancelled':
-        return const Color(0xFF9B1C1C);
-      case 'Checked In':
-        return const Color(0xFF1E429F);
-      case 'No Show':
-        return const Color(0xFF1F2937);
-      default:
-        return Colors.grey.shade300;
+  Future<void> _updateReservation() async {
+    final index = editingReservationIndex.value;
+    if (index < 0 || index >= reservations.length) return;
+    final id = reservations[index]['id'];
+    if (id == null) return;
+    final endpoint =
+        '${ArgumentConstant.reservationsEndpoint}/${id}';
+    final response = await networkClient.put(endpoint, data: _reservationBody());
+    if (!_isSuccessResponse(response)) {
+      AppToast.showError(
+        TranslationKeys.pleaseFillAllRequiredFields.tr,
+        title: TranslationKeys.error.tr,
+      );
+      return;
     }
+    AppToast.showSuccess(
+      'Reservation updated',
+      title: TranslationKeys.success.tr,
+    );
+    clearForm();
+    Get.back();
+    fetchReservations();
   }
 
-  Color getStatusBgColor(String status) {
-    switch (status) {
-      case 'Pending':
-        return const Color(0xFFFDF6B2);
-      case 'Confirmed':
-        return const Color(0xFFDEF7EC);
-      case 'Cancelled':
-        return const Color(0xFFFDE8E8);
-      case 'Checked In':
-        return const Color(0xFFE1EFFE);
-      case 'No Show':
-        return const Color(0xFFF3F4F6);
-      default:
-        return Colors.grey.shade300;
-    }
-  }
+  static const Map<String, Color> _statusTextColor = {
+    'Pending': Color(0xFF723B13),
+    'Confirmed': Color(0xFF03543F),
+    'Cancelled': Color(0xFF9B1C1C),
+    'Checked In': Color(0xFF1E429F),
+    'No Show': Color(0xFF1F2937),
+  };
+  static const Map<String, Color> _statusBgColor = {
+    'Pending': Color(0xFFFDF6B2),
+    'Confirmed': Color(0xFFDEF7EC),
+    'Cancelled': Color(0xFFFDE8E8),
+    'Checked In': Color(0xFFE1EFFE),
+    'No Show': Color(0xFFF3F4F6),
+  };
+  static const Map<String, Color> _statusBorderColor = {
+    'Pending': Color(0xFFE3A008),
+    'Confirmed': Color(0xFF31C48D),
+    'Cancelled': Color(0xFFF98080),
+    'Checked In': Color(0xFF76A9FA),
+    'No Show': Color(0xFF9CA3AF),
+  };
 
-  Color getStatusBorderColor(String status) {
-    switch (status) {
-      case 'Pending':
-        return const Color(0xFFE3A008);
-      case 'Confirmed':
-        return const Color(0xFF31C48D);
-      case 'Cancelled':
-        return const Color(0xFFF98080);
-      case 'Checked In':
-        return const Color(0xFF76A9FA);
-      case 'No Show':
-        return const Color(0xFF9CA3AF);
-      default:
-        return Colors.grey.shade300;
-    }
-  }
+  Color getStatusColor(String status) =>
+      _statusTextColor[status] ?? Colors.grey.shade300;
+
+  Color getStatusBgColor(String status) =>
+      _statusBgColor[status] ?? Colors.grey.shade300;
+
+  Color getStatusBorderColor(String status) =>
+      _statusBorderColor[status] ?? Colors.grey.shade300;
 }

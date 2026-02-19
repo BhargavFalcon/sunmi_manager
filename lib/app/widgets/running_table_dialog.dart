@@ -5,6 +5,7 @@ import '../constants/api_constants.dart';
 import '../constants/color_constant.dart';
 import '../constants/image_constants.dart';
 import '../constants/sizeConstant.dart';
+import 'app_toast.dart';
 import '../data/NetworkClient.dart';
 import '../model/tableModel.dart';
 import '../model/split_payment_remaining_model.dart';
@@ -17,7 +18,6 @@ import 'order_payment_dialog.dart';
 import 'new_order_details_bottom_sheet.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/translation_keys.dart';
-import 'dart:io';
 
 class RunningTableService {
   static final NetworkClient networkClient = NetworkClient();
@@ -35,23 +35,11 @@ class RunningTableService {
   static String? _getOrderUuid(Tables table) => table.activeOrder?.uuid;
 
   static void _showError(String message) {
-    safeGetSnackbar(
-      'Error',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+    AppToast.showError(message, title: 'Error');
   }
 
   static void _showSuccess(String message) {
-    safeGetSnackbar(
-      'Success',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: ColorConstants.successGreen,
-      colorText: Colors.white,
-    );
+    AppToast.showSuccess(message, title: 'Success');
   }
 
   static String _getErrorMessage(dynamic e, String defaultMessage) =>
@@ -640,12 +628,6 @@ class RunningTableDialog {
     BuildContext context,
     Tables finalTable,
   ) async {
-    if (Platform.isIOS) {
-      RunningTableService._showError(
-        TranslationKeys.printOnlyAvailableOnAndroid.tr,
-      );
-      return;
-    }
     final orderUuid = RunningTableService._getOrderUuid(finalTable);
     if (orderUuid == null) {
       RunningTableService._showError('No active order found to print');
@@ -658,9 +640,9 @@ class RunningTableDialog {
     }
     try {
       await SunmiInvoicePrinterService().printInvoice(orderDetails!.data!);
-      showPrintToast(TranslationKeys.printSuccessful.tr);
+      RunningTableService._showSuccess('Print job sent successfully');
     } catch (e) {
-      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+      RunningTableService._showError('Failed to print: $e');
     }
   }
 

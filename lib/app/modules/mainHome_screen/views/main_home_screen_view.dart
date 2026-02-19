@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
+import 'package:managerapp/app/modules/kitchen_tickets_screen/views/kitchen_tickets_screen_view.dart';
 import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
 import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
 import 'package:managerapp/app/modules/table_screen/views/table_screen_view.dart';
@@ -28,6 +29,7 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
           OrderScreenView(),
           TableScreenView(),
           TakeOrderView(),
+          KitchenTicketsScreenView(),
           ReservationScreenView(),
           SettingScreenView(),
           // InventoryScreenView(),
@@ -84,7 +86,7 @@ class _CustomBottomNavBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -113,16 +115,22 @@ class _CustomBottomNavBar extends StatelessWidget {
                     onTap: () => onTabChange(2),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.tableReservation,
-                    label: TranslationKeys.reservation.tr,
+                    icon: ImageConstant.kitchenTickets,
+                    label: TranslationKeys.kitchenTickets.tr,
                     isSelected: selectedIndex == 3,
                     onTap: () => onTabChange(3),
                   ),
                   _NavBarItem(
-                    icon: ImageConstant.setting,
-                    label: TranslationKeys.settings.tr,
+                    icon: ImageConstant.tableReservation,
+                    label: TranslationKeys.reservation.tr,
                     isSelected: selectedIndex == 4,
                     onTap: () => onTabChange(4),
+                  ),
+                  _NavBarItem(
+                    icon: ImageConstant.setting,
+                    label: TranslationKeys.settings.tr,
+                    isSelected: selectedIndex == 5,
+                    onTap: () => onTabChange(5),
                   ),
                   // _NavBarItem(
                   //   icon: ImageConstant.inventory,
@@ -220,7 +228,7 @@ class _NavBarItemState extends State<_NavBarItem>
           hoverColor: Colors.transparent,
           focusColor: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
             constraints: const BoxConstraints(minWidth: 0),
             decoration: BoxDecoration(
               color: ColorConstants.primaryColor.withValues(
@@ -259,7 +267,7 @@ class _NavBarItemState extends State<_NavBarItem>
                       child: Text(
                         widget.label,
                         style: TextStyle(
-                          fontSize: MySize.getHeight(12),
+                          fontSize: MySize.getHeight(11),
                           color: ColorConstants.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),

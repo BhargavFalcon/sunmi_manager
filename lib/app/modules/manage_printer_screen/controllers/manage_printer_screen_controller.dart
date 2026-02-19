@@ -12,6 +12,7 @@ import 'package:image/image.dart' as img;
 import '../../../services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
+import '../../../widgets/app_toast.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
 
@@ -41,10 +42,8 @@ class ManagePrinterScreenController extends GetxController {
     _loadSavedPrinter();
     _loadSettings();
     _syncWithService();
-    if (Platform.isAndroid) {
-      _checkBluetoothStatus();
-      _autoScan();
-    }
+    _checkBluetoothStatus();
+    _autoScan();
   }
 
   Future<void> _autoScan() async {
@@ -53,7 +52,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> _checkBluetoothStatus() async {
-    if (!Platform.isAndroid) return;
     try {
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
@@ -149,7 +147,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> _checkConnection() async {
-    if (!Platform.isAndroid) return;
     try {
       if (connectedDevice.value == null) return;
 
@@ -169,32 +166,7 @@ class ManagePrinterScreenController extends GetxController {
     }
   }
 
-  bool _isPrinterDevice(BluetoothInfo device) {
-    final deviceName = device.name.toLowerCase();
-    final printerKeywords = [
-      'printer',
-      'print',
-      'thermal',
-      'pos',
-      'receipt',
-      'epson',
-      'hp',
-      'canon',
-      'brother',
-      'zebra',
-      'star',
-      'bixolon',
-      'xprinter',
-      'rpp',
-    ];
-    return printerKeywords.any((keyword) => deviceName.contains(keyword));
-  }
-
   Future<void> scanForDevices() async {
-    if (!Platform.isAndroid) {
-      isScanning.value = false;
-      return;
-    }
     try {
       isScanning.value = true;
       availableDevices.clear();
@@ -213,7 +185,7 @@ class ManagePrinterScreenController extends GetxController {
 
       final List<BluetoothInfo> allDevices =
           await PrintBluetoothThermal.pairedBluetooths;
-      availableDevices.value = allDevices.where(_isPrinterDevice).toList();
+      availableDevices.value = List.from(allDevices);
     } catch (e) {
       // Silent fail
     } finally {
@@ -222,14 +194,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> connectToDevice(BluetoothInfo device) async {
-    if (!Platform.isAndroid) {
-      _showSnackbar(
-        TranslationKeys.error.tr,
-        'Bluetooth printing is only available on Android',
-        Colors.orange,
-      );
-      return;
-    }
     try {
       isLoading.value = true;
       final result = await PrintBluetoothThermal.connect(
@@ -266,7 +230,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> disconnectDevice() async {
-    if (!Platform.isAndroid) return;
     try {
       isLoading.value = true;
       final result = await PrintBluetoothThermal.disconnect;
@@ -326,14 +289,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> printTestReceipt() async {
-    if (!Platform.isAndroid) {
-      _showSnackbar(
-        TranslationKeys.error.tr,
-        'Bluetooth printing is only available on Android',
-        Colors.orange,
-      );
-      return;
-    }
     // Check Bluetooth status
     try {
       final bool bluetoothEnabled =
@@ -1176,13 +1131,13 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   void _showSnackbar(String title, String message, Color backgroundColor) {
-    safeGetSnackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: backgroundColor,
-      colorText: Colors.white,
-    );
+    if (backgroundColor == ColorConstants.successGreen) {
+      AppToast.showSuccess(message, title: title);
+    } else if (backgroundColor == Colors.red) {
+      AppToast.showError(message, title: title);
+    } else {
+      AppToast.showWarning(message, title: title);
+    }
   }
 
   void _showBluetoothEnableDialog() {
@@ -1340,7 +1295,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> _handleBluetoothEnabled() async {
-    if (!Platform.isAndroid) return;
     await Future.delayed(_bluetoothEnableDelay);
     final bool? bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
 
@@ -1361,7 +1315,6 @@ class ManagePrinterScreenController extends GetxController {
   }
 
   Future<void> _pollBluetoothStatus() async {
-    if (!Platform.isAndroid) return;
     _showSnackbar(
       TranslationKeys.enablingBluetooth.tr,
       TranslationKeys.pleaseAllowBluetoothInDialog.tr,

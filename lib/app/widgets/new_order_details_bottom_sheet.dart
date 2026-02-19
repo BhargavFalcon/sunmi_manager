@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -7,6 +6,7 @@ import '../model/getorderModel.dart' as orderModel;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
+import 'app_toast.dart';
 import '../utils/date_time_formatter.dart';
 import '../utils/order_helpers.dart' as helpers;
 import '../widgets/shared/order_detail_widgets.dart';
@@ -273,17 +273,6 @@ class NewOrderDetailsBottomSheet {
   }
 
   static Future<void> _printInvoice(orderModel.Data orderData) async {
-    if (Platform.isIOS) {
-      safeGetSnackbar(
-        TranslationKeys.warning.tr,
-        TranslationKeys.printOnlyAvailableOnAndroid.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade700,
-      );
-      return;
-    }
-
     if (orderData.order == null) {
       return;
     }
@@ -292,9 +281,11 @@ class NewOrderDetailsBottomSheet {
       isPrinting.value = true;
       final printerService = SunmiInvoicePrinterService();
       await printerService.printInvoice(orderData);
-      showPrintToast(TranslationKeys.printSuccessful.tr);
     } catch (e) {
-      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+      AppToast.showError(
+        TranslationKeys.somethingWentWrong.tr,
+        title: TranslationKeys.error.tr,
+      );
     } finally {
       isPrinting.value = false;
     }

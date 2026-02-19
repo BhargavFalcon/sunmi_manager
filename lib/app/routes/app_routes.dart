@@ -18,11 +18,13 @@ abstract class Routes {
   static const MANAGE_PRINTER_SCREEN = _Paths.MANAGE_PRINTER_SCREEN;
   static const PRINTING_RULES = _Paths.PRINTING_RULES;
   static const PRINT_SERVICE = _Paths.PRINT_SERVICE;
+  static const KITCHEN_TICKETS_SCREEN = _Paths.KITCHEN_TICKETS_SCREEN;
 }
 
 abstract class _Paths {
   _Paths._();
   static const MAIN_HOME_SCREEN = '/main-home-screen';
+  static const KITCHEN_TICKETS_SCREEN = '/kitchen-tickets-screen';
   static const DASHBOARD_SCREEN = '/dashboard-screen';
   static const ORDER_SCREEN = '/order-screen';
   static const INVENTORY_SCREEN = '/inventory-screen';
