@@ -532,16 +532,7 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
     bool isConnectedDevice,
   ) {
     if (isConnectedDevice) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildStatusPill(text: 'Default', isFilled: true),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.red),
-            onPressed: () => _showDisconnectDialog(controller),
-          ),
-        ],
-      );
+      return _buildStatusPill(text: 'Default', isFilled: true);
     }
 
     return Obx(() {

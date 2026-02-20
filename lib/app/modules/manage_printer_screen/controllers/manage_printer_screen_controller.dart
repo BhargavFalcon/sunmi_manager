@@ -1308,12 +1308,16 @@ class ManagePrinterScreenController extends GetxController
     final bool? bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
 
     if (bluetoothEnabled == true) {
+      isBluetoothEnabled.value = true;
       _showSnackbar(
         TranslationKeys.bluetoothEnabled.tr,
         TranslationKeys.bluetoothEnabledSuccessfully.tr,
         ColorConstants.successGreen,
       );
       await Future.delayed(_bluetoothInitDelay);
+      _loadSavedPrinter();
+      await _autoScan();
+      await _checkConnection();
     } else {
       _showSnackbar(
         TranslationKeys.bluetoothEnabling.tr,
@@ -1341,6 +1345,7 @@ class ManagePrinterScreenController extends GetxController
     }
 
     if (bluetoothEnabled) {
+      isBluetoothEnabled.value = true;
       _showSnackbar(
         TranslationKeys.bluetoothEnabled.tr,
         TranslationKeys.bluetoothEnabledSuccessfully.tr,
