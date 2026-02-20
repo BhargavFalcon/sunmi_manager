@@ -6,9 +6,10 @@ class ReservationListModel {
 
   ReservationListModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null
-        ? ReservationListData.fromJson(json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? ReservationListData.fromJson(json['data'] as Map<String, dynamic>)
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -36,10 +37,12 @@ class ReservationListData {
         }
       }
     }
-    pagination = json['pagination'] != null
-        ? ReservationPagination.fromJson(
-            json['pagination'] as Map<String, dynamic>)
-        : null;
+    pagination =
+        json['pagination'] != null
+            ? ReservationPagination.fromJson(
+              json['pagination'] as Map<String, dynamic>,
+            )
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -97,10 +100,12 @@ class ReservationListItem {
     statusLabel = json['status_label'];
     partySize = json['party_size'];
     specialRequests = json['special_requests'];
-    customer = json['customer'] != null
-        ? ReservationCustomer.fromJson(
-            json['customer'] as Map<String, dynamic>)
-        : null;
+    customer =
+        json['customer'] != null
+            ? ReservationCustomer.fromJson(
+              json['customer'] as Map<String, dynamic>,
+            )
+            : null;
     if (json['table'] != null) {
       table = <ReservationTable>[];
       for (final v in json['table'] as List) {
@@ -109,9 +114,10 @@ class ReservationListItem {
         }
       }
     }
-    branch = json['branch'] != null
-        ? ReservationBranch.fromJson(json['branch'] as Map<String, dynamic>)
-        : null;
+    branch =
+        json['branch'] != null
+            ? ReservationBranch.fromJson(json['branch'] as Map<String, dynamic>)
+            : null;
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }

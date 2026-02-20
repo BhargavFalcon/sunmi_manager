@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
-import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
+import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
+import 'package:screenshot/screenshot.dart';
+
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
@@ -15,18 +18,38 @@ import '../../../constants/sizeConstant.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../model/wifi_printer_model.dart';
 
-class ManagePrinterScreenController extends GetxController {
+class ManagePrinterScreenController extends GetxController
+    with WidgetsBindingObserver {
   late PrinterService printerService;
+
+  // --- Bluetooth State ---
   final isLoading = false.obs;
+  final connectingDeviceId = ''.obs;
   final isScanning = false.obs;
+  final isInitialLoading = true.obs;
   final connectedDevice = Rxn<BluetoothInfo>();
   final availableDevices = <BluetoothInfo>[].obs;
   final isConnected = false.obs;
+  final isBluetoothEnabled = false.obs;
+
+  // --- Printer Settings ---
   final autoPrint = true.obs;
   final numberOfCopies = 1.obs;
   final printerWidth = '58mm'.obs;
-  final printerWidthOptions = ['58mm', '72mm', '80mm'];
+  final printerWidthOptions = ['58mm', '80mm'];
+
+  // --- Wifi Printer State ---
+  final selectedTab = 0.obs; // 0 for Bluetooth, 1 for WiFi
+  final savedWifiPrinters = <WifiPrinterModel>[].obs;
+  final deviceNameController = TextEditingController();
+  final ipAddressController = TextEditingController();
+  final portController = TextEditingController();
+  final defaultWifiPrinter = Rxn<WifiPrinterModel>();
+
+  // Cached printer profile for fast printing
+  CapabilityProfile? _cachedProfile;
 
   // Constants
   static const _bluetoothInitDelay = Duration(milliseconds: 50);
@@ -34,6 +57,7 @@ class ManagePrinterScreenController extends GetxController {
   static const _bluetoothPollInterval = Duration(milliseconds: 500);
   static const _bluetoothPollMaxAttempts = 20;
   static const _methodChannelName = 'com.dinemetrics.manager/bluetooth';
+  static const _wifiPrintersKey = 'saved_wifi_printers';
 
   @override
   void onInit() {
@@ -41,9 +65,46 @@ class ManagePrinterScreenController extends GetxController {
     printerService = Get.find<PrinterService>();
     _loadSavedPrinter();
     _loadSettings();
+    _loadWifiPrinters();
     _syncWithService();
     _checkBluetoothStatus();
-    _autoScan();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    deviceNameController.dispose();
+    ipAddressController.dispose();
+    portController.dispose();
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (selectedTab.value == 0) {
+        // App resumed, recheck Bluetooth quietly
+        _checkAndResumeBluetooth();
+      }
+    }
+  }
+
+  Future<void> _checkAndResumeBluetooth() async {
+    try {
+      final bool bluetoothEnabled =
+          await PrintBluetoothThermal.bluetoothEnabled;
+      isBluetoothEnabled.value = bluetoothEnabled;
+      if (bluetoothEnabled && availableDevices.isEmpty && !isConnected.value) {
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
+        await _checkConnection();
+        await _autoScan();
+      }
+    } catch (_) {
+      isBluetoothEnabled.value = false;
+    }
   }
 
   Future<void> _autoScan() async {
@@ -55,18 +116,20 @@ class ManagePrinterScreenController extends GetxController {
     try {
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
+      isBluetoothEnabled.value = bluetoothEnabled;
       if (!bluetoothEnabled) {
         _resetConnection();
-        _showSnackbar(
-          TranslationKeys.bluetoothDisabled.tr,
-          TranslationKeys.pleaseEnableBluetoothForPrinter.tr,
-          Colors.orange,
-        );
+        isInitialLoading.value = false;
+        _showBluetoothEnableDialog();
       } else {
         await _checkConnection();
+        await _autoScan();
+        isInitialLoading.value = false;
       }
     } catch (e) {
+      isBluetoothEnabled.value = false;
       _resetConnection();
+      isInitialLoading.value = false;
     }
   }
 
@@ -95,6 +158,91 @@ class ManagePrinterScreenController extends GetxController {
         numberOfCopies.value,
       );
       box.write(ArgumentConstant.printerWidthKey, printerWidth.value);
+    } catch (e) {
+      // Silent fail
+    }
+  }
+
+  void _loadWifiPrinters() {
+    try {
+      final String? jsonStr = box.read(_wifiPrintersKey);
+      if (jsonStr != null) {
+        final List<dynamic> decodedObj = jsonDecode(jsonStr);
+        final printers =
+            decodedObj.map((e) => WifiPrinterModel.fromJson(e)).toList();
+        savedWifiPrinters.value = printers;
+
+        // Find default printer
+        final df = savedWifiPrinters.firstWhereOrNull((p) => p.isDefault);
+        if (df != null) {
+          defaultWifiPrinter.value = df;
+        }
+      }
+    } catch (e) {
+      // Silent fail
+    }
+  }
+
+  void saveWifiPrinter() {
+    if (deviceNameController.text.trim().isEmpty ||
+        ipAddressController.text.trim().isEmpty ||
+        portController.text.trim().isEmpty) {
+      AppToast.showWarning('Please fill all fields');
+      return;
+    }
+
+    final newPrinter = WifiPrinterModel(
+      name: deviceNameController.text.trim(),
+      ipAddress: ipAddressController.text.trim(),
+      port: portController.text.trim(),
+      isDefault:
+          savedWifiPrinters.isEmpty, // Make default if it's the first one
+    );
+
+    savedWifiPrinters.add(newPrinter);
+    if (newPrinter.isDefault) {
+      defaultWifiPrinter.value = newPrinter;
+    }
+
+    _persistWifiPrinters();
+
+    // Clear form
+    deviceNameController.clear();
+    ipAddressController.clear();
+    portController.clear();
+
+    Get.back(); // close the bottom sheet
+    AppToast.showSuccess('Device saved successfully');
+  }
+
+  void setDefaultWifiPrinter(WifiPrinterModel printer) {
+    for (var p in savedWifiPrinters) {
+      p.isDefault = false;
+    }
+    printer.isDefault = true;
+    defaultWifiPrinter.value = printer;
+
+    savedWifiPrinters.refresh(); // Triggers UI update
+    _persistWifiPrinters();
+
+    AppToast.showSuccess('${printer.name} set as default wifi printer');
+  }
+
+  void deleteWifiPrinter(WifiPrinterModel printer) {
+    savedWifiPrinters.remove(printer);
+    if (printer.isDefault) {
+      defaultWifiPrinter.value = null;
+      if (savedWifiPrinters.isNotEmpty) {
+        setDefaultWifiPrinter(savedWifiPrinters.first);
+      }
+    }
+    _persistWifiPrinters();
+  }
+
+  void _persistWifiPrinters() {
+    try {
+      final jsonList = savedWifiPrinters.map((p) => p.toJson()).toList();
+      box.write(_wifiPrintersKey, jsonEncode(jsonList));
     } catch (e) {
       // Silent fail
     }
@@ -173,13 +321,12 @@ class ManagePrinterScreenController extends GetxController {
 
       final bool? bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
+      if (bluetoothEnabled != null) {
+        isBluetoothEnabled.value = bluetoothEnabled;
+      }
       if (bluetoothEnabled == false) {
         _resetConnection();
-        _showSnackbar(
-          TranslationKeys.bluetoothDisabled.tr,
-          TranslationKeys.pleaseEnableBluetoothToScan.tr,
-          Colors.orange,
-        );
+        _showBluetoothEnableDialog();
         return;
       }
 
@@ -196,6 +343,12 @@ class ManagePrinterScreenController extends GetxController {
   Future<void> connectToDevice(BluetoothInfo device) async {
     try {
       isLoading.value = true;
+      connectingDeviceId.value = device.macAdress;
+
+      if (isConnected.value) {
+        await PrintBluetoothThermal.disconnect;
+      }
+
       final result = await PrintBluetoothThermal.connect(
         macPrinterAddress: device.macAdress,
       );
@@ -226,6 +379,7 @@ class ManagePrinterScreenController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+      connectingDeviceId.value = '';
     }
   }
 
@@ -249,8 +403,6 @@ class ManagePrinterScreenController extends GetxController {
     switch (printerWidth.value) {
       case '58mm':
         return PaperSize.mm58;
-      case '72mm':
-        return PaperSize.mm72;
       case '80mm':
         return PaperSize.mm80;
       default:
@@ -258,37 +410,24 @@ class ManagePrinterScreenController extends GetxController {
     }
   }
 
-  // Helper function to encode Euro symbol (€) to 0xD5 for CP858
-  String _encodeEuroSymbol(String text) {
-    return text.replaceAll('€', String.fromCharCode(0xD5));
+  /// Returns printer dot width for the paper size
+  int _getPrinterDots() {
+    switch (printerWidth.value) {
+      case '58mm':
+        return 384;
+      case '80mm':
+        return 576;
+      default:
+        return 576;
+    }
   }
 
-  // Helper function to create text with Euro symbol encoding if needed
-  List<int> _createTextWithEuro(
-    Generator generator,
-    String text, {
-    PosAlign align = PosAlign.left,
-    bool bold = false,
-    PosTextSize? height,
-    PosTextSize? width,
-    PosFontType? fontType,
-  }) {
-    // Only encode if text contains Euro symbol
-    final encodedText = text.contains('€') ? _encodeEuroSymbol(text) : text;
+  Future<void> printTestReceipt(BuildContext context) async {
+    if (selectedTab.value == 1) {
+      await _printTestReceiptWifi();
+      return;
+    }
 
-    return generator.text(
-      encodedText,
-      styles: PosStyles(
-        align: align,
-        bold: bold,
-        height: height ?? PosTextSize.size1,
-        width: width ?? PosTextSize.size1,
-        fontType: fontType ?? PosFontType.fontB,
-      ),
-    );
-  }
-
-  Future<void> printTestReceipt() async {
     // Check Bluetooth status
     try {
       final bool bluetoothEnabled =
@@ -340,484 +479,42 @@ class ManagePrinterScreenController extends GetxController {
 
     try {
       isLoading.value = true;
-      final profile = await CapabilityProfile.load();
-      final generator = Generator(_getPaperSize(), profile);
+
+      final paperSize = _getPaperSize();
+      final printerDots = _getPrinterDots();
+      _cachedProfile ??= await CapabilityProfile.load();
+      final generator = Generator(paperSize, _cachedProfile!);
+
+      // Capture receipt widget as image (1:1 ratio = no resize = sharp)
+      final screenshotController = ScreenshotController();
+      final imageBytes = await screenshotController.captureFromLongWidget(
+        _buildTestReceiptWidget(printerDots.toDouble()),
+        pixelRatio: 1.0,
+        delay: Duration.zero,
+      );
+
+      // Decode and prepare for thermal printer
+      var decodedImage = img.decodeImage(imageBytes);
+      if (decodedImage == null) {
+        showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+        return;
+      }
+
+      // Width must be divisible by 8
+      final targetWidth = (decodedImage.width ~/ 8) * 8;
+      if (decodedImage.width != targetWidth) {
+        decodedImage = img.copyResize(decodedImage, width: targetWidth);
+      }
+      decodedImage = img.grayscale(decodedImage);
+
+      // Convert to ESC/POS raster + cut
+      final imageData = generator.imageRaster(decodedImage);
+      final cutBytes = generator.cut();
+
       List<int> allBytes = [];
-
       for (int i = 0; i < numberOfCopies.value; i++) {
-        List<int> bytes = [];
-
-        // Enable condensed mode and set CP858 code table
-        bytes += [0x0F]; // SI - Shift In (Enable condensed mode)
-        bytes += [0x1B, 0x74, 0x13]; // ESC t 19 (CP858 code table)
-
-        // Header Section - Business Name (Bold, Centered)
-        bytes += _createTextWithEuro(
-          generator,
-          'Naan Stop',
-          align: PosAlign.center,
-          bold: true,
-          height: PosTextSize.size2,
-          fontType: PosFontType.fontB,
-        );
-        bytes += generator.feed(1);
-
-        // Address (Centered)
-        bytes += _createTextWithEuro(
-          generator,
-          'Winkelcentrum Woensel 1, 5625 AA Eindhoven, Netherlandsds',
-          align: PosAlign.center,
-          height: PosTextSize.size1,
-          width: PosTextSize.size1,
-          fontType: PosFontType.fontB,
-        );
-
-        // Phone (Centered)
-        bytes += _createTextWithEuro(
-          generator,
-          'Phone:626193494',
-          align: PosAlign.center,
-          height: PosTextSize.size1,
-          width: PosTextSize.size1,
-          fontType: PosFontType.fontB,
-        );
-
-        // GST (Centered)
-        bytes += _createTextWithEuro(
-          generator,
-          'GST: 24AGHPN',
-          align: PosAlign.center,
-          height: PosTextSize.size1,
-          width: PosTextSize.size1,
-          fontType: PosFontType.fontB,
-        );
-
-        bytes += generator.hr(ch: '-');
-
-        bytes += generator.row([
-          PosColumn(
-            text: 'Order: ORD-0218',
-            width: 6,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: '13 Dec 2025 06:06 PM',
-            width: 6,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.text(
-          'Customer: Bhargav thummar',
-          styles: PosStyles(
-            align: PosAlign.left,
-            height: PosTextSize.size1,
-            width: PosTextSize.size1,
-            fontType: PosFontType.fontB,
-          ),
-        );
-        bytes += generator.hr(ch: '-');
-
-        bytes += generator.row([
-          PosColumn(
-            text: TranslationKeys.qty.tr,
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.left,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.itemName.tr,
-            width: 6,
-            styles: PosStyles(
-              align: PosAlign.left,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.price.tr,
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.amount.tr,
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-        bytes += generator.hr();
-
-        // Item 1
-        bytes += generator.row([
-          PosColumn(
-            text: '1',
-            width: 1,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: 'Naan Imperial (Steak, Egg, Ham, Cheese, Vegetable)',
-            width: 7,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€9,50'),
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€9,50'),
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        // Item 2
-        bytes += generator.row([
-          PosColumn(
-            text: '1',
-            width: 1,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: 'Naan Steak',
-            width: 7,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€8,00'),
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€8,00'),
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.feed(1);
-
-        // Summary of Charges
-        bytes += generator.row([
-          PosColumn(
-            text: 'Sub Total:',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€17,50'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.row([
-          PosColumn(
-            text: 'Servicekosten :',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€0,45'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.row([
-          PosColumn(
-            text: 'Boxes :',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€1,00'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.row([
-          PosColumn(
-            text: 'VAT (5.00%) incl.',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€0,83'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.row([
-          PosColumn(
-            text: '${TranslationKeys.totalTax.tr}:',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€0,83'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.row([
-          PosColumn(
-            text: '${TranslationKeys.balanceReturned.tr}:',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€0,00'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.hr();
-
-        // Total (Bold)
-        bytes += generator.row([
-          PosColumn(
-            text: '${TranslationKeys.total.tr}:',
-            width: 8,
-            styles: PosStyles(
-              align: PosAlign.left,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: _encodeEuroSymbol('€18,95'),
-            width: 4,
-            styles: PosStyles(
-              align: PosAlign.right,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        bytes += generator.hr(ch: '-');
-
-        // Footer - Thank you message
-        bytes += _createTextWithEuro(
-          generator,
-          TranslationKeys.thankYouForVisit.tr,
-          align: PosAlign.center,
-        );
-        bytes += generator.feed(1);
-
-        bytes += generator.row([
-          PosColumn(
-            text: TranslationKeys.amount.tr,
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.left,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.paymentMethod.tr,
-            width: 5,
-            styles: PosStyles(
-              align: PosAlign.center,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.dateAndTime.tr,
-            width: 5,
-            styles: PosStyles(
-              align: PosAlign.right,
-              bold: true,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-        bytes += generator.hr();
-
-        // Payment Details
-        bytes += generator.row([
-          PosColumn(
-            text: _encodeEuroSymbol('€18,95'),
-            width: 2,
-            styles: PosStyles(
-              align: PosAlign.left,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: TranslationKeys.cash.tr,
-            width: 3,
-            styles: PosStyles(
-              align: PosAlign.center,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-          PosColumn(
-            text: '13 Dec 2025 05:06 PM',
-            width: 7,
-            styles: PosStyles(
-              align: PosAlign.right,
-              height: PosTextSize.size1,
-              width: PosTextSize.size1,
-              fontType: PosFontType.fontB,
-            ),
-          ),
-        ]);
-
-        // Disable condensed mode before cut
-        bytes += [0x12]; // DC2 - Device Control 2 (Disable condensed mode)
-        bytes += generator.cut();
-        allBytes.addAll(bytes);
+        allBytes.addAll(imageData);
+        allBytes.addAll(cutBytes);
       }
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
@@ -831,6 +528,318 @@ class ManagePrinterScreenController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> _printTestReceiptWifi() async {
+    if (defaultWifiPrinter.value == null) {
+      _showSnackbar(
+        TranslationKeys.printerNotConnected.tr,
+        'Please set a default WiFi printer first',
+        Colors.orange,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final printer = defaultWifiPrinter.value!;
+
+      final paperSize = _getPaperSize();
+      final printerDots = _getPrinterDots();
+      _cachedProfile ??= await CapabilityProfile.load();
+      final generator = Generator(paperSize, _cachedProfile!);
+
+      // Capture receipt widget as image
+      final screenshotController = ScreenshotController();
+      final imageBytes = await screenshotController.captureFromLongWidget(
+        _buildTestReceiptWidget(printerDots.toDouble()),
+        pixelRatio: 1.0,
+        delay: Duration.zero,
+      );
+
+      var decodedImage = img.decodeImage(imageBytes);
+      if (decodedImage == null) throw Exception('Failed to decode image');
+
+      // Width must be divisible by 8
+      final targetWidth = (decodedImage.width ~/ 8) * 8;
+      if (decodedImage.width != targetWidth) {
+        decodedImage = img.copyResize(decodedImage, width: targetWidth);
+      }
+      decodedImage = img.grayscale(decodedImage);
+
+      // Convert to ESC/POS raster + cut
+      final imageData = generator.imageRaster(decodedImage);
+      final cutBytes = generator.cut();
+
+      List<int> allBytes = [];
+      for (int i = 0; i < numberOfCopies.value; i++) {
+        allBytes.addAll(imageData);
+        allBytes.addAll(cutBytes);
+      }
+
+      // Connect via TCP Socket to the IP Camera
+      final socket = await Socket.connect(
+        printer.ipAddress,
+        int.tryParse(printer.port) ?? 9100,
+        timeout: const Duration(seconds: 5),
+      );
+
+      socket.add(allBytes);
+      await socket.flush();
+      socket.destroy();
+
+      showPrintToast(TranslationKeys.printSuccessful.tr);
+    } catch (e) {
+      showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Builds test receipt widget — width matches printer dots for sharp output
+  /// Builds test receipt widget — width matches printer dots for sharp output
+  Widget _buildTestReceiptWidget(double width) {
+    const headerStyle = TextStyle(
+      fontSize: 26,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+    const subStyle = TextStyle(fontSize: 18, color: Colors.black);
+    const bodyStyle = TextStyle(fontSize: 20, color: Colors.black);
+    const boldBody = TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+
+    return SizedBox(
+      width: width,
+      child: Material(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Naan Stop',
+                style: headerStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Winkelcentrum Woensel 1, 5625 AA\nEindhoven, Netherlands',
+                style: subStyle,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Phone: 626193494',
+                style: subStyle,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'GST: 24AGHPN',
+                style: subStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Order: ORD-0218', style: bodyStyle),
+                  Text('13 Dec 2025 06:06 PM', style: bodyStyle),
+                ],
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Customer: Bhargav thummar', style: bodyStyle),
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Text(
+                      TranslationKeys.qty.tr,
+                      style: boldBody,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      TranslationKeys.itemName.tr,
+                      style: boldBody,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      TranslationKeys.price.tr,
+                      style: boldBody,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      TranslationKeys.amount.tr,
+                      style: boldBody,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 4),
+              _itemRow(
+                '1',
+                'Naan Imperial (Steak, Egg, Ham, Cheese, Vegetable)',
+                '\u20AC9,50',
+                '\u20AC9,50',
+              ),
+              const SizedBox(height: 2),
+              _itemRow('1', 'Naan Steak', '\u20AC8,00', '\u20AC8,00'),
+              const SizedBox(height: 4),
+              _summaryRow('Sub Total:', '\u20AC17,50'),
+              _summaryRow('Servicekosten:', '\u20AC0,45'),
+              _summaryRow('Boxes:', '\u20AC1,00'),
+              _summaryRow('VAT (5.00%) incl.', '\u20AC0,83'),
+              _summaryRow('${TranslationKeys.totalTax.tr}:', '\u20AC0,83'),
+              _summaryRow(
+                '${TranslationKeys.balanceReturned.tr}:',
+                '\u20AC0,00',
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 4),
+              _summaryRow(
+                '${TranslationKeys.total.tr}:',
+                '\u20AC18,95',
+                isBold: true,
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 8),
+              Text(
+                TranslationKeys.thankYouForVisit.tr,
+                style: bodyStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 85,
+                    child: Text(TranslationKeys.amount.tr, style: boldBody),
+                  ),
+                  Expanded(
+                    child: Text(
+                      TranslationKeys.paymentMethod.tr,
+                      style: boldBody,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Text(
+                    TranslationKeys.dateAndTime.tr,
+                    style: boldBody,
+                    textAlign: TextAlign.right,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              _dottedLine(),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 85,
+                    child: Text('\u20AC18,95', style: bodyStyle),
+                  ),
+                  Expanded(
+                    child: Text(
+                      TranslationKeys.cash.tr,
+                      style: bodyStyle,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Text(
+                    '13 Dec 2025 05:06 PM',
+                    style: bodyStyle,
+                    textAlign: TextAlign.right,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dottedLine() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boxWidth = constraints.constrainWidth();
+        const dashWidth = 4.0;
+        const dashHeight = 1.0;
+        final dashCount = (boxWidth / (2 * dashWidth)).floor();
+        return Flex(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          direction: Axis.horizontal,
+          children: List.generate(dashCount, (_) {
+            return const SizedBox(
+              width: dashWidth,
+              height: dashHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  Widget _itemRow(String qty, String name, String price, String amount) {
+    const s = TextStyle(fontSize: 20, color: Colors.black);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 42, child: Text(qty, style: s)),
+        Expanded(child: Text(name, style: s)),
+        SizedBox(
+          width: 70,
+          child: Text(price, style: s, textAlign: TextAlign.right),
+        ),
+        SizedBox(
+          width: 80,
+          child: Text(amount, style: s, textAlign: TextAlign.right),
+        ),
+      ],
+    );
+  }
+
+  Widget _summaryRow(String label, String value, {bool isBold = false}) {
+    final s = TextStyle(
+      fontSize: 20,
+      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+      color: Colors.black,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [Text(label, style: s), Text(value, style: s)],
+      ),
+    );
   }
 
   Future<Uint8List?> _downloadNetworkImage(String imageUrl) async {

@@ -224,32 +224,28 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
           if (controller.isConnected.value) ...[
             SizedBox(height: MySize.getHeight(8)),
             SizedBox(
-                  width: MySize.getWidth(100),
-                  child: ElevatedButton.icon(
-                    onPressed: () => controller.done(),
-                    icon: Icon(Icons.check, size: MySize.getHeight(18)),
-                    label: Text(
-                      TranslationKeys.done.tr,
-                      style: TextStyle(
-                        fontSize: MySize.getHeight(14),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        vertical: MySize.getHeight(14),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          MySize.getHeight(8),
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
+              width: MySize.getWidth(100),
+              child: ElevatedButton.icon(
+                onPressed: () => controller.done(),
+                icon: Icon(Icons.check, size: MySize.getHeight(18)),
+                label: Text(
+                  TranslationKeys.done.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: MySize.getHeight(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
           ],
         ],
       ),

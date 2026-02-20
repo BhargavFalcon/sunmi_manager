@@ -34,14 +34,14 @@ class KitchenTicketsScreenView extends GetView<KitchenTicketsScreenController> {
               }
               final width = MediaQuery.of(context).size.width;
               final orientation = MediaQuery.of(context).orientation;
-              final crossAxisCount = orientation == Orientation.landscape
-                  ? 3
-                  : width > 600
+              final crossAxisCount =
+                  orientation == Orientation.landscape
+                      ? 3
+                      : width > 600
                       ? 2
                       : 1;
               final tickets = controller.tickets;
-              final rowCount =
-                  (tickets.length / crossAxisCount).ceil();
+              final rowCount = (tickets.length / crossAxisCount).ceil();
               return ListView.builder(
                 padding: EdgeInsets.symmetric(
                   horizontal: MySize.getWidth(8),
@@ -50,41 +50,37 @@ class KitchenTicketsScreenView extends GetView<KitchenTicketsScreenController> {
                 itemCount: rowCount,
                 itemBuilder: (context, rowIndex) {
                   final start = rowIndex * crossAxisCount;
-                  final rowTickets = tickets
-                      .skip(start)
-                      .take(crossAxisCount)
-                      .toList();
+                  final rowTickets =
+                      tickets.skip(start).take(crossAxisCount).toList();
                   return Padding(
                     padding: EdgeInsets.only(
-                      bottom: rowIndex < rowCount - 1
-                          ? MySize.getHeight(4)
-                          : 0,
+                      bottom: rowIndex < rowCount - 1 ? MySize.getHeight(4) : 0,
                     ),
                     child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(crossAxisCount, (col) {
-                          if (col < rowTickets.length) {
-                            final ticket = rowTickets[col];
-                            return Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  right: col < crossAxisCount - 1
-                                      ? MySize.getWidth(4)
-                                      : 0,
-                                ),
-                                child: _KitchenTicketCard(
-                                  ticket: ticket,
-                                  onPrint: () =>
-                                      controller.onPrint(ticket),
-                                  onFoodReady: () =>
-                                      controller.onFoodReady(ticket),
-                                ),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(crossAxisCount, (col) {
+                        if (col < rowTickets.length) {
+                          final ticket = rowTickets[col];
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right:
+                                    col < crossAxisCount - 1
+                                        ? MySize.getWidth(4)
+                                        : 0,
                               ),
-                            );
-                          }
-                          return Expanded(child: SizedBox.shrink());
-                        }),
-                      ),
+                              child: _KitchenTicketCard(
+                                ticket: ticket,
+                                onPrint: () => controller.onPrint(ticket),
+                                onFoodReady:
+                                    () => controller.onFoodReady(ticket),
+                              ),
+                            ),
+                          );
+                        }
+                        return Expanded(child: SizedBox.shrink());
+                      }),
+                    ),
                   );
                 },
               );
@@ -166,19 +162,18 @@ class _KitchenTicketCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                      ),
+                      decoration: BoxDecoration(color: Colors.grey.shade100),
                       child: Row(
                         children: [
                           SizedBox(
                             width: MySize.getWidth(38),
                             child: Padding(
                               padding: EdgeInsets.only(
-                                  left: MySize.getWidth(4),
-                                  top: MySize.getWidth(3),
-                                  bottom: MySize.getWidth(3),
-                                  right: MySize.getWidth(6)),
+                                left: MySize.getWidth(4),
+                                top: MySize.getWidth(3),
+                                bottom: MySize.getWidth(3),
+                                right: MySize.getWidth(6),
+                              ),
                               child: Text(
                                 'NO.',
                                 style: TextStyle(
@@ -192,10 +187,11 @@ class _KitchenTicketCard extends StatelessWidget {
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                  left: MySize.getWidth(4),
-                                  top: MySize.getWidth(3),
-                                  bottom: MySize.getWidth(3),
-                                  right: MySize.getWidth(6)),
+                                left: MySize.getWidth(4),
+                                top: MySize.getWidth(3),
+                                bottom: MySize.getWidth(3),
+                                right: MySize.getWidth(6),
+                              ),
                               child: Text(
                                 'ITEM NAME',
                                 style: TextStyle(
@@ -233,7 +229,8 @@ class _KitchenTicketCard extends StatelessWidget {
                                   width: MySize.getWidth(38),
                                   child: Padding(
                                     padding: EdgeInsets.only(
-                                        right: MySize.getWidth(6)),
+                                      right: MySize.getWidth(6),
+                                    ),
                                     child: Text(
                                       item.no,
                                       style: TextStyle(
@@ -245,7 +242,8 @@ class _KitchenTicketCard extends StatelessWidget {
                                 ),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
@@ -257,17 +255,20 @@ class _KitchenTicketCard extends StatelessWidget {
                                           color: ColorConstants.grey800,
                                         ),
                                       ),
-                                      ...item.modifiers.map((m) => Padding(
-                                            padding: EdgeInsets.only(
-                                                top: MySize.getHeight(2)),
-                                            child: Text(
-                                              m.name,
-                                              style: TextStyle(
-                                                fontSize: MySize.getHeight(11),
-                                                color: ColorConstants.grey600,
-                                              ),
+                                      ...item.modifiers.map(
+                                        (m) => Padding(
+                                          padding: EdgeInsets.only(
+                                            top: MySize.getHeight(2),
+                                          ),
+                                          child: Text(
+                                            m.name,
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(11),
+                                              color: ColorConstants.grey600,
                                             ),
-                                          )),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -286,37 +287,11 @@ class _KitchenTicketCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(MySize.getHeight(5)),
-                  child: InkWell(
-                    onTap: onPrint,
-                    borderRadius: BorderRadius.circular(MySize.getHeight(5)),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: MySize.getWidth(8),
-                        vertical: MySize.getHeight(6),
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: ColorConstants.primaryColor, width: 1.5),
-                        borderRadius: BorderRadius.circular(MySize.getHeight(5)),
-                      ),
-                      child: Icon(
-                        Icons.print,
-                        size: MySize.getHeight(24),
-                        color: ColorConstants.primaryColor,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: MySize.getWidth(3)),
-                Expanded(
-                  child: Material(
-                    color: ColorConstants.successGreen.withValues(alpha: 0.12),
+                  Material(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(MySize.getHeight(5)),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: onPrint,
                       borderRadius: BorderRadius.circular(MySize.getHeight(5)),
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -325,39 +300,76 @@ class _KitchenTicketCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
-                              color: ColorConstants.successGreen, width: 1.5),
-                          borderRadius:
-                              BorderRadius.circular(MySize.getHeight(5)),
+                            color: ColorConstants.primaryColor,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(5),
+                          ),
                         ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check_circle_outline,
-                                size: MySize.getHeight(16),
-                                color: ColorConstants.successGreen,
-                              ),
-                              SizedBox(width: MySize.getWidth(4)),
-                              Text(
-                                TranslationKeys.foodIsReady.tr,
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(13),
-                                  fontWeight: FontWeight.w600,
+                        child: Icon(
+                          Icons.print,
+                          size: MySize.getHeight(24),
+                          color: ColorConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: MySize.getWidth(3)),
+                  Expanded(
+                    child: Material(
+                      color: ColorConstants.successGreen.withValues(
+                        alpha: 0.12,
+                      ),
+                      borderRadius: BorderRadius.circular(MySize.getHeight(5)),
+                      child: InkWell(
+                        onTap: () {},
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(5),
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(8),
+                            vertical: MySize.getHeight(6),
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: ColorConstants.successGreen,
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(5),
+                            ),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  size: MySize.getHeight(16),
                                   color: ColorConstants.successGreen,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: MySize.getWidth(4)),
+                                Text(
+                                  TranslationKeys.foodIsReady.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(13),
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorConstants.successGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ],
         ),
@@ -372,7 +384,9 @@ class _KitchenTicketCard extends StatelessWidget {
     if (ticket.orderType == 'pickup') {
       return Container(
         height: MySize.getHeight(boxHeight),
-        padding: EdgeInsets.symmetric(horizontal: MySize.getWidth(horizontalPadding)),
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(horizontalPadding),
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFE8E8E8),
           borderRadius: BorderRadius.circular(MySize.getHeight(6)),
@@ -389,7 +403,9 @@ class _KitchenTicketCard extends StatelessWidget {
     if (ticket.orderType == 'delivery') {
       return Container(
         height: MySize.getHeight(boxHeight),
-        padding: EdgeInsets.symmetric(horizontal: MySize.getWidth(horizontalPadding)),
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(horizontalPadding),
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFE8E8E8),
           borderRadius: BorderRadius.circular(MySize.getHeight(6)),
@@ -406,7 +422,9 @@ class _KitchenTicketCard extends StatelessWidget {
     final tableCode = ticket.tableCode ?? '—';
     return Container(
       height: MySize.getHeight(boxHeight),
-      padding: EdgeInsets.symmetric(horizontal: MySize.getWidth(horizontalPadding)),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(horizontalPadding),
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFE8E8E8),
         borderRadius: BorderRadius.circular(MySize.getHeight(6)),

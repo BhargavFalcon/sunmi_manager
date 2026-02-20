@@ -15,7 +15,7 @@ class AccessLimitedDialog extends StatelessWidget {
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: Center(
         child: ConstrainedBox(
-          constraints:  BoxConstraints(maxWidth: MySize.getHeight(400)),
+          constraints: BoxConstraints(maxWidth: MySize.getHeight(400)),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,

@@ -36,7 +36,6 @@ Widget summaryRow({
   );
 }
 
-
 class CartSummaryPanel extends StatelessWidget {
   const CartSummaryPanel({
     super.key,
@@ -69,7 +68,9 @@ class CartSummaryPanel extends StatelessWidget {
           SizedBox(height: MySize.getHeight(4.0)),
           summaryRow(
             label: TranslationKeys.total.tr,
-            value: CurrencyFormatter.formatPriceFromDouble(controller.finalTotal),
+            value: CurrencyFormatter.formatPriceFromDouble(
+              controller.finalTotal,
+            ),
             bold: true,
             valueColor: ColorConstants.primaryColor,
           ),
@@ -86,7 +87,11 @@ class CartSummaryPanel extends StatelessWidget {
               ),
               child: Text(
                 TranslationKeys.sendToKitchen.tr,
-                style: TextStyle(fontSize: MySize.getHeight(16.5), fontWeight: FontWeight.w600, color: Colors.white),
+                style: TextStyle(
+                  fontSize: MySize.getHeight(16.5),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

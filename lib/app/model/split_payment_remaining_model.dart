@@ -12,9 +12,10 @@ class SplitPaymentRemainingModel {
 
   SplitPaymentRemainingModel.fromJson(Map<String, dynamic> json) {
     success = json['success'] as bool?;
-    data = json['data'] != null
-        ? SplitPaymentData.fromJson(json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? SplitPaymentData.fromJson(json['data'] as Map<String, dynamic>)
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -39,20 +40,23 @@ class SplitPaymentData {
   });
 
   SplitPaymentData.fromJson(Map<String, dynamic> json) {
-    order = json['order'] != null
-        ? SplitPaymentOrder.fromJson(json['order'] as Map<String, dynamic>)
-        : null;
+    order =
+        json['order'] != null
+            ? SplitPaymentOrder.fromJson(json['order'] as Map<String, dynamic>)
+            : null;
 
     if (json['remaining_items'] != null) {
-      remainingItems = (json['remaining_items'] as List)
-          .map((e) => RemainingItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+      remainingItems =
+          (json['remaining_items'] as List)
+              .map((e) => RemainingItem.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
 
     final total = json['total_remaining_amount'];
-    totalRemainingAmount = total is num
-        ? total.toDouble()
-        : double.tryParse(total?.toString() ?? '');
+    totalRemainingAmount =
+        total is num
+            ? total.toDouble()
+            : double.tryParse(total?.toString() ?? '');
   }
 
   Map<String, dynamic> toJson() {
@@ -143,11 +147,10 @@ class RemainingItem {
     displayVariationName = json['display_variation_name']?.toString();
 
     if (json['display_modifiers'] != null) {
-      displayModifiers = (json['display_modifiers'] as List)
-          .map(
-            (e) => DisplayModifier.fromJson(e as Map<String, dynamic>),
-          )
-          .toList();
+      displayModifiers =
+          (json['display_modifiers'] as List)
+              .map((e) => DisplayModifier.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
 
     unitPrice = _toDouble(json['unit_price']);
@@ -200,4 +203,3 @@ class DisplayModifier {
     return map;
   }
 }
-

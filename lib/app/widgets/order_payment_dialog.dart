@@ -23,7 +23,9 @@ class OrderPaymentController extends GetxController {
   final NetworkClient networkClient = NetworkClient();
 
   /// Updated after a split payment so Available Items list removes paid items.
-  final Rx<SplitPaymentData?> currentRemainingData = Rx<SplitPaymentData?>(null);
+  final Rx<SplitPaymentData?> currentRemainingData = Rx<SplitPaymentData?>(
+    null,
+  );
 
   OrderPaymentController({
     required this.orderDetails,
@@ -129,8 +131,10 @@ class OrderPaymentController extends GetxController {
     final orderUuid = orderDetails.data?.order?.uuid;
     if (orderUuid == null || orderUuid.isEmpty) return true;
     try {
-      final endpoint = ArgumentConstant.remainingSplitItemsEndpoint
-          .replaceAll(':order_uuid', orderUuid);
+      final endpoint = ArgumentConstant.remainingSplitItemsEndpoint.replaceAll(
+        ':order_uuid',
+        orderUuid,
+      );
       final response = await networkClient.get(endpoint);
       if (!helpers.isSuccessStatus(response.statusCode) ||
           response.data is! Map<String, dynamic>) {
@@ -146,7 +150,8 @@ class OrderPaymentController extends GetxController {
       amountToPayController.text = '0.00';
       enteredAmount.value = 0.0;
       final totalRemaining = newData?.totalRemainingAmount ?? 0.0;
-      final hasItems = newData?.remainingItems != null &&
+      final hasItems =
+          newData?.remainingItems != null &&
           newData!.remainingItems!.isNotEmpty;
       return totalRemaining <= 0 || !hasItems;
     } catch (_) {
@@ -2850,7 +2855,9 @@ class OrderPaymentDialog extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(12),
+                        ),
                       ),
                     ),
                     child: Text(
@@ -2879,7 +2886,9 @@ class OrderPaymentDialog extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         backgroundColor: ColorConstants.successGreen,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(12),
+                          ),
                         ),
                       ),
                       child:

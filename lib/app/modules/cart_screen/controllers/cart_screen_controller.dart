@@ -404,8 +404,10 @@ class CartScreenController extends GetxController {
     } catch (_) {}
   }
 
-  void _navigateToMainHomeWithTab(int tabIndex,
-      {Duration delay = const Duration(milliseconds: 100)}) {
+  void _navigateToMainHomeWithTab(
+    int tabIndex, {
+    Duration delay = const Duration(milliseconds: 100),
+  }) {
     Get.offAllNamed(Routes.MAIN_HOME_SCREEN);
     Future.delayed(delay, () {
       try {
@@ -421,8 +423,7 @@ class CartScreenController extends GetxController {
         Get.delete<OrderScreenController>(force: true);
       }
     } catch (_) {}
-    _navigateToMainHomeWithTab(0,
-        delay: const Duration(milliseconds: 150));
+    _navigateToMainHomeWithTab(0, delay: const Duration(milliseconds: 150));
   }
 
   void _navigateBackAfterSubmit() {

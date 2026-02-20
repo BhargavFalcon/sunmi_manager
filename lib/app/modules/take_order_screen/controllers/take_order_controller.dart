@@ -91,10 +91,14 @@ class TakeOrderController extends GetxController {
 
   Future<void> fetchZipcodes() async {
     try {
-      final response = await networkClient.get(ArgumentConstant.zipcodesEndpoint);
+      final response = await networkClient.get(
+        ArgumentConstant.zipcodesEndpoint,
+      );
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data is Map<String, dynamic>) {
-        final model = AddressListModel.fromJson(response.data as Map<String, dynamic>);
+        final model = AddressListModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
         if (model.success == true && model.data != null) {
           zipcodeList.assignAll(model.data!);
         }

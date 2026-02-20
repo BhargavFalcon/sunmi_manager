@@ -7,10 +7,12 @@ class PrintServiceValidateModel {
 
   PrintServiceValidateModel.fromJson(Map<String, dynamic> json) {
     success = json['success'] as bool?;
-    data = json['data'] != null
-        ? PrintServiceValidateData.fromJson(
-            json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? PrintServiceValidateData.fromJson(
+              json['data'] as Map<String, dynamic>,
+            )
+            : null;
     message = json['message'] as String?;
   }
 
@@ -39,18 +41,21 @@ class PrintServiceValidateData {
   });
 
   PrintServiceValidateData.fromJson(Map<String, dynamic> json) {
-    branch = json['branch'] != null
-        ? Branch.fromJson(json['branch'] as Map<String, dynamic>)
-        : null;
-    device = json['device'] != null
-        ? Device.fromJson(json['device'] as Map<String, dynamic>)
-        : null;
+    branch =
+        json['branch'] != null
+            ? Branch.fromJson(json['branch'] as Map<String, dynamic>)
+            : null;
+    device =
+        json['device'] != null
+            ? Device.fromJson(json['device'] as Map<String, dynamic>)
+            : null;
     token = json['token'] as String?;
     if (json['printer_settings'] != null) {
       printerSettings = <PrinterSetting>[];
       for (final v in json['printer_settings'] as List) {
         printerSettings!.add(
-            PrinterSetting.fromJson(v as Map<String, dynamic>));
+          PrinterSetting.fromJson(v as Map<String, dynamic>),
+        );
       }
     }
   }
@@ -97,12 +102,7 @@ class Device {
   String? deviceName;
   String? lastVerifiedAt;
 
-  Device({
-    this.id,
-    this.deviceId,
-    this.deviceName,
-    this.lastVerifiedAt,
-  });
+  Device({this.id, this.deviceId, this.deviceName, this.lastVerifiedAt});
 
   Device.fromJson(Map<String, dynamic> json) {
     id = json['id'] as int?;

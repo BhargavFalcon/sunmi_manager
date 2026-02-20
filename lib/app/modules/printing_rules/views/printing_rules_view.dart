@@ -95,8 +95,10 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                   Obx(() {
                                     return Switch(
                                       value: controller.autoPrintKitchen.value,
-                                      onChanged: (value) =>
-                                          controller.toggleAutoPrintKitchen(),
+                                      onChanged:
+                                          (value) =>
+                                              controller
+                                                  .toggleAutoPrintKitchen(),
                                       activeColor: ColorConstants.primaryColor,
                                     );
                                   }),
@@ -130,13 +132,24 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                       Obx(() {
                                         return IconButton(
                                           onPressed:
-                                              controller.kitchenNumberOfCopies.value > 1
-                                                  ? () => controller.decrementKitchenCopies()
+                                              controller
+                                                          .kitchenNumberOfCopies
+                                                          .value >
+                                                      1
+                                                  ? () =>
+                                                      controller
+                                                          .decrementKitchenCopies()
                                                   : null,
-                                          icon: Icon(Icons.remove_circle_outline),
-                                          color: controller.kitchenNumberOfCopies.value > 1
-                                              ? ColorConstants.primaryColor
-                                              : Colors.grey,
+                                          icon: Icon(
+                                            Icons.remove_circle_outline,
+                                          ),
+                                          color:
+                                              controller
+                                                          .kitchenNumberOfCopies
+                                                          .value >
+                                                      1
+                                                  ? ColorConstants.primaryColor
+                                                  : Colors.grey,
                                         );
                                       }),
                                       Obx(() {
@@ -156,13 +169,22 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                       Obx(() {
                                         return IconButton(
                                           onPressed:
-                                              controller.kitchenNumberOfCopies.value < 5
-                                                  ? () => controller.incrementKitchenCopies()
+                                              controller
+                                                          .kitchenNumberOfCopies
+                                                          .value <
+                                                      5
+                                                  ? () =>
+                                                      controller
+                                                          .incrementKitchenCopies()
                                                   : null,
                                           icon: Icon(Icons.add_circle_outline),
-                                          color: controller.kitchenNumberOfCopies.value < 5
-                                              ? ColorConstants.primaryColor
-                                              : Colors.grey,
+                                          color:
+                                              controller
+                                                          .kitchenNumberOfCopies
+                                                          .value <
+                                                      5
+                                                  ? ColorConstants.primaryColor
+                                                  : Colors.grey,
                                         );
                                       }),
                                     ],
@@ -178,7 +200,9 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      TranslationKeys.autoPrintReceiptWhenPaid.tr,
+                                      TranslationKeys
+                                          .autoPrintReceiptWhenPaid
+                                          .tr,
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Colors.black,
@@ -187,9 +211,14 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                   ),
                                   Obx(() {
                                     return Switch(
-                                      value: controller.autoPrintReceiptWhenPaid.value,
-                                      onChanged: (value) =>
-                                          controller.toggleAutoPrintReceiptWhenPaid(),
+                                      value:
+                                          controller
+                                              .autoPrintReceiptWhenPaid
+                                              .value,
+                                      onChanged:
+                                          (value) =>
+                                              controller
+                                                  .toggleAutoPrintReceiptWhenPaid(),
                                       activeColor: ColorConstants.primaryColor,
                                     );
                                   }),
@@ -199,7 +228,9 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  TranslationKeys.autoPrintReceiptWhenPaidDesc.tr,
+                                  TranslationKeys
+                                      .autoPrintReceiptWhenPaidDesc
+                                      .tr,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey[600],
@@ -223,13 +254,24 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                       Obx(() {
                                         return IconButton(
                                           onPressed:
-                                              controller.receiptNumberOfCopies.value > 1
-                                                  ? () => controller.decrementReceiptCopies()
+                                              controller
+                                                          .receiptNumberOfCopies
+                                                          .value >
+                                                      1
+                                                  ? () =>
+                                                      controller
+                                                          .decrementReceiptCopies()
                                                   : null,
-                                          icon: Icon(Icons.remove_circle_outline),
-                                          color: controller.receiptNumberOfCopies.value > 1
-                                              ? ColorConstants.primaryColor
-                                              : Colors.grey,
+                                          icon: Icon(
+                                            Icons.remove_circle_outline,
+                                          ),
+                                          color:
+                                              controller
+                                                          .receiptNumberOfCopies
+                                                          .value >
+                                                      1
+                                                  ? ColorConstants.primaryColor
+                                                  : Colors.grey,
                                         );
                                       }),
                                       Obx(() {
@@ -249,13 +291,22 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                       Obx(() {
                                         return IconButton(
                                           onPressed:
-                                              controller.receiptNumberOfCopies.value < 5
-                                                  ? () => controller.incrementReceiptCopies()
+                                              controller
+                                                          .receiptNumberOfCopies
+                                                          .value <
+                                                      5
+                                                  ? () =>
+                                                      controller
+                                                          .incrementReceiptCopies()
                                                   : null,
                                           icon: Icon(Icons.add_circle_outline),
-                                          color: controller.receiptNumberOfCopies.value < 5
-                                              ? ColorConstants.primaryColor
-                                              : Colors.grey,
+                                          color:
+                                              controller
+                                                          .receiptNumberOfCopies
+                                                          .value <
+                                                      5
+                                                  ? ColorConstants.primaryColor
+                                                  : Colors.grey,
                                         );
                                       }),
                                     ],

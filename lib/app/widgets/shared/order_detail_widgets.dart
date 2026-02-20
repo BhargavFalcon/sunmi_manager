@@ -27,9 +27,8 @@ class OrderDetailWidgets {
     double fontSize = 13,
     bool fontSizeAlreadyScaled = false,
   }) {
-    final effectiveFontSize = fontSizeAlreadyScaled
-        ? fontSize
-        : MySize.getHeight(fontSize);
+    final effectiveFontSize =
+        fontSizeAlreadyScaled ? fontSize : MySize.getHeight(fontSize);
     return TableRow(
       decoration: const BoxDecoration(
         border: Border.symmetric(
@@ -70,24 +69,15 @@ class OrderDetailWidgets {
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(
-            qty,
-            style: TextStyle(fontSize: effectiveFontSize),
-          ),
+          child: Text(qty, style: TextStyle(fontSize: effectiveFontSize)),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(
-            price,
-            style: TextStyle(fontSize: effectiveFontSize),
-          ),
+          child: Text(price, style: TextStyle(fontSize: effectiveFontSize)),
         ),
         Padding(
           padding: EdgeInsets.all(MySize.getWidth(6)),
-          child: Text(
-            amount,
-            style: TextStyle(fontSize: effectiveFontSize),
-          ),
+          child: Text(amount, style: TextStyle(fontSize: effectiveFontSize)),
         ),
       ],
     );
@@ -579,7 +569,8 @@ class OrderDetailWidgets {
   }) {
     if (orderDetails == null) return const SizedBox.shrink();
 
-    final formatter = dateFormatter ?? DateTimeFormatter.formatDateTimeWithRestaurantTimezone;
+    final formatter =
+        dateFormatter ?? DateTimeFormatter.formatDateTimeWithRestaurantTimezone;
     final createdAt = orderDetails.createdAt ?? '';
     final orderType = orderDetails.orderType?.toLowerCase() ?? '';
     final dateTimeString = orderDetails.dateTime ?? '';

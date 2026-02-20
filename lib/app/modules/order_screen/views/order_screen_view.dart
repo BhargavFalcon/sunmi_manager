@@ -1331,9 +1331,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   onTap: () {
                                     final id = payment.id;
                                     if (id != null) {
-                                      _printPaymentReceipt(context, controller, id);
+                                      _printPaymentReceipt(
+                                        context,
+                                        controller,
+                                        id,
+                                      );
                                     } else {
-                                      _printInvoice(context, controller, orderData);
+                                      _printInvoice(
+                                        context,
+                                        controller,
+                                        orderData,
+                                      );
                                     }
                                   },
                                 ),
@@ -1555,7 +1563,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   /// Order card shows API time as-is (format only, no timezone conversion)
   /// so e.g. 03:16 does not become 04:16 when API already sends local/restaurant time.
-  static String _formatOrderCardDateTime(String? dateTime, String? formattedDateTime) {
+  static String _formatOrderCardDateTime(
+    String? dateTime,
+    String? formattedDateTime,
+  ) {
     if (dateTime != null && dateTime.isNotEmpty) {
       return DateTimeFormatter.formatDateTime(dateTime);
     }
@@ -1579,8 +1590,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
     try {
       controller.isPrinting.value = true;
       final networkClient = NetworkClient();
-      final endpoint = ArgumentConstant.paymentReceiptEndpoint
-          .replaceAll(':id', paymentId.toString());
+      final endpoint = ArgumentConstant.paymentReceiptEndpoint.replaceAll(
+        ':id',
+        paymentId.toString(),
+      );
       final response = await networkClient.get(endpoint);
 
       if (!helpers.isSuccessStatus(response.statusCode)) {
@@ -1686,7 +1699,10 @@ class OrderCard extends StatelessWidget {
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
-    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(order.dateTime, order.formattedDateTime);
+    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(
+      order.dateTime,
+      order.formattedDateTime,
+    );
     final itemsCount = order.itemsCount ?? 0;
     final formattedPrice = CurrencyFormatter.formatPrice(order.total ?? '0');
     final waiterName = order.waiter?.name ?? '';

@@ -56,14 +56,17 @@ class ReservationScreenController extends GetxController {
   VoidCallback? onReservationPhoneFocusGained;
   VoidCallback? onReservationNameFocusGained;
 
-  final RxList<CustomerListItem> customerSearchResults = <CustomerListItem>[].obs;
+  final RxList<CustomerListItem> customerSearchResults =
+      <CustomerListItem>[].obs;
   final RxBool isCustomerSearching = false.obs;
-  final Rx<CustomerListItem?> selectedReservationCustomer = Rx<CustomerListItem?>(null);
+  final Rx<CustomerListItem?> selectedReservationCustomer =
+      Rx<CustomerListItem?>(null);
   Timer? _customerSearchDebounce;
   VoidCallback? onCustomerSearchResultsChanged;
   bool _isPrefillingFromCustomerSelection = false;
 
-  bool get isReservationCustomerSelected => selectedReservationCustomer.value != null;
+  bool get isReservationCustomerSelected =>
+      selectedReservationCustomer.value != null;
 
   final RxBool isSavingReservation = false.obs;
 
@@ -131,10 +134,12 @@ class ReservationScreenController extends GetxController {
   bool get isEditingReservation => editingReservationIndex.value >= 0;
 
   List<String> get reservationFormStatusOptions {
-    if (!isEditingReservation || editingReservationIndex.value >= reservations.length) {
+    if (!isEditingReservation ||
+        editingReservationIndex.value >= reservations.length) {
       return ['Pending', 'Confirmed'];
     }
-    final current = reservations[editingReservationIndex.value]['status'] as String?;
+    final current =
+        reservations[editingReservationIndex.value]['status'] as String?;
     if (current == null || current == 'Pending' || current == 'Confirmed') {
       return ['Pending', 'Confirmed'];
     }
@@ -188,15 +193,22 @@ class ReservationScreenController extends GetxController {
       final branchId = _getBranchIdFromStorage();
       if (branchId == null) return;
 
-      final dateStr = DateFormat('yyyy-MM-dd').format(selectedDateReservation.value);
+      final dateStr = DateFormat(
+        'yyyy-MM-dd',
+      ).format(selectedDateReservation.value);
       final response = await networkClient.get(
         ArgumentConstant.reservationsAvailableTimeSlotsEndpoint,
-        queryParameters: <String, dynamic>{'date': dateStr, 'branch_id': branchId},
+        queryParameters: <String, dynamic>{
+          'date': dateStr,
+          'branch_id': branchId,
+        },
       );
 
       if (!_isSuccessResponse(response)) return;
 
-      final model = AvailableTimeSlotsModel.fromJson(response.data as Map<String, dynamic>);
+      final model = AvailableTimeSlotsModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
       final data = model.data;
       if (model.success != true || data == null) return;
 
@@ -221,7 +233,8 @@ class ReservationScreenController extends GetxController {
 
   void _ensureEditingSlotInSections() {
     if (editingReservationIndex.value < 0 ||
-        editingReservationIndex.value >= reservations.length) return;
+        editingReservationIndex.value >= reservations.length)
+      return;
     final title = selectedTimeSlotTitle.value;
     final display = selectedTimeSlot.value;
     if (title.isEmpty && display.isEmpty) return;
@@ -249,7 +262,8 @@ class ReservationScreenController extends GetxController {
     final timeStr = item['reservationTime'] as String?;
     if (timeStr != null && timeStr.isNotEmpty) {
       selectedTimeSlot.value = _timeSlotToDisplay(timeStr);
-      selectedTimeSlotTitle.value = (item['reservationSlotType'] as String?) ?? '';
+      selectedTimeSlotTitle.value =
+          (item['reservationSlotType'] as String?) ?? '';
     }
     final guests = (item['guests'] as int?) ?? 1;
     selectedPerson.value = guests == 1 ? '1 Person' : '$guests Persons';
@@ -271,7 +285,8 @@ class ReservationScreenController extends GetxController {
       final loginData = box.read(ArgumentConstant.loginModelKey);
       if (loginData is! Map<String, dynamic>) return null;
       final loginModel = LoginModel.fromJson(loginData);
-      return loginModel.data?.defaultBranchId ?? loginModel.data?.user?.branchId;
+      return loginModel.data?.defaultBranchId ??
+          loginModel.data?.user?.branchId;
     } catch (_) {
       return null;
     }
@@ -279,12 +294,15 @@ class ReservationScreenController extends GetxController {
 
   static bool _isSuccessResponse(dynamic response) {
     final code = response.statusCode;
-    return (code == 200 || code == 201) && response.data is Map<String, dynamic>;
+    return (code == 200 || code == 201) &&
+        response.data is Map<String, dynamic>;
   }
 
   static int? _displayTimeToMinutes(String display) {
-    final match = RegExp(r'^(\d{1,2}):(\d{2})\s*(AM|PM)$', caseSensitive: false)
-        .firstMatch(display.trim());
+    final match = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*(AM|PM)$',
+      caseSensitive: false,
+    ).firstMatch(display.trim());
     if (match == null) return null;
     var h = int.tryParse(match.group(1) ?? '0') ?? 0;
     final m = int.tryParse(match.group(2) ?? '0') ?? 0;
@@ -813,7 +831,9 @@ class ReservationScreenController extends GetxController {
 
   Future<void> selectTimeSlot(String title, String timeSlot) async {
     if (isCheckingAvailability.value) return;
-    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDateReservation.value);
+    final dateStr = DateFormat(
+      'yyyy-MM-dd',
+    ).format(selectedDateReservation.value);
     final timeSlotApi = _displayTimeToApiTime(timeSlot);
     isCheckingAvailability.value = true;
     checkingSlotSectionTitle.value = title;
@@ -907,7 +927,9 @@ class ReservationScreenController extends GetxController {
       AppToast.showError(e.message);
     } catch (e) {
       AppToast.showError(
-        e is Exception ? e.toString().replaceFirst('Exception: ', '') : e.toString(),
+        e is Exception
+            ? e.toString().replaceFirst('Exception: ', '')
+            : e.toString(),
       );
     } finally {
       statusUpdatingReservationIndex.value = -1;
@@ -966,9 +988,13 @@ class ReservationScreenController extends GetxController {
   Future<void> fetchTablesAreas() async {
     tableAreasList.clear();
     try {
-      final response = await networkClient.get(ArgumentConstant.tablesAreasEndpoint);
+      final response = await networkClient.get(
+        ArgumentConstant.tablesAreasEndpoint,
+      );
       if (!_isSuccessResponse(response)) return;
-      final tableModelData = tableModel.TableModel.fromJson(response.data as Map<String, dynamic>);
+      final tableModelData = tableModel.TableModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
       if (tableModelData.data != null) {
         tableAreasList.assignAll(tableModelData.data!);
       }
@@ -1198,9 +1224,11 @@ class ReservationScreenController extends GetxController {
     if (index < 0 || index >= reservations.length) return;
     final id = reservations[index]['id'];
     if (id == null) return;
-    final endpoint =
-        '${ArgumentConstant.reservationsEndpoint}/${id}';
-    final response = await networkClient.put(endpoint, data: _reservationBody());
+    final endpoint = '${ArgumentConstant.reservationsEndpoint}/${id}';
+    final response = await networkClient.put(
+      endpoint,
+      data: _reservationBody(),
+    );
     if (!_isSuccessResponse(response)) {
       AppToast.showError(
         TranslationKeys.pleaseFillAllRequiredFields.tr,

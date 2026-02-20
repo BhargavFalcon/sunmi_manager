@@ -66,14 +66,15 @@ class User {
   Restaurant? restaurant;
   Restaurant? branch;
 
-  User(
-      {this.id,
-        this.name,
-        this.email,
-        this.restaurantId,
-        this.branchId,
-        this.restaurant,
-        this.branch});
+  User({
+    this.id,
+    this.name,
+    this.email,
+    this.restaurantId,
+    this.branchId,
+    this.restaurant,
+    this.branch,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -81,11 +82,12 @@ class User {
     email = json['email'];
     restaurantId = json['restaurant_id'];
     branchId = json['branch_id'];
-    restaurant = json['restaurant'] != null
-        ? new Restaurant.fromJson(json['restaurant'])
-        : null;
+    restaurant =
+        json['restaurant'] != null
+            ? new Restaurant.fromJson(json['restaurant'])
+            : null;
     branch =
-    json['branch'] != null ? new Restaurant.fromJson(json['branch']) : null;
+        json['branch'] != null ? new Restaurant.fromJson(json['branch']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -135,16 +137,17 @@ class AvailableBranches {
   String? createdAt;
   String? updatedAt;
 
-  AvailableBranches(
-      {this.id,
-        this.name,
-        this.address,
-        this.lat,
-        this.lng,
-        this.restaurantId,
-        this.parentRestaurantId,
-        this.createdAt,
-        this.updatedAt});
+  AvailableBranches({
+    this.id,
+    this.name,
+    this.address,
+    this.lat,
+    this.lng,
+    this.restaurantId,
+    this.parentRestaurantId,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   AvailableBranches.fromJson(Map<String, dynamic> json) {
     id = json['id'];

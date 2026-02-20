@@ -635,7 +635,8 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     color: Colors.transparent,
                     child: CartSummaryPanel(
                       controller: controller,
-                      onAddDiscount: () => _showAddDiscountDialog(context, controller),
+                      onAddDiscount:
+                          () => _showAddDiscountDialog(context, controller),
                     ),
                   ),
                 );

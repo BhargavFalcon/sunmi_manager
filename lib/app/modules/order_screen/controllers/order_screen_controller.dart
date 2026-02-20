@@ -102,8 +102,9 @@ class OrderScreenController extends GetxController {
     SplitPaymentData? remainingSplitData;
     var splitOnly = false;
     if (allowSplit && isPaymentDue && hasAnyPayment) {
-      final remainingModel =
-          await RunningTableService.fetchRemainingSplitItems(orderUuid);
+      final remainingModel = await RunningTableService.fetchRemainingSplitItems(
+        orderUuid,
+      );
       remainingSplitData = remainingModel?.data;
       splitOnly = true;
     }

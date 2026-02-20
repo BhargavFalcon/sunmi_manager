@@ -45,7 +45,8 @@ class TimeSlotGridWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
-        final itemWidth = (availableWidth - (_spacing * (itemsPerRow - 1))) / itemsPerRow;
+        final itemWidth =
+            (availableWidth - (_spacing * (itemsPerRow - 1))) / itemsPerRow;
 
         final rows = <Widget>[];
         for (int i = 0; i < timeSlots.length; i += itemsPerRow) {
@@ -59,39 +60,48 @@ class TimeSlotGridWidget extends StatelessWidget {
               SizedBox(
                 width: itemWidth,
                 child: GestureDetector(
-                  onTap: checking ? null : () => onSlotSelected(sectionTitle, slot),
+                  onTap:
+                      checking
+                          ? null
+                          : () => onSlotSelected(sectionTitle, slot),
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: MySize.getWidth(2),
                       vertical: MySize.getHeight(8),
                     ),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? ColorConstants.primaryColor.withValues(alpha: 0.1)
-                          : Colors.white,
+                      color:
+                          selected
+                              ? ColorConstants.primaryColor.withValues(
+                                alpha: 0.1,
+                              )
+                              : Colors.white,
                       border: Border.all(
-                        color: selected
-                            ? ColorConstants.primaryColor
-                            : ColorConstants.grey9E9E9E,
+                        color:
+                            selected
+                                ? ColorConstants.primaryColor
+                                : ColorConstants.grey9E9E9E,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                     ),
                     child: Center(
-                      child: checking
-                          ? const CupertinoActivityIndicator(radius: 10)
-                          : FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                slot,
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(11),
-                                  color: selected
-                                      ? ColorConstants.primaryColor
-                                      : Colors.black,
+                      child:
+                          checking
+                              ? const CupertinoActivityIndicator(radius: 10)
+                              : FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  slot,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(11),
+                                    color:
+                                        selected
+                                            ? ColorConstants.primaryColor
+                                            : Colors.black,
+                                  ),
                                 ),
                               ),
-                            ),
                     ),
                   ),
                 ),
@@ -134,10 +144,10 @@ class TimeSlotSectionWidget extends StatelessWidget {
   final TextStyle? titleStyle;
 
   static TextStyle defaultTitleStyle() => TextStyle(
-        color: Colors.black,
-        fontSize: MySize.getHeight(14),
-        fontWeight: FontWeight.w600,
-      );
+    color: Colors.black,
+    fontSize: MySize.getHeight(14),
+    fontWeight: FontWeight.w600,
+  );
 
   @override
   Widget build(BuildContext context) {

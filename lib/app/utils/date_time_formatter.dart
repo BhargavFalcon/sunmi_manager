@@ -28,24 +28,29 @@ class DateTimeFormatter {
     }
   }
 
-  static String formatDateTimeInTimezone(String? dateTimeString, String? timezoneName) {
+  static String formatDateTimeInTimezone(
+    String? dateTimeString,
+    String? timezoneName,
+  ) {
     if (dateTimeString == null || dateTimeString.isEmpty) return '';
-    if (timezoneName == null || timezoneName.isEmpty) return formatDateTime(dateTimeString);
+    if (timezoneName == null || timezoneName.isEmpty)
+      return formatDateTime(dateTimeString);
     try {
       final dateTime = _parseDateTime(dateTimeString);
       if (dateTime == null) return formatDateTime(dateTimeString);
       final location = tz.getLocation(timezoneName);
-      final utc = dateTime.isUtc
-          ? dateTime
-          : DateTime.utc(
-              dateTime.year,
-              dateTime.month,
-              dateTime.day,
-              dateTime.hour,
-              dateTime.minute,
-              dateTime.second,
-              dateTime.millisecond,
-            );
+      final utc =
+          dateTime.isUtc
+              ? dateTime
+              : DateTime.utc(
+                dateTime.year,
+                dateTime.month,
+                dateTime.day,
+                dateTime.hour,
+                dateTime.minute,
+                dateTime.second,
+                dateTime.millisecond,
+              );
       final tzDateTime = tz.TZDateTime.from(utc, location);
       return formatDateTimeObject(tzDateTime);
     } catch (e) {
@@ -94,7 +99,8 @@ class DateTimeFormatter {
   }
 
   static DateTime? _parseCustomFormat(String dateTimeString) {
-    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-')) return null;
+    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-'))
+      return null;
     final parts = dateTimeString.split(' ');
     if (parts.length < 2) return null;
     final dateParts = parts[0].split('-');

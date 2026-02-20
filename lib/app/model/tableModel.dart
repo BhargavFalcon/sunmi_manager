@@ -33,9 +33,17 @@ class Data {
   Data({this.id, this.name, this.tablesCount, this.tables});
 
   Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'] is int ? json['id'] : (json['id'] is String ? int.tryParse(json['id']) : null);
+    id =
+        json['id'] is int
+            ? json['id']
+            : (json['id'] is String ? int.tryParse(json['id']) : null);
     name = json['name'];
-    tablesCount = json['tables_count'] is int ? json['tables_count'] : (json['tables_count'] is String ? int.tryParse(json['tables_count']) : null);
+    tablesCount =
+        json['tables_count'] is int
+            ? json['tables_count']
+            : (json['tables_count'] is String
+                ? int.tryParse(json['tables_count'])
+                : null);
     if (json['tables'] != null) {
       tables = <Tables>[];
       json['tables'].forEach((v) {
@@ -94,17 +102,47 @@ class Tables {
   });
 
   Tables.fromJson(Map<String, dynamic> json) {
-    id = json['id'] is int ? json['id'] : (json['id'] is String ? int.tryParse(json['id']) : null);
+    id =
+        json['id'] is int
+            ? json['id']
+            : (json['id'] is String ? int.tryParse(json['id']) : null);
     tableCode = json['table_code']?.toString();
-    branchId = json['branch_id'] is int ? json['branch_id'] : (json['branch_id'] is String ? int.tryParse(json['branch_id']) : null);
-    areaId = json['area_id'] is int ? json['area_id'] : (json['area_id'] is String ? int.tryParse(json['area_id']) : null);
+    branchId =
+        json['branch_id'] is int
+            ? json['branch_id']
+            : (json['branch_id'] is String
+                ? int.tryParse(json['branch_id'])
+                : null);
+    areaId =
+        json['area_id'] is int
+            ? json['area_id']
+            : (json['area_id'] is String
+                ? int.tryParse(json['area_id'])
+                : null);
     hash = json['hash']?.toString();
-    width = json['width'] is int ? json['width'] : (json['width'] is String ? int.tryParse(json['width']) : null);
-    height = json['height'] is int ? json['height'] : (json['height'] is String ? int.tryParse(json['height']) : null);
-    left = json['left'] is int ? json['left'] : (json['left'] is String ? int.tryParse(json['left']) : null);
-    top = json['top'] is int ? json['top'] : (json['top'] is String ? int.tryParse(json['top']) : null);
+    width =
+        json['width'] is int
+            ? json['width']
+            : (json['width'] is String ? int.tryParse(json['width']) : null);
+    height =
+        json['height'] is int
+            ? json['height']
+            : (json['height'] is String ? int.tryParse(json['height']) : null);
+    left =
+        json['left'] is int
+            ? json['left']
+            : (json['left'] is String ? int.tryParse(json['left']) : null);
+    top =
+        json['top'] is int
+            ? json['top']
+            : (json['top'] is String ? int.tryParse(json['top']) : null);
     shape = json['shape']?.toString();
-    seatingCapacity = json['seating_capacity'] is int ? json['seating_capacity'] : (json['seating_capacity'] is String ? int.tryParse(json['seating_capacity']) : null);
+    seatingCapacity =
+        json['seating_capacity'] is int
+            ? json['seating_capacity']
+            : (json['seating_capacity'] is String
+                ? int.tryParse(json['seating_capacity'])
+                : null);
     status = json['status']?.toString();
     availableStatus = json['available_status']?.toString();
     area =
@@ -164,7 +202,10 @@ class Area {
   Area({this.id, this.name});
 
   Area.fromJson(Map<String, dynamic> json) {
-    id = json['id'] is int ? json['id'] : (json['id'] is String ? int.tryParse(json['id']) : null);
+    id =
+        json['id'] is int
+            ? json['id']
+            : (json['id'] is String ? int.tryParse(json['id']) : null);
     name = json['name'];
   }
 
@@ -186,9 +227,17 @@ class ActiveOrder {
   ActiveOrder({this.id, this.uuid, this.orderNumber, this.status, this.total});
 
   ActiveOrder.fromJson(Map<String, dynamic> json) {
-    id = json['id'] is int ? json['id'] : (json['id'] is String ? int.tryParse(json['id']) : null);
+    id =
+        json['id'] is int
+            ? json['id']
+            : (json['id'] is String ? int.tryParse(json['id']) : null);
     uuid = json['uuid'];
-    orderNumber = json['order_number'] is int ? json['order_number'] : (json['order_number'] is String ? int.tryParse(json['order_number']) : null);
+    orderNumber =
+        json['order_number'] is int
+            ? json['order_number']
+            : (json['order_number'] is String
+                ? int.tryParse(json['order_number'])
+                : null);
     status = json['status'];
     total =
         json['total'] != null

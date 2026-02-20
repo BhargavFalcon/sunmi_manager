@@ -6,9 +6,10 @@ class CustomerListModel {
 
   CustomerListModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null
-        ? CustomerListData.fromJson(json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? CustomerListData.fromJson(json['data'] as Map<String, dynamic>)
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -36,9 +37,10 @@ class CustomerListData {
         }
       }
     }
-    meta = json['meta'] != null
-        ? CustomerListMeta.fromJson(json['meta'] as Map<String, dynamic>)
-        : null;
+    meta =
+        json['meta'] != null
+            ? CustomerListMeta.fromJson(json['meta'] as Map<String, dynamic>)
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -156,12 +158,7 @@ class CustomerListMeta {
   int? perPage;
   int? total;
 
-  CustomerListMeta({
-    this.currentPage,
-    this.lastPage,
-    this.perPage,
-    this.total,
-  });
+  CustomerListMeta({this.currentPage, this.lastPage, this.perPage, this.total});
 
   CustomerListMeta.fromJson(Map<String, dynamic> json) {
     currentPage = json['current_page'];

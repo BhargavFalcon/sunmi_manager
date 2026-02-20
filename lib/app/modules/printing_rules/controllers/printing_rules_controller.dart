@@ -22,12 +22,10 @@ class PrintingRulesController extends GetxController {
           box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
       kitchenNumberOfCopies.value =
           box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
-      autoPrintReceiptWhenPaid.value = box
-              .read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ??
-          true;
-      receiptNumberOfCopies.value = box
-              .read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ??
-          1;
+      autoPrintReceiptWhenPaid.value =
+          box.read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ?? true;
+      receiptNumberOfCopies.value =
+          box.read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ?? 1;
     } catch (e) {}
   }
 
@@ -38,8 +36,10 @@ class PrintingRulesController extends GetxController {
         ArgumentConstant.printerNumberOfCopiesKey,
         kitchenNumberOfCopies.value,
       );
-      box.write(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
-          autoPrintReceiptWhenPaid.value);
+      box.write(
+        ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
+        autoPrintReceiptWhenPaid.value,
+      );
       box.write(
         ArgumentConstant.printerReceiptNumberOfCopiesKey,
         receiptNumberOfCopies.value,

@@ -5,7 +5,9 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   connectivity_plus
+  flutter_thermal_printer
   print_bluetooth_thermal
+  universal_ble
   url_launcher_windows
 )
 

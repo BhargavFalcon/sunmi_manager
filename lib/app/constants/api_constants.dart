@@ -71,6 +71,7 @@ class ArgumentConstant {
 
   // Print Service
   static const printServiceVerifyEndpoint = "api/v1/prn/verify";
+  static const printServiceOldDisconnectEndpoint = "api/v1/prn/old-disconnect";
 
   // Print Service Keys
   static const printServiceApiKeyKey = "print_service_api_key";

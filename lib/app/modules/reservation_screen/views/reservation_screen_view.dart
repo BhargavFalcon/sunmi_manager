@@ -525,7 +525,12 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                       style: _sectionTitleStyle(),
                                     ),
                                     SizedBox(height: MySize.getHeight(4)),
-                                    Obx(() => _buildTimeSlotsContent(context, controller)),
+                                    Obx(
+                                      () => _buildTimeSlotsContent(
+                                        context,
+                                        controller,
+                                      ),
+                                    ),
                                     SizedBox(height: MySize.getHeight(4)),
                                     Column(
                                       crossAxisAlignment:
@@ -542,7 +547,8 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                         SizedBox(height: MySize.getHeight(8)),
                                         CupertinoTextField(
                                           controller:
-                                              controller.specialRequestController,
+                                              controller
+                                                  .specialRequestController,
                                           maxLines: 2,
                                           placeholder:
                                               TranslationKeys
@@ -950,8 +956,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                     SizedBox(height: MySize.getHeight(10)),
                                     CustomerSearchFieldsWidget(
                                       controller: controller,
-                                      onShowCountryPicker: () =>
-                                          _showCountrySelectionSheet(context),
+                                      onShowCountryPicker:
+                                          () => _showCountrySelectionSheet(
+                                            context,
+                                          ),
                                     ),
                                     SizedBox(height: MySize.getHeight(20)),
                                     Padding(
@@ -995,48 +1003,83 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                               ),
                                             ),
                                           ),
-                                          Obx(() => InkWell(
-                                            onTap: controller.isSavingReservation.value
-                                                ? null
-                                                : () => controller.saveReservation(),
-                                            child: Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: MySize.getWidth(16),
-                                                vertical: MySize.getHeight(8),
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    controller.isSavingReservation.value
-                                                        ? ColorConstants.primaryColor.withOpacity(0.6)
-                                                        : ColorConstants.primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      MySize.getHeight(8),
-                                                    ),
-                                              ),
-                                              child: controller.isSavingReservation.value
-                                                  ? SizedBox(
-                                                      width: MySize.getHeight(20),
-                                                      height: MySize.getHeight(20),
-                                                      child: const CupertinoActivityIndicator(
-                                                        radius: 9,
-                                                        color: Colors.white,
+                                          Obx(
+                                            () => InkWell(
+                                              onTap:
+                                                  controller
+                                                          .isSavingReservation
+                                                          .value
+                                                      ? null
+                                                      : () =>
+                                                          controller
+                                                              .saveReservation(),
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: MySize.getWidth(
+                                                    16,
+                                                  ),
+                                                  vertical: MySize.getHeight(8),
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      controller
+                                                              .isSavingReservation
+                                                              .value
+                                                          ? ColorConstants
+                                                              .primaryColor
+                                                              .withOpacity(0.6)
+                                                          : ColorConstants
+                                                              .primaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        MySize.getHeight(8),
                                                       ),
-                                                    )
-                                                  : Obx(
-                                                      () => Text(
-                                                        controller.isEditingReservation
-                                                            ? 'Update Reservation'
-                                                            : TranslationKeys.reserveNow.tr,
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: MySize.getHeight(14),
-                                                          fontWeight: FontWeight.w600,
+                                                ),
+                                                child:
+                                                    controller
+                                                            .isSavingReservation
+                                                            .value
+                                                        ? SizedBox(
+                                                          width:
+                                                              MySize.getHeight(
+                                                                20,
+                                                              ),
+                                                          height:
+                                                              MySize.getHeight(
+                                                                20,
+                                                              ),
+                                                          child:
+                                                              const CupertinoActivityIndicator(
+                                                                radius: 9,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                        )
+                                                        : Obx(
+                                                          () => Text(
+                                                            controller
+                                                                    .isEditingReservation
+                                                                ? 'Update Reservation'
+                                                                : TranslationKeys
+                                                                    .reserveNow
+                                                                    .tr,
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    14,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ),
+                                              ),
                                             ),
-                                          )),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -1162,10 +1205,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   }
 
   static TextStyle _sectionTitleStyle() => TextStyle(
-        color: Colors.black,
-        fontSize: MySize.getHeight(14),
-        fontWeight: FontWeight.w600,
-      );
+    color: Colors.black,
+    fontSize: MySize.getHeight(14),
+    fontWeight: FontWeight.w600,
+  );
 
   Widget _buildTimeSlotsContent(
     BuildContext context,
@@ -1193,25 +1236,28 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: controller.timeSlotSections.map((section) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MySize.getHeight(16)),
-          child: TimeSlotSectionWidget(
-            sectionTitle: section.title,
-            timeSlots: section.slots,
-            selectedSectionTitle: controller.selectedTimeSlotTitle.value,
-            selectedTimeSlot: controller.selectedTimeSlot.value,
-            onSlotSelected: controller.selectTimeSlot,
-            checkingSectionTitle: controller.checkingSlotSectionTitle.value.isEmpty
-                ? null
-                : controller.checkingSlotSectionTitle.value,
-            checkingSlot: controller.checkingSlotValue.value.isEmpty
-                ? null
-                : controller.checkingSlotValue.value,
-            titleStyle: _sectionTitleStyle(),
-          ),
-        );
-      }).toList(),
+      children:
+          controller.timeSlotSections.map((section) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MySize.getHeight(16)),
+              child: TimeSlotSectionWidget(
+                sectionTitle: section.title,
+                timeSlots: section.slots,
+                selectedSectionTitle: controller.selectedTimeSlotTitle.value,
+                selectedTimeSlot: controller.selectedTimeSlot.value,
+                onSlotSelected: controller.selectTimeSlot,
+                checkingSectionTitle:
+                    controller.checkingSlotSectionTitle.value.isEmpty
+                        ? null
+                        : controller.checkingSlotSectionTitle.value,
+                checkingSlot:
+                    controller.checkingSlotValue.value.isEmpty
+                        ? null
+                        : controller.checkingSlotValue.value,
+                titleStyle: _sectionTitleStyle(),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -1555,8 +1601,12 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () =>
-                      _showReservationBottomSheet(context, controller, editIndex: index),
+                  onTap:
+                      () => _showReservationBottomSheet(
+                        context,
+                        controller,
+                        editIndex: index,
+                      ),
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: MySize.getWidth(8),
@@ -1570,7 +1620,10 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                         width: 1,
                       ),
                     ),
-                    child: Icon(Icons.edit_outlined, size: MySize.getHeight(20)),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: MySize.getHeight(20),
+                    ),
                   ),
                 ),
               ],

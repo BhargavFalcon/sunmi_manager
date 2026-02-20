@@ -56,14 +56,9 @@ class KitchenTicketsScreenController extends GetxController {
           KitchenTicketItem(
             no: 'N31',
             itemName: 'The Legend',
-            modifiers: [
-              KitchenTicketItemModifier(name: 'Fries & Red Bull'),
-            ],
+            modifiers: [KitchenTicketItemModifier(name: 'Fries & Red Bull')],
           ),
-          KitchenTicketItem(
-            no: 'N32',
-            itemName: 'Caesar Salad',
-          ),
+          KitchenTicketItem(no: 'N32', itemName: 'Caesar Salad'),
         ],
         isFoodReady: true,
       ),
@@ -83,9 +78,7 @@ class KitchenTicketsScreenController extends GetxController {
         time: '09:30 AM',
         orderType: 'pickup',
         tableCode: null,
-        items: [
-          KitchenTicketItem(no: 'N51', itemName: 'Chicken Wrap'),
-        ],
+        items: [KitchenTicketItem(no: 'N51', itemName: 'Chicken Wrap')],
         isFoodReady: false,
       ),
       KitchenTicketDummy(

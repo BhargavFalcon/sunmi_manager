@@ -271,8 +271,7 @@ CachedNetworkImage getImageByLink({
             borderRadius: borderRadius ?? BorderRadius.circular(0),
           ),
         ),
-    errorListener: (value) {
-    },
+    errorListener: (value) {},
     placeholder:
         (context, url) =>
             (isLoading)

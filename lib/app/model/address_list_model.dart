@@ -61,9 +61,10 @@ class AddressItem {
     state = json['state']?.toString();
     street = json['street']?.toString();
     countryId = _toInt(json['country_id']);
-    country = json['country'] != null
-        ? Country.fromJson(json['country'] as Map<String, dynamic>)
-        : null;
+    country =
+        json['country'] != null
+            ? Country.fromJson(json['country'] as Map<String, dynamic>)
+            : null;
     createdAt = json['created_at']?.toString();
     updatedAt = json['updated_at']?.toString();
   }

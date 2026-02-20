@@ -108,7 +108,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   Future<void> _fetchZipcodes() async {
     if (!mounted || !widget.isDelivery) return;
     try {
-      final response = await NetworkClient().get(ArgumentConstant.zipcodesEndpoint);
+      final response = await NetworkClient().get(
+        ArgumentConstant.zipcodesEndpoint,
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data is Map<String, dynamic>) {
           final model = address_model.AddressListModel.fromJson(
@@ -119,7 +121,8 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
               _zipcodeList = List.from(model.data!);
             });
             _filterZipcodes(zipcodeController.text);
-            if (_zipcodeFocusNode.hasFocus && zipcodeController.text.isNotEmpty) {
+            if (_zipcodeFocusNode.hasFocus &&
+                zipcodeController.text.isNotEmpty) {
               _showZipcodeOverlay();
             }
           }
@@ -156,12 +159,13 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   }
 
   Future<void> _onSaveNewCustomer() async {
-      if (widget.isDelivery && _hasZipcodeList) {
-        final entered = zipcodeController.text.trim();
-        final validZipcodes = _zipcodeList
-          .map((e) => (e.zipcode ?? '').trim())
-          .where((s) => s.isNotEmpty)
-          .toSet();
+    if (widget.isDelivery && _hasZipcodeList) {
+      final entered = zipcodeController.text.trim();
+      final validZipcodes =
+          _zipcodeList
+              .map((e) => (e.zipcode ?? '').trim())
+              .where((s) => s.isNotEmpty)
+              .toSet();
       if (entered.isEmpty || !validZipcodes.contains(entered)) {
         AppToast.showError(
           TranslationKeys.validZipcodeRequired.tr,
@@ -190,7 +194,10 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
       final body = <String, dynamic>{
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
-        'phone_code': _selectedPhoneCode.trim().isEmpty ? '+31' : _selectedPhoneCode.trim(),
+        'phone_code':
+            _selectedPhoneCode.trim().isEmpty
+                ? '+31'
+                : _selectedPhoneCode.trim(),
         'email': emailController.text.trim(),
         'address': addressController.text.trim(),
         'house_number': houseNumberController.text.trim(),
@@ -266,7 +273,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     if (_filteredZipcodes.isEmpty) return;
     _hideZipcodeOverlay();
     final overlay = Overlay.of(context);
-    _zipcodeOverlayEntry = OverlayEntry(builder: (context) => _buildZipcodeOverlay());
+    _zipcodeOverlayEntry = OverlayEntry(
+      builder: (context) => _buildZipcodeOverlay(),
+    );
     overlay.insert(_zipcodeOverlayEntry!);
   }
 
@@ -276,7 +285,8 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   }
 
   Widget _buildZipcodeOverlay() {
-    final box = _zipcodeFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    final box =
+        _zipcodeFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return const SizedBox.shrink();
     final offset = box.localToGlobal(Offset.zero);
     final size = box.size;
@@ -300,7 +310,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              constraints: BoxConstraints(maxHeight: MySize.getHeight(maxHeight)),
+              constraints: BoxConstraints(
+                maxHeight: MySize.getHeight(maxHeight),
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(color: Colors.grey.shade300),
@@ -313,44 +325,47 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   ),
                 ],
               ),
-              child: _filteredZipcodes.isEmpty
-                  ? Padding(
-                      padding: EdgeInsets.all(MySize.getHeight(16)),
-                      child: Text(
-                        TranslationKeys.noOrdersFound.tr,
-                        style: TextStyle(
-                          fontSize: MySize.getHeight(12),
-                          color: Colors.grey.shade600,
+              child:
+                  _filteredZipcodes.isEmpty
+                      ? Padding(
+                        padding: EdgeInsets.all(MySize.getHeight(16)),
+                        child: Text(
+                          TranslationKeys.noOrdersFound.tr,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            color: Colors.grey.shade600,
+                          ),
                         ),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: MySize.getHeight(6)),
-                      itemCount: _filteredZipcodes.length,
-                      itemBuilder: (context, index) {
-                        final item = _filteredZipcodes[index];
-                        final line = item.zipcode ?? '';
-                        return InkWell(
-                          onTap: () {
-                            zipcodeController.text = item.zipcode ?? '';
-                            _hideZipcodeOverlay();
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: MySize.getWidth(12),
-                              vertical: MySize.getHeight(10),
-                            ),
-                            child: Text(
-                              line.trim(),
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(12),
-                                color: Colors.black87,
+                      )
+                      : ListView.builder(
+                        padding: EdgeInsets.symmetric(
+                          vertical: MySize.getHeight(6),
+                        ),
+                        itemCount: _filteredZipcodes.length,
+                        itemBuilder: (context, index) {
+                          final item = _filteredZipcodes[index];
+                          final line = item.zipcode ?? '';
+                          return InkWell(
+                            onTap: () {
+                              zipcodeController.text = item.zipcode ?? '';
+                              _hideZipcodeOverlay();
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(12),
+                                vertical: MySize.getHeight(10),
+                              ),
+                              child: Text(
+                                line.trim(),
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(12),
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
             ),
           ),
         ),
@@ -762,7 +777,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                         key: _zipcodeFieldKey,
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(8),
+                          ),
                         ),
                         child: TextField(
                           controller: zipcodeController,
@@ -850,7 +867,10 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   ),
                   SizedBox(width: MySize.getWidth(12)),
                   ElevatedButton(
-                    onPressed: _isSelectedFromList ? _onSaveSelectedCustomer : _onSaveNewCustomer,
+                    onPressed:
+                        _isSelectedFromList
+                            ? _onSaveSelectedCustomer
+                            : _onSaveNewCustomer,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorConstants.primaryColor,
                       foregroundColor: Colors.white,
@@ -1009,10 +1029,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
         keyboardType: keyboardType,
         maxLines: maxLines,
         readOnly: readOnly,
-        style: TextStyle(
-          fontSize: MySize.getHeight(12),
-          color: Colors.black87,
-        ),
+        style: TextStyle(fontSize: MySize.getHeight(12), color: Colors.black87),
         decoration: InputDecoration(
           hintText: placeholder,
           hintStyle: TextStyle(

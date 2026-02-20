@@ -6,10 +6,12 @@ class AvailableTimeSlotsModel {
 
   AvailableTimeSlotsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'] as bool?;
-    data = json['data'] != null
-        ? AvailableTimeSlotsData.fromJson(
-            json['data'] as Map<String, dynamic>)
-        : null;
+    data =
+        json['data'] != null
+            ? AvailableTimeSlotsData.fromJson(
+              json['data'] as Map<String, dynamic>,
+            )
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -35,9 +37,8 @@ class AvailableTimeSlotsData {
       final raw = json['time_slots'] as Map<String, dynamic>;
       for (final entry in raw.entries) {
         if (entry.value is List) {
-          timeSlots![entry.key] = (entry.value as List)
-              .map((e) => e.toString())
-              .toList();
+          timeSlots![entry.key] =
+              (entry.value as List).map((e) => e.toString()).toList();
         }
       }
     }
