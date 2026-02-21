@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
+import 'dart:async';
+import 'dart:io';
 import 'package:get/get.dart';
 import '../../main.dart';
 import '../model/getorderModel.dart' as orderModel;
@@ -14,7 +15,9 @@ import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
 
 class PusherService {
-  final PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
+  WebSocket? _socket;
+  Timer? _pingTimer;
+
   final NetworkClient networkClient = NetworkClient();
   final SunmiInvoicePrinterService _printerService =
       SunmiInvoicePrinterService();
@@ -22,25 +25,13 @@ class PusherService {
   static const String pusherAppCluster = "eu";
   static const String pusherAppId = "zosPDO1J";
   static const String pusherAppKey = "wxidjpbk1bfqn6nr9m9rmve2hkhasdq6";
-  static const String pusherAppSecret = "t03h0txssbxiqs9i9tq7wsixyigrao09";
   static const String pusherHost = "soketi-production-85c0.up.railway.app";
   static const int pusherPort = 443;
   static const bool pusherUseTLS = true;
 
-  Future<void> initPusher() async {
-    try {
-      await pusher.init(
-        apiKey: pusherAppKey,
-        cluster: pusherAppCluster,
-        host: pusherHost, // ignore: undefined_named_parameter
-        wssPort: pusherPort, // ignore: undefined_named_parameter
-        useTLS: pusherUseTLS,
-        onConnectionStateChange: (currentState, previousState) {},
-        onError: (message, code, e) {},
-      );
-      await pusher.connect();
-    } catch (_) {}
-  }
+  bool _isConnected = false;
+
+  Future<void> initPusher() async {}
 
   Future<void> subscribeToOrders(int? restaurantId) async {
     if (restaurantId == null) return;
@@ -48,23 +39,75 @@ class PusherService {
     final channelName = "new-order-created.$restaurantId";
 
     try {
-      await pusher.subscribe(
-        channelName: channelName,
-        onEvent: (event) async {
-          if (event is! PusherEvent) return;
-          await _handleOrderEvent(event);
+      final scheme = pusherUseTLS ? 'wss' : 'ws';
+      final url =
+          '$scheme://$pusherHost:$pusherPort/app/$pusherAppKey?protocol=7&client=dart&version=1.0.0&flash=false';
+
+      _socket?.close();
+      _socket = await WebSocket.connect(url);
+
+      _socket!.listen(
+        (message) {
+          _handleWebSocketMessage(message, channelName);
+        },
+        onDone: () {
+          _isConnected = false;
+          _pingTimer?.cancel();
+          Future.delayed(const Duration(seconds: 3), () {
+            subscribeToOrders(restaurantId);
+          });
+        },
+        onError: (err) {
+          _isConnected = false;
         },
       );
-    } catch (e) {
-      log("Error subscribing to Pusher channel: $e");
+    } catch (_) {
+      Future.delayed(const Duration(seconds: 5), () {
+        subscribeToOrders(restaurantId);
+      });
     }
   }
 
-  Future<void> _handleOrderEvent(PusherEvent event) async {
-    if (!_isValidEventData(event.data)) return;
+  void _handleWebSocketMessage(dynamic message, String channelName) async {
+    try {
+      final decoded = jsonDecode(message.toString());
+      final event = decoded['event'] as String?;
+      final dataStr = decoded['data'];
+
+      if (event == 'pusher:connection_established') {
+        _isConnected = true;
+
+        final subscribeMsg = jsonEncode({
+          "event": "pusher:subscribe",
+          "data": {"channel": channelName},
+        });
+        _socket?.add(subscribeMsg);
+
+        _pingTimer?.cancel();
+        _pingTimer = Timer.periodic(const Duration(seconds: 120), (timer) {
+          if (_isConnected) {
+            _socket?.add(jsonEncode({"event": "pusher:ping", "data": {}}));
+          }
+        });
+      } else if (event == 'pusher:ping') {
+        _socket?.add(jsonEncode({"event": "pusher:pong", "data": {}}));
+      } else if (event == 'pusher_internal:subscription_succeeded') {
+        // Successfully subscribed
+      } else if (event == 'pusher:error') {
+        log('Pusher Error: $dataStr');
+      } else {
+        if (dataStr != null) {
+          await _handleOrderEvent(dataStr);
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _handleOrderEvent(dynamic eventData) async {
+    if (!_isValidEventData(eventData)) return;
 
     try {
-      final decoded = _parseEventData(event.data);
+      final decoded = _parseEventData(eventData);
       if (decoded == null) return;
 
       final order = decoded['order'] as Map<String, dynamic>?;
@@ -79,7 +122,6 @@ class PusherService {
       final notificationsEnabled =
           box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
 
-      // 1. Pehle notification dikhao
       if (notificationsEnabled) {
         NewOrderDialog.show(
           orderNumber: orderNumber,
@@ -92,13 +134,16 @@ class PusherService {
         );
       }
 
-      // 2. Phir print karo
       await _fetchAndPrintInvoice(orderUuid);
     } catch (_) {}
   }
 
   Map<String, dynamic>? _parseEventData(dynamic data) {
+    if (data == null) return null;
     try {
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
       final decoded = jsonDecode(data.toString().trim());
       if (decoded is Map<String, dynamic>) {
         return decoded;
@@ -109,6 +154,8 @@ class PusherService {
 
   bool _isValidEventData(dynamic data) {
     if (data == null) return false;
+
+    if (data is Map || data is List) return data.isNotEmpty;
 
     final dataString = data.toString().trim();
     if (dataString.isEmpty || dataString == '{}') return false;
@@ -127,7 +174,6 @@ class PusherService {
     return data['order_number'].toString();
   }
 
-  /// Sirf order fetch karta hai, print nahi.
   Future<orderModel.Data?> _fetchOrderOnly(String orderUuid) async {
     try {
       final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
@@ -158,17 +204,21 @@ class PusherService {
 
   Future<orderModel.Data?> _fetchAndPrintInvoice(String orderUuid) async {
     final data = await _fetchOrderOnly(orderUuid);
-    if (data == null) return null;
+    if (data == null) {
+      return null;
+    }
 
     final autoPrintEnabled =
         box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+
     if (autoPrintEnabled) {
       final copies =
           box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+
       try {
         await _printerService.printInvoice(data, copies: copies);
         showPrintToast(TranslationKeys.printSuccessful.tr);
-      } catch (_) {
+      } catch (e) {
         showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
       }
     }
