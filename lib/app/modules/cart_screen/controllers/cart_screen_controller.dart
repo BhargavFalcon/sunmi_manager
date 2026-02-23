@@ -8,11 +8,11 @@ import '../../../constants/api_constants.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../model/LoginModels.dart';
-import '../../../model/menuItemsModel.dart';
-import '../../../model/RestaurantDetailsModel.dart';
-import '../../../model/tableModel.dart' as table_model;
-import '../../../model/getorderModel.dart' as order_model;
+import '../../../model/login_models.dart';
+import '../../../model/menu_items_model.dart';
+import '../../../model/restaurant_details_model.dart';
+import '../../../model/table_model.dart' as table_model;
+import '../../../model/get_order_model.dart' as order_model;
 import '../../../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
 import '../../../modules/order_screen/controllers/order_screen_controller.dart';
 import '../../../modules/take_order_screen/controllers/take_order_controller.dart';
@@ -40,8 +40,10 @@ class CartScreenController extends GetxController {
   String? deliveryPreOrderDateTime;
   double deliveryTipAmount = 0.0;
   String? deliveryAddress;
+  RxString orderNote = ''.obs;
 
   bool get hasTable => selectedTable.value != null;
+  bool get isDineInOrder => !isDeliveryOrder && !isPickupOrder;
 
   bool get isDeliveryOrder =>
       currentOrderType.value.toLowerCase() == 'delivery';
@@ -187,16 +189,18 @@ class CartScreenController extends GetxController {
     }
     if (!isExistingOrder && isDeliveryOrder) {
       _refreshDeliveryArgsFromArguments();
-      if (deliveryCustomerId == null)
+      if (deliveryCustomerId == null) {
         return TranslationKeys.pleaseSelectCustomerFirst.tr;
+      }
       if (deliveryAddress == null || deliveryAddress!.trim().isEmpty) {
         return TranslationKeys.deliveryAddressRequired.tr;
       }
     }
     if (!isExistingOrder && isPickupOrder) {
       _refreshDeliveryArgsFromArguments();
-      if (deliveryCustomerId == null)
+      if (deliveryCustomerId == null) {
         return TranslationKeys.pleaseSelectCustomerFirstPickup.tr;
+      }
     }
     if (waiterId == null) return TranslationKeys.unableToGetUserInfo.tr;
     if (!isExistingOrder &&
@@ -214,17 +218,20 @@ class CartScreenController extends GetxController {
         'menu_item_id': item.id,
         'quantity': item.quantity.value,
       };
-      if (item.selectedVariation != null)
+      if (item.selectedVariation != null) {
         itemData['menu_item_variation_id'] = item.selectedVariation!.id;
+      }
       final optionIds =
           item.selectedExtras
               ?.where((o) => o.id != null)
               .map((o) => o.id!)
               .toList();
-      if (optionIds != null && optionIds.isNotEmpty)
+      if (optionIds != null && optionIds.isNotEmpty) {
         itemData['modifier_option_ids'] = optionIds;
-      if (item.cartNote != null && item.cartNote!.isNotEmpty)
+      }
+      if (item.cartNote != null && item.cartNote!.isNotEmpty) {
         itemData['note'] = item.cartNote;
+      }
       if (existingOrderId != null &&
           existingOrderId!.isNotEmpty &&
           item.cartKotItemId != null) {
@@ -260,8 +267,10 @@ class CartScreenController extends GetxController {
   }) {
     final isExisting = existingOrderId != null && existingOrderId!.isNotEmpty;
     if (isExisting) {
+      final body = <String, dynamic>{'items': itemsList};
+      if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
       return (
-        body: {'items': itemsList},
+        body: body,
         endpoint: ArgumentConstant.addOrderItemsEndpoint.replaceAll(
           ':order_uuid',
           existingOrderId!,
@@ -278,11 +287,14 @@ class CartScreenController extends GetxController {
         'delivery_address': (deliveryAddress ?? '').trim(),
       };
       if (deliveryPreOrderDateTime != null &&
-          deliveryPreOrderDateTime!.isNotEmpty)
+          deliveryPreOrderDateTime!.isNotEmpty) {
         body['date_time'] = deliveryPreOrderDateTime;
-      if (deliveryTipAmount > 0)
+      }
+      if (deliveryTipAmount > 0) {
         body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
+      }
       if (_discountPayload != null) body.addAll(_discountPayload!);
+      if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
       return (body: body, endpoint: ArgumentConstant.deliveryOrdersEndpoint);
     }
     if (isPickupOrder) {
@@ -294,11 +306,14 @@ class CartScreenController extends GetxController {
         'status': status,
       };
       if (deliveryPreOrderDateTime != null &&
-          deliveryPreOrderDateTime!.isNotEmpty)
+          deliveryPreOrderDateTime!.isNotEmpty) {
         body['date_time'] = deliveryPreOrderDateTime;
-      if (deliveryTipAmount > 0)
+      }
+      if (deliveryTipAmount > 0) {
         body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
+      }
       if (_discountPayload != null) body.addAll(_discountPayload!);
+      if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
       return (body: body, endpoint: ArgumentConstant.pickupOrdersEndpoint);
     }
     final body = <String, dynamic>{
@@ -310,6 +325,7 @@ class CartScreenController extends GetxController {
       'status': status,
     };
     if (_discountPayload != null) body.addAll(_discountPayload!);
+    if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
     return (body: body, endpoint: ArgumentConstant.ordersEndpoint);
   }
 
@@ -504,8 +520,9 @@ class CartScreenController extends GetxController {
 
   bool _itemMatches(Items existing, Items newItem) {
     if (existing.id != newItem.id) return false;
-    if (existing.selectedVariation?.id != newItem.selectedVariation?.id)
+    if (existing.selectedVariation?.id != newItem.selectedVariation?.id) {
       return false;
+    }
     final existingExtras = existing.selectedExtras;
     final newExtras = newItem.selectedExtras;
     if ((existingExtras == null || existingExtras.isEmpty) &&
@@ -642,6 +659,7 @@ class CartScreenController extends GetxController {
     discountType.value = 'Fixed';
     existingOrderId = null;
     existingOrder = null;
+    orderNote.value = '';
     _resetTableData(clearSourceScreen: true);
   }
 
@@ -777,15 +795,18 @@ class CartScreenController extends GetxController {
     final raw = <({String label, double amount})>[];
     try {
       final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
-      if (storedData == null || storedData is! Map<String, dynamic>)
+      if (storedData == null || storedData is! Map<String, dynamic>) {
         return _mergeChargesByLabel(raw);
+      }
       final restaurantModel = RestaurantModel.fromJson(storedData);
       final branches = restaurantModel.data?.branches;
-      if (branches == null || branches.isEmpty)
+      if (branches == null || branches.isEmpty) {
         return _mergeChargesByLabel(raw);
+      }
       final additionalCharges = branches.first.additionalCharges;
-      if (additionalCharges == null || additionalCharges.isEmpty)
+      if (additionalCharges == null || additionalCharges.isEmpty) {
         return _mergeChargesByLabel(raw);
+      }
       final orderType = _orderTypeForCharges;
       final baseAmount = subTotalAfterDiscount;
       for (final charge in additionalCharges) {
@@ -793,8 +814,9 @@ class CartScreenController extends GetxController {
         final orderTypes = charge.orderTypes;
         if (orderTypes != null &&
             orderTypes.isNotEmpty &&
-            !orderTypes.any((t) => t.toLowerCase() == orderType))
+            !orderTypes.any((t) => t.toLowerCase() == orderType)) {
           continue;
+        }
         final rate = double.tryParse(charge.rate?.toString() ?? '') ?? 0.0;
         final amount =
             (charge.type?.toLowerCase() == 'percent')
@@ -824,8 +846,9 @@ class CartScreenController extends GetxController {
       final list = <({String label, double amount})>[];
       for (final c in orderCharges) {
         final amount = c.amount ?? 0.0;
-        if (amount > 0)
+        if (amount > 0) {
           list.add((label: c.chargeName ?? 'Charge', amount: amount));
+        }
       }
       return list;
     }

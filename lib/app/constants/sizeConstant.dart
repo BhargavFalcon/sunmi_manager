@@ -32,15 +32,15 @@ class MySize {
             ? _mediaQueryData.size.height
             : _mediaQueryData.size.height;
     isMini = _mediaQueryData.size.height < 700;
-    double _safeAreaWidth =
+    double safeAreaWidth =
         _mediaQueryData.padding.left + _mediaQueryData.padding.right;
-    double _safeAreaHeight =
+    double safeAreaHeight =
         _mediaQueryData.padding.top + _mediaQueryData.padding.bottom;
-    safeWidth = (screenWidth - _safeAreaWidth);
-    safeHeight = (screenHeight - _safeAreaHeight);
+    safeWidth = (screenWidth - safeAreaWidth);
+    safeHeight = (screenHeight - safeAreaHeight);
 
-    safeWidth = (screenWidth - _safeAreaWidth);
-    safeHeight = (screenHeight - _safeAreaHeight);
+    safeWidth = (screenWidth - safeAreaWidth);
+    safeHeight = (screenHeight - safeAreaHeight);
 
     scaleFactorHeight = (safeHeight! / 748);
     if (scaleFactorHeight < 1) {
@@ -289,7 +289,7 @@ CachedNetworkImage getImageByLink({
                           height: MySize.getHeight(height),
                           width: MySize.getHeight(width),
                           fit: BoxFit.cover,
-                          color: errorColor ?? null,
+                          color: errorColor,
                         ),
                   ),
                 )
@@ -322,7 +322,7 @@ CachedNetworkImage getImageByLink({
                   height: MySize.getHeight(height),
                   width: MySize.getHeight(width),
                   fit: BoxFit.cover,
-                  color: errorColor ?? null,
+                  color: errorColor,
                 ),
           ),
         ),

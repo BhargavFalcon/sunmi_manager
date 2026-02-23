@@ -9,11 +9,11 @@ import '../../../constants/sizeConstant.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../constants/api_constants.dart';
-import '../../../model/MobileAppModulesModel.dart';
-import '../../../model/tableModel.dart' as tableModel;
+import '../../../model/mobile_app_modules_model.dart';
+import '../../../model/table_model.dart' as table_model;
 import '../../../model/reservation_list_model.dart';
 import '../../../model/available_time_slots_model.dart';
-import '../../../model/LoginModels.dart';
+import '../../../model/login_models.dart';
 import '../../../model/customer_list_model.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../../main.dart';
@@ -45,8 +45,8 @@ class ReservationScreenController extends GetxController {
   RxString selectedCountryFlag = '🇩🇪'.obs;
 
   final networkClient = NetworkClient();
-  final RxList<tableModel.Data> tableAreasList = <tableModel.Data>[].obs;
-  final Rx<tableModel.Tables?> selectedTable = Rx<tableModel.Tables?>(null);
+  final RxList<table_model.Data> tableAreasList = <table_model.Data>[].obs;
+  final Rx<table_model.Tables?> selectedTable = Rx<table_model.Tables?>(null);
   final RxBool isTableExpanded = false.obs;
 
   final FocusNode reservationNameFocusNode = FocusNode();
@@ -233,8 +233,9 @@ class ReservationScreenController extends GetxController {
 
   void _ensureEditingSlotInSections() {
     if (editingReservationIndex.value < 0 ||
-        editingReservationIndex.value >= reservations.length)
+        editingReservationIndex.value >= reservations.length) {
       return;
+    }
     final title = selectedTimeSlotTitle.value;
     final display = selectedTimeSlot.value;
     if (title.isEmpty && display.isEmpty) return;
@@ -901,12 +902,12 @@ class ReservationScreenController extends GetxController {
     const apiRequestStatuses = [
       'Pending',
       'Confirmed',
-      'Checked In',
+      'Checked_In',
       'Cancelled',
-      'No Show',
+      'No_Show',
     ];
     if (apiRequestStatuses.contains(status)) return status;
-    return status.replaceAll('_', ' ');
+    return status.replaceAll(' ', '_');
   }
 
   Future<void> updateReservationStatus(int index, String newStatus) async {
@@ -941,7 +942,7 @@ class ReservationScreenController extends GetxController {
     }
   }
 
-  void assignTableToReservationAt(int index, tableModel.Tables table) {
+  void assignTableToReservationAt(int index, table_model.Tables table) {
     if (index < 0 || index >= reservations.length) return;
     reservations[index]['table'] = table.tableCode ?? '${table.id}';
     reservations.refresh();
@@ -997,7 +998,7 @@ class ReservationScreenController extends GetxController {
         ArgumentConstant.tablesAreasEndpoint,
       );
       if (!_isSuccessResponse(response)) return;
-      final tableModelData = tableModel.TableModel.fromJson(
+      final tableModelData = table_model.TableModel.fromJson(
         response.data as Map<String, dynamic>,
       );
       if (tableModelData.data != null) {
@@ -1229,7 +1230,7 @@ class ReservationScreenController extends GetxController {
     if (index < 0 || index >= reservations.length) return;
     final id = reservations[index]['id'];
     if (id == null) return;
-    final endpoint = '${ArgumentConstant.reservationsEndpoint}/${id}';
+    final endpoint = '${ArgumentConstant.reservationsEndpoint}/$id';
     final response = await networkClient.put(
       endpoint,
       data: _reservationBody(),

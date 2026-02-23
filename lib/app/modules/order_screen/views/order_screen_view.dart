@@ -15,8 +15,8 @@ import '../../../constants/api_constants.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../model/AllOrdersModel.dart' as orderModel;
-import '../../../model/getorderModel.dart' as orderDetailsModel;
+import '../../../model/all_orders_model.dart' as order_model;
+import '../../../model/get_order_model.dart' as order_details_model;
 import '../../../model/receipt_order_response_model.dart';
 import '../../../model/split_payment_remaining_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
@@ -203,10 +203,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             milliseconds: 10,
                                                           ),
                                                           () {
-                                                            controller
-                                                                .showCustomDateRangePickerPop(
-                                                                  context,
-                                                                );
+                                                            if (context
+                                                                .mounted) {
+                                                              controller
+                                                                  .showCustomDateRangePickerPop(
+                                                                    context,
+                                                                  );
+                                                            }
                                                           },
                                                         );
                                                       }
@@ -560,7 +563,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
                 if (controller.isNavigatingToOrder.value)
                   Container(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     child: Center(
                       child: Container(
                         padding: EdgeInsets.all(MySize.getWidth(12)),
@@ -571,7 +574,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),
@@ -743,7 +746,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   static Future<void> showOrderBottomSheet(
     BuildContext context,
     OrderScreenController controller,
-    orderModel.Orders order,
+    order_model.Orders order,
   ) async {
     final orderUuid = order.uuid;
     if (orderUuid == null || orderUuid.isEmpty) {
@@ -788,7 +791,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildBottomSheetContent(
     BuildContext context,
     OrderScreenController controller,
-    orderModel.Orders order,
+    order_model.Orders order,
     double screenHeight,
   ) {
     return Container(
@@ -827,7 +830,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildStickyButtons(
     BuildContext context,
     OrderScreenController controller,
-    orderDetailsModel.Data orderData,
+    order_details_model.Data orderData,
   ) {
     final showAddPayment = _hasPaymentDue(orderData);
     return Container(
@@ -841,7 +844,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
         color: ColorConstants.bgColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: MySize.getWidth(4),
             offset: Offset(0, -MySize.getHeight(2)),
           ),
@@ -940,7 +943,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           decoration: BoxDecoration(
                             color:
                                 isPrinting
-                                    ? const Color(0xFF0E9F6E).withOpacity(0.7)
+                                    ? const Color(
+                                      0xFF0E9F6E,
+                                    ).withValues(alpha: 0.7)
                                     : const Color(0xFF0E9F6E),
                             borderRadius: BorderRadius.circular(
                               MySize.getHeight(8),
@@ -993,7 +998,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildOrderDetailsOrError(
     BuildContext context,
     OrderScreenController controller,
-    orderModel.Orders order,
+    order_model.Orders order,
   ) {
     final orderDetails = controller.orderDetails.value;
     final orderData = orderDetails?.data?.order;
@@ -1081,8 +1086,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Widget _buildOrderDetailsContent(
     BuildContext context,
     OrderScreenController controller,
-    orderDetailsModel.Data orderData,
-    orderModel.Orders order,
+    order_details_model.Data orderData,
+    order_model.Orders order,
   ) {
     final orderDetails = orderData.order;
     final couponCode = orderDetails?.couponCode;
@@ -1218,7 +1223,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  bool _hasPaymentDue(orderDetailsModel.Data orderData) {
+  bool _hasPaymentDue(order_details_model.Data orderData) {
     return orderData.order?.payments?.any(
           (p) => p.paymentMethod?.toLowerCase() == 'due',
         ) ??
@@ -1227,7 +1232,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
   Widget _buildPaymentsTable(
     BuildContext context,
-    orderDetailsModel.Data orderData,
+    order_details_model.Data orderData,
     OrderScreenController controller,
   ) {
     final payments = orderData.order?.payments ?? [];
@@ -1509,7 +1514,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   static Future<void> _openPaymentForOrderCard(
     BuildContext context,
     OrderScreenController controller,
-    orderModel.Orders order,
+    order_model.Orders order,
   ) async {
     final orderUuid = order.uuid;
     if (orderUuid == null || orderUuid.isEmpty) return;
@@ -1644,7 +1649,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   Future<void> _printInvoice(
     BuildContext context,
     OrderScreenController controller,
-    orderDetailsModel.Data orderData,
+    order_details_model.Data orderData,
   ) async {
     if (orderData.order == null) {
       AppToast.showError(
@@ -1689,7 +1694,7 @@ Widget _buildOrderTypeButton({
 }
 
 class OrderCard extends StatelessWidget {
-  final orderModel.Orders order;
+  final order_model.Orders order;
   const OrderCard({super.key, required this.order});
 
   @override

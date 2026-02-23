@@ -6,7 +6,7 @@ import '../../../constants/api_constants.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../model/menuItemsModel.dart';
+import '../../../model/menu_items_model.dart';
 import '../../../utils/language_utils.dart';
 import '../../../routes/app_pages.dart';
 

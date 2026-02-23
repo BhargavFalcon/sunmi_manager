@@ -67,6 +67,9 @@ class LocaleString extends Translations {
       'inactive': 'Inactive',
       'paid': 'PAID',
       'kot': 'KOT',
+      'note': 'Note',
+      'date': 'Date',
+      'time': 'Time',
       'billed': 'Billed',
       'canceled': 'Canceled',
       'paymentDue': 'Payment Due',
@@ -226,6 +229,9 @@ class LocaleString extends Translations {
 
       // ========== KITCHEN TICKETS SCREEN ==========
       'kitchenTickets': 'Kitchen Tickets',
+      'kitchenOrderTicket': 'KITCHEN ORDER TICKET',
+      'specialInstructions': 'Special Instructions:',
+      'orderNote': 'Order Note',
       'foodIsReady': 'Ready',
 
       // ========== RESERVATION SCREEN ==========

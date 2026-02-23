@@ -8,13 +8,13 @@ class MobileAppModulesModel {
     success = json['success'];
     data =
         json['data'] != null
-            ? new MobileAppModulesData.fromJson(json['data'])
+            ? MobileAppModulesData.fromJson(json['data'])
             : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -37,9 +37,9 @@ class MobileAppModulesData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.managerAppPermissions != null) {
-      data['manager_app_permissions'] = this.managerAppPermissions;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (managerAppPermissions != null) {
+      data['manager_app_permissions'] = managerAppPermissions;
     }
     return data;
   }

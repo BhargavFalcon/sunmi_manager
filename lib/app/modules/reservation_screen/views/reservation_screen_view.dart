@@ -11,7 +11,7 @@ import 'package:managerapp/app/widgets/customer_search_fields_widget.dart';
 import 'package:managerapp/app/widgets/time_slot_grid_widget.dart';
 
 import '../controllers/reservation_screen_controller.dart';
-import '../../../model/tableModel.dart' as tableModel;
+import '../../../model/table_model.dart' as table_model;
 
 class ReservationScreenView extends GetView<ReservationScreenController> {
   const ReservationScreenView({super.key});
@@ -171,10 +171,13 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                             milliseconds: 10,
                                                           ),
                                                           () {
-                                                            controller
-                                                                .showCustomDateRangePickerPop(
-                                                                  context,
-                                                                );
+                                                            if (context
+                                                                .mounted) {
+                                                              controller
+                                                                  .showCustomDateRangePickerPop(
+                                                                    context,
+                                                                  );
+                                                            }
                                                           },
                                                         );
                                                       }
@@ -1032,7 +1035,9 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                                               .value
                                                           ? ColorConstants
                                                               .primaryColor
-                                                              .withOpacity(0.6)
+                                                              .withValues(
+                                                                alpha: 0.6,
+                                                              )
                                                           : ColorConstants
                                                               .primaryColor,
                                                   borderRadius:
@@ -1747,7 +1752,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: ColorConstants.grey9E9E9E.withOpacity(0.2),
+              color: ColorConstants.grey9E9E9E.withValues(alpha: 0.2),
             ),
           ),
         ),
@@ -1982,7 +1987,7 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
   }
 
   Widget _buildTableItem(
-    tableModel.Tables table,
+    table_model.Tables table,
     ReservationScreenController controller,
     int reservationIndex,
   ) {

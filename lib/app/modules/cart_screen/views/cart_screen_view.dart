@@ -142,7 +142,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     ],
                   ),
                   Obx(() {
-                    if (!controller.showTableSection) {
+                    if (!controller.isDineInOrder) {
                       return const SizedBox.shrink();
                     }
                     return Container(
@@ -225,24 +225,17 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                           SizedBox(width: MySize.getWidth(5.0)),
                           Text(
-                            controller.selectedTable.value!.tableCode ?? '',
+                            controller.selectedTable.value?.tableCode ?? '',
                             style: TextStyle(
                               fontSize: MySize.getHeight(15.0),
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
-                          SizedBox(width: MySize.getWidth(12.0)),
+                          SizedBox(width: MySize.getWidth(10.0)),
                           InkWell(
-                            hoverColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            splashColor: Colors.transparent,
                             onTap: () {
-                              _showAvailableTablesBottomSheet(
-                                context,
-                                controller,
-                              );
+                              _showAddNoteDialog(context, controller);
                             },
                             child: Container(
                               padding: EdgeInsets.all(MySize.getHeight(6)),
@@ -257,9 +250,81 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 ),
                               ),
                               child: Icon(
-                                Icons.settings_outlined,
+                                Icons.note_alt_outlined,
                                 size: MySize.getHeight(18.0),
                                 color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: MySize.getWidth(8.0)),
+                          if (!controller.hideTableSection)
+                            InkWell(
+                              hoverColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              onTap: () {
+                                _showAvailableTablesBottomSheet(
+                                  context,
+                                  controller,
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(MySize.getHeight(6)),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(6),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.settings_outlined,
+                                  size: MySize.getHeight(18.0),
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                  Obx(() {
+                    if (controller.orderNote.value.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(4),
+                      ),
+                      padding: EdgeInsets.all(MySize.getHeight(10)),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(8),
+                        ),
+                        border: Border.all(color: Colors.amber.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.note_alt_outlined,
+                            size: MySize.getHeight(16),
+                            color: Colors.amber.shade800,
+                          ),
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: Text(
+                              controller.orderNote.value,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(13),
+                                color: Colors.black87,
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ),
@@ -1239,6 +1304,115 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddNoteDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    final TextEditingController noteController = TextEditingController(
+      text: controller.orderNote.value,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: MySize.getWidth(340),
+            padding: EdgeInsets.all(MySize.getHeight(20)),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    TranslationKeys.addNote.tr,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(18),
+                      fontWeight: FontWeight.bold,
+                      color: ColorConstants.grey800,
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(8)),
+                  Divider(color: Colors.grey.shade200),
+                  SizedBox(height: MySize.getHeight(16)),
+                  Text(
+                    TranslationKeys.orderNote.tr,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(14),
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(8)),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: TextField(
+                      controller: noteController,
+                      maxLines: 4,
+                      style: TextStyle(fontSize: MySize.getHeight(15)),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(MySize.getHeight(12)),
+                        hintText: TranslationKeys.enterYourSpecialRequest.tr,
+                        hintStyle: TextStyle(
+                          fontSize: MySize.getHeight(14),
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(24)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          controller.orderNote.value =
+                              noteController.text.trim();
+                          Get.back();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorConstants.primaryColor,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(24),
+                            vertical: MySize.getHeight(12),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(8),
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          TranslationKeys.save.tr,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(15),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                       ),

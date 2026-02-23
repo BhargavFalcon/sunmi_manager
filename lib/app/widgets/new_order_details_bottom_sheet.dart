@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
-import '../model/getorderModel.dart' as orderModel;
+import '../model/get_order_model.dart' as order_model;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
 import '../utils/printer_helper.dart';
@@ -16,7 +16,7 @@ import '../widgets/shared/order_detail_widgets.dart';
 class NewOrderDetailsBottomSheet {
   static final RxBool isPrinting = false.obs;
 
-  static void show(orderModel.Data orderData) {
+  static void show(order_model.Data orderData) {
     final context = Get.context;
     if (context == null) return;
 
@@ -45,7 +45,7 @@ class NewOrderDetailsBottomSheet {
 
   static Widget _buildBottomSheetContent(
     BuildContext context,
-    orderModel.Data orderData,
+    order_model.Data orderData,
     double screenHeight,
   ) {
     final orderDetails = orderData.order;
@@ -100,8 +100,8 @@ class NewOrderDetailsBottomSheet {
 
   static Widget _buildOrderDetailsContent(
     BuildContext context,
-    orderModel.Data orderData,
-    orderModel.Order orderDetails,
+    order_model.Data orderData,
+    order_model.Order orderDetails,
   ) {
     return Padding(
       padding: EdgeInsets.all(MySize.getHeight(8)),
@@ -179,7 +179,7 @@ class NewOrderDetailsBottomSheet {
 
   static Widget _buildStickyButtons(
     BuildContext context,
-    orderModel.Data orderData,
+    order_model.Data orderData,
   ) {
     return Container(
       padding: EdgeInsets.only(
@@ -192,7 +192,7 @@ class NewOrderDetailsBottomSheet {
         color: ColorConstants.bgColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: MySize.getHeight(4),
             offset: const Offset(0, -2),
           ),
@@ -233,7 +233,7 @@ class NewOrderDetailsBottomSheet {
                   decoration: BoxDecoration(
                     color:
                         printing
-                            ? const Color(0xFF0E9F6E).withOpacity(0.7)
+                            ? const Color(0xFF0E9F6E).withValues(alpha: 0.7)
                             : const Color(0xFF0E9F6E),
                     borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                     boxShadow: ColorConstants.getShadow2,
@@ -274,7 +274,7 @@ class NewOrderDetailsBottomSheet {
     );
   }
 
-  static Future<void> _printInvoice(orderModel.Data orderData) async {
+  static Future<void> _printInvoice(order_model.Data orderData) async {
     if (orderData.order == null) {
       return;
     }

@@ -9,14 +9,14 @@ class TableModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -47,18 +47,18 @@ class Data {
     if (json['tables'] != null) {
       tables = <Tables>[];
       json['tables'].forEach((v) {
-        tables!.add(new Tables.fromJson(v));
+        tables!.add(Tables.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['tables_count'] = this.tablesCount;
-    if (this.tables != null) {
-      data['tables'] = this.tables!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['tables_count'] = tablesCount;
+    if (tables != null) {
+      data['tables'] = tables!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -147,7 +147,7 @@ class Tables {
     availableStatus = json['available_status']?.toString();
     area =
         json['area'] != null
-            ? new Area.fromJson(
+            ? Area.fromJson(
               json['area'] is Map
                   ? json['area'] as Map<String, dynamic>
                   : (json['area'] is List && json['area'].isNotEmpty
@@ -158,7 +158,7 @@ class Tables {
     qrCodeUrl = json['qr_code_url']?.toString();
     activeOrder =
         json['active_order'] != null
-            ? new ActiveOrder.fromJson(
+            ? ActiveOrder.fromJson(
               json['active_order'] is Map
                   ? json['active_order'] as Map<String, dynamic>
                   : (json['active_order'] is List &&
@@ -170,26 +170,26 @@ class Tables {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['table_code'] = this.tableCode;
-    data['branch_id'] = this.branchId;
-    data['area_id'] = this.areaId;
-    data['hash'] = this.hash;
-    data['width'] = this.width;
-    data['height'] = this.height;
-    data['left'] = this.left;
-    data['top'] = this.top;
-    data['shape'] = this.shape;
-    data['seating_capacity'] = this.seatingCapacity;
-    data['status'] = this.status;
-    data['available_status'] = this.availableStatus;
-    if (this.area != null) {
-      data['area'] = this.area!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['table_code'] = tableCode;
+    data['branch_id'] = branchId;
+    data['area_id'] = areaId;
+    data['hash'] = hash;
+    data['width'] = width;
+    data['height'] = height;
+    data['left'] = left;
+    data['top'] = top;
+    data['shape'] = shape;
+    data['seating_capacity'] = seatingCapacity;
+    data['status'] = status;
+    data['available_status'] = availableStatus;
+    if (area != null) {
+      data['area'] = area!.toJson();
     }
-    data['qr_code_url'] = this.qrCodeUrl;
-    if (this.activeOrder != null) {
-      data['active_order'] = this.activeOrder!.toJson();
+    data['qr_code_url'] = qrCodeUrl;
+    if (activeOrder != null) {
+      data['active_order'] = activeOrder!.toJson();
     }
     return data;
   }
@@ -210,9 +210,9 @@ class Area {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }
@@ -250,12 +250,12 @@ class ActiveOrder {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['uuid'] = this.uuid;
-    data['order_number'] = this.orderNumber;
-    data['status'] = this.status;
-    data['total'] = this.total;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['uuid'] = uuid;
+    data['order_number'] = orderNumber;
+    data['status'] = status;
+    data['total'] = total;
     return data;
   }
 }

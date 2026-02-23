@@ -9,10 +9,10 @@ import '../constants/image_constants.dart';
 import '../constants/sizeConstant.dart';
 import 'app_toast.dart';
 import '../data/NetworkClient.dart';
-import '../model/tableModel.dart';
+import '../model/table_model.dart';
 import '../model/split_payment_remaining_model.dart';
-import '../model/cancelResonModel.dart' as cancelReasonModel;
-import '../model/getorderModel.dart' as orderModel;
+import '../model/cancel_reason_model.dart' as cancel_reason_model;
+import '../model/get_order_model.dart' as order_model;
 import '../routes/app_pages.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/order_helpers.dart' as helpers;
@@ -25,8 +25,9 @@ class RunningTableService {
   static final NetworkClient networkClient = NetworkClient();
 
   static Map<String, dynamic>? _extractData(dynamic responseData) {
-    if (responseData == null || responseData is! Map<String, dynamic>)
+    if (responseData == null || responseData is! Map<String, dynamic>) {
       return null;
+    }
     if (responseData.containsKey('data') &&
         responseData['data'] is Map<String, dynamic>) {
       return responseData['data'] as Map<String, dynamic>;
@@ -65,7 +66,7 @@ class RunningTableService {
     }
   }
 
-  static Future<orderModel.GetOrderModel?> fetchOrderDetails(
+  static Future<order_model.GetOrderModel?> fetchOrderDetails(
     String orderUuid,
   ) async {
     try {
@@ -76,7 +77,7 @@ class RunningTableService {
           response.data is! Map<String, dynamic>) {
         return null;
       }
-      return orderModel.GetOrderModel.fromJson(
+      return order_model.GetOrderModel.fromJson(
         response.data as Map<String, dynamic>,
       );
     } catch (_) {
@@ -108,7 +109,7 @@ class RunningTableService {
 
   /// Build [Tables] from order details (e.g. for delivery/pickup orders without a table).
   static Tables? tablesFromOrderDetails(
-    orderModel.GetOrderModel? orderDetails,
+    order_model.GetOrderModel? orderDetails,
   ) {
     final order = orderDetails?.data?.order;
     if (order == null) return null;
@@ -229,14 +230,14 @@ class RunningTableService {
     }
   }
 
-  static Future<List<cancelReasonModel.Data>> fetchCancelReasons() async {
+  static Future<List<cancel_reason_model.Data>> fetchCancelReasons() async {
     try {
       final response = await networkClient.get(
         ArgumentConstant.cancelReasonsEndpoint,
       );
       if (helpers.isSuccessStatus(response.statusCode) &&
           response.data != null) {
-        final model = cancelReasonModel.CancelReasonModel.fromJson(
+        final model = cancel_reason_model.CancelReasonModel.fromJson(
           response.data as Map<String, dynamic>,
         );
         if (model.success == true && model.data != null) {
@@ -311,7 +312,7 @@ class RunningTableDialog {
     child: CupertinoActivityIndicator(color: Colors.white),
   );
 
-  static Future<orderModel.GetOrderModel?> _fetchOrderDetailsWithLoader(
+  static Future<order_model.GetOrderModel?> _fetchOrderDetailsWithLoader(
     String orderUuid,
   ) async {
     Get.dialog(_loadingDialog, barrierDismissible: false);
@@ -357,6 +358,7 @@ class RunningTableDialog {
     onSetLoader?.call(false);
 
     if (finalTable == null) return;
+    if (!context.mounted) return;
 
     final activeOrder = finalTable.activeOrder;
     final orderNumber = activeOrder?.orderNumber ?? 0;
@@ -807,8 +809,8 @@ class RunningTableDialog {
   }) {
     final isCancelingOrder = false.obs;
     final isFetchingCancelReasons = false.obs;
-    final cancelReasons = <cancelReasonModel.Data>[].obs;
-    final selectedCancelReason = ValueNotifier<cancelReasonModel.Data?>(null);
+    final cancelReasons = <cancel_reason_model.Data>[].obs;
+    final selectedCancelReason = ValueNotifier<cancel_reason_model.Data?>(null);
     final commentController = TextEditingController();
 
     _fetchCancelReasons(isFetchingCancelReasons, cancelReasons);
@@ -961,7 +963,7 @@ class RunningTableDialog {
                               Obx(() {
                                 final isCanceling = isCancelingOrder.value;
                                 return ValueListenableBuilder<
-                                  cancelReasonModel.Data?
+                                  cancel_reason_model.Data?
                                 >(
                                   valueListenable: selectedCancelReason,
                                   builder:
@@ -1002,8 +1004,8 @@ class RunningTableDialog {
 
   static Widget _buildCancelReasonDropdown(
     bool isLoading,
-    RxList<cancelReasonModel.Data> cancelReasons,
-    ValueNotifier<cancelReasonModel.Data?> selectedCancelReason,
+    RxList<cancel_reason_model.Data> cancelReasons,
+    ValueNotifier<cancel_reason_model.Data?> selectedCancelReason,
   ) {
     if (isLoading) {
       return Container(
@@ -1041,11 +1043,11 @@ class RunningTableDialog {
         borderRadius: _borderRadius8,
         border: Border.all(color: Colors.grey.shade300),
       ),
-      child: ValueListenableBuilder<cancelReasonModel.Data?>(
+      child: ValueListenableBuilder<cancel_reason_model.Data?>(
         valueListenable: selectedCancelReason,
         builder:
             (context, selectedValue, _) => DropdownButtonHideUnderline(
-              child: DropdownButton<cancelReasonModel.Data>(
+              child: DropdownButton<cancel_reason_model.Data>(
                 isExpanded: true,
                 value: selectedValue,
                 hint: Padding(
@@ -1057,7 +1059,7 @@ class RunningTableDialog {
                   child: Icon(Icons.arrow_drop_down, color: Colors.black87),
                 ),
                 items: [
-                  DropdownMenuItem<cancelReasonModel.Data>(
+                  DropdownMenuItem<cancel_reason_model.Data>(
                     value: null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1068,7 +1070,7 @@ class RunningTableDialog {
                     ),
                   ),
                   ...cancelReasons.map(
-                    (reason) => DropdownMenuItem<cancelReasonModel.Data>(
+                    (reason) => DropdownMenuItem<cancel_reason_model.Data>(
                       value: reason,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1087,9 +1089,9 @@ class RunningTableDialog {
   static Future<void> _handleCancelOrderAction(
     BuildContext context,
     Tables table,
-    cancelReasonModel.Data selectedValue,
+    cancel_reason_model.Data selectedValue,
     TextEditingController commentController,
-    ValueNotifier<cancelReasonModel.Data?> selectedCancelReason,
+    ValueNotifier<cancel_reason_model.Data?> selectedCancelReason,
     RxBool isCancelingOrder,
     VoidCallback? onRefreshTables,
   ) async {
@@ -1403,7 +1405,7 @@ class RunningTableDialog {
 
   static Future<void> _fetchCancelReasons(
     RxBool isFetchingCancelReasons,
-    RxList<cancelReasonModel.Data> cancelReasons,
+    RxList<cancel_reason_model.Data> cancelReasons,
   ) async {
     if (isFetchingCancelReasons.value) return;
     isFetchingCancelReasons.value = true;

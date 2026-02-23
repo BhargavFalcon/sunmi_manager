@@ -1,6 +1,6 @@
 import '../../../main.dart';
 import '../constants/api_constants.dart';
-import '../model/RestaurantDetailsModel.dart';
+import '../model/restaurant_details_model.dart';
 
 class CurrencyFormatter {
   // Get restaurant details from box

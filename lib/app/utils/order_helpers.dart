@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
+import 'package:managerapp/app/model/restaurant_details_model.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import '../../main.dart';

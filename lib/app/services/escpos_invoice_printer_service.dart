@@ -5,20 +5,21 @@ import 'package:dio/dio.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:image/image.dart' as img;
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
-import '../model/getorderModel.dart' as orderModel;
+import '../model/get_order_model.dart' as order_model;
 import '../model/receipt_order_response_model.dart';
+import '../model/kitchen_ticket_model.dart';
 import '../model/wifi_printer_model.dart';
+import 'package:intl/intl.dart';
 import '../services/printer_service.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_time_formatter.dart';
 
 class EscPosInvoicePrinterService {
   static final Dio _dio = Dio();
-  final GetStorage _box = GetStorage();
 
   static const Map<String, String> _currencyFallback = {
     '\u20B9': 'Rs',
@@ -78,8 +79,31 @@ class EscPosInvoicePrinterService {
     return '$plusCode $num';
   }
 
-  PaperSize _getPaperSize() {
-    final width = _box.read(ArgumentConstant.printerWidthKey) ?? '58mm';
+  PaperSize _getPaperSize({bool isKitchen = false}) {
+    final printerService = Get.find<PrinterService>();
+    final storageKey =
+        isKitchen
+            ? ArgumentConstant.kitchenPaperWidthKey
+            : ArgumentConstant.orderPaperWidthKey;
+    String width = box.read(storageKey) ?? '58mm';
+
+    // If Bluetooth is not available, use WiFi printer's paper width
+    if (printerService.connectedDevice == null ||
+        !printerService.isConnected.value) {
+      final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
+      if (wifiJson != null && wifiJson is String) {
+        try {
+          final List<dynamic> decoded = jsonDecode(wifiJson);
+          final printers =
+              decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
+          final printer = printers.firstWhereOrNull((p) => p.isDefault);
+          if (printer != null) {
+            width = printer.paperWidth;
+          }
+        } catch (_) {}
+      }
+    }
+
     switch (width) {
       case '80mm':
         return PaperSize.mm80;
@@ -88,54 +112,52 @@ class EscPosInvoicePrinterService {
     }
   }
 
-  Future<Generator> _getGenerator() async {
+  Future<Generator> _getGenerator({bool isKitchen = false}) async {
     final profile = await CapabilityProfile.load();
-    return Generator(_getPaperSize(), profile);
+    return Generator(_getPaperSize(isKitchen: isKitchen), profile);
   }
 
   Future<void> _sendBytes(List<int> bytes) async {
     final printerService = Get.find<PrinterService>();
 
+    // 1) Try Bluetooth first
     if (printerService.connectedDevice != null) {
-      bool isConnected = printerService.isConnected.value;
-
-      if (isConnected) {
-        isConnected = await PrintBluetoothThermal.connectionStatus;
-      }
-
-      if (!isConnected) {
-        final reconnected = await PrintBluetoothThermal.connect(
-          macPrinterAddress: printerService.connectedDevice!.macAdress,
-        );
-        if (!reconnected) {
-          throw Exception('Failed to reconnect to Bluetooth printer');
-        }
-        printerService.isConnected.value = true;
-      }
-
-      await PrintBluetoothThermal.writeBytes(bytes);
-      return;
-    }
-
-    final wifiJson = _box.read('saved_wifi_printers');
-    if (wifiJson != null && wifiJson is String) {
       try {
-        final List<dynamic> decoded = jsonDecode(wifiJson);
-        final printers =
-            decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
-        final printer = printers.firstWhereOrNull((p) => p.isDefault);
-        if (printer != null) {
-          final socket = await Socket.connect(
-            printer.ipAddress,
-            int.tryParse(printer.port) ?? 9100,
-            timeout: const Duration(seconds: 5),
+        bool isConnected = printerService.isConnected.value;
+        if (isConnected) {
+          isConnected = await PrintBluetoothThermal.connectionStatus;
+        }
+        if (!isConnected) {
+          isConnected = await PrintBluetoothThermal.connect(
+            macPrinterAddress: printerService.connectedDevice!.macAdress,
           );
-          socket.add(bytes);
-          await socket.flush();
-          socket.destroy();
+          printerService.isConnected.value = isConnected;
+        }
+        if (isConnected) {
+          await PrintBluetoothThermal.writeBytes(bytes);
           return;
         }
       } catch (_) {}
+    }
+
+    // 2) Try WiFi fallback
+    final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
+    if (wifiJson != null && wifiJson is String) {
+      final List<dynamic> decoded = jsonDecode(wifiJson);
+      final printers =
+          decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
+      final printer = printers.firstWhereOrNull((p) => p.isDefault);
+      if (printer != null) {
+        final socket = await Socket.connect(
+          printer.ipAddress,
+          int.tryParse(printer.port) ?? 9100,
+          timeout: const Duration(seconds: 5),
+        );
+        socket.add(bytes);
+        await socket.flush();
+        socket.destroy();
+        return;
+      }
     }
 
     throw Exception('No printer connected');
@@ -184,7 +206,7 @@ class EscPosInvoicePrinterService {
     }
   }
 
-  Future<void> printInvoice(orderModel.Data data, {int copies = 1}) async {
+  Future<void> printInvoice(order_model.Data data, {int copies = 1}) async {
     try {
       final restaurant = data.restaurant;
       final branch = data.branch;
@@ -201,10 +223,10 @@ class EscPosInvoicePrinterService {
 
       List<int> item(String qty, String name, String price, String amount) {
         return gen.row([
-          PosColumn(text: qty, width: 1, styles: b),
+          PosColumn(text: qty, width: 2, styles: b),
           PosColumn(text: _escCurrency(name), width: 5, styles: b),
           PosColumn(text: _escCurrency(price), width: 3, styles: r),
-          PosColumn(text: _escCurrency(amount), width: 3, styles: r),
+          PosColumn(text: _escCurrency(amount), width: 2, styles: r),
         ]);
       }
 
@@ -223,7 +245,6 @@ class EscPosInvoicePrinterService {
           final logoImage = await _downloadNetworkImage(logoUrl);
           if (logoImage != null) {
             bytes += gen.image(logoImage, align: PosAlign.center);
-            bytes += gen.feed(1);
           }
         }
 
@@ -257,18 +278,28 @@ class EscPosInvoicePrinterService {
                 ? order.table!.tableCode!
                 : null;
         final pax = order.numberOfPax;
-        if (tableCode != null || (pax != null && pax > 0)) {
-          final tablePart =
-              tableCode != null
-                  ? '${TranslationKeys.tableNo.tr}: $tableCode'
-                  : '';
-          final paxPart =
-              pax != null && pax > 0 ? '${TranslationKeys.pax.tr}: $pax' : '';
-          final line =
-              tablePart.isNotEmpty && paxPart.isNotEmpty
-                  ? '$tablePart  $paxPart'
-                  : (tablePart.isNotEmpty ? tablePart : paxPart);
-          bytes += gen.text(line, styles: b);
+        final hasTable = tableCode != null;
+        final hasPax = pax != null && pax > 0;
+        if (hasTable && hasPax) {
+          bytes += gen.row([
+            PosColumn(
+              text: '${TranslationKeys.tableNo.tr}: $tableCode',
+              width: 6,
+              styles: b,
+            ),
+            PosColumn(
+              text: '${TranslationKeys.pax.tr}: $pax',
+              width: 6,
+              styles: r,
+            ),
+          ]);
+        } else if (hasTable) {
+          bytes += gen.text(
+            '${TranslationKeys.tableNo.tr}: $tableCode',
+            styles: b,
+          );
+        } else if (hasPax) {
+          bytes += gen.text('${TranslationKeys.pax.tr}: $pax', styles: r);
         }
 
         if (order.waiter?.name != null && order.waiter!.name!.isNotEmpty) {
@@ -307,8 +338,8 @@ class EscPosInvoicePrinterService {
 
         bytes += gen.row([
           PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: b),
-          PosColumn(text: TranslationKeys.itemName.tr, width: 4, styles: b),
-          PosColumn(text: TranslationKeys.price.tr, width: 3, styles: r),
+          PosColumn(text: TranslationKeys.itemName.tr, width: 5, styles: b),
+          PosColumn(text: TranslationKeys.price.tr, width: 2, styles: r),
           PosColumn(text: TranslationKeys.amount.tr, width: 3, styles: r),
         ]);
         bytes += gen.hr(ch: '-');
@@ -491,10 +522,10 @@ class EscPosInvoicePrinterService {
 
       List<int> item(String qty, String name, String price, String amount) {
         return gen.row([
-          PosColumn(text: qty, width: 1, styles: b),
+          PosColumn(text: qty, width: 2, styles: b),
           PosColumn(text: _escCurrency(name), width: 5, styles: b),
           PosColumn(text: _escCurrency(price), width: 3, styles: r),
-          PosColumn(text: _escCurrency(amount), width: 3, styles: r),
+          PosColumn(text: _escCurrency(amount), width: 2, styles: r),
         ]);
       }
 
@@ -539,18 +570,28 @@ class EscPosInvoicePrinterService {
                 ? order.table!.tableCode!
                 : null;
         final pax = order.numberOfPax;
-        if (tableCode != null || (pax != null && pax > 0)) {
-          final tablePart =
-              tableCode != null
-                  ? '${TranslationKeys.tableNo.tr}: $tableCode'
-                  : '';
-          final paxPart =
-              pax != null && pax > 0 ? '${TranslationKeys.pax.tr}: $pax' : '';
-          final line =
-              tablePart.isNotEmpty && paxPart.isNotEmpty
-                  ? '$tablePart  $paxPart'
-                  : (tablePart.isNotEmpty ? tablePart : paxPart);
-          bytes += gen.text(line, styles: b);
+        final hasTable = tableCode != null;
+        final hasPax = pax != null && pax > 0;
+        if (hasTable && hasPax) {
+          bytes += gen.row([
+            PosColumn(
+              text: '${TranslationKeys.tableNo.tr}: $tableCode',
+              width: 6,
+              styles: b,
+            ),
+            PosColumn(
+              text: '${TranslationKeys.pax.tr}: $pax',
+              width: 6,
+              styles: r,
+            ),
+          ]);
+        } else if (hasTable) {
+          bytes += gen.text(
+            '${TranslationKeys.tableNo.tr}: $tableCode',
+            styles: b,
+          );
+        } else if (hasPax) {
+          bytes += gen.text('${TranslationKeys.pax.tr}: $pax', styles: r);
         }
 
         if (order.waiter?.name != null && order.waiter!.name!.isNotEmpty) {
@@ -587,9 +628,9 @@ class EscPosInvoicePrinterService {
 
         bytes += gen.row([
           PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: b),
-          PosColumn(text: TranslationKeys.itemName.tr, width: 4, styles: b),
+          PosColumn(text: TranslationKeys.itemName.tr, width: 5, styles: b),
           PosColumn(text: TranslationKeys.price.tr, width: 3, styles: r),
-          PosColumn(text: TranslationKeys.amount.tr, width: 3, styles: r),
+          PosColumn(text: TranslationKeys.amount.tr, width: 2, styles: r),
         ]);
         bytes += gen.hr(ch: '-');
 
@@ -734,6 +775,170 @@ class EscPosInvoicePrinterService {
     }
   }
 
+  Future<void> printKOT(KitchenTicket ticket) async {
+    try {
+      final order = ticket.order;
+      final items = ticket.items;
+
+      final gen = await _getGenerator(isKitchen: true);
+      const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
+      const bb = PosStyles(
+        align: PosAlign.left,
+        fontType: PosFontType.fontB,
+        bold: false,
+      );
+      const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
+      const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+
+      List<int> bytes = [];
+      bytes += [0x1B, 0x74, 19];
+
+      bytes += gen.text(
+        TranslationKeys.kitchenOrderTicket.tr,
+        styles: const PosStyles(
+          align: PosAlign.center,
+          height: PosTextSize.size2,
+          width: PosTextSize.size2,
+          bold: false,
+        ),
+      );
+      bytes += gen.feed(1);
+
+      String orderPart =
+          '${TranslationKeys.order.tr}: ${order?.orderNumber ?? ticket.kotNumber ?? ''}';
+      String tablePart = '';
+      if (order?.table != null) {
+        if (order!.table is Map) {
+          tablePart = order.table['table_code'] ?? order.table['name'] ?? '';
+        } else {
+          tablePart = order.table.toString();
+        }
+      }
+
+      if (tablePart.isNotEmpty) {
+        bytes += gen.row([
+          PosColumn(
+            text: orderPart,
+            width: 7,
+            styles: const PosStyles(
+              align: PosAlign.left,
+              height: PosTextSize.size2,
+              width: PosTextSize.size1,
+              bold: true,
+            ),
+          ),
+          PosColumn(
+            text: '${TranslationKeys.table.tr}: $tablePart',
+            width: 5,
+            styles: const PosStyles(
+              align: PosAlign.right,
+              height: PosTextSize.size2,
+              width: PosTextSize.size1,
+              bold: true,
+            ),
+          ),
+        ]);
+      } else {
+        bytes += gen.text(
+          orderPart,
+          styles: const PosStyles(
+            align: PosAlign.center,
+            height: PosTextSize.size1,
+            width: PosTextSize.size1,
+            bold: false,
+          ),
+        );
+      }
+      bytes += gen.feed(1);
+
+      final dateStr =
+          ticket.createdAt != null
+              ? DateFormat(
+                'dd-MM-yyyy',
+              ).format(DateTime.parse(ticket.createdAt!))
+              : '';
+      final timeStr =
+          ticket.createdAt != null
+              ? DateFormat('hh:mm a').format(DateTime.parse(ticket.createdAt!))
+              : '';
+
+      if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
+        bytes += gen.row([
+          PosColumn(
+            text: '${TranslationKeys.date.tr}: $dateStr',
+            width: 6,
+            styles: b,
+          ),
+          PosColumn(
+            text: '${TranslationKeys.time.tr}: $timeStr',
+            width: 6,
+            styles: r,
+          ),
+        ]);
+      } else if (dateStr.isNotEmpty) {
+        bytes += gen.text('${TranslationKeys.date.tr}: $dateStr', styles: c);
+      } else if (timeStr.isNotEmpty) {
+        bytes += gen.text('${TranslationKeys.time.tr}: $timeStr', styles: c);
+      }
+
+      bytes += gen.feed(2);
+
+      // Header
+      bytes += gen.row([
+        PosColumn(text: 'Item Name', width: 9, styles: bb),
+        PosColumn(text: 'Qty', width: 3, styles: r),
+      ]);
+      bytes += gen.hr(ch: '-');
+
+      if (items != null && items.isNotEmpty) {
+        for (final item in items) {
+          final itemName = item.itemName ?? '';
+          final qty = item.quantity?.toString() ?? '1';
+
+          bytes += gen.row([
+            PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
+            PosColumn(text: qty, width: 3, styles: r),
+          ]);
+
+          if (item.variationName != null && item.variationName!.isNotEmpty) {
+            bytes += gen.text('    (${item.variationName})', styles: b);
+          }
+
+          if (item.modifiers != null && item.modifiers!.isNotEmpty) {
+            for (final mod in item.modifiers!) {
+              bytes += gen.text(
+                _escCurrency('    \u2022 ${mod.name ?? ''}'),
+                styles: b,
+              );
+            }
+          }
+
+          if (item.note != null && item.note!.isNotEmpty) {
+            bytes += gen.text(
+              '    ${TranslationKeys.note.tr}: ${item.note!}',
+              styles: b,
+            );
+          }
+
+          bytes += gen.hr(ch: '-');
+        }
+      }
+
+      final orderNote = ticket.note ?? ticket.order?.note;
+      if (orderNote != null && orderNote.isNotEmpty) {
+        bytes += gen.feed(1);
+        bytes += gen.text('${TranslationKeys.note.tr}: $orderNote', styles: b);
+      }
+
+      bytes += gen.feed(0);
+      bytes += gen.cut();
+
+      await _sendBytes(bytes);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   void _mergeTax(
     Map<String, Map<String, dynamic>> into,
     String name,
@@ -752,8 +957,8 @@ class EscPosInvoicePrinterService {
   }
 
   Map<String, Map<String, dynamic>> _aggregateTaxes(
-    List<orderModel.Items> items,
-    List<orderModel.Taxes>? taxes,
+    List<order_model.Items> items,
+    List<order_model.Taxes>? taxes,
   ) {
     final aggregatedTaxes = <String, Map<String, dynamic>>{};
     if (taxes != null && taxes.isNotEmpty) {

@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
 import '../../main.dart';
-import '../model/getorderModel.dart' as orderModel;
+import '../model/get_order_model.dart' as order_model;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
 import '../utils/printer_helper.dart';
@@ -177,7 +177,7 @@ class PusherService {
     return data['order_number'].toString();
   }
 
-  Future<orderModel.Data?> _fetchOrderOnly(String orderUuid) async {
+  Future<order_model.Data?> _fetchOrderOnly(String orderUuid) async {
     try {
       final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
         ':order_uuid',
@@ -191,7 +191,7 @@ class PusherService {
 
       if (response.data is! Map<String, dynamic>) return null;
 
-      final getOrderModel = orderModel.GetOrderModel.fromJson(
+      final getOrderModel = order_model.GetOrderModel.fromJson(
         response.data as Map<String, dynamic>,
       );
 
@@ -205,7 +205,7 @@ class PusherService {
     }
   }
 
-  Future<orderModel.Data?> _fetchAndPrintInvoice(String orderUuid) async {
+  Future<order_model.Data?> _fetchAndPrintInvoice(String orderUuid) async {
     final data = await _fetchOrderOnly(orderUuid);
     if (data == null) {
       return null;

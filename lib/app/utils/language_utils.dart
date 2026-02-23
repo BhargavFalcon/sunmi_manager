@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../../main.dart';
 import '../constants/api_constants.dart';
-import '../model/RestaurantDetailsModel.dart';
+import '../model/restaurant_details_model.dart';
 
 class LanguageUtils {
   static String getDefaultLanguageFromApi() {

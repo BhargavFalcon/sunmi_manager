@@ -71,7 +71,7 @@ class TranslationKeys {
   static const String priceHeader = 'priceHeader';
   static const String amountHeader = 'amountHeader';
 
-  // Settings Screen
+  // Setting Screen
   static const String setting = 'setting';
   static const String syncMenu = 'syncMenu';
   static const String language = 'language';
@@ -129,6 +129,9 @@ class TranslationKeys {
   static const String inactive = 'inactive';
   static const String paid = 'paid';
   static const String kot = 'kot';
+  static const String note = 'note';
+  static const String date = 'date';
+  static const String time = 'time';
   static const String billed = 'billed';
   static const String canceled = 'canceled';
   static const String paymentDue = 'paymentDue';
@@ -278,6 +281,10 @@ class TranslationKeys {
 
   // Kitchen Tickets Screen
   static const String kitchenTickets = 'kitchenTickets';
+  static const String kitchenOrderTicket = 'kitchenOrderTicket';
+  static const String specialInstructions = 'specialInstructions';
+  static const String addNote = 'addNote';
+  static const String orderNote = 'orderNote';
   static const String foodIsReady = 'foodIsReady';
 
   // Reservation Screen
@@ -336,7 +343,7 @@ class TranslationKeys {
 
   // Main Home Screen
   static const String deliveryPickup = 'deliveryPickup';
-  static const String settings = 'settings';
+  static const String settings = 'setting';
 
   // Printer Screen
   static const String connectedPrinter = 'connectedPrinter';

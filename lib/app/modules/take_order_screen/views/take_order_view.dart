@@ -5,7 +5,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
-import 'package:managerapp/app/model/menuItemsModel.dart';
+import 'package:managerapp/app/model/menu_items_model.dart';
 import 'package:managerapp/app/modules/take_order_screen/controllers/take_order_controller.dart';
 import 'package:managerapp/app/modules/cart_screen/controllers/cart_screen_controller.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';

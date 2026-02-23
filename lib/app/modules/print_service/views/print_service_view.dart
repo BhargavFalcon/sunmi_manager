@@ -379,7 +379,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                   () => Switch(
                     value: controller.openDrawerAfterPrint.value,
                     onChanged: controller.setOpenDrawerAfterPrint,
-                    activeColor: ColorConstants.primaryColor,
+                    activeThumbColor: ColorConstants.primaryColor,
                   ),
                 ),
               ],

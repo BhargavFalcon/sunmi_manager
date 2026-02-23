@@ -255,14 +255,21 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
           body: Column(
             children: [
               _buildAppBar(context),
-              _buildTabHeader(controller),
+              Obx(
+                () =>
+                    controller.isSunmi.value
+                        ? const SizedBox.shrink()
+                        : _buildTabHeader(controller),
+              ),
               Expanded(
-                child: Obx(
-                  () =>
-                      controller.selectedTab.value == 0
-                          ? _buildBluetoothTab(context, controller)
-                          : _buildWifiTab(context, controller),
-                ),
+                child: Obx(() {
+                  if (controller.isSunmi.value) {
+                    return _buildSunmiTab(context, controller);
+                  }
+                  return controller.selectedTab.value == 0
+                      ? _buildBluetoothTab(context, controller)
+                      : _buildWifiTab(context, controller);
+                }),
               ),
             ],
           ),
@@ -377,6 +384,44 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
     );
   }
 
+  // ─── Sunmi Tab ─────────────────────────────────────────────────────
+
+  Widget _buildSunmiTab(
+    BuildContext context,
+    ManagePrinterScreenController controller,
+  ) {
+    return Container(
+      color: const Color(0xFFF5F5F5),
+      child: Column(
+        children: [
+          Expanded(
+            child: _buildEmptyState(
+              icon: Icons.print,
+              title: controller.sunmiDeviceName.value,
+              subtitle:
+                  'This device has a built-in printer. No need to connect an external printer.',
+            ),
+          ),
+          _buildBottomBar(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () => controller.printSunmiTestReceipt(),
+                    icon: const Icon(Icons.print),
+                    label: const Text('Sunmi Test Print'),
+                    style: _filledButtonStyle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── Bluetooth Tab ─────────────────────────────────────────────────
 
   Widget _buildBluetoothTab(
@@ -387,7 +432,7 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
       if (!controller.isBluetoothEnabled.value) {
         return Container(
           width: double.infinity,
-          color: const Color(0xFFEAF4FA),
+          color: const Color(0xFFF5F5F5),
           child: _buildEmptyState(
             icon: Icons.bluetooth_disabled,
             title: 'Bluetooth not enabled',
@@ -398,7 +443,7 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
       }
 
       return Container(
-        color: const Color(0xFFF8F9FA),
+        color: const Color(0xFFF5F5F5),
         child: Column(
           children: [
             Expanded(
@@ -433,47 +478,50 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
                   itemCount: controller.availableDevices.length,
                   itemBuilder: (context, index) {
                     final device = controller.availableDevices[index];
-                    final isConnectedDevice =
-                        controller.connectedDevice.value?.macAdress ==
-                        device.macAdress;
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: _cardDecoration,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  device.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                    color: Colors.black,
+                    return Obx(() {
+                      final isConnectedDevice =
+                          controller.connectedDevice.value?.macAdress ==
+                          device.macAdress;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: _cardDecoration,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    device.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  device.macAdress,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[400],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    device.macAdress,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[400],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          _buildBluetoothDeviceAction(
-                            controller,
-                            device,
-                            isConnectedDevice,
-                          ),
-                        ],
-                      ),
-                    );
+                            _buildBluetoothDeviceAction(
+                              controller,
+                              device,
+                              isConnectedDevice,
+                            ),
+                          ],
+                        ),
+                      );
+                    });
                   },
                 );
               }),
@@ -712,6 +760,38 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
                   controller: controller.portController,
                   placeholder: 'Port',
                   keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                Obx(
+                  () => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: controller.wifiPaperWidth.value,
+                        items:
+                            ['58mm', '80mm']
+                                .map(
+                                  (w) => DropdownMenuItem(
+                                    value: w,
+                                    child: Text('Paper Width: $w'),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) {
+                          if (v != null) controller.wifiPaperWidth.value = v;
+                        },
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(

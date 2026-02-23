@@ -512,7 +512,7 @@ class InventoryDashboardView extends GetView<InventoryDashboardController> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: ColorConstants.successGreen
-                                                .withOpacity(0.2),
+                                                .withValues(alpha: 0.2),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),

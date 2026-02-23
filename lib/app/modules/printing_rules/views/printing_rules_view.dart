@@ -99,7 +99,7 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                           (value) =>
                                               controller
                                                   .toggleAutoPrintKitchen(),
-                                      activeColor: ColorConstants.primaryColor,
+                                      activeThumbColor: ColorConstants.primaryColor,
                                     );
                                   }),
                                 ],
@@ -191,6 +191,60 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                   ),
                                 ],
                               ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    TranslationKeys.printerWidth.tr,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Obx(() {
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value:
+                                              controller
+                                                  .kitchenPaperWidth
+                                                  .value,
+                                          items:
+                                              ['58mm', '80mm']
+                                                  .map(
+                                                    (w) => DropdownMenuItem(
+                                                      value: w,
+                                                      child: Text(w),
+                                                    ),
+                                                  )
+                                                  .toList(),
+                                          onChanged: (v) {
+                                            if (v != null) {
+                                              controller
+                                                  .kitchenPaperWidth
+                                                  .value = v;
+                                              controller.saveSettings();
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
                               SizedBox(height: 20),
 
                               // --- Receipt: Auto print when order is paid ---
@@ -219,7 +273,7 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                           (value) =>
                                               controller
                                                   .toggleAutoPrintReceiptWhenPaid(),
-                                      activeColor: ColorConstants.primaryColor,
+                                      activeThumbColor: ColorConstants.primaryColor,
                                     );
                                   }),
                                 ],
@@ -313,6 +367,57 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
                                   ),
                                 ],
                               ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    TranslationKeys.printerWidth.tr,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Obx(() {
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value:
+                                              controller.orderPaperWidth.value,
+                                          items:
+                                              ['58mm', '80mm']
+                                                  .map(
+                                                    (w) => DropdownMenuItem(
+                                                      value: w,
+                                                      child: Text(w),
+                                                    ),
+                                                  )
+                                                  .toList(),
+                                          onChanged: (v) {
+                                            if (v != null) {
+                                              controller.orderPaperWidth.value =
+                                                  v;
+                                              controller.saveSettings();
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -324,6 +429,39 @@ class PrintingRulesView extends GetWidget<PrintingRulesController> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          onPressed: () => controller.saveSettings(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ColorConstants.primaryColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+          ),
+          child: Text(
+            TranslationKeys.save.tr.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
       ),
     );
   }

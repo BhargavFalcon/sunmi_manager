@@ -49,8 +49,8 @@ class TableScreenView extends GetWidget<TableScreenController> {
                         if (controller.isLoading.value) {
                           return SizedBox.shrink();
                         }
-                        if (controller.tableModel.value?.data == null ||
-                            controller.tableModel.value!.data!.isEmpty) {
+                        if (controller.table_model.value?.data == null ||
+                            controller.table_model.value!.data!.isEmpty) {
                           return SizedBox.shrink();
                         }
                         return Container(
@@ -60,7 +60,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                           ),
                           child: Row(
                             children: [
-                              ...controller.tableModel.value!.data!
+                              ...controller.table_model.value!.data!
                                   .asMap()
                                   .entries
                                   .map((entry) {
@@ -224,14 +224,14 @@ class TableScreenView extends GetWidget<TableScreenController> {
                           return SizedBox.shrink();
                         }
                         final selectedArea =
-                            controller.tableModel.value?.data != null &&
+                            controller.table_model.value?.data != null &&
                                     controller.selectedAreaIndex.value <
                                         controller
-                                            .tableModel
+                                            .table_model
                                             .value!
                                             .data!
                                             .length
-                                ? controller.tableModel.value!.data![controller
+                                ? controller.table_model.value!.data![controller
                                     .selectedAreaIndex
                                     .value]
                                 : null;
@@ -430,8 +430,9 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                                   4,
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              color: Colors.black.withOpacity(
-                                                                                0.7,
+                                                                              color: Colors.black.withValues(
+                                                                                alpha:
+                                                                                    0.7,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(
                                                                                 16,
@@ -518,8 +519,9 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                                                                 4,
                                                                           ),
                                                                           decoration: BoxDecoration(
-                                                                            color: Colors.black.withOpacity(
-                                                                              0.7,
+                                                                            color: Colors.black.withValues(
+                                                                              alpha:
+                                                                                  0.7,
                                                                             ),
                                                                             borderRadius: BorderRadius.circular(
                                                                               16,
@@ -574,7 +576,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                 ),
                 if (controller.isNavigatingToOrder.value)
                   Container(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     child: Center(
                       child: Container(
                         padding: EdgeInsets.all(20),
@@ -583,7 +585,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),

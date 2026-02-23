@@ -1,49 +1,88 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:managerapp/main.dart';
 import '../constants/api_constants.dart';
 
-class PrinterService extends GetxService {
-  final box = GetStorage();
+class PrinterService extends GetxService with WidgetsBindingObserver {
+  static const _maxRetries = 3;
+
   final isConnected = false.obs;
   BluetoothInfo? connectedDevice;
+  bool _isConnecting = false;
 
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     _loadSavedPrinter();
-    _checkConnection();
+    _connectWithRetry();
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _connectWithRetry();
+    }
+  }
+
+  /// Attempts to connect to saved printer with retries.
+  Future<void> _connectWithRetry() async {
+    if (connectedDevice == null) return;
+    await Future.delayed(const Duration(seconds: 1));
+    for (int i = 0; i < _maxRetries; i++) {
+      await checkConnection();
+      if (isConnected.value) return;
+      await Future.delayed(Duration(seconds: 2 * (i + 1)));
+    }
   }
 
   void _loadSavedPrinter() {
     try {
-      final savedDeviceJson = box.read(ArgumentConstant.savedPrinterDeviceKey);
-      if (savedDeviceJson != null && savedDeviceJson is Map) {
-        final macAddress = savedDeviceJson['macAddress'] as String?;
-        final name = savedDeviceJson['name'] as String?;
-        if (macAddress != null && name != null) {
-          connectedDevice = BluetoothInfo(name: name, macAdress: macAddress);
-          isConnected.value = true;
+      final saved = box.read(ArgumentConstant.savedPrinterDeviceKey);
+      if (saved is Map) {
+        final mac = saved['macAddress'] as String?;
+        final name = saved['name'] as String?;
+        if (mac != null && name != null) {
+          connectedDevice = BluetoothInfo(name: name, macAdress: mac);
         }
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 
-  Future<void> _checkConnection() async {
+  Future<void> checkConnection() async {
+    if (_isConnecting || connectedDevice == null) {
+      if (connectedDevice == null) isConnected.value = false;
+      return;
+    }
+    _isConnecting = true;
     try {
-      if (connectedDevice != null) {
-        final isPaired = await PrintBluetoothThermal.connectionStatus;
-        if (!isPaired) {
-          final result = await PrintBluetoothThermal.connect(
-            macPrinterAddress: connectedDevice!.macAdress,
-          );
-          isConnected.value = result;
-        } else {
-          isConnected.value = true;
-        }
+      final enabled = await PrintBluetoothThermal.bluetoothEnabled;
+      if (enabled != true) {
+        isConnected.value = false;
+        return;
       }
-    } catch (e) {
+      // Wake up BT cache (crucial for iOS)
+      await PrintBluetoothThermal.pairedBluetooths;
+
+      final connected = await PrintBluetoothThermal.connectionStatus;
+      if (connected) {
+        isConnected.value = true;
+      } else {
+        isConnected.value = await PrintBluetoothThermal.connect(
+          macPrinterAddress: connectedDevice!.macAdress,
+        );
+      }
+    } catch (_) {
       isConnected.value = false;
+    } finally {
+      _isConnecting = false;
     }
   }
 

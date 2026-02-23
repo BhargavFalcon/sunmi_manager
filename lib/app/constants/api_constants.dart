@@ -42,6 +42,7 @@ class ArgumentConstant {
       "api/v1/pos/reservations/check-availability";
   static const reservationStatusEndpoint =
       "api/v1/pos/reservations/:reservation_id/status";
+  static const kotsEndpoint = "api/v1/pos/kots";
   static const orderKey = "order";
   static const sourceScreenKey = "source_screen";
   static const hideTableSectionKey = "hide_table_section";
@@ -60,7 +61,10 @@ class ArgumentConstant {
   static const printerReceiptNumberOfCopiesKey =
       "printer_receipt_number_of_copies";
   static const printerWidthKey = "printer_width";
+  static const kitchenPaperWidthKey = "kitchen_paper_width";
+  static const orderPaperWidthKey = "order_paper_width";
   static const savedPrinterDeviceKey = "saved_printer_device";
+  static const savedWifiPrintersKey = "saved_wifi_printers";
 
   // App Settings Keys
   static const hapticFeedbackKey = "haptic_feedback_enabled";

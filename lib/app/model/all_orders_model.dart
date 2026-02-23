@@ -6,12 +6,12 @@ class AllOrdersModel {
 
   AllOrdersModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -29,22 +29,22 @@ class Data {
     if (json['orders'] != null) {
       orders = <Orders>[];
       json['orders'].forEach((v) {
-        orders!.add(new Orders.fromJson(v));
+        orders!.add(Orders.fromJson(v));
       });
     }
     pagination =
         json['pagination'] != null
-            ? new Pagination.fromJson(json['pagination'])
+            ? Pagination.fromJson(json['pagination'])
             : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.orders != null) {
-      data['orders'] = this.orders!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (orders != null) {
+      data['orders'] = orders!.map((v) => v.toJson()).toList();
     }
-    if (this.pagination != null) {
-      data['pagination'] = this.pagination!.toJson();
+    if (pagination != null) {
+      data['pagination'] = pagination!.toJson();
     }
     return data;
   }
@@ -100,7 +100,7 @@ class Orders {
     formattedDateTime = json['formatted_date_time'];
     customer =
         json['customer'] != null
-            ? new Customer.fromJson(
+            ? Customer.fromJson(
               json['customer'] is Map
                   ? json['customer'] as Map<String, dynamic>
                   : (json['customer'] is List && json['customer'].isNotEmpty
@@ -110,7 +110,7 @@ class Orders {
             : null;
     table =
         json['table'] != null
-            ? new Table.fromJson(
+            ? Table.fromJson(
               json['table'] is Map
                   ? json['table'] as Map<String, dynamic>
                   : (json['table'] is List && json['table'].isNotEmpty
@@ -120,7 +120,7 @@ class Orders {
             : null;
     waiter =
         json['waiter'] != null
-            ? new Customer.fromJson(
+            ? Customer.fromJson(
               json['waiter'] is Map
                   ? json['waiter'] as Map<String, dynamic>
                   : (json['waiter'] is List && json['waiter'].isNotEmpty
@@ -134,7 +134,7 @@ class Orders {
     currencyId = json['currency_id'];
     coupon =
         json['coupon'] != null
-            ? new Coupon.fromJson(
+            ? Coupon.fromJson(
               json['coupon'] is Map
                   ? json['coupon'] as Map<String, dynamic>
                   : (json['coupon'] is List && json['coupon'].isNotEmpty
@@ -146,32 +146,32 @@ class Orders {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['uuid'] = this.uuid;
-    data['order_number'] = this.orderNumber;
-    data['formatted_order_number'] = this.formattedOrderNumber;
-    data['order_type'] = this.orderType;
-    data['status'] = this.status;
-    data['date_time'] = this.dateTime;
-    data['formatted_date_time'] = this.formattedDateTime;
-    if (this.customer != null) {
-      data['customer'] = this.customer!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['uuid'] = uuid;
+    data['order_number'] = orderNumber;
+    data['formatted_order_number'] = formattedOrderNumber;
+    data['order_type'] = orderType;
+    data['status'] = status;
+    data['date_time'] = dateTime;
+    data['formatted_date_time'] = formattedDateTime;
+    if (customer != null) {
+      data['customer'] = customer!.toJson();
     }
-    if (this.table != null) {
-      data['table'] = this.table!.toJson();
+    if (table != null) {
+      data['table'] = table!.toJson();
     }
-    if (this.waiter != null) {
-      data['waiter'] = this.waiter!.toJson();
+    if (waiter != null) {
+      data['waiter'] = waiter!.toJson();
     }
-    data['items_count'] = this.itemsCount;
-    data['total'] = this.total;
-    data['formatted_total'] = this.formattedTotal;
-    data['currency_id'] = this.currencyId;
-    if (this.coupon != null) {
-      data['coupon'] = this.coupon!.toJson();
+    data['items_count'] = itemsCount;
+    data['total'] = total;
+    data['formatted_total'] = formattedTotal;
+    data['currency_id'] = currencyId;
+    if (coupon != null) {
+      data['coupon'] = coupon!.toJson();
     }
-    data['placed_via'] = this.placedVia;
+    data['placed_via'] = placedVia;
     return data;
   }
 }
@@ -188,9 +188,9 @@ class Customer {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }
@@ -207,9 +207,9 @@ class Table {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['table_code'] = this.tableCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['table_code'] = tableCode;
     return data;
   }
 }
@@ -226,9 +226,9 @@ class Coupon {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['code'] = this.code;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['code'] = code;
     return data;
   }
 }
@@ -249,11 +249,11 @@ class Pagination {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['current_page'] = this.currentPage;
-    data['last_page'] = this.lastPage;
-    data['per_page'] = this.perPage;
-    data['total'] = this.total;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['current_page'] = currentPage;
+    data['last_page'] = lastPage;
+    data['per_page'] = perPage;
+    data['total'] = total;
     return data;
   }
 }

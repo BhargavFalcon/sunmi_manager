@@ -153,7 +153,7 @@ class OrderDetailWidgets {
   }
 
   /// Builds the order items table widget.
-  /// Uses dynamic to work with both orderModel.Data and orderDetailsModel.Data.
+  /// Uses dynamic to work with both order_model.Data and order_details_model.Data.
   static Widget buildOrderItemsTable(
     dynamic orderData, {
     double fontSize = 13,
@@ -285,7 +285,7 @@ class OrderDetailWidgets {
   }
 
   /// Builds the price summary widget.
-  /// Uses dynamic to work with both orderModel.Data and orderDetailsModel.Data.
+  /// Uses dynamic to work with both order_model.Data and order_details_model.Data.
   static Widget buildPriceSummary(
     dynamic orderData, {
     double fontSize = 13,
@@ -441,7 +441,7 @@ class OrderDetailWidgets {
   }
 
   /// Builds the customer details card.
-  /// Uses dynamic to work with both orderModel.Customer and orderDetailsModel.Customer.
+  /// Uses dynamic to work with both order_model.Customer and order_details_model.Customer.
   static Widget buildCustomerDetails(
     dynamic customer, {
     double fontSize = 13,
@@ -507,7 +507,7 @@ class OrderDetailWidgets {
   }
 
   /// Builds the waiter details card: icon + waiter name only.
-  /// Uses dynamic to work with both orderModel.Waiter and orderDetailsModel.Waiter.
+  /// Uses dynamic to work with both order_model.Waiter and order_details_model.Waiter.
   static Widget buildWaiterDetails(
     dynamic waiter, {
     double fontSize = 13,
@@ -560,7 +560,7 @@ class OrderDetailWidgets {
   }
 
   /// Builds the order time info widget.
-  /// Uses dynamic to work with both orderModel.Order and orderDetailsModel.Order.
+  /// Uses dynamic to work with both order_model.Order and order_details_model.Order.
   /// [dateFormatter] allows different formatters to be used.
   static Widget buildOrderTimeInfo(
     dynamic orderDetails, {

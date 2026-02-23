@@ -72,8 +72,8 @@ class NetworkConnectivityService extends GetxService {
     _isDialogShowing = true;
 
     Get.dialog(
-      WillPopScope(
-        onWillPop: () async => false,
+      PopScope(
+        canPop: false,
         child: Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(

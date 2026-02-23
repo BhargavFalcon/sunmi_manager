@@ -2,13 +2,17 @@ import 'package:get/get.dart';
 import 'package:managerapp/main.dart';
 
 import '../../../constants/api_constants.dart';
+import '../../../widgets/app_toast.dart';
+import '../../../constants/translation_keys.dart';
 
 class PrintingRulesController extends GetxController {
   final isLoading = false.obs;
   final autoPrintKitchen = true.obs;
   final kitchenNumberOfCopies = 1.obs;
+  final kitchenPaperWidth = '58mm'.obs;
   final autoPrintReceiptWhenPaid = true.obs;
   final receiptNumberOfCopies = 1.obs;
+  final orderPaperWidth = '58mm'.obs;
 
   @override
   void onInit() {
@@ -22,20 +26,25 @@ class PrintingRulesController extends GetxController {
           box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
       kitchenNumberOfCopies.value =
           box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+      kitchenPaperWidth.value =
+          box.read(ArgumentConstant.kitchenPaperWidthKey) ?? '58mm';
       autoPrintReceiptWhenPaid.value =
           box.read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ?? true;
       receiptNumberOfCopies.value =
           box.read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ?? 1;
+      orderPaperWidth.value =
+          box.read(ArgumentConstant.orderPaperWidthKey) ?? '58mm';
     } catch (e) {}
   }
 
-  void saveSettings() {
+  void saveSettings({bool showToast = true}) {
     try {
       box.write(ArgumentConstant.printerAutoPrintKey, autoPrintKitchen.value);
       box.write(
         ArgumentConstant.printerNumberOfCopiesKey,
         kitchenNumberOfCopies.value,
       );
+      box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenPaperWidth.value);
       box.write(
         ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
         autoPrintReceiptWhenPaid.value,
@@ -44,12 +53,16 @@ class PrintingRulesController extends GetxController {
         ArgumentConstant.printerReceiptNumberOfCopiesKey,
         receiptNumberOfCopies.value,
       );
+      box.write(ArgumentConstant.orderPaperWidthKey, orderPaperWidth.value);
+      if (showToast) {
+        AppToast.showSuccess(TranslationKeys.success.tr);
+      }
     } catch (e) {}
   }
 
   void toggleAutoPrintKitchen() {
     autoPrintKitchen.value = !autoPrintKitchen.value;
-    saveSettings();
+    saveSettings(showToast: false);
   }
 
   void incrementKitchenCopies() {
@@ -68,7 +81,7 @@ class PrintingRulesController extends GetxController {
 
   void toggleAutoPrintReceiptWhenPaid() {
     autoPrintReceiptWhenPaid.value = !autoPrintReceiptWhenPaid.value;
-    saveSettings();
+    saveSettings(showToast: false);
   }
 
   void incrementReceiptCopies() {

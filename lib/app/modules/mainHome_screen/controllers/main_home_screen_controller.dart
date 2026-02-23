@@ -11,9 +11,10 @@ import '../../../constants/api_constants.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
-import '../../../model/LoginModels.dart';
-import '../../../model/MobileAppModulesModel.dart';
-import '../../../model/RestaurantDetailsModel.dart';
+import '../../../model/login_models.dart';
+import '../../../model/mobile_app_modules_model.dart';
+import '../../../model/restaurant_details_model.dart';
+import '../../../services/printer_service.dart';
 
 class MainHomeScreenController extends GetxController {
   final selectedIndex = 0.obs;
@@ -27,6 +28,15 @@ class MainHomeScreenController extends GetxController {
     _fetchRestaurantDetails();
     _subscribeToPusher();
     _fetchMobileAppModules();
+
+    // Ensure printer auto-connection is triggered
+    Future.delayed(const Duration(seconds: 3), () {
+      try {
+        if (Get.isRegistered<PrinterService>()) {
+          Get.find<PrinterService>().checkConnection();
+        }
+      } catch (_) {}
+    });
   }
 
   Future<void> _subscribeToPusher() async {

@@ -1,52 +1,26 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import '../../../../main.dart';
-import '../../../model/MobileAppModulesModel.dart';
-
-class KitchenTicketItemModifier {
-  final String name;
-
-  KitchenTicketItemModifier({required this.name});
-}
-
-class KitchenTicketItem {
-  final String no;
-  final String itemName;
-  final List<KitchenTicketItemModifier> modifiers;
-
-  KitchenTicketItem({
-    required this.no,
-    required this.itemName,
-    this.modifiers = const [],
-  });
-}
-
-class KitchenTicketDummy {
-  final String orderId;
-  final String time;
-  final String orderType; // 'dine_in', 'delivery', 'pickup'
-  final String? tableCode; // for dine-in
-  final List<KitchenTicketItem> items;
-  final bool isFoodReady;
-
-  KitchenTicketDummy({
-    required this.orderId,
-    required this.time,
-    required this.orderType,
-    this.tableCode,
-    required this.items,
-    this.isFoodReady = false,
-  });
-}
+import '../../../data/NetworkClient.dart';
+import '../../../model/mobile_app_modules_model.dart';
+import '../../../model/kitchen_ticket_model.dart';
+import '../../../utils/printer_helper.dart';
+import '../../../services/sunmi_invoice_printer_service.dart';
+import '../../../services/escpos_invoice_printer_service.dart';
+import 'package:intl/intl.dart';
 
 class KitchenTicketsScreenController extends GetxController {
-  final tickets = <KitchenTicketDummy>[].obs;
-  final showAccessDialog = false.obs;
+  NetworkClient networkClient = NetworkClient();
+  RxList<KitchenTicket> tickets = <KitchenTicket>[].obs;
+  RxBool isLoading = false.obs;
+  RxBool showAccessDialog = false.obs;
+  RxInt selectedTabIndex = 0.obs; // 0: In Kitchen, 1: Food is Ready
 
   @override
   void onInit() {
     super.onInit();
-    _loadDummyData();
+    fetchKitchenTickets();
   }
 
   @override
@@ -57,6 +31,27 @@ class KitchenTicketsScreenController extends GetxController {
       _checkAndShowDialog();
     });
   }
+
+  void updateTabIndex(int index) {
+    selectedTabIndex.value = index;
+  }
+
+  List<KitchenTicket> get inKitchenTickets =>
+      tickets.where((t) => t.status == 'in_kitchen').toList();
+
+  List<KitchenTicket> get foodIsReadyTickets =>
+      tickets.where((t) => t.status == 'food_ready').toList();
+
+  List<KitchenTicket> get filteredTickets {
+    if (selectedTabIndex.value == 0) {
+      return inKitchenTickets;
+    } else {
+      return foodIsReadyTickets;
+    }
+  }
+
+  int get inKitchenCount => inKitchenTickets.length;
+  int get foodIsReadyCount => foodIsReadyTickets.length;
 
   void _checkAndShowDialog() {
     try {
@@ -77,72 +72,64 @@ class KitchenTicketsScreenController extends GetxController {
     }
   }
 
-  void _loadDummyData() {
-    tickets.assignAll([
-      KitchenTicketDummy(
-        orderId: '631',
-        time: '09:14 AM',
-        orderType: 'dine_in',
-        tableCode: 'T5',
-        items: [
-          KitchenTicketItem(
-            no: 'N31',
-            itemName: 'The Legend',
-            modifiers: [KitchenTicketItemModifier(name: 'Fries & Red Bull')],
-          ),
-          KitchenTicketItem(no: 'N32', itemName: 'Caesar Salad'),
-        ],
-        isFoodReady: true,
-      ),
-      KitchenTicketDummy(
-        orderId: '632',
-        time: '09:22 AM',
-        orderType: 'delivery',
-        tableCode: null,
-        items: [
-          KitchenTicketItem(no: 'N41', itemName: 'Burger'),
-          KitchenTicketItem(no: 'N42', itemName: 'Fries'),
-        ],
-        isFoodReady: false,
-      ),
-      KitchenTicketDummy(
-        orderId: '633',
-        time: '09:30 AM',
-        orderType: 'pickup',
-        tableCode: null,
-        items: [KitchenTicketItem(no: 'N51', itemName: 'Chicken Wrap')],
-        isFoodReady: false,
-      ),
-      KitchenTicketDummy(
-        orderId: '634',
-        time: '09:45 AM',
-        orderType: 'dine_in',
-        tableCode: 'T12',
-        items: [
-          KitchenTicketItem(no: 'N61', itemName: 'Pasta'),
-          KitchenTicketItem(no: 'N62', itemName: 'Soup'),
-        ],
-        isFoodReady: true,
-      ),
-    ]);
+  Future<void> fetchKitchenTickets() async {
+    try {
+      isLoading.value = true;
+      final response = await networkClient.get(ArgumentConstant.kotsEndpoint);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = response.data;
+        if (responseData is String) {
+          try {
+            responseData = jsonDecode(responseData);
+          } catch (_) {}
+        }
+        if (responseData != null && responseData is Map<String, dynamic>) {
+          final model = KitchenTicketResponse.fromJson(responseData);
+          if (model.success == true && model.data != null) {
+            tickets.assignAll(model.data!);
+            isLoading.value = false;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching kitchen tickets: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void onPrint(KitchenTicketDummy ticket) {
-    // TODO: implement print
+  Future<void> onRefresh() async {
+    fetchKitchenTickets();
   }
 
-  void onFoodReady(KitchenTicketDummy ticket) {
-    final idx = tickets.indexOf(ticket);
-    if (idx >= 0) {
-      tickets[idx] = KitchenTicketDummy(
-        orderId: ticket.orderId,
-        time: ticket.time,
-        orderType: ticket.orderType,
-        tableCode: ticket.tableCode,
-        items: ticket.items,
-        isFoodReady: !ticket.isFoodReady,
+  Future<void> onPrint(KitchenTicket ticket) async {
+    try {
+      final isSunmi = await PrinterHelper.isSunmiDevice();
+      if (isSunmi) {
+        final sunmiService = SunmiInvoicePrinterService();
+        await sunmiService.printKOT(ticket);
+      } else {
+        final escPosService = EscPosInvoicePrinterService();
+        await escPosService.printKOT(ticket);
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Print Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
       );
-      tickets.refresh();
+    }
+  }
+
+  void onFoodReady(KitchenTicket ticket) {}
+
+  String formatTime(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(dateTimeString).toLocal();
+      return DateFormat('hh:mm a').format(dt);
+    } catch (_) {
+      return '';
     }
   }
 }

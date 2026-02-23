@@ -7,17 +7,17 @@ class LoginModel {
 
   LoginModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
     message = json['message'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
-    data['message'] = this.message;
+    data['message'] = message;
     return data;
   }
 }
@@ -31,27 +31,27 @@ class Data {
   Data({this.user, this.token, this.defaultBranchId, this.availableBranches});
 
   Data.fromJson(Map<String, dynamic> json) {
-    user = json['user'] != null ? new User.fromJson(json['user']) : null;
+    user = json['user'] != null ? User.fromJson(json['user']) : null;
     token = json['token'];
     defaultBranchId = json['default_branch_id'];
     if (json['available_branches'] != null) {
       availableBranches = <AvailableBranches>[];
       json['available_branches'].forEach((v) {
-        availableBranches!.add(new AvailableBranches.fromJson(v));
+        availableBranches!.add(AvailableBranches.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.user != null) {
-      data['user'] = this.user!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (user != null) {
+      data['user'] = user!.toJson();
     }
-    data['token'] = this.token;
-    data['default_branch_id'] = this.defaultBranchId;
-    if (this.availableBranches != null) {
+    data['token'] = token;
+    data['default_branch_id'] = defaultBranchId;
+    if (availableBranches != null) {
       data['available_branches'] =
-          this.availableBranches!.map((v) => v.toJson()).toList();
+          availableBranches!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -84,24 +84,24 @@ class User {
     branchId = json['branch_id'];
     restaurant =
         json['restaurant'] != null
-            ? new Restaurant.fromJson(json['restaurant'])
+            ? Restaurant.fromJson(json['restaurant'])
             : null;
     branch =
-        json['branch'] != null ? new Restaurant.fromJson(json['branch']) : null;
+        json['branch'] != null ? Restaurant.fromJson(json['branch']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['email'] = this.email;
-    data['restaurant_id'] = this.restaurantId;
-    data['branch_id'] = this.branchId;
-    if (this.restaurant != null) {
-      data['restaurant'] = this.restaurant!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['email'] = email;
+    data['restaurant_id'] = restaurantId;
+    data['branch_id'] = branchId;
+    if (restaurant != null) {
+      data['restaurant'] = restaurant!.toJson();
     }
-    if (this.branch != null) {
-      data['branch'] = this.branch!.toJson();
+    if (branch != null) {
+      data['branch'] = branch!.toJson();
     }
     return data;
   }
@@ -119,9 +119,9 @@ class Restaurant {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }
@@ -162,16 +162,16 @@ class AvailableBranches {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['address'] = this.address;
-    data['lat'] = this.lat;
-    data['lng'] = this.lng;
-    data['restaurant_id'] = this.restaurantId;
-    data['parent_restaurant_id'] = this.parentRestaurantId;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['address'] = address;
+    data['lat'] = lat;
+    data['lng'] = lng;
+    data['restaurant_id'] = restaurantId;
+    data['parent_restaurant_id'] = parentRestaurantId;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
     return data;
   }
 }

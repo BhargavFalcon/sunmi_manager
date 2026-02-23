@@ -6,12 +6,12 @@ class RestaurantModel {
 
   RestaurantModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -34,18 +34,18 @@ class Data {
     if (json['branches'] != null) {
       branches = <Branches>[];
       json['branches'].forEach((v) {
-        branches!.add(new Branches.fromJson(v));
+        branches!.add(Branches.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['hash'] = this.hash;
-    if (this.branches != null) {
-      data['branches'] = this.branches!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['hash'] = hash;
+    if (branches != null) {
+      data['branches'] = branches!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -106,51 +106,51 @@ class Branches {
     defaultLanguage = json['default_language'];
     language =
         json['language'] != null
-            ? new Language.fromJson(json['language'])
+            ? Language.fromJson(json['language'])
             : null;
     currency =
         json['currency'] != null
-            ? new Currency.fromJson(json['currency'])
+            ? Currency.fromJson(json['currency'])
             : null;
     if (json['additional_charges'] != null) {
       additionalCharges = <AdditionalCharges>[];
       json['additional_charges'].forEach((v) {
-        additionalCharges!.add(new AdditionalCharges.fromJson(v));
+        additionalCharges!.add(AdditionalCharges.fromJson(v));
       });
     }
     paymentGateways =
         json['payment_gateways'] != null
-            ? new PaymentGateways.fromJson(json['payment_gateways'])
+            ? PaymentGateways.fromJson(json['payment_gateways'])
             : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['restaurant_id'] = this.restaurantId;
-    data['name'] = this.name;
-    data['logo'] = this.logo;
-    data['menu_placeholder_image'] = this.menuPlaceholderImage;
-    data['theme_hex'] = this.themeHex;
-    data['theme_rgb'] = this.themeRgb;
-    data['currency_position'] = this.currencyPosition;
-    data['thousand_separator'] = this.thousandSeparator;
-    data['decimal_separator'] = this.decimalSeparator;
-    data['no_of_decimal'] = this.noOfDecimal;
-    data['taxes_included'] = this.taxesIncluded;
-    data['default_language'] = this.defaultLanguage;
-    if (this.language != null) {
-      data['language'] = this.language!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['restaurant_id'] = restaurantId;
+    data['name'] = name;
+    data['logo'] = logo;
+    data['menu_placeholder_image'] = menuPlaceholderImage;
+    data['theme_hex'] = themeHex;
+    data['theme_rgb'] = themeRgb;
+    data['currency_position'] = currencyPosition;
+    data['thousand_separator'] = thousandSeparator;
+    data['decimal_separator'] = decimalSeparator;
+    data['no_of_decimal'] = noOfDecimal;
+    data['taxes_included'] = taxesIncluded;
+    data['default_language'] = defaultLanguage;
+    if (language != null) {
+      data['language'] = language!.toJson();
     }
-    if (this.currency != null) {
-      data['currency'] = this.currency!.toJson();
+    if (currency != null) {
+      data['currency'] = currency!.toJson();
     }
-    if (this.additionalCharges != null) {
+    if (additionalCharges != null) {
       data['additional_charges'] =
-          this.additionalCharges!.map((v) => v.toJson()).toList();
+          additionalCharges!.map((v) => v.toJson()).toList();
     }
-    if (this.paymentGateways != null) {
-      data['payment_gateways'] = this.paymentGateways!.toJson();
+    if (paymentGateways != null) {
+      data['payment_gateways'] = paymentGateways!.toJson();
     }
     return data;
   }
@@ -180,12 +180,12 @@ class Language {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['language_code'] = this.languageCode;
-    data['language_name'] = this.languageName;
-    data['active'] = this.active;
-    data['flag_url'] = this.flagUrl;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['language_code'] = languageCode;
+    data['language_name'] = languageName;
+    data['active'] = active;
+    data['flag_url'] = flagUrl;
     return data;
   }
 }
@@ -208,12 +208,12 @@ class Currency {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['currency'] = this.currency;
-    data['code'] = this.code;
-    data['iso_code'] = this.isoCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['currency'] = currency;
+    data['code'] = code;
+    data['iso_code'] = isoCode;
     return data;
   }
 }
@@ -245,13 +245,13 @@ class AdditionalCharges {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['type'] = this.type;
-    data['rate'] = this.rate;
-    data['is_enabled'] = this.isEnabled;
-    data['order_types'] = this.orderTypes;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['type'] = type;
+    data['rate'] = rate;
+    data['is_enabled'] = isEnabled;
+    data['order_types'] = orderTypes;
     return data;
   }
 }
@@ -267,7 +267,7 @@ class PaymentGateways {
   int? isQrPaymentEnabled;
   int? isOfflinePaymentEnabled;
   String? offlinePaymentDetail;
-  Null? qrCodeImage;
+  Null qrCodeImage;
 
   PaymentGateways({
     this.id,
@@ -298,18 +298,18 @@ class PaymentGateways {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['restaurant_id'] = this.restaurantId;
-    data['is_delivery_payment_enabled'] = this.isDeliveryPaymentEnabled;
-    data['is_pickup_payment_enabled'] = this.isPickupPaymentEnabled;
-    data['razorpay_status'] = this.razorpayStatus;
-    data['stripe_status'] = this.stripeStatus;
-    data['is_cash_payment_enabled'] = this.isCashPaymentEnabled;
-    data['is_qr_payment_enabled'] = this.isQrPaymentEnabled;
-    data['is_offline_payment_enabled'] = this.isOfflinePaymentEnabled;
-    data['offline_payment_detail'] = this.offlinePaymentDetail;
-    data['qr_code_image'] = this.qrCodeImage;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['restaurant_id'] = restaurantId;
+    data['is_delivery_payment_enabled'] = isDeliveryPaymentEnabled;
+    data['is_pickup_payment_enabled'] = isPickupPaymentEnabled;
+    data['razorpay_status'] = razorpayStatus;
+    data['stripe_status'] = stripeStatus;
+    data['is_cash_payment_enabled'] = isCashPaymentEnabled;
+    data['is_qr_payment_enabled'] = isQrPaymentEnabled;
+    data['is_offline_payment_enabled'] = isOfflinePaymentEnabled;
+    data['offline_payment_detail'] = offlinePaymentDetail;
+    data['qr_code_image'] = qrCodeImage;
     return data;
   }
 }

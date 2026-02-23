@@ -6,9 +6,9 @@ import '../../../constants/api_constants.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../model/AllOrdersModel.dart';
-import '../../../model/getorderModel.dart' as orderModel;
-import '../../../model/MobileAppModulesModel.dart';
+import '../../../model/all_orders_model.dart';
+import '../../../model/get_order_model.dart' as order_model;
+import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/split_payment_remaining_model.dart';
 import '../../../widgets/order_payment_dialog.dart';
 import '../../../widgets/running_table_dialog.dart';
@@ -25,8 +25,8 @@ class OrderScreenController extends GetxController {
   final RxBool isLoadingOrderDetails = false.obs;
   final RxBool isPrinting = false.obs;
   final RxBool showAccessDialog = false.obs;
-  final Rx<orderModel.GetOrderModel?> orderDetails =
-      Rx<orderModel.GetOrderModel?>(null);
+  final Rx<order_model.GetOrderModel?> orderDetails =
+      Rx<order_model.GetOrderModel?>(null);
   final RxList<Orders> allOrders = <Orders>[].obs;
   Pagination? pagination;
   int currentPage = 1;
@@ -232,12 +232,12 @@ class OrderScreenController extends GetxController {
       ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final orderDetailsModel = orderModel.GetOrderModel.fromJson(
+      final order_details_model = order_model.GetOrderModel.fromJson(
         response.data,
       );
-      if (orderDetailsModel.success == true) {
-        orderDetails.value = orderDetailsModel;
-        final tz = orderDetailsModel.data?.restaurant?.timezone;
+      if (order_details_model.success == true) {
+        orderDetails.value = order_details_model;
+        final tz = order_details_model.data?.restaurant?.timezone;
         if (tz != null && tz.isNotEmpty) {
           box.write(ArgumentConstant.restaurantTimezoneKey, tz);
         }

@@ -22,8 +22,8 @@ class NewOrderDialog {
     _playNotificationSound();
 
     Get.dialog(
-      WillPopScope(
-        onWillPop: () async => true,
+      PopScope(
+        canPop: true,
         child: Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(

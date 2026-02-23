@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/color_constant.dart';
 import '../../../data/NetworkClient.dart';
-import '../../../model/chartModel.dart';
+import '../../../model/chart_model.dart';
 
 class DashboardScreenController extends GetxController {
   final networkClient = NetworkClient();

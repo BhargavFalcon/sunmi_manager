@@ -8,7 +8,6 @@ import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../../../services/printer_service.dart';
@@ -17,6 +16,8 @@ import '../../../constants/sizeConstant.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../utils/printer_helper.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../../../model/wifi_printer_model.dart';
 import '../../../utils/currency_formatter.dart';
 
@@ -47,6 +48,11 @@ class ManagePrinterScreenController extends GetxController
   final ipAddressController = TextEditingController();
   final portController = TextEditingController();
   final defaultWifiPrinter = Rxn<WifiPrinterModel>();
+  final wifiPaperWidth = '80mm'.obs;
+
+  // --- Sunmi State ---
+  final isSunmi = false.obs;
+  final sunmiDeviceName = 'Sunmi Device'.obs;
 
   // Cached printer profile for fast printing
   CapabilityProfile? _cachedProfile;
@@ -57,18 +63,35 @@ class ManagePrinterScreenController extends GetxController
   static const _bluetoothPollInterval = Duration(milliseconds: 500);
   static const _bluetoothPollMaxAttempts = 20;
   static const _methodChannelName = 'com.dinemetrics.manager/bluetooth';
-  static const _wifiPrintersKey = 'saved_wifi_printers';
+  static const _wifiPrintersKey = ArgumentConstant.savedWifiPrintersKey;
 
   @override
   void onInit() {
     super.onInit();
     printerService = Get.find<PrinterService>();
+    _checkSunmiStatus();
     _loadSavedPrinter();
     _loadSettings();
     _loadWifiPrinters();
     _syncWithService();
     _checkBluetoothStatus();
     WidgetsBinding.instance.addObserver(this);
+
+    // Initial check when entering the screen
+    printerService.checkConnection();
+  }
+
+  Future<void> _checkSunmiStatus() async {
+    isSunmi.value = await PrinterHelper.isSunmiDevice();
+    if (isSunmi.value) {
+      try {
+        final deviceInfo = DeviceInfoPlugin();
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          sunmiDeviceName.value = androidInfo.model;
+        }
+      } catch (_) {}
+    }
   }
 
   @override
@@ -195,6 +218,7 @@ class ManagePrinterScreenController extends GetxController
       name: deviceNameController.text.trim(),
       ipAddress: ipAddressController.text.trim(),
       port: portController.text.trim(),
+      paperWidth: wifiPaperWidth.value,
       isDefault:
           savedWifiPrinters.isEmpty, // Make default if it's the first one
     );
@@ -273,13 +297,15 @@ class ManagePrinterScreenController extends GetxController
   }
 
   void _syncWithService() {
+    // Initial sync
+    isConnected.value = printerService.isConnected.value;
+    connectedDevice.value = printerService.connectedDevice;
+
+    // Listen for changes
     ever(printerService.isConnected, (connected) {
       isConnected.value = connected;
-      if (connected && printerService.connectedDevice != null) {
-        connectedDevice.value = printerService.connectedDevice;
-      } else {
-        connectedDevice.value = null;
-      }
+      connectedDevice.value = printerService.connectedDevice;
+      update();
     });
   }
 
@@ -319,12 +345,10 @@ class ManagePrinterScreenController extends GetxController
       isScanning.value = true;
       availableDevices.clear();
 
-      final bool? bluetoothEnabled =
+      final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
-      if (bluetoothEnabled != null) {
-        isBluetoothEnabled.value = bluetoothEnabled;
-      }
-      if (bluetoothEnabled == false) {
+      isBluetoothEnabled.value = bluetoothEnabled;
+          if (bluetoothEnabled == false) {
         _resetConnection();
         _showBluetoothEnableDialog();
         return;
@@ -1186,7 +1210,7 @@ class ManagePrinterScreenController extends GetxController
 
   Future<void> _handleBluetoothEnabled() async {
     await Future.delayed(_bluetoothEnableDelay);
-    final bool? bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
+    final bool bluetoothEnabled = await PrintBluetoothThermal.bluetoothEnabled;
 
     if (bluetoothEnabled == true) {
       isBluetoothEnabled.value = true;
@@ -1218,7 +1242,7 @@ class ManagePrinterScreenController extends GetxController
     bool bluetoothEnabled = false;
     for (int i = 0; i < _bluetoothPollMaxAttempts; i++) {
       await Future.delayed(_bluetoothPollInterval);
-      final bool? status = await PrintBluetoothThermal.bluetoothEnabled;
+      final bool status = await PrintBluetoothThermal.bluetoothEnabled;
       if (status == true) {
         bluetoothEnabled = true;
         break;

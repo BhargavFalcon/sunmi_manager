@@ -9,14 +9,14 @@ class CancelReasonModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -40,11 +40,11 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['reason'] = this.reason;
-    data['cancel_order'] = this.cancelOrder;
-    data['cancel_kot'] = this.cancelKot;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['reason'] = reason;
+    data['cancel_order'] = cancelOrder;
+    data['cancel_kot'] = cancelKot;
     return data;
   }
 }

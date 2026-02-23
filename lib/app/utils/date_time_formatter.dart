@@ -33,8 +33,9 @@ class DateTimeFormatter {
     String? timezoneName,
   ) {
     if (dateTimeString == null || dateTimeString.isEmpty) return '';
-    if (timezoneName == null || timezoneName.isEmpty)
+    if (timezoneName == null || timezoneName.isEmpty) {
       return formatDateTime(dateTimeString);
+    }
     try {
       final dateTime = _parseDateTime(dateTimeString);
       if (dateTime == null) return formatDateTime(dateTimeString);
@@ -99,8 +100,9 @@ class DateTimeFormatter {
   }
 
   static DateTime? _parseCustomFormat(String dateTimeString) {
-    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-'))
+    if (!dateTimeString.contains(' ') || !dateTimeString.contains('-')) {
       return null;
+    }
     final parts = dateTimeString.split(' ');
     if (parts.length < 2) return null;
     final dateParts = parts[0].split('-');

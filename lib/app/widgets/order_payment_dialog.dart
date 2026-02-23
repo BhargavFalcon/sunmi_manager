@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 import '../constants/color_constant.dart';
 import '../constants/sizeConstant.dart';
 import 'app_toast.dart';
-import '../model/getorderModel.dart' as orderModel;
-import '../model/tableModel.dart';
+import '../model/get_order_model.dart' as order_model;
+import '../model/table_model.dart';
 import '../model/split_payment_remaining_model.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_time_formatter.dart';
@@ -15,7 +15,7 @@ import '../constants/translation_keys.dart';
 import '../utils/order_helpers.dart' as helpers;
 
 class OrderPaymentController extends GetxController {
-  final orderModel.GetOrderModel orderDetails;
+  final order_model.GetOrderModel orderDetails;
   final Tables table;
   final bool allowSplit;
   final bool splitOnly;
@@ -438,8 +438,9 @@ class OrderPaymentController extends GetxController {
     if (displayMethod == TranslationKeys.cash.tr) return 'cash';
     if (displayMethod == TranslationKeys.card.tr) return 'card';
     if (displayMethod == TranslationKeys.upi.tr) return 'upi';
-    if (displayMethod == TranslationKeys.bankTransfer.tr)
+    if (displayMethod == TranslationKeys.bankTransfer.tr) {
       return 'bank transfer';
+    }
     return displayMethod.toLowerCase();
   }
 
@@ -535,8 +536,9 @@ class OrderPaymentController extends GetxController {
         'payment_method': _paymentMethodForApi(selectedMethod.value),
         'amount': amountToPay.toStringAsFixed(2),
       };
-      if (finalTip > 0)
+      if (finalTip > 0) {
         splitPayload['tip_amount'] = finalTip.toStringAsFixed(2);
+      }
       if (discountAmount.value > 0) {
         splitPayload['discount_type'] = discountType.value;
         splitPayload['discount_amount'] = (discountType.value == 'percentage'
@@ -570,7 +572,7 @@ class OrderPaymentController extends GetxController {
 }
 
 class OrderPaymentDialog extends StatelessWidget {
-  final orderModel.GetOrderModel orderDetails;
+  final order_model.GetOrderModel orderDetails;
   final Tables table;
 
   const OrderPaymentDialog({
@@ -580,7 +582,7 @@ class OrderPaymentDialog extends StatelessWidget {
   });
 
   static Future<bool?> show({
-    required orderModel.GetOrderModel orderDetails,
+    required order_model.GetOrderModel orderDetails,
     required Tables table,
     bool allowSplit = true,
     bool splitOnly = false,
@@ -727,7 +729,7 @@ class OrderPaymentDialog extends StatelessWidget {
           vertical: MySize.getHeight(6),
         ),
         decoration: BoxDecoration(
-          color: ColorConstants.primaryColor.withOpacity(0.05),
+          color: ColorConstants.primaryColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: ColorConstants.primaryColor, width: 1),
         ),
@@ -774,7 +776,7 @@ class OrderPaymentDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${orderDetails.data?.order?.formattedOrderNumber ?? ''}',
+                    orderDetails.data?.order?.formattedOrderNumber ?? '',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: MySize.getHeight(16),
@@ -1161,7 +1163,7 @@ class OrderPaymentDialog extends StatelessWidget {
                   ),
                   Switch(
                     value: controller.considerReturnAsTip.value,
-                    activeColor: ColorConstants.successGreen,
+                    activeThumbColor: ColorConstants.successGreen,
                     onChanged: (val) {
                       controller.considerReturnAsTip.value = val;
                     },
@@ -1229,7 +1231,7 @@ class OrderPaymentDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? ColorConstants.primaryColor.withOpacity(0.05)
+                    ? ColorConstants.primaryColor.withValues(alpha: 0.05)
                     : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
@@ -1318,7 +1320,7 @@ class OrderPaymentDialog extends StatelessWidget {
             horizontal: compact ? 0 : MySize.getWidth(6),
           ),
           decoration: BoxDecoration(
-            color: hasTip ? activeColor.withOpacity(0.1) : Colors.white,
+            color: hasTip ? activeColor.withValues(alpha: 0.1) : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: hasTip ? activeColor : Colors.grey.shade300,
@@ -1378,7 +1380,7 @@ class OrderPaymentDialog extends StatelessWidget {
             horizontal: compact ? 0 : MySize.getWidth(6),
           ),
           decoration: BoxDecoration(
-            color: hasDiscount ? activeColor.withOpacity(0.1) : Colors.white,
+            color: hasDiscount ? activeColor.withValues(alpha: 0.1) : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: hasDiscount ? activeColor : Colors.grey.shade300,
@@ -2263,11 +2265,11 @@ class OrderPaymentDialog extends StatelessWidget {
                                 padding: EdgeInsets.all(MySize.getHeight(6)),
                                 decoration: BoxDecoration(
                                   color: ColorConstants.primaryColor
-                                      .withOpacity(0.05),
+                                      .withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: ColorConstants.primaryColor
-                                        .withOpacity(0.2),
+                                        .withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Column(
@@ -2654,11 +2656,11 @@ class OrderPaymentDialog extends StatelessWidget {
                                 padding: EdgeInsets.all(MySize.getHeight(6)),
                                 decoration: BoxDecoration(
                                   color: ColorConstants.primaryColor
-                                      .withOpacity(0.05),
+                                      .withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: ColorConstants.primaryColor
-                                        .withOpacity(0.2),
+                                        .withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Column(
@@ -3153,7 +3155,7 @@ class OrderPaymentDialog extends StatelessWidget {
                             ),
                             Switch(
                               value: controller.considerReturnAsTip.value,
-                              activeColor: ColorConstants.successGreen,
+                              activeThumbColor: ColorConstants.successGreen,
                               onChanged: (val) {
                                 controller.considerReturnAsTip.value = val;
                               },

@@ -4,8 +4,8 @@ import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
-import 'package:managerapp/app/model/LoginModels.dart';
-import 'package:managerapp/app/model/RestaurantDetailsModel.dart';
+import 'package:managerapp/app/model/login_models.dart';
+import 'package:managerapp/app/model/restaurant_details_model.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import '../../../../main.dart';
 
@@ -20,15 +20,7 @@ class LoginScreenController extends GetxController {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
-  @override
-  void onReady() {
-    super.onReady();
-  }
 
   @override
   void onClose() {
