@@ -60,97 +60,124 @@ class TableScreenView extends GetWidget<TableScreenController> {
                           ),
                           child: Row(
                             children: [
-                              ...controller.table_model.value!.data!
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                    final index = entry.key;
-                                    final area = entry.value;
-                                    final isSelected =
-                                        controller.selectedAreaIndex.value ==
-                                        index;
-                                    final runningCount =
-                                        area.tables
-                                            ?.where(
-                                              (table) =>
-                                                  table.availableStatus
-                                                      ?.toLowerCase() ==
-                                                  'running',
-                                            )
-                                            .length ??
-                                        0;
-                                    return GestureDetector(
-                                      onTap: () {
-                                        controller.selectedAreaIndex.value =
-                                            index;
-                                      },
-                                      child: Container(
-                                        margin: EdgeInsets.only(right: 12),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? ColorConstants.primaryColor
-                                                      .withValues(alpha: 0.1)
-                                                  : Colors.grey[200],
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              area.name ?? '',
-                                              style: TextStyle(
-                                                fontSize: MySize.getHeight(12),
-                                                color:
-                                                    isSelected
-                                                        ? ColorConstants
-                                                            .primaryColor
-                                                        : Colors.grey,
-                                                fontWeight:
-                                                    isSelected
-                                                        ? FontWeight.w600
-                                                        : FontWeight.normal,
-                                              ),
-                                            ),
-                                            if (runningCount > 0)
-                                              Container(
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      ...controller.table_model.value!.data!
+                                          .asMap()
+                                          .entries
+                                          .map((entry) {
+                                            final index = entry.key;
+                                            final area = entry.value;
+                                            final isSelected =
+                                                controller
+                                                    .selectedAreaIndex
+                                                    .value ==
+                                                index;
+                                            final runningCount =
+                                                area.tables
+                                                    ?.where(
+                                                      (table) =>
+                                                          table.availableStatus
+                                                              ?.toLowerCase() ==
+                                                          'running',
+                                                    )
+                                                    .length ??
+                                                0;
+                                            return GestureDetector(
+                                              onTap: () {
+                                                controller
+                                                    .selectedAreaIndex
+                                                    .value = index;
+                                              },
+                                              child: Container(
                                                 margin: EdgeInsets.only(
-                                                  left: 6,
+                                                  right: 12,
                                                 ),
                                                 padding: EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
+                                                  horizontal: 14,
+                                                  vertical: 6,
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color:
-                                                      ColorConstants
-                                                          .primaryColor,
+                                                      isSelected
+                                                          ? ColorConstants
+                                                              .primaryColor
+                                                              .withValues(
+                                                                alpha: 0.1,
+                                                              )
+                                                          : Colors.grey[200],
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
+                                                      BorderRadius.circular(8),
                                                 ),
-                                                child: Text(
-                                                  '$runningCount',
-                                                  style: TextStyle(
-                                                    fontSize: MySize.getHeight(
-                                                      8,
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      area.name ?? '',
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            MySize.getHeight(
+                                                              12,
+                                                            ),
+                                                        color:
+                                                            isSelected
+                                                                ? ColorConstants
+                                                                    .primaryColor
+                                                                : Colors.grey,
+                                                        fontWeight:
+                                                            isSelected
+                                                                ? FontWeight
+                                                                    .w600
+                                                                : FontWeight
+                                                                    .normal,
+                                                      ),
                                                     ),
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                    if (runningCount > 0)
+                                                      Container(
+                                                        margin: EdgeInsets.only(
+                                                          left: 6,
+                                                        ),
+                                                        padding:
+                                                            EdgeInsets.symmetric(
+                                                              horizontal: 6,
+                                                              vertical: 2,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              ColorConstants
+                                                                  .primaryColor,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                        ),
+                                                        child: Text(
+                                                          '$runningCount',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                MySize.getHeight(
+                                                                  8,
+                                                                ),
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                              Spacer(),
+                                            );
+                                          }),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 12,

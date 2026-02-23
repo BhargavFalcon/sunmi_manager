@@ -228,7 +228,7 @@ class _NavBarItemState extends State<_NavBarItem>
           hoverColor: Colors.transparent,
           focusColor: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
             constraints: const BoxConstraints(minWidth: 0),
             decoration: BoxDecoration(
               color: ColorConstants.primaryColor.withValues(
