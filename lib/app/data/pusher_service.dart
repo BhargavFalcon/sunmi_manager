@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import '../../main.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../services/sunmi_invoice_printer_service.dart';
+import '../services/escpos_invoice_printer_service.dart';
+import '../utils/printer_helper.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
@@ -19,8 +21,9 @@ class PusherService {
   Timer? _pingTimer;
 
   final NetworkClient networkClient = NetworkClient();
-  final SunmiInvoicePrinterService _printerService =
-      SunmiInvoicePrinterService();
+  final SunmiInvoicePrinterService _sunmiService = SunmiInvoicePrinterService();
+  final EscPosInvoicePrinterService _escPosService =
+      EscPosInvoicePrinterService();
 
   static const String pusherAppCluster = "eu";
   static const String pusherAppId = "zosPDO1J";
@@ -216,7 +219,11 @@ class PusherService {
           box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
 
       try {
-        await _printerService.printInvoice(data, copies: copies);
+        if (await PrinterHelper.isSunmiDevice()) {
+          await _sunmiService.printInvoice(data, copies: copies);
+        } else {
+          await _escPosService.printInvoice(data, copies: copies);
+        }
         showPrintToast(TranslationKeys.printSuccessful.tr);
       } catch (e) {
         showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);

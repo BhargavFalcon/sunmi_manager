@@ -20,6 +20,8 @@ import '../../../model/getorderModel.dart' as orderDetailsModel;
 import '../../../model/receipt_order_response_model.dart';
 import '../../../model/split_payment_remaining_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
+import '../../../services/escpos_invoice_printer_service.dart';
+import '../../../utils/printer_helper.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../utils/date_time_formatter.dart';
 import '../../../utils/order_helpers.dart' as helpers;
@@ -1624,8 +1626,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
         return;
       }
 
-      final printerService = SunmiInvoicePrinterService();
-      await printerService.printReceiptFromApi(model.data!);
+      if (await PrinterHelper.isSunmiDevice()) {
+        await SunmiInvoicePrinterService().printReceiptFromApi(model.data!);
+      } else {
+        await EscPosInvoicePrinterService().printReceiptFromApi(model.data!);
+      }
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
@@ -1651,8 +1656,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
     try {
       controller.isPrinting.value = true;
-      final printerService = SunmiInvoicePrinterService();
-      await printerService.printInvoice(orderData);
+      if (await PrinterHelper.isSunmiDevice()) {
+        await SunmiInvoicePrinterService().printInvoice(orderData);
+      } else {
+        await EscPosInvoicePrinterService().printInvoice(orderData);
+      }
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,

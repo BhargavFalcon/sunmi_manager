@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import '../model/getorderModel.dart' as orderModel;
 import '../services/sunmi_invoice_printer_service.dart';
+import '../services/escpos_invoice_printer_service.dart';
+import '../utils/printer_helper.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
 import 'app_toast.dart';
@@ -279,8 +281,11 @@ class NewOrderDetailsBottomSheet {
 
     try {
       isPrinting.value = true;
-      final printerService = SunmiInvoicePrinterService();
-      await printerService.printInvoice(orderData);
+      if (await PrinterHelper.isSunmiDevice()) {
+        await SunmiInvoicePrinterService().printInvoice(orderData);
+      } else {
+        await EscPosInvoicePrinterService().printInvoice(orderData);
+      }
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,

@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:managerapp/main.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
-import 'package:screenshot/screenshot.dart';
 
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +18,7 @@ import '../../../widgets/app_toast.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../model/wifi_printer_model.dart';
+import '../../../utils/currency_formatter.dart';
 
 class ManagePrinterScreenController extends GetxController
     with WidgetsBindingObserver {
@@ -480,41 +480,11 @@ class ManagePrinterScreenController extends GetxController
     try {
       isLoading.value = true;
 
-      final paperSize = _getPaperSize();
-      final printerDots = _getPrinterDots();
-      _cachedProfile ??= await CapabilityProfile.load();
-      final generator = Generator(paperSize, _cachedProfile!);
-
-      // Capture receipt widget as image (1:1 ratio = no resize = sharp)
-      final screenshotController = ScreenshotController();
-      final imageBytes = await screenshotController.captureFromLongWidget(
-        _buildTestReceiptWidget(printerDots.toDouble()),
-        pixelRatio: 1.0,
-        delay: Duration.zero,
-      );
-
-      // Decode and prepare for thermal printer
-      var decodedImage = img.decodeImage(imageBytes);
-      if (decodedImage == null) {
-        showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
-        return;
-      }
-
-      // Width must be divisible by 8
-      final targetWidth = (decodedImage.width ~/ 8) * 8;
-      if (decodedImage.width != targetWidth) {
-        decodedImage = img.copyResize(decodedImage, width: targetWidth);
-      }
-      decodedImage = img.grayscale(decodedImage);
-
-      // Convert to ESC/POS raster + cut
-      final imageData = generator.imageRaster(decodedImage);
-      final cutBytes = generator.cut();
+      final receiptBytes = await _buildTestReceiptBytes();
 
       List<int> allBytes = [];
       for (int i = 0; i < numberOfCopies.value; i++) {
-        allBytes.addAll(imageData);
-        allBytes.addAll(cutBytes);
+        allBytes.addAll(receiptBytes);
       }
 
       final result = await PrintBluetoothThermal.writeBytes(allBytes);
@@ -544,40 +514,14 @@ class ManagePrinterScreenController extends GetxController
       isLoading.value = true;
       final printer = defaultWifiPrinter.value!;
 
-      final paperSize = _getPaperSize();
-      final printerDots = _getPrinterDots();
-      _cachedProfile ??= await CapabilityProfile.load();
-      final generator = Generator(paperSize, _cachedProfile!);
-
-      // Capture receipt widget as image
-      final screenshotController = ScreenshotController();
-      final imageBytes = await screenshotController.captureFromLongWidget(
-        _buildTestReceiptWidget(printerDots.toDouble()),
-        pixelRatio: 1.0,
-        delay: Duration.zero,
-      );
-
-      var decodedImage = img.decodeImage(imageBytes);
-      if (decodedImage == null) throw Exception('Failed to decode image');
-
-      // Width must be divisible by 8
-      final targetWidth = (decodedImage.width ~/ 8) * 8;
-      if (decodedImage.width != targetWidth) {
-        decodedImage = img.copyResize(decodedImage, width: targetWidth);
-      }
-      decodedImage = img.grayscale(decodedImage);
-
-      // Convert to ESC/POS raster + cut
-      final imageData = generator.imageRaster(decodedImage);
-      final cutBytes = generator.cut();
+      final receiptBytes = await _buildTestReceiptBytes();
 
       List<int> allBytes = [];
       for (int i = 0; i < numberOfCopies.value; i++) {
-        allBytes.addAll(imageData);
-        allBytes.addAll(cutBytes);
+        allBytes.addAll(receiptBytes);
       }
 
-      // Connect via TCP Socket to the IP Camera
+      // Connect via TCP Socket
       final socket = await Socket.connect(
         printer.ipAddress,
         int.tryParse(printer.port) ?? 9100,
@@ -596,250 +540,187 @@ class ManagePrinterScreenController extends GetxController
     }
   }
 
-  /// Builds test receipt widget — width matches printer dots for sharp output
-  /// Builds test receipt widget — width matches printer dots for sharp output
-  Widget _buildTestReceiptWidget(double width) {
-    const headerStyle = TextStyle(
-      fontSize: 26,
-      fontWeight: FontWeight.bold,
-      color: Colors.black,
-    );
-    const subStyle = TextStyle(fontSize: 18, color: Colors.black);
-    const bodyStyle = TextStyle(fontSize: 20, color: Colors.black);
-    const boldBody = TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-      color: Colors.black,
-    );
+  static const _currencyFallback = <String, String>{
+    '\u20B9': 'Rs',
+    '\u20BA': 'TL',
+    '\u20BD': 'RUB',
+    '\u20AB': 'd',
+    '\u20B4': 'UAH',
+    '\u20A6': 'NGN',
+    '\u20A9': 'W',
+    '\u20B1': 'PHP',
+    '\u20AA': 'ILS',
+    '\u0E3F': 'THB',
+    '\u20B5': 'GHS',
+    '\u20BC': 'AZN',
+    '\u20B8': 'KZT',
+    '\u20BE': 'GEL',
+    '\u20BF': 'BTC',
+    '\u20A1': 'CRC',
+    '\u20B2': 'PYG',
+    '\u20AE': 'MNT',
+    '\u20AD': 'LAK',
+  };
 
-    return SizedBox(
-      width: width,
-      child: Material(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Naan Stop',
-                style: headerStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Winkelcentrum Woensel 1, 5625 AA\nEindhoven, Netherlands',
-                style: subStyle,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'Phone: 626193494',
-                style: subStyle,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'GST: 24AGHPN',
-                style: subStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Order: ORD-0218', style: bodyStyle),
-                  Text('13 Dec 2025 06:06 PM', style: bodyStyle),
-                ],
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Customer: Bhargav thummar', style: bodyStyle),
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 42,
-                    child: Text(
-                      TranslationKeys.qty.tr,
-                      style: boldBody,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      TranslationKeys.itemName.tr,
-                      style: boldBody,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      TranslationKeys.price.tr,
-                      style: boldBody,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      TranslationKeys.amount.tr,
-                      style: boldBody,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 4),
-              _itemRow(
-                '1',
-                'Naan Imperial (Steak, Egg, Ham, Cheese, Vegetable)',
-                '\u20AC9,50',
-                '\u20AC9,50',
-              ),
-              const SizedBox(height: 2),
-              _itemRow('1', 'Naan Steak', '\u20AC8,00', '\u20AC8,00'),
-              const SizedBox(height: 4),
-              _summaryRow('Sub Total:', '\u20AC17,50'),
-              _summaryRow('Servicekosten:', '\u20AC0,45'),
-              _summaryRow('Boxes:', '\u20AC1,00'),
-              _summaryRow('VAT (5.00%) incl.', '\u20AC0,83'),
-              _summaryRow('${TranslationKeys.totalTax.tr}:', '\u20AC0,83'),
-              _summaryRow(
-                '${TranslationKeys.balanceReturned.tr}:',
-                '\u20AC0,00',
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 4),
-              _summaryRow(
-                '${TranslationKeys.total.tr}:',
-                '\u20AC18,95',
-                isBold: true,
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 8),
-              Text(
-                TranslationKeys.thankYouForVisit.tr,
-                style: bodyStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 85,
-                    child: Text(TranslationKeys.amount.tr, style: boldBody),
-                  ),
-                  Expanded(
-                    child: Text(
-                      TranslationKeys.paymentMethod.tr,
-                      style: boldBody,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Text(
-                    TranslationKeys.dateAndTime.tr,
-                    style: boldBody,
-                    textAlign: TextAlign.right,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              _dottedLine(),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 85,
-                    child: Text('\u20AC18,95', style: bodyStyle),
-                  ),
-                  Expanded(
-                    child: Text(
-                      TranslationKeys.cash.tr,
-                      style: bodyStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Text(
-                    '13 Dec 2025 05:06 PM',
-                    style: bodyStyle,
-                    textAlign: TextAlign.right,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
+  String _escCurrency(String text) {
+    String result = text.replaceAll('\u20AC', '\u00D5');
+    for (final entry in _currencyFallback.entries) {
+      result = result.replaceAll(entry.key, entry.value);
+    }
+    return result;
+  }
+
+  String _tp(String price) {
+    return _escCurrency('${CurrencyFormatter.getCurrencySymbol()}$price');
+  }
+
+  Future<List<int>> _buildTestReceiptBytes() async {
+    final paperSize = _getPaperSize();
+    _cachedProfile ??= await CapabilityProfile.load();
+    final gen = Generator(paperSize, _cachedProfile!);
+    final cs = CurrencyFormatter.getCurrencySymbol();
+
+    const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
+    const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
+    const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+
+    List<int> item(String qty, String name, String price, String amount) {
+      return gen.row([
+        PosColumn(text: qty, width: 1, styles: b),
+        PosColumn(text: name, width: 5, styles: b),
+        PosColumn(text: _tp(price), width: 3, styles: r),
+        PosColumn(text: _tp(amount), width: 3, styles: r),
+      ]);
+    }
+
+    List<int> summary(String label, String amount) {
+      return gen.row([
+        PosColumn(text: label, width: 8, styles: b),
+        PosColumn(text: _tp(amount), width: 4, styles: r),
+      ]);
+    }
+
+    List<int> bytes = [];
+    bytes += [0x1B, 0x74, 19];
+
+    bytes += gen.text(
+      'Naan Stop',
+      styles: const PosStyles(
+        align: PosAlign.center,
+        height: PosTextSize.size2,
+        width: PosTextSize.size2,
       ),
     );
-  }
+    bytes += gen.text('Winkelcentrum Woensel 1, 5625 AA E', styles: c);
+    bytes += gen.text('indhoven, Netherlandsds', styles: c);
+    bytes += gen.hr(ch: '-');
 
-  Widget _dottedLine() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final boxWidth = constraints.constrainWidth();
-        const dashWidth = 4.0;
-        const dashHeight = 1.0;
-        final dashCount = (boxWidth / (2 * dashWidth)).floor();
-        return Flex(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          direction: Axis.horizontal,
-          children: List.generate(dashCount, (_) {
-            return const SizedBox(
-              width: dashWidth,
-              height: dashHeight,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: Colors.black),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
+    bytes += gen.row([
+      PosColumn(text: 'Order: ORD-0616', width: 6, styles: b),
+      PosColumn(text: '13 Feb 2026,06:30 AM', width: 6, styles: r),
+    ]);
+    bytes += gen.text('Customer: bhargav thummar 01', styles: b);
+    bytes += gen.text('Phone: +91 9723678343', styles: b);
+    bytes += gen.hr(ch: '-');
 
-  Widget _itemRow(String qty, String name, String price, String amount) {
-    const s = TextStyle(fontSize: 20, color: Colors.black);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 42, child: Text(qty, style: s)),
-        Expanded(child: Text(name, style: s)),
-        SizedBox(
-          width: 70,
-          child: Text(price, style: s, textAlign: TextAlign.right),
-        ),
-        SizedBox(
-          width: 80,
-          child: Text(amount, style: s, textAlign: TextAlign.right),
-        ),
-      ],
-    );
-  }
+    bytes += gen.row([
+      PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: b),
+      PosColumn(text: TranslationKeys.itemName.tr, width: 4, styles: b),
+      PosColumn(text: TranslationKeys.price.tr, width: 3, styles: r),
+      PosColumn(text: TranslationKeys.amount.tr, width: 3, styles: r),
+    ]);
+    bytes += gen.hr(ch: '-');
 
-  Widget _summaryRow(String label, String value, {bool isBold = false}) {
-    final s = TextStyle(
-      fontSize: 20,
-      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-      color: Colors.black,
+    bytes += item('4', 'Naan Falafel', '13,50', '54,00');
+    bytes += gen.text(
+      _escCurrency('    \u2022 Fries & Red Bull (+${cs}5,50)'),
+      styles: b,
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: s), Text(value, style: s)],
-      ),
+
+    bytes += item('4', 'Naan Steak', '13,50', '54,00');
+    bytes += gen.text(
+      _escCurrency('    \u2022 Fries & Red Bull (+${cs}5,50)'),
+      styles: b,
     );
+
+    bytes += item('4', 'Test Pizza', '2,00', '8,00');
+
+    bytes += item('4', 'Tacos', '20,50', '82,00');
+    bytes += gen.text('    (3 Meats)', styles: b);
+    bytes += gen.text(
+      _escCurrency('    \u2022 Fries & Red Bull (+${cs}5,50)'),
+      styles: b,
+    );
+    bytes += gen.text(
+      _escCurrency('    \u2022 Chicken (+${cs}0,00)'),
+      styles: b,
+    );
+    bytes += gen.text(
+      _escCurrency('    \u2022 Barbecue (+${cs}0,00)'),
+      styles: b,
+    );
+    bytes += gen.text(
+      _escCurrency('    \u2022 Cheese Topped (+${cs}2,50)'),
+      styles: b,
+    );
+
+    bytes += item('3', 'Schotel', '14,50', '43,50');
+    bytes += gen.text('    (XL)', styles: b);
+
+    bytes += item('3', 'D\u00FCr\u00FCm', '7,00', '21,00');
+    bytes += gen.text(
+      _escCurrency('    \u2022 Falafel (+${cs}0,00)'),
+      styles: b,
+    );
+    bytes += gen.text(
+      _escCurrency('    \u2022 Mayonnaise (+${cs}0,00)'),
+      styles: b,
+    );
+
+    bytes += item('3', 'Coca Cola', '2,00', '6,00');
+    bytes += item('4', 'Red Bull', '3,50', '14,00');
+    bytes += item('4', 'Water', '2,00', '8,00');
+    bytes += item('4', 'Tiramisu', '5,00', '20,00');
+    bytes += item('2', 'Heineken', '4,00', '8,00');
+    bytes += item('1', 'Bira 91', '3,00', '3,00');
+    bytes += item('1', 'Krombacher', '4,00', '4,00');
+    bytes += item('1', 'Carlsberg', '4,00', '4,00');
+    bytes += item('1', 'Kingfisher Beer', '4,00', '4,00');
+
+    bytes += summary('Sub Total:', '333,50');
+    bytes += summary('Service:', '5,00');
+    bytes += summary('VAT Delivery (8%) incl.', '19,44');
+    bytes += summary('Vat Non-Alcoholic (15%) incl.', '6,26');
+    bytes += summary('VAT Alcohol (9%) incl.', '1,90');
+    bytes += gen.hr(ch: '-');
+
+    bytes += gen.row([
+      PosColumn(text: '${TranslationKeys.total.tr}:', width: 6, styles: b),
+      PosColumn(text: _tp('338,50'), width: 6, styles: r),
+    ]);
+    bytes += gen.hr(ch: '-');
+
+    bytes += gen.text(TranslationKeys.thankYouForVisit.tr, styles: c);
+    bytes += gen.text('PAY FROM YOUR PHONE', styles: c);
+    bytes += gen.feed(1);
+    bytes += gen.text('Scan the QR code to pay Your Bill', styles: c);
+    bytes += gen.hr(ch: '-');
+
+    bytes += gen.row([
+      PosColumn(text: TranslationKeys.amount.tr, width: 2, styles: b),
+      PosColumn(text: TranslationKeys.paymentMethod.tr, width: 6, styles: c),
+      PosColumn(text: TranslationKeys.dateAndTime.tr, width: 4, styles: r),
+    ]);
+    bytes += gen.hr(ch: '-');
+    bytes += gen.row([
+      PosColumn(text: _tp('338,50'), width: 3, styles: b),
+      PosColumn(text: 'cash', width: 2, styles: c),
+      PosColumn(text: '13 Feb 26 07:06AM', width: 7, styles: r),
+    ]);
+    bytes += gen.feed(0);
+    bytes += gen.cut();
+
+    return bytes;
   }
 
   Future<Uint8List?> _downloadNetworkImage(String imageUrl) async {
