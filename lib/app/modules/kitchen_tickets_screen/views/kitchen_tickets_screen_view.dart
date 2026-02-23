@@ -4,6 +4,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
+import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import '../controllers/kitchen_tickets_screen_controller.dart';
 
 class KitchenTicketsScreenView extends GetView<KitchenTicketsScreenController> {
@@ -20,69 +21,92 @@ class KitchenTicketsScreenView extends GetView<KitchenTicketsScreenController> {
           backgroundColor: ColorConstants.bgColor,
           body: SafeArea(
             child: Obx(() {
-              if (controller.tickets.isEmpty) {
-                return Center(
-                  child: Text(
-                    TranslationKeys.kitchenTickets.tr,
-                    style: TextStyle(
-                      fontSize: MySize.getHeight(18),
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }
-              final width = MediaQuery.of(context).size.width;
-              final orientation = MediaQuery.of(context).orientation;
-              final crossAxisCount =
-                  orientation == Orientation.landscape
-                      ? 3
-                      : width > 600
-                      ? 2
-                      : 1;
-              final tickets = controller.tickets;
-              final rowCount = (tickets.length / crossAxisCount).ceil();
-              return ListView.builder(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MySize.getWidth(8),
-                  vertical: MySize.getHeight(8),
-                ),
-                itemCount: rowCount,
-                itemBuilder: (context, rowIndex) {
-                  final start = rowIndex * crossAxisCount;
-                  final rowTickets =
-                      tickets.skip(start).take(crossAxisCount).toList();
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: rowIndex < rowCount - 1 ? MySize.getHeight(4) : 0,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(crossAxisCount, (col) {
-                        if (col < rowTickets.length) {
-                          final ticket = rowTickets[col];
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                right:
-                                    col < crossAxisCount - 1
-                                        ? MySize.getWidth(4)
-                                        : 0,
-                              ),
-                              child: _KitchenTicketCard(
-                                ticket: ticket,
-                                onPrint: () => controller.onPrint(ticket),
-                                onFoodReady:
-                                    () => controller.onFoodReady(ticket),
+              return Stack(
+                children: [
+                  IgnorePointer(
+                    ignoring: controller.showAccessDialog.value,
+                    child: Builder(
+                      builder: (context) {
+                        if (controller.tickets.isEmpty) {
+                          return Center(
+                            child: Text(
+                              TranslationKeys.kitchenTickets.tr,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(18),
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           );
                         }
-                        return Expanded(child: SizedBox.shrink());
-                      }),
+                        final width = MediaQuery.of(context).size.width;
+                        final orientation = MediaQuery.of(context).orientation;
+                        final crossAxisCount =
+                            orientation == Orientation.landscape
+                                ? 3
+                                : width > 600
+                                ? 2
+                                : 1;
+                        final tickets = controller.tickets;
+                        final rowCount =
+                            (tickets.length / crossAxisCount).ceil();
+                        return ListView.builder(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(8),
+                            vertical: MySize.getHeight(8),
+                          ),
+                          itemCount: rowCount,
+                          itemBuilder: (context, rowIndex) {
+                            final start = rowIndex * crossAxisCount;
+                            final rowTickets =
+                                tickets
+                                    .skip(start)
+                                    .take(crossAxisCount)
+                                    .toList();
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom:
+                                    rowIndex < rowCount - 1
+                                        ? MySize.getHeight(4)
+                                        : 0,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(crossAxisCount, (col) {
+                                  if (col < rowTickets.length) {
+                                    final ticket = rowTickets[col];
+                                    return Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          right:
+                                              col < crossAxisCount - 1
+                                                  ? MySize.getWidth(4)
+                                                  : 0,
+                                        ),
+                                        child: _KitchenTicketCard(
+                                          ticket: ticket,
+                                          onPrint:
+                                              () => controller.onPrint(ticket),
+                                          onFoodReady:
+                                              () => controller.onFoodReady(
+                                                ticket,
+                                              ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return Expanded(child: SizedBox.shrink());
+                                }),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  if (controller.showAccessDialog.value)
+                    const AccessLimitedDialog(),
+                ],
               );
             }),
           ),

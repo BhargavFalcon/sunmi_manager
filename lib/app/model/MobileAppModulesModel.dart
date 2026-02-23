@@ -23,27 +23,24 @@ class MobileAppModulesModel {
 }
 
 class MobileAppModulesData {
-  List<String>? modules;
-  int? restaurantId;
+  List<String>? managerAppPermissions;
 
-  MobileAppModulesData({this.modules, this.restaurantId});
+  MobileAppModulesData({this.managerAppPermissions});
 
   MobileAppModulesData.fromJson(Map<String, dynamic> json) {
-    if (json['modules'] != null) {
-      modules = <String>[];
-      json['modules'].forEach((v) {
-        modules!.add(v.toString());
+    if (json['manager_app_permissions'] != null) {
+      managerAppPermissions = <String>[];
+      json['manager_app_permissions'].forEach((v) {
+        managerAppPermissions!.add(v.toString());
       });
     }
-    restaurantId = json['restaurant_id'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.modules != null) {
-      data['modules'] = this.modules;
+    if (this.managerAppPermissions != null) {
+      data['manager_app_permissions'] = this.managerAppPermissions;
     }
-    data['restaurant_id'] = this.restaurantId;
     return data;
   }
 }

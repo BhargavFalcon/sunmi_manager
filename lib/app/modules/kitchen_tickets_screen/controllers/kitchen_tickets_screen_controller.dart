@@ -1,4 +1,7 @@
 import 'package:get/get.dart';
+import 'package:managerapp/app/constants/api_constants.dart';
+import '../../../../main.dart';
+import '../../../model/MobileAppModulesModel.dart';
 
 class KitchenTicketItemModifier {
   final String name;
@@ -38,11 +41,40 @@ class KitchenTicketDummy {
 
 class KitchenTicketsScreenController extends GetxController {
   final tickets = <KitchenTicketDummy>[].obs;
+  final showAccessDialog = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadDummyData();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    _checkAndShowDialog();
+    box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
+      _checkAndShowDialog();
+    });
+  }
+
+  void _checkAndShowDialog() {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modulesModel = MobileAppModulesModel.fromJson(modulesData);
+        final modules = modulesModel.data?.managerAppPermissions ?? [];
+        if (!modules.contains('Kitchen Tickets')) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            showAccessDialog.value = true;
+          });
+        } else {
+          showAccessDialog.value = false;
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   void _loadDummyData() {

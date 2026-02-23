@@ -25,11 +25,16 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
       builder: (controller) {
         return Scaffold(
           backgroundColor: ColorConstants.bgColor,
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showReservationBottomSheet(context, controller),
-            backgroundColor: ColorConstants.primaryColor,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
+          floatingActionButton: Obx(() {
+            if (controller.showAccessDialog.value) {
+              return const SizedBox.shrink();
+            }
+            return FloatingActionButton(
+              onPressed: () => _showReservationBottomSheet(context, controller),
+              backgroundColor: ColorConstants.primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            );
+          }),
           body: Obx(() {
             return Stack(
               children: [

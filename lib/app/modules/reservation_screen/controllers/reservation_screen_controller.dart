@@ -501,6 +501,9 @@ class ReservationScreenController extends GetxController {
   void onReady() {
     super.onReady();
     _checkAndShowDialog();
+    box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
+      _checkAndShowDialog();
+    });
   }
 
   void _checkAndShowDialog() {
@@ -508,9 +511,11 @@ class ReservationScreenController extends GetxController {
       final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
       if (modulesData != null && modulesData is Map<String, dynamic>) {
         final modulesModel = MobileAppModulesModel.fromJson(modulesData);
-        final modules = modulesModel.data?.modules ?? [];
+        final modules = modulesModel.data?.managerAppPermissions ?? [];
         if (!modules.contains('Table Reservations')) {
           showAccessDialog.value = true;
+        } else {
+          showAccessDialog.value = false;
         }
       }
     } catch (e) {}

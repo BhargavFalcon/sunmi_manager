@@ -71,6 +71,9 @@ class OrderScreenController extends GetxController {
     _setupScrollListener();
     fetchAllOrders();
     _checkAndShowDialog();
+    box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
+      _checkAndShowDialog();
+    });
     _checkPendingPaymentAndOpenDialog();
   }
 
@@ -137,11 +140,13 @@ class OrderScreenController extends GetxController {
       final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
       if (modulesData != null && modulesData is Map<String, dynamic>) {
         final modulesModel = MobileAppModulesModel.fromJson(modulesData);
-        final modules = modulesModel.data?.modules ?? [];
+        final modules = modulesModel.data?.managerAppPermissions ?? [];
         if (!modules.contains('All Orders')) {
           Future.delayed(const Duration(milliseconds: 100), () {
             showAccessDialog.value = true;
           });
+        } else {
+          showAccessDialog.value = false;
         }
       }
     } catch (e) {

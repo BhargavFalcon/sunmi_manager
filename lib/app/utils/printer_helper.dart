@@ -4,12 +4,17 @@ class PrinterHelper {
   static bool? _isSunmi;
 
   static Future<bool> isSunmiDevice() async {
-    if (_isSunmi != null) return _isSunmi!;
+    if (_isSunmi == true) return true;
     try {
-      _isSunmi = await SunmiPrinter.bindingPrinter() ?? false;
+      final sunmiPrinterPlus = SunmiPrinterPlus();
+      final result = await sunmiPrinterPlus.rebindPrinter();
+      if (result == true) {
+        _isSunmi = true;
+        return true;
+      }
+      return false;
     } catch (_) {
-      _isSunmi = false;
+      return false;
     }
-    return _isSunmi!;
   }
 }

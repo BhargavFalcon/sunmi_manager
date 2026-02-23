@@ -76,6 +76,9 @@ class TakeOrderController extends GetxController {
   void onInit() {
     super.onInit();
     _checkAndShowDialog();
+    box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
+      _checkAndShowDialog();
+    });
     _fetchTableFromArguments();
     _fetchOrderFromArguments();
     _fetchSourceScreenFromArguments();
@@ -111,11 +114,13 @@ class TakeOrderController extends GetxController {
       final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
       if (modulesData != null && modulesData is Map<String, dynamic>) {
         final modulesModel = MobileAppModulesModel.fromJson(modulesData);
-        final modules = modulesModel.data?.modules ?? [];
+        final modules = modulesModel.data?.managerAppPermissions ?? [];
         if (!modules.contains('POS')) {
           Future.delayed(const Duration(milliseconds: 100), () {
             showAccessDialog.value = true;
           });
+        } else {
+          showAccessDialog.value = false;
         }
       }
     } catch (_) {

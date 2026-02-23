@@ -7,7 +7,7 @@ class ArgumentConstant {
   static const restaurantDetailsEndpoint =
       "api/v1/pos/restaurant/:restaurant_id/details";
   static const mobileAppModulesEndpoint =
-      "api/v1/pos/restaurant/:restaurant_id/mobile-app-modules";
+      "api/v1/pos/user/manager-app-permissions";
   static const tokenKey = "auth_token";
   static const loginModelKey = "login_model";
   static const menuItemsKey = "menu_items";

@@ -33,6 +33,9 @@ class TableScreenController extends GetxController {
     // Refresh tables every time screen becomes active
     fetchTablesAreas();
     _checkAndShowDialog();
+    box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
+      _checkAndShowDialog();
+    });
   }
 
   void _checkAndShowDialog() {
@@ -40,11 +43,13 @@ class TableScreenController extends GetxController {
       final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
       if (modulesData != null && modulesData is Map<String, dynamic>) {
         final modulesModel = MobileAppModulesModel.fromJson(modulesData);
-        final modules = modulesModel.data?.modules ?? [];
+        final modules = modulesModel.data?.managerAppPermissions ?? [];
         if (!modules.contains('POS')) {
           Future.delayed(const Duration(milliseconds: 100), () {
             showAccessDialog.value = true;
           });
+        } else {
+          showAccessDialog.value = false;
         }
       }
     } catch (e) {
