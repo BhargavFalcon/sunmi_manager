@@ -12,7 +12,10 @@ import '../../../model/print_service_validate_model.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 
+import '../../../data/NetworkClient.dart';
+
 class PrintServiceController extends GetxController {
+  final NetworkClient _networkClient = NetworkClient();
   // ── Printing Rules ───────────────────────────────────────────────────────
   final autoPrintKitchen = true.obs;
   final kitchenNumberOfCopies = 1.obs;
@@ -52,40 +55,43 @@ class PrintServiceController extends GetxController {
 
   // ── Printing Rules Methods ───────────────────────────────────────────────
 
-  void _loadSettings() {
+  Future<void> _loadSettings() async {
     try {
-      autoPrintKitchen.value =
-          box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      kitchenNumberOfCopies.value =
-          box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
       kitchenPaperWidth.value =
           box.read(ArgumentConstant.kitchenPaperWidthKey) ?? '58mm';
-      autoPrintReceiptWhenPaid.value =
-          box.read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ?? true;
-      receiptNumberOfCopies.value =
-          box.read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ?? 1;
       orderPaperWidth.value =
           box.read(ArgumentConstant.orderPaperWidthKey) ?? '58mm';
+
+      final response = await _networkClient.get(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'];
+        if (data != null) {
+          autoPrintKitchen.value = data['auto_print_kot'] ?? true;
+          kitchenNumberOfCopies.value = data['kot_print_copies'] ?? 1;
+          autoPrintReceiptWhenPaid.value = data['auto_print_receipt'] ?? true;
+          receiptNumberOfCopies.value = data['receipt_print_copies'] ?? 1;
+        }
+      }
     } catch (_) {}
   }
 
-  void saveSettings({bool showToast = true}) {
+  Future<void> saveSettings({bool showToast = true}) async {
     try {
-      box.write(ArgumentConstant.printerAutoPrintKey, autoPrintKitchen.value);
-      box.write(
-        ArgumentConstant.printerNumberOfCopiesKey,
-        kitchenNumberOfCopies.value,
-      );
       box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenPaperWidth.value);
-      box.write(
-        ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
-        autoPrintReceiptWhenPaid.value,
-      );
-      box.write(
-        ArgumentConstant.printerReceiptNumberOfCopiesKey,
-        receiptNumberOfCopies.value,
-      );
       box.write(ArgumentConstant.orderPaperWidthKey, orderPaperWidth.value);
+
+      await _networkClient.patch(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+        data: {
+          "auto_print_kot": autoPrintKitchen.value,
+          "kot_print_copies": kitchenNumberOfCopies.value,
+          "auto_print_receipt": autoPrintReceiptWhenPaid.value,
+          "receipt_print_copies": receiptNumberOfCopies.value,
+        },
+      );
+
       if (showToast) AppToast.showSuccess(TranslationKeys.success.tr);
     } catch (_) {}
   }
@@ -182,8 +188,9 @@ class PrintServiceController extends GetxController {
         if (a.id.isNotEmpty) return a.id;
       } else if (Platform.isIOS) {
         final i = await _deviceInfo.iosInfo;
-        if (i.identifierForVendor?.isNotEmpty == true)
+        if (i.identifierForVendor?.isNotEmpty == true) {
           return i.identifierForVendor!;
+        }
       } else if (Platform.isWindows) {
         return (await _deviceInfo.windowsInfo).deviceId;
       } else if (Platform.isMacOS) {

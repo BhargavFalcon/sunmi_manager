@@ -92,7 +92,7 @@ class KitchenTicketsScreenController extends GetxController {
         }
       }
     } catch (e) {
-      print('Error fetching kitchen tickets: $e');
+      // ignore
     } finally {
       isLoading.value = false;
     }
@@ -121,7 +121,67 @@ class KitchenTicketsScreenController extends GetxController {
     }
   }
 
-  void onFoodReady(KitchenTicket ticket) {}
+  RxMap<String, bool> itemLoadingState = <String, bool>{}.obs;
+
+  Future<void> onItemFoodReady(
+    KitchenTicket ticket,
+    KitchenTicketItem item,
+  ) async {
+    final key = '${ticket.id}_${item.id}';
+    itemLoadingState[key] = true;
+    try {
+      final endpoint = ArgumentConstant.updateKotItemStatusEndpoint
+          .replaceAll(':kot_id', ticket.id.toString())
+          .replaceAll(':item_id', item.id.toString());
+
+      final response = await networkClient.patch(
+        endpoint,
+        data: {'status': 'ready'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await fetchKitchenTickets();
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Could not update item status: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      itemLoadingState[key] = false;
+    }
+  }
+
+  RxMap<String, bool> ticketLoadingState = <String, bool>{}.obs;
+
+  Future<void> onFoodReady(KitchenTicket ticket) async {
+    final key = ticket.id.toString();
+    ticketLoadingState[key] = true;
+    try {
+      final endpoint = ArgumentConstant.updateKotStatusEndpoint.replaceAll(
+        ':kot_id',
+        ticket.id.toString(),
+      );
+
+      final response = await networkClient.patch(
+        endpoint,
+        data: {'status': 'food_ready'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await fetchKitchenTickets();
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Could not update KOT status: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      ticketLoadingState[key] = false;
+    }
+  }
 
   String formatTime(String? dateTimeString) {
     if (dateTimeString == null || dateTimeString.isEmpty) return '';

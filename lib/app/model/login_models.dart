@@ -65,6 +65,7 @@ class User {
   int? branchId;
   Restaurant? restaurant;
   Restaurant? branch;
+  List<String>? managerAppPermissions; // NEW
 
   User({
     this.id,
@@ -74,6 +75,7 @@ class User {
     this.branchId,
     this.restaurant,
     this.branch,
+    this.managerAppPermissions,
   });
 
   User.fromJson(Map<String, dynamic> json) {
@@ -88,6 +90,10 @@ class User {
             : null;
     branch =
         json['branch'] != null ? Restaurant.fromJson(json['branch']) : null;
+    managerAppPermissions =
+        json['manager_app_permissions'] != null
+            ? List<String>.from(json['manager_app_permissions'])
+            : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -97,11 +103,10 @@ class User {
     data['email'] = email;
     data['restaurant_id'] = restaurantId;
     data['branch_id'] = branchId;
-    if (restaurant != null) {
-      data['restaurant'] = restaurant!.toJson();
-    }
-    if (branch != null) {
-      data['branch'] = branch!.toJson();
+    if (restaurant != null) data['restaurant'] = restaurant!.toJson();
+    if (branch != null) data['branch'] = branch!.toJson();
+    if (managerAppPermissions != null) {
+      data['manager_app_permissions'] = managerAppPermissions;
     }
     return data;
   }
@@ -130,8 +135,6 @@ class AvailableBranches {
   int? id;
   String? name;
   String? address;
-  double? lat;
-  double? lng;
   int? restaurantId;
   int? parentRestaurantId;
   String? createdAt;
@@ -141,8 +144,6 @@ class AvailableBranches {
     this.id,
     this.name,
     this.address,
-    this.lat,
-    this.lng,
     this.restaurantId,
     this.parentRestaurantId,
     this.createdAt,
@@ -153,25 +154,19 @@ class AvailableBranches {
     id = json['id'];
     name = json['name'];
     address = json['address'];
-    lat = json['lat'];
-    lng = json['lng'];
     restaurantId = json['restaurant_id'];
     parentRestaurantId = json['parent_restaurant_id'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
-    data['name'] = name;
-    data['address'] = address;
-    data['lat'] = lat;
-    data['lng'] = lng;
-    data['restaurant_id'] = restaurantId;
-    data['parent_restaurant_id'] = parentRestaurantId;
-    data['created_at'] = createdAt;
-    data['updated_at'] = updatedAt;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'address': address,
+    'restaurant_id': restaurantId,
+    'parent_restaurant_id': parentRestaurantId,
+    'created_at': createdAt,
+    'updated_at': updatedAt,
+  };
 }

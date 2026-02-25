@@ -111,6 +111,8 @@ Future<void> _initializeDateFormatting(Locale locale) async {
   } catch (e) {
     try {
       await initializeDateFormatting('en_US', null);
-    } catch (e2) {}
+    } catch (e2) {
+      // ignore
+    }
   }
 }

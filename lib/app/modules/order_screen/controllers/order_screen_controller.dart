@@ -232,12 +232,12 @@ class OrderScreenController extends GetxController {
       ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final order_details_model = order_model.GetOrderModel.fromJson(
+      final orderDetailsModel = order_model.GetOrderModel.fromJson(
         response.data,
       );
-      if (order_details_model.success == true) {
-        orderDetails.value = order_details_model;
-        final tz = order_details_model.data?.restaurant?.timezone;
+      if (orderDetailsModel.success == true) {
+        orderDetails.value = orderDetailsModel;
+        final tz = orderDetailsModel.data?.restaurant?.timezone;
         if (tz != null && tz.isNotEmpty) {
           box.write(ArgumentConstant.restaurantTimezoneKey, tz);
         }

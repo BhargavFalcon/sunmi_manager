@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../../../services/printer_service.dart';
+import '../../../data/NetworkClient.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../widgets/app_toast.dart';
@@ -162,25 +163,37 @@ class ManagePrinterScreenController extends GetxController
     printerService.isConnected.value = false;
   }
 
-  void _loadSettings() {
+  final NetworkClient _networkClient = NetworkClient();
+
+  Future<void> _loadSettings() async {
     try {
-      autoPrint.value = box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      numberOfCopies.value =
-          box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
       printerWidth.value = box.read(ArgumentConstant.printerWidthKey) ?? '58mm';
+      final response = await _networkClient.get(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'];
+        if (data != null) {
+          autoPrint.value = data['auto_print_kot'] ?? true;
+          numberOfCopies.value = data['kot_print_copies'] ?? 1;
+        }
+      }
     } catch (e) {
-      // Silent fail - use defaults
+      // Silent fail
     }
   }
 
-  void saveSettings() {
+  Future<void> saveSettings() async {
     try {
-      box.write(ArgumentConstant.printerAutoPrintKey, autoPrint.value);
-      box.write(
-        ArgumentConstant.printerNumberOfCopiesKey,
-        numberOfCopies.value,
-      );
       box.write(ArgumentConstant.printerWidthKey, printerWidth.value);
+      await _networkClient.patch(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+        data: {
+          "auto_print_kot": autoPrint.value,
+          "kot_print_copies": numberOfCopies.value,
+          // Not touching receipt print settings here because this screen doesn't manage them
+        },
+      );
     } catch (e) {
       // Silent fail
     }
@@ -348,7 +361,7 @@ class ManagePrinterScreenController extends GetxController
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       isBluetoothEnabled.value = bluetoothEnabled;
-          if (bluetoothEnabled == false) {
+      if (bluetoothEnabled == false) {
         _resetConnection();
         _showBluetoothEnableDialog();
         return;
@@ -431,18 +444,6 @@ class ManagePrinterScreenController extends GetxController
         return PaperSize.mm80;
       default:
         return PaperSize.mm80;
-    }
-  }
-
-  /// Returns printer dot width for the paper size
-  int _getPrinterDots() {
-    switch (printerWidth.value) {
-      case '58mm':
-        return 384;
-      case '80mm':
-        return 576;
-      default:
-        return 576;
     }
   }
 

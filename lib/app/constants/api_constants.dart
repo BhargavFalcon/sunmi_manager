@@ -43,6 +43,9 @@ class ArgumentConstant {
   static const reservationStatusEndpoint =
       "api/v1/pos/reservations/:reservation_id/status";
   static const kotsEndpoint = "api/v1/pos/kots";
+  static const updateKotStatusEndpoint = "api/v1/pos/kots/:kot_id/status";
+  static const updateKotItemStatusEndpoint =
+      "api/v1/pos/kots/:kot_id/items/:item_id";
   static const orderKey = "order";
   static const sourceScreenKey = "source_screen";
   static const hideTableSectionKey = "hide_table_section";
@@ -54,6 +57,8 @@ class ArgumentConstant {
   static const restaurantTimezoneKey = "restaurant_timezone";
 
   // Printer Settings Keys
+  static const autoPrintSettingsEndpoint =
+      "api/v1/pos/branch/auto-print-settings";
   static const printerAutoPrintKey = "printer_auto_print";
   static const printerNumberOfCopiesKey = "printer_number_of_copies";
   static const printerAutoPrintReceiptWhenPaidKey =

@@ -40,6 +40,7 @@ class AppPages {
   AppPages._();
 
   // Check if user is already logged in and return appropriate initial route
+  // ignore: non_constant_identifier_names
   static String get INITIAL {
     try {
       final token = box.read<String>(ArgumentConstant.tokenKey);

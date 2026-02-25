@@ -278,7 +278,10 @@ class _FilterTab extends StatelessWidget {
                 vertical: MySize.getHeight(2),
               ),
               decoration: BoxDecoration(
-                color: isSelected ? activeColor : activeColor.withValues(alpha: 0.1),
+                color:
+                    isSelected
+                        ? activeColor
+                        : activeColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(MySize.getHeight(20)),
               ),
               child: Text(
@@ -530,6 +533,136 @@ class _KitchenTicketCard extends StatelessWidget {
                                     ],
                                   ),
                                 ),
+                                if (ticket.order?.orderType == 'dine_in')
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: MySize.getWidth(8),
+                                    ),
+                                    child:
+                                        (item.status != null &&
+                                                    item.status!.isNotEmpty) ||
+                                                (item.foodReady == '1')
+                                            ? Padding(
+                                              padding: EdgeInsets.only(
+                                                right: MySize.getWidth(4),
+                                                left: MySize.getWidth(4),
+                                              ),
+                                              child: Icon(
+                                                Icons.done_all,
+                                                size: MySize.getHeight(20),
+                                                color:
+                                                    ColorConstants.successGreen,
+                                              ),
+                                            )
+                                            : Material(
+                                              color: ColorConstants.successGreen
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    MySize.getHeight(5),
+                                                  ),
+                                              child: InkWell(
+                                                onTap:
+                                                    () => Get.find<
+                                                          KitchenTicketsScreenController
+                                                        >()
+                                                        .onItemFoodReady(
+                                                          ticket,
+                                                          item,
+                                                        ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      MySize.getHeight(5),
+                                                    ),
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: MySize.getWidth(
+                                                      8,
+                                                    ),
+                                                    vertical: MySize.getHeight(
+                                                      6,
+                                                    ),
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color:
+                                                          ColorConstants
+                                                              .successGreen,
+                                                      width: 1,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          MySize.getHeight(5),
+                                                        ),
+                                                  ),
+                                                  child: Obx(() {
+                                                    final isLoading =
+                                                        Get.find<
+                                                              KitchenTicketsScreenController
+                                                            >()
+                                                            .itemLoadingState['${ticket.id}_${item.id}'] ??
+                                                        false;
+                                                    return Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        if (isLoading)
+                                                          SizedBox(
+                                                            width:
+                                                                MySize.getHeight(
+                                                                  14,
+                                                                ),
+                                                            height:
+                                                                MySize.getHeight(
+                                                                  14,
+                                                                ),
+                                                            child:
+                                                                const CupertinoActivityIndicator(),
+                                                          )
+                                                        else
+                                                          Icon(
+                                                            Icons
+                                                                .check_circle_outline,
+                                                            size:
+                                                                MySize.getHeight(
+                                                                  14,
+                                                                ),
+                                                            color:
+                                                                ColorConstants
+                                                                    .successGreen,
+                                                          ),
+                                                        SizedBox(
+                                                          width:
+                                                              MySize.getWidth(
+                                                                4,
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          TranslationKeys
+                                                              .foodIsReady
+                                                              .tr,
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                MySize.getHeight(
+                                                                  12,
+                                                                ),
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color:
+                                                                ColorConstants
+                                                                    .successGreen,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }),
+                                                ),
+                                              ),
+                                            ),
+                                  ),
                               ],
                             ),
                           ),
@@ -625,29 +758,44 @@ class _KitchenTicketCard extends StatelessWidget {
                                 MySize.getHeight(5),
                               ),
                             ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle_outline,
-                                    size: MySize.getHeight(16),
-                                    color: ColorConstants.successGreen,
-                                  ),
-                                  SizedBox(width: MySize.getWidth(4)),
-                                  Text(
-                                    TranslationKeys.foodIsReady.tr,
-                                    style: TextStyle(
-                                      fontSize: MySize.getHeight(13),
-                                      fontWeight: FontWeight.w600,
-                                      color: ColorConstants.successGreen,
+                            child: Obx(() {
+                              final isLoading =
+                                  Get.find<KitchenTicketsScreenController>()
+                                      .ticketLoadingState[ticket.id
+                                      .toString()] ??
+                                  false;
+                              return FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (isLoading)
+                                      SizedBox(
+                                        width: MySize.getHeight(16),
+                                        height: MySize.getHeight(16),
+                                        child:
+                                            const CupertinoActivityIndicator(),
+                                      )
+                                    else
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        size: MySize.getHeight(16),
+                                        color: ColorConstants.successGreen,
+                                      ),
+                                    SizedBox(width: MySize.getWidth(4)),
+                                    Text(
+                                      TranslationKeys.foodIsReady.tr,
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(13),
+                                        fontWeight: FontWeight.w600,
+                                        color: ColorConstants.successGreen,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                  ],
+                                ),
+                              );
+                            }),
                           ),
                         ),
                       ),

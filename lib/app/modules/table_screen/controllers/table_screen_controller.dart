@@ -11,7 +11,7 @@ class TableScreenController extends GetxController {
   final isLoading = false.obs;
   final isNavigatingToOrder = false.obs;
   final showAccessDialog = false.obs;
-  final table_model = Rx<TableModel?>(null);
+  final tableModel = Rx<TableModel?>(null);
   final selectedAreaIndex = 0.obs;
   final verticalScrollController = ScrollController();
   final horizontalScrollController = ScrollController();
@@ -70,7 +70,9 @@ class TableScreenController extends GetxController {
       if (horizontalScrollController.hasClients) {
         horizontalScrollController.jumpTo(0);
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
   }
 
   @override
@@ -98,7 +100,7 @@ class TableScreenController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data != null && response.data is Map<String, dynamic>) {
-          table_model.value = TableModel.fromJson(
+          tableModel.value = TableModel.fromJson(
             response.data as Map<String, dynamic>,
           );
           update();

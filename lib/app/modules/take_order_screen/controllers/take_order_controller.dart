@@ -17,6 +17,7 @@ import '../../../model/mobile_app_modules_model.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../routes/app_pages.dart';
 import '../../cart_screen/controllers/cart_screen_controller.dart';
+import '../../../widgets/app_toast.dart';
 
 class TakeOrderController extends GetxController {
   final networkClient = NetworkClient();
@@ -447,6 +448,12 @@ class TakeOrderController extends GetxController {
     final customerId = selectedCustomerId.value;
     final preOrderIso = preOrderDateTimeISO;
     final isPickup = selectedOrderType.value == 'Pickup';
+
+    // ✨ Validation: Delivery & Pickup require a customer
+    if ((_isDelivery || isPickup) && customerId == null) {
+      AppToast.showError('${TranslationKeys.customer.tr} is required');
+      return;
+    }
 
     if (_isDelivery) {
       if (customerId != null) {

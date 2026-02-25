@@ -519,7 +519,9 @@ class ReservationScreenController extends GetxController {
           showAccessDialog.value = false;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
   }
 
   void updateOrderFilter(String value) {

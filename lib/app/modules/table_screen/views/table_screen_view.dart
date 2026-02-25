@@ -49,8 +49,8 @@ class TableScreenView extends GetWidget<TableScreenController> {
                         if (controller.isLoading.value) {
                           return SizedBox.shrink();
                         }
-                        if (controller.table_model.value?.data == null ||
-                            controller.table_model.value!.data!.isEmpty) {
+                        if (controller.tableModel.value?.data == null ||
+                            controller.tableModel.value!.data!.isEmpty) {
                           return SizedBox.shrink();
                         }
                         return Container(
@@ -65,7 +65,7 @@ class TableScreenView extends GetWidget<TableScreenController> {
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
-                                      ...controller.table_model.value!.data!
+                                      ...controller.tableModel.value!.data!
                                           .asMap()
                                           .entries
                                           .map((entry) {
@@ -251,14 +251,14 @@ class TableScreenView extends GetWidget<TableScreenController> {
                           return SizedBox.shrink();
                         }
                         final selectedArea =
-                            controller.table_model.value?.data != null &&
+                            controller.tableModel.value?.data != null &&
                                     controller.selectedAreaIndex.value <
                                         controller
-                                            .table_model
+                                            .tableModel
                                             .value!
                                             .data!
                                             .length
-                                ? controller.table_model.value!.data![controller
+                                ? controller.tableModel.value!.data![controller
                                     .selectedAreaIndex
                                     .value]
                                 : null;

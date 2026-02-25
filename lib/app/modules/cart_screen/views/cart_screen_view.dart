@@ -143,7 +143,58 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   ),
                   Obx(() {
                     if (!controller.isDineInOrder) {
-                      return const SizedBox.shrink();
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(12),
+                          vertical: MySize.getHeight(8),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey.shade200,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              controller.currentOrderType.value,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(15.0),
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
+                              onTap: () {
+                                _showAddNoteDialog(context, controller);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(MySize.getHeight(6)),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(6),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.note_alt_outlined,
+                                  size: MySize.getHeight(18.0),
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     }
                     return Container(
                       width: double.infinity,

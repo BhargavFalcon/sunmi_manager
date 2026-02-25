@@ -211,13 +211,23 @@ class PusherService {
       return null;
     }
 
-    final autoPrintEnabled =
-        box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+    bool autoPrintEnabled = true;
+    int copies = 1;
+
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final settings = response.data['data'];
+        if (settings != null) {
+          autoPrintEnabled = settings['auto_print_kot'] ?? true;
+          copies = settings['kot_print_copies'] ?? 1;
+        }
+      }
+    } catch (_) {}
 
     if (autoPrintEnabled) {
-      final copies =
-          box.read<int>(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
-
       try {
         if (await PrinterHelper.isSunmiDevice()) {
           await _sunmiService.printInvoice(data, copies: copies);

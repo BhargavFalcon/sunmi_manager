@@ -145,6 +145,8 @@ class NewOrderDialog {
   static Future<void> _playNotificationSound() async {
     try {
       await _audioPlayer.play(AssetSource('audio/new_order.wav'));
-    } catch (e) {}
+    } catch (e) {
+      // ignore empty catch
+    }
   }
 }

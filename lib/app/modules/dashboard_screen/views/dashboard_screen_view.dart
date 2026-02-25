@@ -633,7 +633,7 @@ class OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  CurrencyFormatter.formatPrice(order.total.toString() ?? '0'),
+                  CurrencyFormatter.formatPrice(order.total.toString()),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -724,7 +724,7 @@ Widget buildTopTableList(List<TableData> tables) {
               ],
             ),
             Text(
-              CurrencyFormatter.formatPriceFromDouble(table.total ?? 0.0),
+              CurrencyFormatter.formatPriceFromDouble(table.total),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
