@@ -218,12 +218,10 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Obx(() {
-                                    final isWifi =
-                                        controller.isKitchenPrinterWifi;
                                     return Row(
                                       children: [
                                         Expanded(
-                                          flex: isWifi ? 1 : 3,
+                                          flex: 3,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -295,7 +293,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                         ),
                                         SizedBox(width: 8),
                                         Expanded(
-                                          flex: 2,
+                                          flex: 1,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -486,12 +484,10 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Obx(() {
-                                    final isWifi =
-                                        controller.isReceiptPrinterWifi;
                                     return Row(
                                       children: [
                                         Expanded(
-                                          flex: isWifi ? 1 : 3,
+                                          flex: 3,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -563,7 +559,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                         ),
                                         SizedBox(width: 8),
                                         Expanded(
-                                          flex: 2,
+                                          flex: 1,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,

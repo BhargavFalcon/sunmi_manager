@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:managerapp/app/model/wifi_printer_model.dart';
 import 'package:managerapp/app/utils/printer_helper.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import '../data/NetworkClient.dart';
 
 class PrinterService extends GetxService with WidgetsBindingObserver {
@@ -42,8 +43,39 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Future<void> _initService() async {
     isSunmi.value = await PrinterHelper.isSunmiDevice();
     _loadSavedPrinter();
-    _loadGeneralSettings();
+    await _loadGeneralSettings();
+    if (isSunmi.value) {
+      await _autoSelectSunmiPrinter();
+    }
     _connectWithRetry();
+  }
+
+  /// On Sunmi devices, auto-set kitchen and receipt printers to 'Internal Sunmi Printer'
+  /// if they haven't been explicitly set yet (or have a legacy value).
+  Future<void> _autoSelectSunmiPrinter() async {
+    bool changed = false;
+    const validInternalPrinter = 'Internal Sunmi Printer';
+    final legacyValues = {'', 'Internal', 'Sunmi'};
+
+    if (legacyValues.contains(selectedKitchenPrinter.value)) {
+      selectedKitchenPrinter.value = validInternalPrinter;
+      box.write(
+        ArgumentConstant.selectedKitchenPrinterKey,
+        validInternalPrinter,
+      );
+      changed = true;
+    }
+    if (legacyValues.contains(selectedReceiptPrinter.value)) {
+      selectedReceiptPrinter.value = validInternalPrinter;
+      box.write(
+        ArgumentConstant.selectedReceiptPrinterKey,
+        validInternalPrinter,
+      );
+      changed = true;
+    }
+    if (changed) {
+      await saveGeneralSettings();
+    }
   }
 
   @override
@@ -257,13 +289,19 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   }
 
   Future<bool> checkPrinterConnectivity(String? printerName) async {
-    if (printerName == null || printerName.isEmpty) return false;
-
-    // 1) Internal (Sunmi)
-    if (printerName == 'Internal' || await PrinterHelper.isSunmiDevice()) {
-      // If it's the internal printer on a Sunmi device, we assume it's connected
-      return true;
+    // 1) Internal (Sunmi) — use cached value to avoid repeated device-info lookups
+    if (isSunmi.value) {
+      if (printerName == null ||
+          printerName.isEmpty ||
+          printerName == 'Internal' ||
+          printerName == 'Sunmi' ||
+          printerName == 'Internal Sunmi Printer') {
+        await SunmiPrinterPlus().rebindPrinter();
+        return true;
+      }
     }
+
+    if (printerName == null || printerName.isEmpty) return false;
 
     // 2) Bluetooth
     if (connectedDevice != null && connectedDevice!.name == printerName) {

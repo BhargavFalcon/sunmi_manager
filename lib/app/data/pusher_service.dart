@@ -7,7 +7,6 @@ import '../../main.dart';
 import '../model/get_order_model.dart' as order_model;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
-import '../utils/printer_helper.dart';
 import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
@@ -208,29 +207,16 @@ class PusherService {
 
   Future<order_model.Data?> _fetchAndPrintInvoice(String orderUuid) async {
     final data = await _fetchOrderOnly(orderUuid);
-    if (data == null) {
-      return null;
-    }
+    if (data == null) return null;
+    final printerService = Get.find<PrinterService>();
+    // final autoPrintKot = printerService.autoPrintKitchen.value;
+    final autoPrintKot = false;
+    final autoPrintReceipt = printerService.autoPrintReceipt.value;
+    final kotCopies = printerService.kitchenCopies.value;
+    final receiptCopies = printerService.receiptCopies.value;
 
-    bool autoPrintKot = true;
-    bool autoPrintReceipt = false;
-    int kotCopies = 1;
-    int receiptCopies = 1;
-
-    try {
-      final response = await networkClient.get(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final settings = response.data['data'];
-        if (settings != null) {
-          autoPrintKot = settings['auto_print_kot'] ?? true;
-          kotCopies = settings['kot_print_copies'] ?? 1;
-          autoPrintReceipt = settings['auto_print_receipt'] ?? false;
-          receiptCopies = settings['receipt_print_copies'] ?? 1;
-        }
-      }
-    } catch (_) {}
+    // Cache Sunmi device check once to avoid repeated device-info lookups
+    final isSunmi = printerService.isSunmi.value;
 
     // 1) Print KOT
     if (autoPrintKot) {
@@ -238,11 +224,11 @@ class PusherService {
         final kitchenPrinter = box.read(
           ArgumentConstant.selectedKitchenPrinterKey,
         );
-        final isConnected = await Get.find<PrinterService>()
-            .checkPrinterConnectivity(kitchenPrinter);
-
+        final isConnected = await printerService.checkPrinterConnectivity(
+          kitchenPrinter,
+        );
         if (isConnected) {
-          if (await PrinterHelper.isSunmiDevice()) {
+          if (isSunmi) {
             await _sunmiService.printKOTFromOrder(data, copies: kotCopies);
           } else {
             await _escPosService.printAllKOTsFromOrder(data, copies: kotCopies);
@@ -263,11 +249,11 @@ class PusherService {
         final receiptPrinter = box.read(
           ArgumentConstant.selectedReceiptPrinterKey,
         );
-        final isConnected = await Get.find<PrinterService>()
-            .checkPrinterConnectivity(receiptPrinter);
-
+        final isConnected = await printerService.checkPrinterConnectivity(
+          receiptPrinter,
+        );
         if (isConnected) {
-          if (await PrinterHelper.isSunmiDevice()) {
+          if (isSunmi) {
             await _sunmiService.printInvoice(data, copies: receiptCopies);
           } else {
             await _escPosService.printInvoice(data, copies: receiptCopies);

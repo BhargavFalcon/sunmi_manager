@@ -42,6 +42,7 @@ class ReceiptOrderData {
   String? taxMode;
   bool? taxInclusive;
   int? currencyId;
+  String? imageUrl;
 
   ReceiptOrderData({
     this.restaurant,
@@ -57,6 +58,7 @@ class ReceiptOrderData {
     this.taxMode,
     this.taxInclusive,
     this.currencyId,
+    this.imageUrl,
   });
 
   ReceiptOrderData.fromJson(Map<String, dynamic> json) {
@@ -105,6 +107,7 @@ class ReceiptOrderData {
     taxMode = json['tax_mode']?.toString();
     taxInclusive = json['tax_inclusive'] as bool?;
     currencyId = _receiptToInt(json['currency_id']);
+    imageUrl = json['image_url']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
@@ -121,6 +124,7 @@ class ReceiptOrderData {
     'tax_mode': taxMode,
     'tax_inclusive': taxInclusive,
     'currency_id': currencyId,
+    'image_url': imageUrl,
   };
 }
 
@@ -130,6 +134,7 @@ class ReceiptRestaurant {
   String? phoneNumber;
   ReceiptSettingRef? receiptSetting;
   String? timezone;
+  String? logoUrl;
 
   ReceiptRestaurant({
     this.name,
@@ -137,6 +142,7 @@ class ReceiptRestaurant {
     this.phoneNumber,
     this.receiptSetting,
     this.timezone,
+    this.logoUrl,
   });
 
   ReceiptRestaurant.fromJson(Map<String, dynamic> json) {
@@ -150,6 +156,7 @@ class ReceiptRestaurant {
             )
             : null;
     timezone = json['timezone']?.toString();
+    logoUrl = json['logo_url']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
@@ -158,6 +165,7 @@ class ReceiptRestaurant {
     'phone_number': phoneNumber,
     'receipt_setting': receiptSetting?.toJson(),
     'timezone': timezone,
+    'logo_url': logoUrl,
   };
 }
 
@@ -197,6 +205,7 @@ class ReceiptSettings {
   bool? showOrderType;
   bool? showCustomerName;
   bool? showCustomerAddress;
+  String? paymentQrCodeUrl;
 
   ReceiptSettings({
     this.showTax,
@@ -206,6 +215,7 @@ class ReceiptSettings {
     this.showOrderType,
     this.showCustomerName,
     this.showCustomerAddress,
+    this.paymentQrCodeUrl,
   });
 
   ReceiptSettings.fromJson(Map<String, dynamic> json) {
@@ -216,6 +226,7 @@ class ReceiptSettings {
     showOrderType = json['show_order_type'] as bool?;
     showCustomerName = json['show_customer_name'] as bool?;
     showCustomerAddress = json['show_customer_address'] as bool?;
+    paymentQrCodeUrl = json['payment_qr_code_url']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
@@ -226,6 +237,7 @@ class ReceiptSettings {
     'show_order_type': showOrderType,
     'show_customer_name': showCustomerName,
     'show_customer_address': showCustomerAddress,
+    'payment_qr_code_url': paymentQrCodeUrl,
   };
 }
 

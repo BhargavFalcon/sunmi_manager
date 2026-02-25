@@ -86,22 +86,9 @@ class EscPosInvoicePrinterService {
             ? printerService.kitchenWidth.value
             : printerService.receiptWidth.value;
 
-    // If Bluetooth is not available, use WiFi printer's paper width fallback
-    if (printerService.connectedDevice == null ||
-        !printerService.isConnected.value) {
-      final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
-      if (wifiJson != null && wifiJson is String) {
-        try {
-          final List<dynamic> decoded = jsonDecode(wifiJson);
-          final printers =
-              decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
-          final printer = printers.firstWhereOrNull((p) => p.isDefault);
-          if (printer != null) {
-            width = printer.paperWidth;
-          }
-        } catch (_) {}
-      }
-    }
+    // If it's not a kitchen printer, or we want to double check widths, we use the printerService value.
+    // The previous logic was overwriting the dropdown selection with saved WiFi printer defaults, which was incorrect.
+    // We should trust the dropdown choice (kitchenWidth or receiptWidth) as primary.
 
     switch (width) {
       case '80mm':
@@ -263,26 +250,25 @@ class EscPosInvoicePrinterService {
 
       final gen = await _getGenerator();
       final is58mm = _getPaperSize() == PaperSize.mm58;
-      final b = PosStyles(
-        align: is58mm ? PosAlign.center : PosAlign.left,
-        fontType: PosFontType.fontB,
-      );
-      const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
-      const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+      final font = is58mm ? PosFontType.fontB : PosFontType.fontA;
+
+      final b = PosStyles(align: PosAlign.left, fontType: font);
+      final c = PosStyles(align: PosAlign.center, fontType: font);
+      final r = PosStyles(align: PosAlign.right, fontType: font);
 
       List<int> item(String qty, String name, String price, String amount) {
         return gen.row([
-          PosColumn(text: qty, width: 2, styles: b),
+          PosColumn(text: qty, width: 1, styles: b),
           PosColumn(text: _escCurrency(name), width: 5, styles: b),
           PosColumn(text: _escCurrency(price), width: 3, styles: r),
-          PosColumn(text: _escCurrency(amount), width: 2, styles: r),
+          PosColumn(text: _escCurrency(amount), width: 3, styles: r),
         ]);
       }
 
       List<int> summary(String label, String amount) {
         return gen.row([
-          PosColumn(text: _escCurrency(label), width: 9, styles: b),
-          PosColumn(text: _escCurrency(amount), width: 3, styles: r),
+          PosColumn(text: _escCurrency(label), width: 8, styles: b),
+          PosColumn(text: _escCurrency(amount), width: 4, styles: r),
         ]);
       }
 
@@ -299,10 +285,11 @@ class EscPosInvoicePrinterService {
 
         bytes += gen.text(
           restaurant?.name ?? TranslationKeys.restaurant.tr,
-          styles: const PosStyles(
+          styles: PosStyles(
             align: PosAlign.center,
             height: PosTextSize.size2,
             width: PosTextSize.size2,
+            fontType: font,
           ),
         );
 
@@ -386,9 +373,9 @@ class EscPosInvoicePrinterService {
         bytes += gen.hr(ch: '-');
 
         bytes += gen.row([
-          PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: b),
+          PosColumn(text: TranslationKeys.qty.tr, width: 1, styles: b),
           PosColumn(text: TranslationKeys.itemName.tr, width: 5, styles: b),
-          PosColumn(text: TranslationKeys.price.tr, width: 2, styles: r),
+          PosColumn(text: TranslationKeys.price.tr, width: 3, styles: r),
           PosColumn(text: TranslationKeys.amount.tr, width: 3, styles: r),
         ]);
         bytes += gen.hr(ch: '-');
@@ -569,19 +556,18 @@ class EscPosInvoicePrinterService {
 
       final gen = await _getGenerator();
       final is58mm = _getPaperSize() == PaperSize.mm58;
-      final b = PosStyles(
-        align: is58mm ? PosAlign.center : PosAlign.left,
-        fontType: PosFontType.fontB,
-      );
-      const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
-      const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+      final font = is58mm ? PosFontType.fontB : PosFontType.fontA;
+
+      final b = PosStyles(align: PosAlign.left, fontType: font);
+      final c = PosStyles(align: PosAlign.center, fontType: font);
+      final r = PosStyles(align: PosAlign.right, fontType: font);
 
       List<int> item(String qty, String name, String price, String amount) {
         return gen.row([
-          PosColumn(text: qty, width: 2, styles: b),
+          PosColumn(text: qty, width: 1, styles: b),
           PosColumn(text: _escCurrency(name), width: 5, styles: b),
           PosColumn(text: _escCurrency(price), width: 3, styles: r),
-          PosColumn(text: _escCurrency(amount), width: 2, styles: r),
+          PosColumn(text: _escCurrency(amount), width: 3, styles: r),
         ]);
       }
 
@@ -598,10 +584,11 @@ class EscPosInvoicePrinterService {
 
         bytes += gen.text(
           restaurant?.name ?? TranslationKeys.restaurant.tr,
-          styles: const PosStyles(
+          styles: PosStyles(
             align: PosAlign.center,
             height: PosTextSize.size2,
             width: PosTextSize.size2,
+            fontType: font,
           ),
         );
 
@@ -683,10 +670,10 @@ class EscPosInvoicePrinterService {
         bytes += gen.hr(ch: '-');
 
         bytes += gen.row([
-          PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: b),
+          PosColumn(text: TranslationKeys.qty.tr, width: 1, styles: b),
           PosColumn(text: TranslationKeys.itemName.tr, width: 5, styles: b),
           PosColumn(text: TranslationKeys.price.tr, width: 3, styles: r),
-          PosColumn(text: TranslationKeys.amount.tr, width: 2, styles: r),
+          PosColumn(text: TranslationKeys.amount.tr, width: 3, styles: r),
         ]);
         bytes += gen.hr(ch: '-');
 
@@ -840,14 +827,13 @@ class EscPosInvoicePrinterService {
       final items = ticket.items;
 
       final gen = await _getGenerator(isKitchen: true);
-      const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
-      const bb = PosStyles(
-        align: PosAlign.left,
-        fontType: PosFontType.fontB,
-        bold: false,
-      );
-      const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
-      const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+      final is58mm = _getPaperSize(isKitchen: true) == PaperSize.mm58;
+      final font = is58mm ? PosFontType.fontB : PosFontType.fontA;
+
+      final b = PosStyles(align: PosAlign.left, fontType: font);
+      final bb = PosStyles(align: PosAlign.left, bold: false, fontType: font);
+      final c = PosStyles(align: PosAlign.center, fontType: font);
+      final r = PosStyles(align: PosAlign.right, fontType: font);
 
       for (int i = 0; i < copies; i++) {
         List<int> bytes = [];
@@ -855,11 +841,12 @@ class EscPosInvoicePrinterService {
 
         bytes += gen.text(
           TranslationKeys.kitchenOrderTicket.tr,
-          styles: const PosStyles(
+          styles: PosStyles(
             align: PosAlign.center,
             height: PosTextSize.size2,
             width: PosTextSize.size2,
             bold: false,
+            fontType: font,
           ),
         );
         bytes += gen.feed(1);
@@ -876,36 +863,70 @@ class EscPosInvoicePrinterService {
         }
 
         if (tablePart.isNotEmpty) {
-          bytes += gen.row([
-            PosColumn(
-              text: orderPart,
-              width: 7,
-              styles: const PosStyles(
+          if (is58mm) {
+            // Manual padding for FontA (32 chars)
+            final int chars = 32;
+            String pad(String text) {
+              int space = (chars - text.length) ~/ 2;
+              if (space < 0) return text;
+              return ' ' * space + text;
+            }
+
+            bytes += gen.text(
+              pad(orderPart),
+              styles: PosStyles(
                 align: PosAlign.left,
                 height: PosTextSize.size2,
                 width: PosTextSize.size1,
                 bold: true,
+                fontType: PosFontType.fontA,
               ),
-            ),
-            PosColumn(
-              text: '${TranslationKeys.table.tr}: $tablePart',
-              width: 5,
-              styles: const PosStyles(
-                align: PosAlign.right,
+            );
+            bytes += gen.text(
+              pad('${TranslationKeys.table.tr}: $tablePart'),
+              styles: PosStyles(
+                align: PosAlign.left,
                 height: PosTextSize.size2,
                 width: PosTextSize.size1,
                 bold: true,
+                fontType: PosFontType.fontA,
               ),
-            ),
-          ]);
+            );
+          } else {
+            bytes += gen.row([
+              PosColumn(
+                text: orderPart,
+                width: 7,
+                styles: PosStyles(
+                  align: PosAlign.left,
+                  height: PosTextSize.size2,
+                  width: PosTextSize.size1,
+                  bold: true,
+                  fontType: font,
+                ),
+              ),
+              PosColumn(
+                text: '${TranslationKeys.table.tr}: $tablePart',
+                width: 5,
+                styles: PosStyles(
+                  align: PosAlign.right,
+                  height: PosTextSize.size2,
+                  width: PosTextSize.size1,
+                  bold: true,
+                  fontType: font,
+                ),
+              ),
+            ]);
+          }
         } else {
           bytes += gen.text(
             orderPart,
-            styles: const PosStyles(
+            styles: PosStyles(
               align: PosAlign.center,
               height: PosTextSize.size1,
               width: PosTextSize.size1,
               bold: false,
+              fontType: font,
             ),
           );
         }
@@ -925,18 +946,42 @@ class EscPosInvoicePrinterService {
                 : '';
 
         if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
-          bytes += gen.row([
-            PosColumn(
-              text: '${TranslationKeys.date.tr}: $dateStr',
-              width: 6,
-              styles: b,
-            ),
-            PosColumn(
-              text: '${TranslationKeys.time.tr}: $timeStr',
-              width: 6,
-              styles: r,
-            ),
-          ]);
+          if (is58mm) {
+            final int chars = 32;
+            String pad(String text) {
+              int space = (chars - text.length) ~/ 2;
+              if (space < 0) return text;
+              return ' ' * space + text;
+            }
+
+            bytes += gen.text(
+              pad('${TranslationKeys.date.tr}: $dateStr'),
+              styles: PosStyles(
+                align: PosAlign.left,
+                fontType: PosFontType.fontA,
+              ),
+            );
+            bytes += gen.text(
+              pad('${TranslationKeys.time.tr}: $timeStr'),
+              styles: PosStyles(
+                align: PosAlign.left,
+                fontType: PosFontType.fontA,
+              ),
+            );
+          } else {
+            bytes += gen.row([
+              PosColumn(
+                text: '${TranslationKeys.date.tr}: $dateStr',
+                width: 6,
+                styles: b,
+              ),
+              PosColumn(
+                text: '${TranslationKeys.time.tr}: $timeStr',
+                width: 6,
+                styles: r,
+              ),
+            ]);
+          }
         } else if (dateStr.isNotEmpty) {
           bytes += gen.text('${TranslationKeys.date.tr}: $dateStr', styles: c);
         } else if (timeStr.isNotEmpty) {
@@ -1036,16 +1081,11 @@ class EscPosInvoicePrinterService {
     // For now, let's treat it as one KOT for the new order
     final gen = await _getGenerator(isKitchen: true);
     final is58mm = _getPaperSize(isKitchen: true) == PaperSize.mm58;
-    final b = PosStyles(
-      align: is58mm ? PosAlign.center : PosAlign.left,
-      fontType: PosFontType.fontB,
-    );
-    final bb = PosStyles(
-      align: is58mm ? PosAlign.center : PosAlign.left,
-      fontType: PosFontType.fontB,
-      bold: false,
-    );
-    const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+    final font = is58mm ? PosFontType.fontB : PosFontType.fontA;
+
+    final b = PosStyles(align: PosAlign.left, fontType: font);
+    final bb = PosStyles(align: PosAlign.left, bold: false, fontType: font);
+    final r = PosStyles(align: PosAlign.right, fontType: font);
 
     for (int copy = 0; copy < copies; copy++) {
       List<int> bytes = [];
@@ -1053,11 +1093,12 @@ class EscPosInvoicePrinterService {
 
       bytes += gen.text(
         TranslationKeys.kitchenOrderTicket.tr,
-        styles: const PosStyles(
+        styles: PosStyles(
           align: PosAlign.center,
           height: PosTextSize.size2,
           width: PosTextSize.size2,
           bold: false,
+          fontType: font,
         ),
       );
       bytes += gen.feed(1);
@@ -1070,36 +1111,69 @@ class EscPosInvoicePrinterService {
       }
 
       if (tablePart.isNotEmpty) {
-        bytes += gen.row([
-          PosColumn(
-            text: orderPart,
-            width: 7,
-            styles: const PosStyles(
+        if (is58mm) {
+          final int chars = 32;
+          String pad(String text) {
+            int space = (chars - text.length) ~/ 2;
+            if (space < 0) return text;
+            return ' ' * space + text;
+          }
+
+          bytes += gen.text(
+            pad(orderPart),
+            styles: PosStyles(
               align: PosAlign.left,
               height: PosTextSize.size2,
               width: PosTextSize.size1,
               bold: true,
+              fontType: PosFontType.fontA,
             ),
-          ),
-          PosColumn(
-            text: '${TranslationKeys.table.tr}: $tablePart',
-            width: 5,
-            styles: const PosStyles(
-              align: PosAlign.right,
+          );
+          bytes += gen.text(
+            pad('${TranslationKeys.table.tr}: $tablePart'),
+            styles: PosStyles(
+              align: PosAlign.left,
               height: PosTextSize.size2,
               width: PosTextSize.size1,
               bold: true,
+              fontType: PosFontType.fontA,
             ),
-          ),
-        ]);
+          );
+        } else {
+          bytes += gen.row([
+            PosColumn(
+              text: orderPart,
+              width: 7,
+              styles: PosStyles(
+                align: PosAlign.left,
+                height: PosTextSize.size2,
+                width: PosTextSize.size1,
+                bold: true,
+                fontType: font,
+              ),
+            ),
+            PosColumn(
+              text: '${TranslationKeys.table.tr}: $tablePart',
+              width: 5,
+              styles: PosStyles(
+                align: PosAlign.right,
+                height: PosTextSize.size2,
+                width: PosTextSize.size1,
+                bold: true,
+                fontType: font,
+              ),
+            ),
+          ]);
+        }
       } else {
         bytes += gen.text(
           orderPart,
-          styles: const PosStyles(
+          styles: PosStyles(
             align: PosAlign.center,
             height: PosTextSize.size1,
             width: PosTextSize.size1,
             bold: false,
+            fontType: font,
           ),
         );
       }
@@ -1117,18 +1191,42 @@ class EscPosInvoicePrinterService {
               : '';
 
       if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
-        bytes += gen.row([
-          PosColumn(
-            text: '${TranslationKeys.date.tr}: $dateStr',
-            width: 6,
-            styles: b,
-          ),
-          PosColumn(
-            text: '${TranslationKeys.time.tr}: $timeStr',
-            width: 6,
-            styles: r,
-          ),
-        ]);
+        if (is58mm) {
+          final int chars = 32;
+          String pad(String text) {
+            int space = (chars - text.length) ~/ 2;
+            if (space < 0) return text;
+            return ' ' * space + text;
+          }
+
+          bytes += gen.text(
+            pad('${TranslationKeys.date.tr}: $dateStr'),
+            styles: PosStyles(
+              align: PosAlign.left,
+              fontType: PosFontType.fontA,
+            ),
+          );
+          bytes += gen.text(
+            pad('${TranslationKeys.time.tr}: $timeStr'),
+            styles: PosStyles(
+              align: PosAlign.left,
+              fontType: PosFontType.fontA,
+            ),
+          );
+        } else {
+          bytes += gen.row([
+            PosColumn(
+              text: '${TranslationKeys.date.tr}: $dateStr',
+              width: 6,
+              styles: b,
+            ),
+            PosColumn(
+              text: '${TranslationKeys.time.tr}: $timeStr',
+              width: 6,
+              styles: r,
+            ),
+          ]);
+        }
       }
 
       bytes += gen.feed(2);
