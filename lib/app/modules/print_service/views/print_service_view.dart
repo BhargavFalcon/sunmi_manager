@@ -293,77 +293,67 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                             ],
                                           ),
                                         ),
-                                        if (!isWifi) ...[
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  TranslationKeys
-                                                      .printerWidth
-                                                      .tr,
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey[700],
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                TranslationKeys.printerWidth.tr,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade300,
                                                   ),
                                                 ),
-                                                SizedBox(height: 4),
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade100,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          Colors.grey.shade300,
-                                                    ),
-                                                  ),
-                                                  child: DropdownButtonHideUnderline(
-                                                    child: DropdownButton<
-                                                      String
-                                                    >(
-                                                      isExpanded: true,
-                                                      value:
-                                                          controller
-                                                              .kitchenPaperWidth
-                                                              .value,
-                                                      items:
-                                                          ['58mm', '80mm']
-                                                              .map(
-                                                                (
-                                                                  w,
-                                                                ) => DropdownMenuItem(
-                                                                  value: w,
-                                                                  child: Text(
-                                                                    w,
-                                                                    softWrap:
-                                                                        false,
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    isExpanded: true,
+                                                    value:
+                                                        controller
+                                                            .kitchenPaperWidth
+                                                            .value,
+                                                    items:
+                                                        ['58mm', '80mm']
+                                                            .map(
+                                                              (w) =>
+                                                                  DropdownMenuItem(
+                                                                    value: w,
+                                                                    child: Text(
+                                                                      w,
+                                                                      softWrap:
+                                                                          false,
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              )
-                                                              .toList(),
-                                                      onChanged: (v) {
-                                                        if (v != null) {
-                                                          controller
-                                                              .kitchenPaperWidth
-                                                              .value = v;
-                                                        }
-                                                      },
-                                                    ),
+                                                            )
+                                                            .toList(),
+                                                    onChanged: (v) {
+                                                      if (v != null) {
+                                                        controller
+                                                            .kitchenPaperWidth
+                                                            .value = v;
+                                                      }
+                                                    },
                                                   ),
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ],
                                     );
                                   }),
@@ -571,77 +561,67 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                             ],
                                           ),
                                         ),
-                                        if (!isWifi) ...[
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  TranslationKeys
-                                                      .printerWidth
-                                                      .tr,
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey[700],
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                TranslationKeys.printerWidth.tr,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade300,
                                                   ),
                                                 ),
-                                                SizedBox(height: 4),
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade100,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          Colors.grey.shade300,
-                                                    ),
-                                                  ),
-                                                  child: DropdownButtonHideUnderline(
-                                                    child: DropdownButton<
-                                                      String
-                                                    >(
-                                                      isExpanded: true,
-                                                      value:
-                                                          controller
-                                                              .receiverPaperWidth
-                                                              .value,
-                                                      items:
-                                                          ['58mm', '80mm']
-                                                              .map(
-                                                                (
-                                                                  w,
-                                                                ) => DropdownMenuItem(
-                                                                  value: w,
-                                                                  child: Text(
-                                                                    w,
-                                                                    softWrap:
-                                                                        false,
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    isExpanded: true,
+                                                    value:
+                                                        controller
+                                                            .receiverPaperWidth
+                                                            .value,
+                                                    items:
+                                                        ['58mm', '80mm']
+                                                            .map(
+                                                              (w) =>
+                                                                  DropdownMenuItem(
+                                                                    value: w,
+                                                                    child: Text(
+                                                                      w,
+                                                                      softWrap:
+                                                                          false,
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              )
-                                                              .toList(),
-                                                      onChanged: (v) {
-                                                        if (v != null) {
-                                                          controller
-                                                              .receiverPaperWidth
-                                                              .value = v;
-                                                        }
-                                                      },
-                                                    ),
+                                                            )
+                                                            .toList(),
+                                                    onChanged: (v) {
+                                                      if (v != null) {
+                                                        controller
+                                                            .receiverPaperWidth
+                                                            .value = v;
+                                                      }
+                                                    },
                                                   ),
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ],
                                     );
                                   }),

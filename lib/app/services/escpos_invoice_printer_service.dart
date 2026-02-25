@@ -262,7 +262,11 @@ class EscPosInvoicePrinterService {
       final qrCodeUrl = data.receiptSettings?.paymentQrCodeUrl;
 
       final gen = await _getGenerator();
-      const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
+      final is58mm = _getPaperSize() == PaperSize.mm58;
+      final b = PosStyles(
+        align: is58mm ? PosAlign.center : PosAlign.left,
+        fontType: PosFontType.fontB,
+      );
       const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
       const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
 
@@ -564,7 +568,11 @@ class EscPosInvoicePrinterService {
       if (order == null || payment == null) return;
 
       final gen = await _getGenerator();
-      const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
+      final is58mm = _getPaperSize() == PaperSize.mm58;
+      final b = PosStyles(
+        align: is58mm ? PosAlign.center : PosAlign.left,
+        fontType: PosFontType.fontB,
+      );
       const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
       const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
 
@@ -1027,9 +1035,13 @@ class EscPosInvoicePrinterService {
     // Groups items by KOT if available, or just print all items as one KOT
     // For now, let's treat it as one KOT for the new order
     final gen = await _getGenerator(isKitchen: true);
-    const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
-    const bb = PosStyles(
-      align: PosAlign.left,
+    final is58mm = _getPaperSize(isKitchen: true) == PaperSize.mm58;
+    final b = PosStyles(
+      align: is58mm ? PosAlign.center : PosAlign.left,
+      fontType: PosFontType.fontB,
+    );
+    final bb = PosStyles(
+      align: is58mm ? PosAlign.center : PosAlign.left,
       fontType: PosFontType.fontB,
       bold: false,
     );
