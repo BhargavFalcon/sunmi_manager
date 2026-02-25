@@ -11,6 +11,8 @@ import 'package:managerapp/app/widgets/order_payment_dialog.dart';
 import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
+import 'package:managerapp/main.dart';
+import 'package:managerapp/app/services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/translation_keys.dart';
@@ -1631,10 +1633,28 @@ class OrderScreenView extends GetView<OrderScreenController> {
         return;
       }
 
+      final printerName = box.read(ArgumentConstant.selectedReceiptPrinterKey);
+      final isConnected = await Get.find<PrinterService>()
+          .checkPrinterConnectivity(printerName);
+
+      if (!isConnected) {
+        AppToast.showError(
+          '${TranslationKeys.printerNotConnected.tr}: $printerName',
+          title: TranslationKeys.error.tr,
+        );
+        return;
+      }
+
       if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printReceiptFromApi(model.data!);
+        await SunmiInvoicePrinterService().printReceiptFromApi(
+          model.data!,
+          copies: 1,
+        );
       } else {
-        await EscPosInvoicePrinterService().printReceiptFromApi(model.data!);
+        await EscPosInvoicePrinterService().printReceiptFromApi(
+          model.data!,
+          copies: 1,
+        );
       }
     } catch (e) {
       AppToast.showError(
@@ -1661,10 +1681,23 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
     try {
       controller.isPrinting.value = true;
+
+      final printerName = box.read(ArgumentConstant.selectedReceiptPrinterKey);
+      final isConnected = await Get.find<PrinterService>()
+          .checkPrinterConnectivity(printerName);
+
+      if (!isConnected) {
+        AppToast.showError(
+          '${TranslationKeys.printerNotConnected.tr}: $printerName',
+          title: TranslationKeys.error.tr,
+        );
+        return;
+      }
+
       if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printInvoice(orderData);
+        await SunmiInvoicePrinterService().printInvoice(orderData, copies: 1);
       } else {
-        await EscPosInvoicePrinterService().printInvoice(orderData);
+        await EscPosInvoicePrinterService().printInvoice(orderData, copies: 1);
       }
     } catch (e) {
       AppToast.showError(

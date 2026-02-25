@@ -1,6 +1,6 @@
 class ArgumentConstant {
-  // static const baseUrl = "https://partner.dinemetrics.app/";
-  static const baseUrl = "https://dev.dinemetrics.app/";
+  static const baseUrl = "https://partner.dinemetrics.app/";
+  // static const baseUrl = "https://dev.dinemetrics.app/";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
@@ -70,6 +70,8 @@ class ArgumentConstant {
   static const orderPaperWidthKey = "order_paper_width";
   static const savedPrinterDeviceKey = "saved_printer_device";
   static const savedWifiPrintersKey = "saved_wifi_printers";
+  static const selectedKitchenPrinterKey = "selected_kitchen_printer";
+  static const selectedReceiptPrinterKey = "selected_receipt_printer";
 
   // App Settings Keys
   static const hapticFeedbackKey = "haptic_feedback_enabled";

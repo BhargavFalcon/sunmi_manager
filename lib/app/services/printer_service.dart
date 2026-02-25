@@ -3,19 +3,46 @@ import 'package:get/get.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:managerapp/main.dart';
 import '../constants/api_constants.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:managerapp/app/model/wifi_printer_model.dart';
+import 'package:managerapp/app/utils/printer_helper.dart';
+import '../data/NetworkClient.dart';
 
 class PrinterService extends GetxService with WidgetsBindingObserver {
   static const _maxRetries = 3;
+  final NetworkClient _networkClient = NetworkClient();
 
+  // --- Reactive States ---
   final isConnected = false.obs;
   BluetoothInfo? connectedDevice;
   bool _isConnecting = false;
+
+  final isSunmi = false.obs;
+
+  // Shared Settings
+  final autoPrintKitchen = true.obs;
+  final kitchenCopies = 1.obs;
+  final kitchenWidth = '58mm'.obs;
+
+  final autoPrintReceipt = true.obs;
+  final receiptCopies = 1.obs;
+  final receiptWidth = '58mm'.obs;
+
+  final selectedKitchenPrinter = ''.obs;
+  final selectedReceiptPrinter = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
+    _initService();
+  }
+
+  Future<void> _initService() async {
+    isSunmi.value = await PrinterHelper.isSunmiDevice();
     _loadSavedPrinter();
+    _loadGeneralSettings();
     _connectWithRetry();
   }
 
@@ -54,6 +81,134 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         }
       }
     } catch (_) {}
+  }
+
+  Future<void> _loadGeneralSettings() async {
+    try {
+      // Load from local storage first
+      autoPrintKitchen.value =
+          box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
+      kitchenCopies.value =
+          box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
+      autoPrintReceipt.value =
+          box.read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ?? true;
+      receiptCopies.value =
+          box.read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ?? 1;
+
+      kitchenWidth.value =
+          box.read(ArgumentConstant.kitchenPaperWidthKey) ??
+          box.read(ArgumentConstant.printerWidthKey) ??
+          '58mm';
+      receiptWidth.value =
+          box.read(ArgumentConstant.orderPaperWidthKey) ??
+          box.read(ArgumentConstant.printerWidthKey) ??
+          '58mm';
+
+      selectedKitchenPrinter.value =
+          box.read(ArgumentConstant.selectedKitchenPrinterKey) ?? '';
+      selectedReceiptPrinter.value =
+          box.read(ArgumentConstant.selectedReceiptPrinterKey) ?? '';
+
+      // Then sync from API
+      final response = await _networkClient.get(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'];
+        if (data != null) {
+          autoPrintKitchen.value = data['auto_print_kot'] ?? true;
+          kitchenCopies.value = data['kot_print_copies'] ?? 1;
+          autoPrintReceipt.value = data['auto_print_receipt'] ?? true;
+          receiptCopies.value = data['receipt_print_copies'] ?? 1;
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> saveGeneralSettings() async {
+    try {
+      // Save locally
+      box.write(ArgumentConstant.printerAutoPrintKey, autoPrintKitchen.value);
+      box.write(ArgumentConstant.printerNumberOfCopiesKey, kitchenCopies.value);
+      box.write(
+        ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
+        autoPrintReceipt.value,
+      );
+      box.write(
+        ArgumentConstant.printerReceiptNumberOfCopiesKey,
+        receiptCopies.value,
+      );
+      box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenWidth.value);
+      box.write(ArgumentConstant.orderPaperWidthKey, receiptWidth.value);
+      box.write(
+        ArgumentConstant.selectedKitchenPrinterKey,
+        selectedKitchenPrinter.value,
+      );
+      box.write(
+        ArgumentConstant.selectedReceiptPrinterKey,
+        selectedReceiptPrinter.value,
+      );
+
+      // Save to API
+      await _networkClient.patch(
+        ArgumentConstant.autoPrintSettingsEndpoint,
+        data: {
+          "auto_print_kot": autoPrintKitchen.value,
+          "kot_print_copies": kitchenCopies.value,
+          "auto_print_receipt": autoPrintReceipt.value,
+          "receipt_print_copies": receiptCopies.value,
+        },
+      );
+    } catch (_) {}
+  }
+
+  // --- Helper Methods ---
+  void toggleAutoPrintKitchen() {
+    autoPrintKitchen.value = !autoPrintKitchen.value;
+    saveGeneralSettings();
+  }
+
+  void incrementKitchenCopies() {
+    if (kitchenCopies.value < 5) {
+      kitchenCopies.value++;
+      saveGeneralSettings();
+    }
+  }
+
+  void decrementKitchenCopies() {
+    if (kitchenCopies.value > 1) {
+      kitchenCopies.value--;
+      saveGeneralSettings();
+    }
+  }
+
+  void setKitchenWidth(String width) {
+    kitchenWidth.value = width;
+    saveGeneralSettings();
+  }
+
+  void toggleAutoPrintReceipt() {
+    autoPrintReceipt.value = !autoPrintReceipt.value;
+    saveGeneralSettings();
+  }
+
+  void incrementReceiptCopies() {
+    if (receiptCopies.value < 5) {
+      receiptCopies.value++;
+      saveGeneralSettings();
+    }
+  }
+
+  void decrementReceiptCopies() {
+    if (receiptCopies.value > 1) {
+      receiptCopies.value--;
+      saveGeneralSettings();
+    }
+  }
+
+  void setReceiptWidth(String width) {
+    receiptWidth.value = width;
+    saveGeneralSettings();
   }
 
   Future<void> checkConnection() async {
@@ -99,5 +254,48 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     connectedDevice = null;
     isConnected.value = false;
     box.remove(ArgumentConstant.savedPrinterDeviceKey);
+  }
+
+  Future<bool> checkPrinterConnectivity(String? printerName) async {
+    if (printerName == null || printerName.isEmpty) return false;
+
+    // 1) Internal (Sunmi)
+    if (printerName == 'Internal' || await PrinterHelper.isSunmiDevice()) {
+      // If it's the internal printer on a Sunmi device, we assume it's connected
+      return true;
+    }
+
+    // 2) Bluetooth
+    if (connectedDevice != null && connectedDevice!.name == printerName) {
+      await checkConnection();
+      return isConnected.value;
+    }
+
+    // 3) WiFi
+    final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
+    if (wifiJson != null && wifiJson is String) {
+      try {
+        final List<dynamic> decoded = jsonDecode(wifiJson);
+        final printers =
+            decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
+        final printer = printers.firstWhereOrNull((p) => p.name == printerName);
+
+        if (printer != null) {
+          try {
+            final socket = await Socket.connect(
+              printer.ipAddress,
+              int.tryParse(printer.port) ?? 9100,
+              timeout: const Duration(seconds: 2),
+            );
+            socket.destroy();
+            return true;
+          } catch (_) {
+            return false;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return false;
   }
 }

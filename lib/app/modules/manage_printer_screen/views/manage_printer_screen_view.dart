@@ -680,38 +680,6 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
                   placeholder: 'Port',
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 16),
-                Obx(
-                  () => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: controller.wifiPaperWidth.value,
-                        items:
-                            ['58mm', '80mm']
-                                .map(
-                                  (w) => DropdownMenuItem(
-                                    value: w,
-                                    child: Text('Paper Width: $w'),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (v) {
-                          if (v != null) controller.wifiPaperWidth.value = v;
-                        },
-                      ),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () => controller.saveWifiPrinter(),

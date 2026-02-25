@@ -65,7 +65,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
               builder: (controller) {
                 return SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -73,6 +73,9 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                         Obx(() {
                           if (controller.isConnected.value &&
                               !controller.isConfiguring.value) {
+                            if (controller.isSunmi.value) {
+                              return const SizedBox.shrink();
+                            }
                             return Column(
                               children: [
                                 _buildConnectedStatus(),
@@ -89,7 +92,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
 
                         // ── Printing Rules Section ───────────────────────────
                         Container(
-                          padding: EdgeInsets.all(16),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -211,56 +214,157 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    TranslationKeys.printerWidth.tr,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
                                   Obx(() {
-                                    return Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value:
-                                              controller
-                                                  .kitchenPaperWidth
-                                                  .value,
-                                          items:
-                                              ['58mm', '80mm']
-                                                  .map(
-                                                    (w) => DropdownMenuItem(
-                                                      value: w,
-                                                      child: Text(w),
+                                    final isWifi =
+                                        controller.isKitchenPrinterWifi;
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          flex: isWifi ? 1 : 3,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                TranslationKeys.printer.tr,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade300,
+                                                  ),
+                                                ),
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    isExpanded: true,
+                                                    hint: Text(
+                                                      'Select Printer',
                                                     ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (v) {
-                                            if (v != null) {
-                                              controller
-                                                  .kitchenPaperWidth
-                                                  .value = v;
-                                              controller.saveSettings();
-                                            }
-                                          },
+                                                    value:
+                                                        controller
+                                                                .selectedKitchenPrinter
+                                                                .value
+                                                                .isEmpty
+                                                            ? null
+                                                            : controller
+                                                                .selectedKitchenPrinter
+                                                                .value,
+                                                    items:
+                                                        controller
+                                                            .connectedPrinters
+                                                            .map(
+                                                              (
+                                                                p,
+                                                              ) => DropdownMenuItem(
+                                                                value:
+                                                                    p['name'],
+                                                                child: Text(
+                                                                  '${p['name']} (${p['type']})',
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              ),
+                                                            )
+                                                            .toList(),
+                                                    onChanged:
+                                                        (v) => controller
+                                                            .onPrinterSelected(
+                                                              'kitchen',
+                                                              v,
+                                                            ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                        if (!isWifi) ...[
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  TranslationKeys
+                                                      .printerWidth
+                                                      .tr,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                SizedBox(height: 4),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                    ),
+                                                  ),
+                                                  child: DropdownButtonHideUnderline(
+                                                    child: DropdownButton<
+                                                      String
+                                                    >(
+                                                      isExpanded: true,
+                                                      value:
+                                                          controller
+                                                              .kitchenPaperWidth
+                                                              .value,
+                                                      items:
+                                                          ['58mm', '80mm']
+                                                              .map(
+                                                                (
+                                                                  w,
+                                                                ) => DropdownMenuItem(
+                                                                  value: w,
+                                                                  child: Text(
+                                                                    w,
+                                                                    softWrap:
+                                                                        false,
+                                                                  ),
+                                                                ),
+                                                              )
+                                                              .toList(),
+                                                      onChanged: (v) {
+                                                        if (v != null) {
+                                                          controller
+                                                              .kitchenPaperWidth
+                                                              .value = v;
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     );
                                   }),
                                 ],
@@ -388,53 +492,157 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    TranslationKeys.printerWidth.tr,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
                                   Obx(() {
-                                    return Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value:
-                                              controller.orderPaperWidth.value,
-                                          items:
-                                              ['58mm', '80mm']
-                                                  .map(
-                                                    (w) => DropdownMenuItem(
-                                                      value: w,
-                                                      child: Text(w),
+                                    final isWifi =
+                                        controller.isReceiptPrinterWifi;
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          flex: isWifi ? 1 : 3,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                TranslationKeys.printer.tr,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade300,
+                                                  ),
+                                                ),
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    isExpanded: true,
+                                                    hint: Text(
+                                                      'Select Printer',
                                                     ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (v) {
-                                            if (v != null) {
-                                              controller.orderPaperWidth.value =
-                                                  v;
-                                              controller.saveSettings();
-                                            }
-                                          },
+                                                    value:
+                                                        controller
+                                                                .selectedReceiptPrinter
+                                                                .value
+                                                                .isEmpty
+                                                            ? null
+                                                            : controller
+                                                                .selectedReceiptPrinter
+                                                                .value,
+                                                    items:
+                                                        controller
+                                                            .connectedPrinters
+                                                            .map(
+                                                              (
+                                                                p,
+                                                              ) => DropdownMenuItem(
+                                                                value:
+                                                                    p['name'],
+                                                                child: Text(
+                                                                  '${p['name']} (${p['type']})',
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              ),
+                                                            )
+                                                            .toList(),
+                                                    onChanged:
+                                                        (v) => controller
+                                                            .onPrinterSelected(
+                                                              'receipt',
+                                                              v,
+                                                            ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                        if (!isWifi) ...[
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  TranslationKeys
+                                                      .printerWidth
+                                                      .tr,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                SizedBox(height: 4),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                    ),
+                                                  ),
+                                                  child: DropdownButtonHideUnderline(
+                                                    child: DropdownButton<
+                                                      String
+                                                    >(
+                                                      isExpanded: true,
+                                                      value:
+                                                          controller
+                                                              .receiverPaperWidth
+                                                              .value,
+                                                      items:
+                                                          ['58mm', '80mm']
+                                                              .map(
+                                                                (
+                                                                  w,
+                                                                ) => DropdownMenuItem(
+                                                                  value: w,
+                                                                  child: Text(
+                                                                    w,
+                                                                    softWrap:
+                                                                        false,
+                                                                  ),
+                                                                ),
+                                                              )
+                                                              .toList(),
+                                                      onChanged: (v) {
+                                                        if (v != null) {
+                                                          controller
+                                                              .receiverPaperWidth
+                                                              .value = v;
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     );
                                   }),
                                 ],
@@ -489,7 +697,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
 
   Widget _buildConnectionSetup() {
     return Container(
-      padding: EdgeInsets.all(MySize.getHeight(16)),
+      padding: EdgeInsets.all(MySize.getHeight(12)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(MySize.getHeight(12)),

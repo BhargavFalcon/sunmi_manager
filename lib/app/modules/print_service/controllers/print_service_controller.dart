@@ -1,9 +1,11 @@
-import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managerapp/app/services/printer_service.dart';
 import 'package:managerapp/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -12,17 +14,35 @@ import '../../../model/print_service_validate_model.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 
-import '../../../data/NetworkClient.dart';
-
 class PrintServiceController extends GetxController {
-  final NetworkClient _networkClient = NetworkClient();
-  // ── Printing Rules ───────────────────────────────────────────────────────
-  final autoPrintKitchen = true.obs;
-  final kitchenNumberOfCopies = 1.obs;
-  final kitchenPaperWidth = '58mm'.obs;
-  final autoPrintReceiptWhenPaid = true.obs;
-  final receiptNumberOfCopies = 1.obs;
-  final orderPaperWidth = '58mm'.obs;
+  late PrinterService printerService;
+
+  RxBool get isSunmi => printerService.isSunmi;
+  RxBool get autoPrintKitchen => printerService.autoPrintKitchen;
+  RxInt get kitchenNumberOfCopies => printerService.kitchenCopies;
+  RxString get kitchenPaperWidth => printerService.kitchenWidth;
+  RxString get receiverPaperWidth => printerService.receiptWidth;
+  RxString get orderPaperWidth => printerService.receiptWidth; // compatibility
+  RxBool get autoPrintReceiptWhenPaid => printerService.autoPrintReceipt;
+  RxInt get receiptNumberOfCopies => printerService.receiptCopies;
+
+  final connectedPrinters = <Map<String, String>>[].obs;
+  RxString get selectedKitchenPrinter => printerService.selectedKitchenPrinter;
+  RxString get selectedReceiptPrinter => printerService.selectedReceiptPrinter;
+
+  bool get isKitchenPrinterWifi {
+    final printer = connectedPrinters.firstWhereOrNull(
+      (p) => p['name'] == selectedKitchenPrinter.value,
+    );
+    return printer?['type'] == 'WiFi';
+  }
+
+  bool get isReceiptPrinterWifi {
+    final printer = connectedPrinters.firstWhereOrNull(
+      (p) => p['name'] == selectedReceiptPrinter.value,
+    );
+    return printer?['type'] == 'WiFi';
+  }
 
   // ── Print Service Connection ─────────────────────────────────────────────
   final isConnected = false.obs;
@@ -43,8 +63,48 @@ class PrintServiceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadSettings();
+    printerService = Get.find<PrinterService>();
     _loadConnection();
+    _loadConnectedPrinters();
+  }
+
+  void _loadConnectedPrinters() {
+    connectedPrinters.clear();
+
+    // 0. Internal Sunmi Printer
+    if (isSunmi.value) {
+      connectedPrinters.add({
+        'name': 'Internal Sunmi Printer',
+        'type': 'Internal',
+        'address': 'Internal',
+      });
+    }
+
+    // 1. Bluetooth Printer
+    if (printerService.connectedDevice != null) {
+      connectedPrinters.add({
+        'name': printerService.connectedDevice!.name,
+        'type': 'Bluetooth',
+        'address': printerService.connectedDevice!.macAdress,
+      });
+    }
+
+    // 2. WiFi Printers
+    try {
+      final String? jsonStr = box.read(ArgumentConstant.savedWifiPrintersKey);
+      if (jsonStr != null) {
+        final List<dynamic> decodedObj = jsonDecode(jsonStr);
+        for (var e in decodedObj) {
+          connectedPrinters.add({
+            'name': e['name']?.toString() ?? 'WiFi Printer',
+            'type': 'WiFi',
+            'address': '${e['ipAddress']}:${e['port']}',
+          });
+        }
+      }
+    } catch (_) {}
+
+    update();
   }
 
   @override
@@ -55,84 +115,37 @@ class PrintServiceController extends GetxController {
 
   // ── Printing Rules Methods ───────────────────────────────────────────────
 
-  Future<void> _loadSettings() async {
-    try {
-      kitchenPaperWidth.value =
-          box.read(ArgumentConstant.kitchenPaperWidthKey) ?? '58mm';
-      orderPaperWidth.value =
-          box.read(ArgumentConstant.orderPaperWidthKey) ?? '58mm';
-
-      final response = await _networkClient.get(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data['data'];
-        if (data != null) {
-          autoPrintKitchen.value = data['auto_print_kot'] ?? true;
-          kitchenNumberOfCopies.value = data['kot_print_copies'] ?? 1;
-          autoPrintReceiptWhenPaid.value = data['auto_print_receipt'] ?? true;
-          receiptNumberOfCopies.value = data['receipt_print_copies'] ?? 1;
-        }
-      }
-    } catch (_) {}
-  }
-
   Future<void> saveSettings({bool showToast = true}) async {
-    try {
-      box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenPaperWidth.value);
-      box.write(ArgumentConstant.orderPaperWidthKey, orderPaperWidth.value);
-
-      await _networkClient.patch(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-        data: {
-          "auto_print_kot": autoPrintKitchen.value,
-          "kot_print_copies": kitchenNumberOfCopies.value,
-          "auto_print_receipt": autoPrintReceiptWhenPaid.value,
-          "receipt_print_copies": receiptNumberOfCopies.value,
-        },
-      );
-
-      if (showToast) AppToast.showSuccess(TranslationKeys.success.tr);
-    } catch (_) {}
+    await printerService.saveGeneralSettings();
+    if (showToast) AppToast.showSuccess(TranslationKeys.success.tr);
   }
 
-  void toggleAutoPrintKitchen() {
-    autoPrintKitchen.value = !autoPrintKitchen.value;
-    saveSettings(showToast: false);
+  Future<bool> checkPrinterConnectivity(String? printerName) async {
+    return Get.find<PrinterService>().checkPrinterConnectivity(printerName);
   }
 
-  void incrementKitchenCopies() {
-    if (kitchenNumberOfCopies.value < 5) {
-      kitchenNumberOfCopies.value++;
-      saveSettings();
+  void onPrinterSelected(String section, String? printerName) async {
+    if (printerName == null) return;
+
+    if (section == 'kitchen') {
+      selectedKitchenPrinter.value = printerName;
+    } else {
+      selectedReceiptPrinter.value = printerName;
+    }
+
+    final isConnected = await checkPrinterConnectivity(printerName);
+    if (!isConnected) {
+      AppToast.showError('Printer "$printerName" is not connected.');
     }
   }
 
-  void decrementKitchenCopies() {
-    if (kitchenNumberOfCopies.value > 1) {
-      kitchenNumberOfCopies.value--;
-      saveSettings();
-    }
-  }
-
-  void toggleAutoPrintReceiptWhenPaid() {
-    autoPrintReceiptWhenPaid.value = !autoPrintReceiptWhenPaid.value;
-    saveSettings(showToast: false);
-  }
-
-  void incrementReceiptCopies() {
-    if (receiptNumberOfCopies.value < 5) {
-      receiptNumberOfCopies.value++;
-      saveSettings();
-    }
-  }
-
-  void decrementReceiptCopies() {
-    if (receiptNumberOfCopies.value > 1) {
-      receiptNumberOfCopies.value--;
-      saveSettings();
-    }
-  }
+  void toggleAutoPrintKitchen() => printerService.toggleAutoPrintKitchen();
+  void incrementKitchenCopies() => printerService.incrementKitchenCopies();
+  void decrementKitchenCopies() => printerService.decrementKitchenCopies();
+  void toggleAutoPrintReceiptWhenPaid() =>
+      printerService.toggleAutoPrintReceipt();
+  void incrementReceiptCopies() => printerService.incrementReceiptCopies();
+  void decrementReceiptCopies() => printerService.decrementReceiptCopies();
 
   // ── Print Service Connection Methods ─────────────────────────────────────
 

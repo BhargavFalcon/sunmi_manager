@@ -20,6 +20,7 @@ class TranslationKeys {
   static const String select = 'select';
   static const String apply = 'apply';
   static const String print = 'print';
+  static const String printer = 'printer';
   static const String name = 'name';
   static const String email = 'email';
   static const String emailAddress = 'emailAddress';

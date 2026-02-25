@@ -11,13 +11,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../../../services/printer_service.dart';
-import '../../../data/NetworkClient.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/translation_keys.dart';
-import '../../../utils/printer_helper.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../../../model/wifi_printer_model.dart';
 import '../../../utils/currency_formatter.dart';
@@ -37,9 +35,6 @@ class ManagePrinterScreenController extends GetxController
   final isBluetoothEnabled = false.obs;
 
   // --- Printer Settings ---
-  final autoPrint = true.obs;
-  final numberOfCopies = 1.obs;
-  final printerWidth = '58mm'.obs;
   final printerWidthOptions = ['58mm', '80mm'];
 
   // --- Wifi Printer State ---
@@ -49,10 +44,8 @@ class ManagePrinterScreenController extends GetxController
   final ipAddressController = TextEditingController();
   final portController = TextEditingController();
   final defaultWifiPrinter = Rxn<WifiPrinterModel>();
-  final wifiPaperWidth = '80mm'.obs;
 
   // --- Sunmi State ---
-  final isSunmi = false.obs;
   final sunmiDeviceName = 'Sunmi Device'.obs;
 
   // Cached printer profile for fast printing
@@ -70,21 +63,19 @@ class ManagePrinterScreenController extends GetxController
   void onInit() {
     super.onInit();
     printerService = Get.find<PrinterService>();
-    _checkSunmiStatus();
-    _loadSavedPrinter();
-    _loadSettings();
-    _loadWifiPrinters();
-    _syncWithService();
-    _checkBluetoothStatus();
+    _initSettings();
     WidgetsBinding.instance.addObserver(this);
 
     // Initial check when entering the screen
     printerService.checkConnection();
   }
 
-  Future<void> _checkSunmiStatus() async {
-    isSunmi.value = await PrinterHelper.isSunmiDevice();
-    if (isSunmi.value) {
+  Future<void> _initSettings() async {
+    _loadSavedPrinter();
+    _loadWifiPrinters();
+    _syncWithService();
+    _checkBluetoothStatus();
+    if (printerService.isSunmi.value) {
       try {
         final deviceInfo = DeviceInfoPlugin();
         if (Platform.isAndroid) {
@@ -107,7 +98,7 @@ class ManagePrinterScreenController extends GetxController
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (selectedTab.value == 0) {
+      if (selectedTab.value == 0 && !printerService.isSunmi.value) {
         // App resumed, recheck Bluetooth quietly
         _checkAndResumeBluetooth();
       }
@@ -138,6 +129,12 @@ class ManagePrinterScreenController extends GetxController
 
   Future<void> _checkBluetoothStatus() async {
     try {
+      // If Sunmi, we don't need to force bluetooth at start
+      if (printerService.isSunmi.value) {
+        isInitialLoading.value = false;
+        return;
+      }
+
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       isBluetoothEnabled.value = bluetoothEnabled;
@@ -163,41 +160,15 @@ class ManagePrinterScreenController extends GetxController
     printerService.isConnected.value = false;
   }
 
-  final NetworkClient _networkClient = NetworkClient();
+  void toggleAutoPrint() => printerService.toggleAutoPrintKitchen();
+  void incrementCopies() => printerService.incrementKitchenCopies();
+  void decrementCopies() => printerService.decrementKitchenCopies();
+  void setPrinterWidth(String width) => printerService.setKitchenWidth(width);
 
-  Future<void> _loadSettings() async {
-    try {
-      printerWidth.value = box.read(ArgumentConstant.printerWidthKey) ?? '58mm';
-      final response = await _networkClient.get(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data['data'];
-        if (data != null) {
-          autoPrint.value = data['auto_print_kot'] ?? true;
-          numberOfCopies.value = data['kot_print_copies'] ?? 1;
-        }
-      }
-    } catch (e) {
-      // Silent fail
-    }
-  }
-
-  Future<void> saveSettings() async {
-    try {
-      box.write(ArgumentConstant.printerWidthKey, printerWidth.value);
-      await _networkClient.patch(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-        data: {
-          "auto_print_kot": autoPrint.value,
-          "kot_print_copies": numberOfCopies.value,
-          // Not touching receipt print settings here because this screen doesn't manage them
-        },
-      );
-    } catch (e) {
-      // Silent fail
-    }
-  }
+  RxBool get isSunmi => printerService.isSunmi;
+  RxInt get numberOfCopies => printerService.kitchenCopies;
+  RxString get printerWidth => printerService.kitchenWidth;
+  RxBool get autoPrint => printerService.autoPrintKitchen;
 
   void _loadWifiPrinters() {
     try {
@@ -231,7 +202,7 @@ class ManagePrinterScreenController extends GetxController
       name: deviceNameController.text.trim(),
       ipAddress: ipAddressController.text.trim(),
       port: portController.text.trim(),
-      paperWidth: wifiPaperWidth.value,
+      paperWidth: '80mm',
       isDefault:
           savedWifiPrinters.isEmpty, // Make default if it's the first one
     );
@@ -283,30 +254,6 @@ class ManagePrinterScreenController extends GetxController
     } catch (e) {
       // Silent fail
     }
-  }
-
-  void toggleAutoPrint() {
-    autoPrint.value = !autoPrint.value;
-    saveSettings();
-  }
-
-  void incrementCopies() {
-    if (numberOfCopies.value < 5) {
-      numberOfCopies.value++;
-      saveSettings();
-    }
-  }
-
-  void decrementCopies() {
-    if (numberOfCopies.value > 1) {
-      numberOfCopies.value--;
-      saveSettings();
-    }
-  }
-
-  void setPrinterWidth(String width) {
-    printerWidth.value = width;
-    saveSettings();
   }
 
   void _syncWithService() {
@@ -363,7 +310,10 @@ class ManagePrinterScreenController extends GetxController
       isBluetoothEnabled.value = bluetoothEnabled;
       if (bluetoothEnabled == false) {
         _resetConnection();
-        _showBluetoothEnableDialog();
+        // If Sunmi, we don't need to force bluetooth dialog even on manual scan
+        if (!printerService.isSunmi.value) {
+          _showBluetoothEnableDialog();
+        }
         return;
       }
 
@@ -458,11 +408,15 @@ class ManagePrinterScreenController extends GetxController
       final bool bluetoothEnabled =
           await PrintBluetoothThermal.bluetoothEnabled;
       if (!bluetoothEnabled) {
-        _showBluetoothEnableDialog();
+        if (!printerService.isSunmi.value) {
+          _showBluetoothEnableDialog();
+        }
         return;
       }
     } catch (e) {
-      _showBluetoothEnableDialog();
+      if (!printerService.isSunmi.value) {
+        _showBluetoothEnableDialog();
+      }
       return;
     }
 

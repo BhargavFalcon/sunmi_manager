@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
-import '../../../../main.dart';
+import 'package:managerapp/main.dart';
+import 'package:managerapp/app/services/printer_service.dart';
+import 'package:managerapp/app/widgets/app_toast.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/kitchen_ticket_model.dart';
@@ -104,19 +108,31 @@ class KitchenTicketsScreenController extends GetxController {
 
   Future<void> onPrint(KitchenTicket ticket) async {
     try {
+      final printerName = box.read(ArgumentConstant.selectedKitchenPrinterKey);
+      final isConnected = await Get.find<PrinterService>()
+          .checkPrinterConnectivity(printerName);
+
+      if (!isConnected) {
+        AppToast.showError(
+          '${TranslationKeys.printerNotConnected.tr}: $printerName',
+          title: TranslationKeys.error.tr,
+        );
+        return;
+      }
+
       final isSunmi = await PrinterHelper.isSunmiDevice();
       if (isSunmi) {
         final sunmiService = SunmiInvoicePrinterService();
-        await sunmiService.printKOT(ticket);
+        await sunmiService.printKOT(ticket, copies: 1);
       } else {
         final escPosService = EscPosInvoicePrinterService();
-        await escPosService.printKOT(ticket);
+        await escPosService.printKOT(ticket, copies: 1);
       }
     } catch (e) {
-      Get.snackbar(
-        'Print Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
+      log('Manual-print KOT Error: $e');
+      AppToast.showError(
+        '${TranslationKeys.somethingWentWrong.tr}: $e',
+        title: TranslationKeys.error.tr,
       );
     }
   }

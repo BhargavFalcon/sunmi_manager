@@ -81,13 +81,12 @@ class EscPosInvoicePrinterService {
 
   PaperSize _getPaperSize({bool isKitchen = false}) {
     final printerService = Get.find<PrinterService>();
-    final storageKey =
+    String width =
         isKitchen
-            ? ArgumentConstant.kitchenPaperWidthKey
-            : ArgumentConstant.orderPaperWidthKey;
-    String width = box.read(storageKey) ?? '58mm';
+            ? printerService.kitchenWidth.value
+            : printerService.receiptWidth.value;
 
-    // If Bluetooth is not available, use WiFi printer's paper width
+    // If Bluetooth is not available, use WiFi printer's paper width fallback
     if (printerService.connectedDevice == null ||
         !printerService.isConnected.value) {
       final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
@@ -117,10 +116,56 @@ class EscPosInvoicePrinterService {
     return Generator(_getPaperSize(isKitchen: isKitchen), profile);
   }
 
-  Future<void> _sendBytes(List<int> bytes) async {
+  Future<void> _sendBytes(List<int> bytes, {String? printerName}) async {
     final printerService = Get.find<PrinterService>();
 
-    // 1) Try Bluetooth first
+    // 1) If a specific printer name is provided, try to find and connect to it
+    if (printerName != null && printerName.isNotEmpty) {
+      // 1a) Check if it's the current Bluetooth printer
+      if (printerService.connectedDevice != null &&
+          printerService.connectedDevice!.name == printerName) {
+        try {
+          bool isConnected = await PrintBluetoothThermal.connectionStatus;
+          if (!isConnected) {
+            isConnected = await PrintBluetoothThermal.connect(
+              macPrinterAddress: printerService.connectedDevice!.macAdress,
+            );
+            printerService.isConnected.value = isConnected;
+          }
+          if (isConnected) {
+            await PrintBluetoothThermal.writeBytes(bytes);
+            return;
+          }
+        } catch (_) {}
+      }
+
+      // 1b) Check if it's a saved WiFi printer
+      final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
+      if (wifiJson != null && wifiJson is String) {
+        try {
+          final List<dynamic> decoded = jsonDecode(wifiJson);
+          final printers =
+              decoded.map((e) => WifiPrinterModel.fromJson(e)).toList();
+          final printer = printers.firstWhereOrNull(
+            (p) => p.name == printerName,
+          );
+          if (printer != null) {
+            final socket = await Socket.connect(
+              printer.ipAddress,
+              int.tryParse(printer.port) ?? 9100,
+              timeout: const Duration(seconds: 5),
+            );
+            socket.add(bytes);
+            await socket.flush();
+            socket.destroy();
+            return;
+          }
+        } catch (_) {}
+      }
+    }
+
+    // 2) Fallback logic if no printerName or targeting failed
+    // Try Bluetooth first
     if (printerService.connectedDevice != null) {
       try {
         bool isConnected = printerService.isConnected.value;
@@ -140,7 +185,7 @@ class EscPosInvoicePrinterService {
       } catch (_) {}
     }
 
-    // 2) Try WiFi fallback
+    // Try WiFi default fallback
     final wifiJson = box.read(ArgumentConstant.savedWifiPrintersKey);
     if (wifiJson != null && wifiJson is String) {
       final List<dynamic> decoded = jsonDecode(wifiJson);
@@ -496,7 +541,10 @@ class EscPosInvoicePrinterService {
         bytes += gen.feed(0);
         bytes += gen.cut();
 
-        await _sendBytes(bytes);
+        final printerName = box.read(
+          ArgumentConstant.selectedReceiptPrinterKey,
+        );
+        await _sendBytes(bytes, printerName: printerName);
       }
     } catch (e) {
       rethrow;
@@ -768,14 +816,17 @@ class EscPosInvoicePrinterService {
         bytes += gen.feed(0);
         bytes += gen.cut();
 
-        await _sendBytes(bytes);
+        final printerName = box.read(
+          ArgumentConstant.selectedReceiptPrinterKey,
+        );
+        await _sendBytes(bytes, printerName: printerName);
       }
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> printKOT(KitchenTicket ticket) async {
+  Future<void> printKOT(KitchenTicket ticket, {int copies = 1}) async {
     try {
       final order = ticket.order;
       final items = ticket.items;
@@ -790,6 +841,201 @@ class EscPosInvoicePrinterService {
       const c = PosStyles(align: PosAlign.center, fontType: PosFontType.fontB);
       const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
 
+      for (int i = 0; i < copies; i++) {
+        List<int> bytes = [];
+        bytes += [0x1B, 0x74, 19];
+
+        bytes += gen.text(
+          TranslationKeys.kitchenOrderTicket.tr,
+          styles: const PosStyles(
+            align: PosAlign.center,
+            height: PosTextSize.size2,
+            width: PosTextSize.size2,
+            bold: false,
+          ),
+        );
+        bytes += gen.feed(1);
+
+        String orderPart =
+            '${TranslationKeys.order.tr}: ${order?.orderNumber ?? ticket.kotNumber ?? ''}';
+        String tablePart = '';
+        if (order?.table != null) {
+          if (order!.table is Map) {
+            tablePart = order.table['table_code'] ?? order.table['name'] ?? '';
+          } else {
+            tablePart = order.table.toString();
+          }
+        }
+
+        if (tablePart.isNotEmpty) {
+          bytes += gen.row([
+            PosColumn(
+              text: orderPart,
+              width: 7,
+              styles: const PosStyles(
+                align: PosAlign.left,
+                height: PosTextSize.size2,
+                width: PosTextSize.size1,
+                bold: true,
+              ),
+            ),
+            PosColumn(
+              text: '${TranslationKeys.table.tr}: $tablePart',
+              width: 5,
+              styles: const PosStyles(
+                align: PosAlign.right,
+                height: PosTextSize.size2,
+                width: PosTextSize.size1,
+                bold: true,
+              ),
+            ),
+          ]);
+        } else {
+          bytes += gen.text(
+            orderPart,
+            styles: const PosStyles(
+              align: PosAlign.center,
+              height: PosTextSize.size1,
+              width: PosTextSize.size1,
+              bold: false,
+            ),
+          );
+        }
+        bytes += gen.feed(1);
+
+        final dateStr =
+            ticket.createdAt != null
+                ? DateFormat(
+                  'dd-MM-yyyy',
+                ).format(DateTime.parse(ticket.createdAt!))
+                : '';
+        final timeStr =
+            ticket.createdAt != null
+                ? DateFormat(
+                  'hh:mm a',
+                ).format(DateTime.parse(ticket.createdAt!))
+                : '';
+
+        if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
+          bytes += gen.row([
+            PosColumn(
+              text: '${TranslationKeys.date.tr}: $dateStr',
+              width: 6,
+              styles: b,
+            ),
+            PosColumn(
+              text: '${TranslationKeys.time.tr}: $timeStr',
+              width: 6,
+              styles: r,
+            ),
+          ]);
+        } else if (dateStr.isNotEmpty) {
+          bytes += gen.text('${TranslationKeys.date.tr}: $dateStr', styles: c);
+        } else if (timeStr.isNotEmpty) {
+          bytes += gen.text('${TranslationKeys.time.tr}: $timeStr', styles: c);
+        }
+
+        bytes += gen.feed(2);
+
+        // Header
+        bytes += gen.row([
+          PosColumn(text: TranslationKeys.itemName.tr, width: 9, styles: bb),
+          PosColumn(text: TranslationKeys.qty.tr, width: 3, styles: r),
+        ]);
+        bytes += gen.hr(ch: '-');
+
+        if (items != null && items.isNotEmpty) {
+          for (final item in items) {
+            final itemName = item.itemName ?? '';
+            final qty = item.quantity?.toString() ?? '1';
+
+            bytes += gen.row([
+              PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
+              PosColumn(text: qty, width: 3, styles: r),
+            ]);
+
+            if (item.variationName != null && item.variationName!.isNotEmpty) {
+              bytes += gen.text('    (${item.variationName})', styles: b);
+            }
+
+            if (item.modifiers != null && item.modifiers!.isNotEmpty) {
+              for (final mod in item.modifiers!) {
+                bytes += gen.text(
+                  _escCurrency('    \u2022 ${mod.name ?? ''}'),
+                  styles: b,
+                );
+              }
+            }
+
+            if (item.note != null && item.note!.isNotEmpty) {
+              bytes += gen.text(
+                '    ${TranslationKeys.note.tr}: ${item.note!}',
+                styles: b,
+              );
+            }
+
+            bytes += gen.hr(ch: '-');
+          }
+        }
+
+        final orderNote = ticket.note ?? ticket.order?.note;
+        if (orderNote != null && orderNote.isNotEmpty) {
+          bytes += gen.feed(1);
+          bytes += gen.text(
+            '${TranslationKeys.note.tr}: $orderNote',
+            styles: b,
+          );
+        }
+
+        bytes += gen.feed(0);
+        bytes += gen.cut();
+
+        final printerName = box.read(
+          ArgumentConstant.selectedKitchenPrinterKey,
+        );
+        await _sendBytes(bytes, printerName: printerName);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _mergeTax(
+    Map<String, Map<String, dynamic>> into,
+    String name,
+    String percent,
+    double amount,
+  ) {
+    if (into.containsKey(name)) {
+      final existing = into[name]!;
+      into[name] = {
+        'amount': (existing['amount'] as double? ?? 0.0) + amount,
+        'percent': existing['percent'] as String? ?? percent,
+      };
+    } else {
+      into[name] = {'amount': amount, 'percent': percent};
+    }
+  }
+
+  Future<void> printAllKOTsFromOrder(
+    order_model.Data data, {
+    int copies = 1,
+  }) async {
+    final order = data.order;
+    if (order == null || order.items == null || order.items!.isEmpty) return;
+
+    // Groups items by KOT if available, or just print all items as one KOT
+    // For now, let's treat it as one KOT for the new order
+    final gen = await _getGenerator(isKitchen: true);
+    const b = PosStyles(align: PosAlign.left, fontType: PosFontType.fontB);
+    const bb = PosStyles(
+      align: PosAlign.left,
+      fontType: PosFontType.fontB,
+      bold: false,
+    );
+    const r = PosStyles(align: PosAlign.right, fontType: PosFontType.fontB);
+
+    for (int copy = 0; copy < copies; copy++) {
       List<int> bytes = [];
       bytes += [0x1B, 0x74, 19];
 
@@ -805,14 +1051,10 @@ class EscPosInvoicePrinterService {
       bytes += gen.feed(1);
 
       String orderPart =
-          '${TranslationKeys.order.tr}: ${order?.orderNumber ?? ticket.kotNumber ?? ''}';
+          '${TranslationKeys.order.tr}: ${order.formattedOrderNumber ?? order.orderNumber ?? ''}';
       String tablePart = '';
-      if (order?.table != null) {
-        if (order!.table is Map) {
-          tablePart = order.table['table_code'] ?? order.table['name'] ?? '';
-        } else {
-          tablePart = order.table.toString();
-        }
+      if (order.table != null) {
+        tablePart = order.table!.tableCode ?? '';
       }
 
       if (tablePart.isNotEmpty) {
@@ -852,14 +1094,14 @@ class EscPosInvoicePrinterService {
       bytes += gen.feed(1);
 
       final dateStr =
-          ticket.createdAt != null
+          order.createdAt != null
               ? DateFormat(
                 'dd-MM-yyyy',
-              ).format(DateTime.parse(ticket.createdAt!))
+              ).format(DateTime.parse(order.createdAt!))
               : '';
       final timeStr =
-          ticket.createdAt != null
-              ? DateFormat('hh:mm a').format(DateTime.parse(ticket.createdAt!))
+          order.createdAt != null
+              ? DateFormat('hh:mm a').format(DateTime.parse(order.createdAt!))
               : '';
 
       if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
@@ -875,84 +1117,62 @@ class EscPosInvoicePrinterService {
             styles: r,
           ),
         ]);
-      } else if (dateStr.isNotEmpty) {
-        bytes += gen.text('${TranslationKeys.date.tr}: $dateStr', styles: c);
-      } else if (timeStr.isNotEmpty) {
-        bytes += gen.text('${TranslationKeys.time.tr}: $timeStr', styles: c);
       }
 
       bytes += gen.feed(2);
 
       // Header
       bytes += gen.row([
-        PosColumn(text: 'Item Name', width: 9, styles: bb),
-        PosColumn(text: 'Qty', width: 3, styles: r),
+        PosColumn(text: TranslationKeys.itemName.tr, width: 9, styles: bb),
+        PosColumn(text: TranslationKeys.qty.tr, width: 3, styles: r),
       ]);
       bytes += gen.hr(ch: '-');
 
-      if (items != null && items.isNotEmpty) {
-        for (final item in items) {
-          final itemName = item.itemName ?? '';
-          final qty = item.quantity?.toString() ?? '1';
+      for (final item in order.items!) {
+        final itemName = item.itemName ?? '';
+        final qty = item.quantity?.toString() ?? '1';
 
-          bytes += gen.row([
-            PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
-            PosColumn(text: qty, width: 3, styles: r),
-          ]);
+        bytes += gen.row([
+          PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
+          PosColumn(text: qty, width: 3, styles: r),
+        ]);
 
-          if (item.variationName != null && item.variationName!.isNotEmpty) {
-            bytes += gen.text('    (${item.variationName})', styles: b);
-          }
+        if (item.variationName != null && item.variationName!.isNotEmpty) {
+          bytes += gen.text('    (${item.variationName})', styles: b);
+        }
 
-          if (item.modifiers != null && item.modifiers!.isNotEmpty) {
-            for (final mod in item.modifiers!) {
-              bytes += gen.text(
-                _escCurrency('    \u2022 ${mod.name ?? ''}'),
-                styles: b,
-              );
-            }
-          }
-
-          if (item.note != null && item.note!.isNotEmpty) {
+        if (item.modifiers != null && item.modifiers!.isNotEmpty) {
+          for (final mod in item.modifiers!) {
             bytes += gen.text(
-              '    ${TranslationKeys.note.tr}: ${item.note!}',
+              _escCurrency('    \u2022 ${mod.name ?? ''}'),
               styles: b,
             );
           }
-
-          bytes += gen.hr(ch: '-');
         }
+
+        if (item.note != null && item.note!.isNotEmpty) {
+          bytes += gen.text(
+            '    ${TranslationKeys.note.tr}: ${item.note!}',
+            styles: b,
+          );
+        }
+
+        bytes += gen.hr(ch: '-');
       }
 
-      final orderNote = ticket.note ?? ticket.order?.note;
-      if (orderNote != null && orderNote.isNotEmpty) {
+      if (order.note != null && order.note!.isNotEmpty) {
         bytes += gen.feed(1);
-        bytes += gen.text('${TranslationKeys.note.tr}: $orderNote', styles: b);
+        bytes += gen.text(
+          '${TranslationKeys.note.tr}: ${order.note}',
+          styles: b,
+        );
       }
 
       bytes += gen.feed(0);
       bytes += gen.cut();
 
-      await _sendBytes(bytes);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  void _mergeTax(
-    Map<String, Map<String, dynamic>> into,
-    String name,
-    String percent,
-    double amount,
-  ) {
-    if (into.containsKey(name)) {
-      final existing = into[name]!;
-      into[name] = {
-        'amount': (existing['amount'] as double? ?? 0.0) + amount,
-        'percent': existing['percent'] as String? ?? percent,
-      };
-    } else {
-      into[name] = {'amount': amount, 'percent': percent};
+      final printerName = box.read(ArgumentConstant.selectedKitchenPrinterKey);
+      await _sendBytes(bytes, printerName: printerName);
     }
   }
 

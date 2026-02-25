@@ -8,6 +8,7 @@ import '../model/get_order_model.dart' as order_model;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
 import '../utils/printer_helper.dart';
+import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
@@ -211,8 +212,10 @@ class PusherService {
       return null;
     }
 
-    bool autoPrintEnabled = true;
-    int copies = 1;
+    bool autoPrintKot = true;
+    bool autoPrintReceipt = false;
+    int kotCopies = 1;
+    int receiptCopies = 1;
 
     try {
       final response = await networkClient.get(
@@ -221,23 +224,66 @@ class PusherService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final settings = response.data['data'];
         if (settings != null) {
-          autoPrintEnabled = settings['auto_print_kot'] ?? true;
-          copies = settings['kot_print_copies'] ?? 1;
+          autoPrintKot = settings['auto_print_kot'] ?? true;
+          kotCopies = settings['kot_print_copies'] ?? 1;
+          autoPrintReceipt = settings['auto_print_receipt'] ?? false;
+          receiptCopies = settings['receipt_print_copies'] ?? 1;
         }
       }
     } catch (_) {}
 
-    if (autoPrintEnabled) {
+    // 1) Print KOT
+    if (autoPrintKot) {
       try {
-        if (await PrinterHelper.isSunmiDevice()) {
-          await _sunmiService.printInvoice(data, copies: copies);
+        final kitchenPrinter = box.read(
+          ArgumentConstant.selectedKitchenPrinterKey,
+        );
+        final isConnected = await Get.find<PrinterService>()
+            .checkPrinterConnectivity(kitchenPrinter);
+
+        if (isConnected) {
+          if (await PrinterHelper.isSunmiDevice()) {
+            await _sunmiService.printKOTFromOrder(data, copies: kotCopies);
+          } else {
+            await _escPosService.printAllKOTsFromOrder(data, copies: kotCopies);
+          }
         } else {
-          await _escPosService.printInvoice(data, copies: copies);
+          log(
+            'Auto-print KOT skipped: Kitchen printer ($kitchenPrinter) not connected',
+          );
         }
-        showPrintToast(TranslationKeys.printSuccessful.tr);
       } catch (e) {
-        showPrintToast(TranslationKeys.errorInPrinting.tr, isError: true);
+        log('Auto-print KOT Error: $e');
       }
+    }
+
+    // 2) Print Receipt (Order)
+    if (autoPrintReceipt) {
+      try {
+        final receiptPrinter = box.read(
+          ArgumentConstant.selectedReceiptPrinterKey,
+        );
+        final isConnected = await Get.find<PrinterService>()
+            .checkPrinterConnectivity(receiptPrinter);
+
+        if (isConnected) {
+          if (await PrinterHelper.isSunmiDevice()) {
+            await _sunmiService.printInvoice(data, copies: receiptCopies);
+          } else {
+            await _escPosService.printInvoice(data, copies: receiptCopies);
+          }
+        } else {
+          log(
+            'Auto-print Receipt skipped: Receipt printer ($receiptPrinter) not connected',
+          );
+        }
+      } catch (e) {
+        log('Auto-print Receipt Error: $e');
+      }
+    }
+
+    if (autoPrintKot || autoPrintReceipt) {
+      showPrintToast(TranslationKeys.printSuccessful.tr);
     }
 
     return data;
