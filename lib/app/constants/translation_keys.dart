@@ -343,7 +343,7 @@ class TranslationKeys {
 
   // Main Home Screen
   static const String deliveryPickup = 'deliveryPickup';
-  static const String settings = 'setting';
+  static const String settings = 'settings';
 
   // Printer Screen
   static const String connectedPrinter = 'connectedPrinter';
@@ -417,6 +417,9 @@ class TranslationKeys {
   static const String thermal = 'thermal';
   static const String cashDrawerSettings = 'cashDrawerSettings';
   static const String openDrawerAfterPrint = 'openDrawerAfterPrint';
+  static const String deviceAlreadyConnected = 'deviceAlreadyConnected';
+  static const String disconnectOldDeviceMessage = 'disconnectOldDeviceMessage';
+  static const String disconnectAndConnect = 'disconnectAndConnect';
 
   // Order Payment Dialog
   static const String pay = 'pay';

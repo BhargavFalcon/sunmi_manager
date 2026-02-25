@@ -39,7 +39,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                 ),
                 child: Center(
                   child: Text(
-                    TranslationKeys.setting.tr,
+                    TranslationKeys.settings.tr,
                     style: TextStyle(
                       fontSize: MySize.getHeight(20),
                       color: Colors.black,
@@ -163,20 +163,6 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     color: ColorConstants.primaryColor,
                                     onTap: () {
                                       Get.toNamed(Routes.MANAGE_PRINTER_SCREEN);
-                                    },
-                                  ),
-                                  Divider(
-                                    height: 1,
-                                    color: ColorConstants.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    indent: MySize.getWidth(10),
-                                    endIndent: MySize.getWidth(10),
-                                  ),
-                                  _buildSettingItemNoCardIndented(
-                                    title: TranslationKeys.printingRules.tr,
-                                    color: ColorConstants.primaryColor,
-                                    onTap: () {
-                                      Get.toNamed(Routes.PRINTING_RULES);
                                     },
                                   ),
                                   Divider(

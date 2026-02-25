@@ -395,6 +395,10 @@ class LocaleString extends Translations {
       'thermal': 'Thermal',
       'cashDrawerSettings': 'Cash Drawer Settings',
       'openDrawerAfterPrint': 'Open drawer after print',
+      'deviceAlreadyConnected': 'Device Already Connected',
+      'disconnectOldDeviceMessage':
+          'Another device is already connected. Do you want to disconnect it and connect this device?',
+      'disconnectAndConnect': 'Disconnect & Connect',
 
       // Order Payment Dialog
       'pay': 'PAY',
