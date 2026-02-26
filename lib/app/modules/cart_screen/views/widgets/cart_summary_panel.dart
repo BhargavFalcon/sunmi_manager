@@ -65,28 +65,109 @@ class CartSummaryPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: MySize.getHeight(4.0)),
-          summaryRow(
-            label: TranslationKeys.total.tr,
-            value: CurrencyFormatter.formatPriceFromDouble(
-              controller.finalTotal,
-            ),
-            bold: true,
-            valueColor: ColorConstants.primaryColor,
-          ),
           Obx(() {
-            if (controller.isDeliveryFree) {
-              return Padding(
-                padding: EdgeInsets.only(top: MySize.getHeight(4.0)),
+            final children = <Widget>[];
+
+            // SubTotal
+            children.add(
+              Padding(
+                padding: EdgeInsets.only(bottom: MySize.getHeight(4.0)),
                 child: summaryRow(
-                  label: TranslationKeys.deliveryCharge.tr,
-                  value: 'Free',
-                  bold: true,
-                  valueColor: Colors.green,
+                  label: TranslationKeys.subTotal.tr,
+                  value: CurrencyFormatter.formatPriceFromDouble(
+                    controller.totalPrice,
+                  ),
+                ),
+              ),
+            );
+
+            // Discount
+            if (controller.discountAmount > 0) {
+              children.add(
+                Padding(
+                  padding: EdgeInsets.only(bottom: MySize.getHeight(4.0)),
+                  child: summaryRow(
+                    label: TranslationKeys.discount.tr,
+                    value:
+                        '-${CurrencyFormatter.formatPriceFromDouble(controller.discountAmount)}',
+                  ),
                 ),
               );
             }
-            return const SizedBox.shrink();
+
+            // Additional Charges
+            if (controller.displayCharges.isNotEmpty) {
+              for (final charge in controller.displayCharges) {
+                children.add(
+                  Padding(
+                    padding: EdgeInsets.only(bottom: MySize.getHeight(4.0)),
+                    child: summaryRow(
+                      label: charge.label,
+                      value: CurrencyFormatter.formatPriceFromDouble(
+                        charge.amount,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }
+
+            // Delivery Charge
+            if (controller.isDeliveryOrder) {
+              if (controller.isDeliveryFree) {
+                children.add(
+                  Padding(
+                    padding: EdgeInsets.only(bottom: MySize.getHeight(4.0)),
+                    child: summaryRow(
+                      label: TranslationKeys.deliveryCharge.tr,
+                      value: 'Free',
+                      bold: true,
+                      valueColor: Colors.green,
+                    ),
+                  ),
+                );
+              } else if (controller.deliveryCharge > 0) {
+                children.add(
+                  Padding(
+                    padding: EdgeInsets.only(bottom: MySize.getHeight(4.0)),
+                    child: summaryRow(
+                      label: TranslationKeys.deliveryCharge.tr,
+                      value: CurrencyFormatter.formatPriceFromDouble(
+                        controller.deliveryCharge,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }
+
+            // Divider before Total
+            children.add(
+              Padding(
+                padding: EdgeInsets.only(
+                  top: MySize.getHeight(4.0),
+                  bottom: MySize.getHeight(8.0),
+                ),
+                child: const Divider(height: 1, color: Colors.black12),
+              ),
+            );
+
+            // Total
+            children.add(
+              summaryRow(
+                label: TranslationKeys.total.tr,
+                value: CurrencyFormatter.formatPriceFromDouble(
+                  controller.finalTotal,
+                ),
+                bold: true,
+                valueColor: ColorConstants.primaryColor,
+              ),
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            );
           }),
           SizedBox(height: MySize.getHeight(8.0)),
           InkWell(

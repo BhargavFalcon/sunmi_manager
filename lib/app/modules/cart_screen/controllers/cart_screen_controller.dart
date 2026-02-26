@@ -937,6 +937,7 @@ class CartScreenController extends GetxController {
   double get finalTotal =>
       subTotalAfterDiscount +
       totalChargesAmount +
+      deliveryCharge +
       (isTaxIncluded.value ? 0.0 : totalTax);
 
   Future<void> _playBeepSound() async {
