@@ -803,6 +803,7 @@ class CartScreenController extends GetxController {
       if (branches == null || branches.isEmpty) {
         return _mergeChargesByLabel(raw);
       }
+
       final additionalCharges = branches.first.additionalCharges;
       if (additionalCharges == null || additionalCharges.isEmpty) {
         return _mergeChargesByLabel(raw);
@@ -828,6 +829,64 @@ class CartScreenController extends GetxController {
       }
     } catch (_) {}
     return _mergeChargesByLabel(raw);
+  }
+
+  double get deliveryCharge {
+    if (_orderTypeForCharges != 'delivery') return 0.0;
+    try {
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      if (storedData == null || storedData is! Map<String, dynamic>) {
+        return 0.0;
+      }
+      final restaurantModel = RestaurantModel.fromJson(storedData);
+      final branches = restaurantModel.data?.branches;
+      if (branches == null || branches.isEmpty) return 0.0;
+
+      final deliverySettings = branches.first.deliverySettings;
+      if (deliverySettings != null && deliverySettings.isNotEmpty) {
+        final setting = deliverySettings.first;
+        if (setting.isEnabled == true &&
+            setting.feeType == 'fixed' &&
+            setting.fixedFee != null &&
+            setting.fixedFee! > 0) {
+          final subtotal = subTotalAfterDiscount;
+          final freeAmount = setting.freeDeliveryOverAmount;
+          if (freeAmount == null || subtotal < freeAmount) {
+            return setting.fixedFee!;
+          }
+        }
+      }
+    } catch (_) {}
+    return 0.0;
+  }
+
+  bool get isDeliveryFree {
+    if (_orderTypeForCharges != 'delivery') return false;
+    try {
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      if (storedData == null || storedData is! Map<String, dynamic>) {
+        return false;
+      }
+      final restaurantModel = RestaurantModel.fromJson(storedData);
+      final branches = restaurantModel.data?.branches;
+      if (branches == null || branches.isEmpty) return false;
+
+      final deliverySettings = branches.first.deliverySettings;
+      if (deliverySettings != null && deliverySettings.isNotEmpty) {
+        final setting = deliverySettings.first;
+        if (setting.isEnabled == true &&
+            setting.feeType == 'fixed' &&
+            setting.fixedFee != null &&
+            setting.fixedFee! > 0) {
+          final subtotal = subTotalAfterDiscount;
+          final freeAmount = setting.freeDeliveryOverAmount;
+          if (freeAmount != null && subtotal >= freeAmount) {
+            return true;
+          }
+        }
+      }
+    } catch (_) {}
+    return false;
   }
 
   List<({String label, double amount})> _mergeChargesByLabel(

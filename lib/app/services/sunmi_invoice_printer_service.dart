@@ -21,11 +21,11 @@ class SunmiInvoicePrinterService {
         isKitchen
             ? printerService.kitchenWidth.value
             : printerService.receiptWidth.value;
-    return width == '80mm' ? 48 : 32;
+    return width == '80mm' ? 48 : 38;
   }
 
   String _getLineSeparator({bool isKitchen = false}) {
-    final int width = _getTotalWidth(isKitchen: isKitchen);
+    final int width = 32;
     return List.filled(width, '-').join();
   }
 
@@ -38,7 +38,7 @@ class SunmiInvoicePrinterService {
       'Amount Payment Method   Date & Time';
 
   int _getItemQtyWidth(int totalWidth) => totalWidth == 48 ? 6 : 4;
-  int _getItemNameWidth(int totalWidth) => totalWidth == 48 ? 30 : 18;
+  int _getItemNameWidth(int totalWidth) => totalWidth == 48 ? 30 : 15;
   int _getItemPriceWidth(int totalWidth) => totalWidth == 48 ? 12 : 10;
 
   Future<void> _printSep() async => SunmiPrinter.lineWrap(5);
@@ -144,10 +144,11 @@ class SunmiInvoicePrinterService {
     return '$plusCode $num';
   }
 
-  String _formatLabelValue(String label, String value, {int totalWidth = 38}) {
+  String _formatLabelValue(String label, String value, {int? totalWidth}) {
+    final int width = totalWidth ?? _getTotalWidth();
     final labelLength = label.length;
     final valueLength = value.length;
-    final spacingNeeded = totalWidth - labelLength - valueLength;
+    final spacingNeeded = width - labelLength - valueLength;
     final spacing =
         spacingNeeded > 0 ? List.filled(spacingNeeded, ' ').join() : ' ';
     return '$label$spacing$value';
@@ -490,6 +491,17 @@ class SunmiInvoicePrinterService {
           }
         }
 
+        if (order.orderType?.toLowerCase() == 'delivery' &&
+            order.totals?.deliveryFee != null &&
+            order.totals!.deliveryFee! >= 0) {
+          final deliveryValue =
+              order.totals!.deliveryFee! == 0
+                  ? 'Free'
+                  : _formatPrice(null, order.totals!.deliveryFee!.toDouble());
+          await _printLabelValue('Delivery Charge:', deliveryValue);
+          await _printSep();
+        }
+
         if (order.totals?.tipAmount != null && order.totals!.tipAmount! > 0) {
           final tipValue = _formatPrice(null, order.totals!.tipAmount);
           if (tipValue.isNotEmpty && tipValue != '0') {
@@ -507,10 +519,15 @@ class SunmiInvoicePrinterService {
             final taxAmount = taxData['amount'] as double?;
             final taxPercent = taxData['percent'] as String?;
             final formattedTaxAmount = _formatPrice(null, taxAmount);
-            final taxLabel =
+
+            final taxPrefix =
                 taxPercent?.isNotEmpty == true
-                    ? '$taxName ($taxPercent%) incl.'
-                    : '$taxName incl.';
+                    ? '$taxName ($taxPercent%)'
+                    : taxName;
+            final isInc = data.taxInclusive == true;
+            final taxLabel =
+                '$taxPrefix ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}';
+
             await _printLabelValue(taxLabel, formattedTaxAmount);
             await _printSep();
           }
@@ -816,12 +833,27 @@ class SunmiInvoicePrinterService {
             );
           }
 
+          if (order.orderType?.toLowerCase() == 'delivery' &&
+              summary.deliveryFee != null &&
+              summary.deliveryFee! >= 0) {
+            final deliveryValue =
+                summary.deliveryFee! == 0
+                    ? 'Free'
+                    : CurrencyFormatter.formatPriceFromDouble(
+                      summary.deliveryFee!,
+                    );
+            await _printLeftBody(
+              _formatLabelValue('Delivery Charge:', deliveryValue),
+            );
+          }
+
           if (summary.taxes != null && summary.taxes!.isNotEmpty) {
             for (final t in summary.taxes!) {
+              final isInc = d.taxInclusive == true;
               final label =
-                  t.isInclusive == true && t.percent != null
-                      ? '${t.name ?? ''} (${t.percent}%) incl.'
-                      : (t.name ?? '');
+                  t.percent != null
+                      ? '${t.name ?? ''} (${t.percent}%) ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}'
+                      : '${t.name ?? ''} ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}';
               final val =
                   t.amount != null
                       ? CurrencyFormatter.formatPriceFromDouble(t.amount!)

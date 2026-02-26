@@ -434,6 +434,17 @@ class EscPosInvoicePrinterService {
           }
         }
 
+        if (order.orderType?.toLowerCase() == 'delivery' &&
+            order.totals?.deliveryFee != null &&
+            order.totals!.deliveryFee! >= 0) {
+          bytes += summary(
+            'Delivery Charge:',
+            order.totals!.deliveryFee! == 0
+                ? 'Free'
+                : _formatPrice(null, order.totals!.deliveryFee!.toDouble()),
+          );
+        }
+
         if (order.totals?.tipAmount != null && order.totals!.tipAmount! > 0) {
           bytes += summary(
             '${TranslationKeys.tip.tr}:',
@@ -449,10 +460,13 @@ class EscPosInvoicePrinterService {
             final taxAmount = taxData['amount'] as double?;
             final taxPercent = taxData['percent'] as String?;
             final formattedTax = _formatPrice(null, taxAmount);
-            final taxLabel =
+            final taxPrefix =
                 taxPercent?.isNotEmpty == true
-                    ? '$taxName ($taxPercent%) incl.'
-                    : '$taxName incl.';
+                    ? '$taxName ($taxPercent%)'
+                    : taxName;
+            final isInc = data.taxInclusive == true;
+            final taxLabel =
+                '$taxPrefix ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}';
             bytes += summary(taxLabel, formattedTax);
           }
         }
@@ -737,13 +751,27 @@ class EscPosInvoicePrinterService {
             );
           }
 
+          if (order.orderType?.toLowerCase() == 'delivery' &&
+              receiptSummary.deliveryFee != null &&
+              receiptSummary.deliveryFee! >= 0) {
+            bytes += summary(
+              'Delivery Charge:',
+              receiptSummary.deliveryFee! == 0
+                  ? 'Free'
+                  : CurrencyFormatter.formatPriceFromDouble(
+                    receiptSummary.deliveryFee!,
+                  ),
+            );
+          }
+
           if (receiptSummary.taxes != null &&
               receiptSummary.taxes!.isNotEmpty) {
             for (final t in receiptSummary.taxes!) {
+              final isInc = d.taxInclusive == true;
               final label =
-                  t.isInclusive == true && t.percent != null
-                      ? '${t.name ?? ''} (${t.percent}%) incl.'
-                      : (t.name ?? '');
+                  t.percent != null
+                      ? '${t.name ?? ''} (${t.percent}%) ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}'
+                      : '${t.name ?? ''} ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}';
               final val =
                   t.amount != null
                       ? CurrencyFormatter.formatPriceFromDouble(t.amount!)

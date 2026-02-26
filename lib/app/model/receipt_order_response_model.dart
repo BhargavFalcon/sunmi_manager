@@ -551,6 +551,7 @@ class ReceiptSummary {
   double? tip;
   List<ReceiptTax>? taxes;
   double? total;
+  double? deliveryFee;
 
   ReceiptSummary({
     this.subTotal,
@@ -561,6 +562,7 @@ class ReceiptSummary {
     this.tip,
     this.taxes,
     this.total,
+    this.deliveryFee,
   });
 
   ReceiptSummary.fromJson(Map<String, dynamic> json) {
@@ -577,6 +579,7 @@ class ReceiptSummary {
               .toList();
     }
     total = _receiptToDouble(json['total']);
+    deliveryFee = _receiptToDouble(json['delivery_fee']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -588,5 +591,6 @@ class ReceiptSummary {
     'tip': tip,
     'taxes': taxes?.map((e) => e.toJson()).toList(),
     'total': total,
+    'delivery_fee': deliveryFee,
   };
 }

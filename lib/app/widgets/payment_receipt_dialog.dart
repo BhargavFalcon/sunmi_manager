@@ -489,11 +489,21 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
             TranslationKeys.tip.tr,
             '+${CurrencyFormatter.formatPrice(s.tip!.toString())}',
           ),
+        if (d.order?.orderType?.toLowerCase() == 'delivery' &&
+            s.deliveryFee != null &&
+            s.deliveryFee! >= 0)
+          _detailRow(
+            TranslationKeys.deliveryCharge.tr,
+            s.deliveryFee! == 0
+                ? 'Free'
+                : CurrencyFormatter.formatPrice(s.deliveryFee!.toString()),
+          ),
         ...(s.taxes ?? []).map((t) {
+          final isInc = d.taxInclusive == true;
           final label =
-              t.isInclusive == true
-                  ? '${t.name ?? ""} (${t.percent ?? ""}%) incl.'
-                  : (t.name ?? '');
+              t.percent != null
+                  ? '${t.name ?? ""} (${t.percent}%) ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}'
+                  : '${t.name ?? ""} ${isInc ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}';
           final val =
               t.amount != null
                   ? CurrencyFormatter.formatPrice(t.amount!.toString())

@@ -348,6 +348,22 @@ class OrderDetailWidgets {
               );
             }),
 
+          if (orderDetails?.orderType?.toLowerCase() == 'delivery' &&
+              orderDetails?.totals?.deliveryFee != null &&
+              orderDetails!.totals!.deliveryFee! >= 0)
+            buildPriceRow(
+              TranslationKeys.deliveryCharge.tr,
+              orderDetails.totals!.deliveryFee! == 0
+                  ? 'Free'
+                  : CurrencyFormatter.formatPrice(
+                    orderDetails.totals!.deliveryFee!.toString(),
+                  ),
+              valueColor:
+                  orderDetails.totals!.deliveryFee! == 0 ? Colors.green : null,
+              isBold: orderDetails.totals!.deliveryFee! == 0,
+              fontSize: fontSize,
+            ),
+
           if (taxes.isNotEmpty)
             ...taxes.map((tax) {
               final taxAmount =

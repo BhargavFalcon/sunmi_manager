@@ -50,6 +50,8 @@ class TranslationKeys {
   static const String empty = 'empty';
   static const String na = 'na';
   static const String incl = 'incl';
+  static const String inc = 'inc';
+  static const String exc = 'exc';
   static const String variation = 'variation';
   static const String from = 'from';
 
@@ -136,6 +138,7 @@ class TranslationKeys {
   static const String billed = 'billed';
   static const String canceled = 'canceled';
   static const String paymentDue = 'paymentDue';
+  static const String deliveryCharge = 'deliveryCharge';
 
   // Languages
   static const String english = 'english';

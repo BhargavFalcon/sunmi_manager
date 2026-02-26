@@ -13,6 +13,8 @@ import '../data/NetworkClient.dart';
 import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
 import '../utils/order_helpers.dart' as helpers;
+import '../../main.dart';
+import '../model/restaurant_details_model.dart';
 
 class OrderPaymentController extends GetxController {
   final order_model.GetOrderModel orderDetails;
@@ -266,6 +268,32 @@ class OrderPaymentController extends GetxController {
       amountToPayController.text = totalAmount.toStringAsFixed(2);
       enteredAmount.value = totalAmount;
     }
+  }
+
+  bool get shouldShowDeliveryCharge {
+    final orderType = orderDetails.data?.order?.orderType?.toLowerCase();
+    if (orderType != 'delivery') return false;
+
+    final fee = orderDetails.data?.order?.totals?.deliveryFee ?? 0;
+    if (fee > 0) return true;
+
+    try {
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      if (storedData != null && storedData is Map<String, dynamic>) {
+        final restaurantModel = RestaurantModel.fromJson(storedData);
+        final branches = restaurantModel.data?.branches;
+        if (branches != null && branches.isNotEmpty) {
+          final deliverySettings = branches.first.deliverySettings;
+          if (deliverySettings != null && deliverySettings.isNotEmpty) {
+            final setting = deliverySettings.first;
+            if (setting.isEnabled == true && setting.feeType == 'fixed') {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return false;
   }
 
   void _showSwitchToFullPaymentConfirmation() {
@@ -842,7 +870,7 @@ class OrderPaymentDialog extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '${tax.taxName} (${tax.percent}%)',
+                                  '${tax.taxName} (${tax.percent}%) ${(orderDetails.data?.taxInclusive == true) ? '(Inc.)' : '(Exc.)'}',
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
                                     fontSize: MySize.getHeight(12),
@@ -889,6 +917,80 @@ class OrderPaymentDialog extends StatelessWidget {
                                 ),
                               ],
                             ),
+                          ),
+                        ),
+                      ],
+                      if (controller.shouldShowDeliveryCharge) ...[
+                        const Divider(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                TranslationKeys.deliveryCharge.tr,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: MySize.getHeight(12),
+                                ),
+                              ),
+                              Text(
+                                (orderDetails
+                                                .data
+                                                ?.order
+                                                ?.totals
+                                                ?.deliveryFee ==
+                                            null ||
+                                        orderDetails
+                                                .data!
+                                                .order!
+                                                .totals!
+                                                .deliveryFee! ==
+                                            0)
+                                    ? 'Free'
+                                    : CurrencyFormatter.formatPrice(
+                                      orderDetails
+                                          .data!
+                                          .order!
+                                          .totals!
+                                          .deliveryFee
+                                          .toString(),
+                                    ),
+                                style: TextStyle(
+                                  color:
+                                      (orderDetails
+                                                      .data
+                                                      ?.order
+                                                      ?.totals
+                                                      ?.deliveryFee ==
+                                                  null ||
+                                              orderDetails
+                                                      .data!
+                                                      .order!
+                                                      .totals!
+                                                      .deliveryFee! ==
+                                                  0)
+                                          ? Colors.green
+                                          : Colors.grey.shade600,
+                                  fontWeight:
+                                      (orderDetails
+                                                      .data
+                                                      ?.order
+                                                      ?.totals
+                                                      ?.deliveryFee ==
+                                                  null ||
+                                              orderDetails
+                                                      .data!
+                                                      .order!
+                                                      .totals!
+                                                      .deliveryFee! ==
+                                                  0)
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                  fontSize: MySize.getHeight(12),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1380,7 +1482,8 @@ class OrderPaymentDialog extends StatelessWidget {
             horizontal: compact ? 0 : MySize.getWidth(6),
           ),
           decoration: BoxDecoration(
-            color: hasDiscount ? activeColor.withValues(alpha: 0.1) : Colors.white,
+            color:
+                hasDiscount ? activeColor.withValues(alpha: 0.1) : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: hasDiscount ? activeColor : Colors.grey.shade300,
@@ -2264,8 +2367,9 @@ class OrderPaymentDialog extends StatelessWidget {
                                 ),
                                 padding: EdgeInsets.all(MySize.getHeight(6)),
                                 decoration: BoxDecoration(
-                                  color: ColorConstants.primaryColor
-                                      .withValues(alpha: 0.05),
+                                  color: ColorConstants.primaryColor.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: ColorConstants.primaryColor
@@ -2655,8 +2759,9 @@ class OrderPaymentDialog extends StatelessWidget {
                                 ),
                                 padding: EdgeInsets.all(MySize.getHeight(6)),
                                 decoration: BoxDecoration(
-                                  color: ColorConstants.primaryColor
-                                      .withValues(alpha: 0.05),
+                                  color: ColorConstants.primaryColor.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: ColorConstants.primaryColor

@@ -74,6 +74,20 @@ class CartSummaryPanel extends StatelessWidget {
             bold: true,
             valueColor: ColorConstants.primaryColor,
           ),
+          Obx(() {
+            if (controller.isDeliveryFree) {
+              return Padding(
+                padding: EdgeInsets.only(top: MySize.getHeight(4.0)),
+                child: summaryRow(
+                  label: TranslationKeys.deliveryCharge.tr,
+                  value: 'Free',
+                  bold: true,
+                  valueColor: Colors.green,
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           SizedBox(height: MySize.getHeight(8.0)),
           InkWell(
             onTap: () => controller.submitOrder(status: 'kot'),
