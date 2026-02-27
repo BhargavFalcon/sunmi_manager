@@ -107,6 +107,8 @@ class PusherService {
   }
 
   Future<void> _handleOrderEvent(dynamic eventData) async {
+    log('[Pusher] Raw event data received: $eventData');
+
     if (!_isValidEventData(eventData)) return;
 
     try {

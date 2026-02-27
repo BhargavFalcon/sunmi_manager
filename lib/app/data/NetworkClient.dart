@@ -56,6 +56,7 @@ class NetworkClient {
 
             if (!isOnLoginScreen && !isLoginRequest) {
               removeAuthToken();
+              box.erase();
               Get.offAllNamed(Routes.LOGIN_SCREEN);
             }
           }
