@@ -91,6 +91,16 @@ class TranslationKeys {
   static const String sync = 'sync';
   static const String printOnlyAvailableOnAndroid =
       'printOnlyAvailableOnAndroid';
+  static const String shopControls = 'shopControls';
+  static const String onOffDesc = 'onOffDesc';
+  static const String scheduleDesc = 'scheduleDesc';
+  static const String acceptNewOrders = 'acceptNewOrders';
+  static const String enableScheduleForLater = 'enableScheduleForLater';
+  static const String minOrderAmount = 'minOrderAmount';
+  static const String deliveryFee = 'deliveryFee';
+  static const String freeDeliveryOverAmount = 'freeDeliveryOverAmount';
+  static const String quickControlsOnly = 'quickControlsOnly';
+  static const String minutes = 'minutes';
 
   // Cart Screen
   static const String cart = 'cart';

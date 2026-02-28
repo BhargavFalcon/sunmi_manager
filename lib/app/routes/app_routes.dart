@@ -19,6 +19,7 @@ abstract class Routes {
   static const MANAGE_PRINTER_SCREEN = _Paths.MANAGE_PRINTER_SCREEN;
   static const PRINT_SERVICE = _Paths.PRINT_SERVICE;
   static const KITCHEN_TICKETS_SCREEN = _Paths.KITCHEN_TICKETS_SCREEN;
+  static const SHOP_CONTROLS_SCREEN = _Paths.SHOP_CONTROLS_SCREEN;
 }
 
 abstract class _Paths {
@@ -38,4 +39,5 @@ abstract class _Paths {
   static const SETTING_SCREEN = '/setting-screen';
   static const MANAGE_PRINTER_SCREEN = '/manage-printer-screen';
   static const PRINT_SERVICE = '/print-service';
+  static const SHOP_CONTROLS_SCREEN = '/shop-controls-screen';
 }

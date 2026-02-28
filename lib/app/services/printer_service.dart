@@ -141,17 +141,19 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       selectedReceiptPrinter.value =
           box.read(ArgumentConstant.selectedReceiptPrinterKey) ?? '';
 
-      // Then sync from API
-      final response = await _networkClient.get(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data['data'];
-        if (data != null) {
-          autoPrintKitchen.value = data['auto_print_kot'] ?? true;
-          kitchenCopies.value = data['kot_print_copies'] ?? 1;
-          autoPrintReceipt.value = data['auto_print_receipt'] ?? true;
-          receiptCopies.value = data['receipt_print_copies'] ?? 1;
+      // Then sync from API (only if authenticated)
+      if (box.hasData(ArgumentConstant.tokenKey)) {
+        final response = await _networkClient.get(
+          ArgumentConstant.autoPrintSettingsEndpoint,
+        );
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final data = response.data['data'];
+          if (data != null) {
+            autoPrintKitchen.value = data['auto_print_kot'] ?? true;
+            kitchenCopies.value = data['kot_print_copies'] ?? 1;
+            autoPrintReceipt.value = data['auto_print_receipt'] ?? true;
+            receiptCopies.value = data['receipt_print_copies'] ?? 1;
+          }
         }
       }
     } catch (_) {}

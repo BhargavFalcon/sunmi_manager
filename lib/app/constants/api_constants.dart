@@ -1,6 +1,6 @@
 class ArgumentConstant {
-  static const baseUrl = "https://partner.dinemetrics.app/";
-  // static const baseUrl = "https://dev.dinemetrics.app/";
+  // static const baseUrl = "https://partner.dinemetrics.app/";
+  static const baseUrl = "https://dev.dinemetrics.app/";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
@@ -79,6 +79,14 @@ class ArgumentConstant {
   static const selectedLanguageKey = "selected_language";
   static const newShopOrderNotificationsKey =
       "new_shop_order_notifications_enabled";
+
+  // Shop Settings
+  static const shopSettingsEndpoint = "api/v1/pos/branch/pos-settings";
+  static const shopAcceptNewOrdersKey = "accept_new_orders";
+  static const shopEnableScheduleForLaterKey = "enable_schedule_for_later";
+  static const shopMinOrderAmountKey = "minimum_order_amount";
+  static const shopDeliveryFeeKey = "delivery_fee";
+  static const shopFreeDeliveryAmountKey = "free_delivery_over_amount";
 
   // Print Service
   static const printServiceVerifyEndpoint = "api/v1/prn/verify";

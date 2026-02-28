@@ -115,6 +115,16 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(8)),
+                        _buildSettingItem(
+                          icon: Icons.storefront,
+                          title: TranslationKeys.shopControls.tr,
+                          color: ColorConstants.primaryColor,
+                          onTap: () {
+                            Get.toNamed(Routes.SHOP_CONTROLS_SCREEN);
+                          },
+                          showArrow: true,
+                        ),
+                        SizedBox(height: MySize.getHeight(8)),
                         Obx(
                           () => Container(
                             decoration: BoxDecoration(

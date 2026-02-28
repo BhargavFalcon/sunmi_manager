@@ -221,29 +221,29 @@ class PusherService {
     final isSunmi = printerService.isSunmi.value;
 
     // 1) Print KOT
-    if (autoPrintKot) {
-      try {
-        final kitchenPrinter = box.read(
-          ArgumentConstant.selectedKitchenPrinterKey,
-        );
-        final isConnected = await printerService.checkPrinterConnectivity(
-          kitchenPrinter,
-        );
-        if (isConnected) {
-          if (isSunmi) {
-            await _sunmiService.printKOTFromOrder(data, copies: kotCopies);
-          } else {
-            await _escPosService.printAllKOTsFromOrder(data, copies: kotCopies);
-          }
-        } else {
-          log(
-            'Auto-print KOT skipped: Kitchen printer ($kitchenPrinter) not connected',
-          );
-        }
-      } catch (e) {
-        log('Auto-print KOT Error: $e');
-      }
-    }
+    // if (autoPrintKot) {
+    //   try {
+    //     final kitchenPrinter = box.read(
+    //       ArgumentConstant.selectedKitchenPrinterKey,
+    //     );
+    //     final isConnected = await printerService.checkPrinterConnectivity(
+    //       kitchenPrinter,
+    //     );
+    //     if (isConnected) {
+    //       if (isSunmi) {
+    //         await _sunmiService.printKOTFromOrder(data, copies: kotCopies);
+    //       } else {
+    //         await _escPosService.printAllKOTsFromOrder(data, copies: kotCopies);
+    //       }
+    //     } else {
+    //       log(
+    //         'Auto-print KOT skipped: Kitchen printer ($kitchenPrinter) not connected',
+    //       );
+    //     }
+    //   } catch (e) {
+    //     log('Auto-print KOT Error: $e');
+    //   }
+    // }
 
     // 2) Print Receipt (Order)
     if (autoPrintReceipt) {

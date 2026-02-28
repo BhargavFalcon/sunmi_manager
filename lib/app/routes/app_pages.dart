@@ -33,6 +33,8 @@ import '../modules/table_screen/bindings/table_screen_binding.dart';
 import '../modules/table_screen/views/table_screen_view.dart';
 import '../modules/take_order_screen/bindings/take_order_binding.dart';
 import '../modules/take_order_screen/views/take_order_view.dart';
+import '../modules/shop_controls_screen/bindings/shop_controls_binding.dart';
+import '../modules/shop_controls_screen/views/shop_controls_view.dart';
 
 part 'app_routes.dart';
 
@@ -139,6 +141,11 @@ class AppPages {
       name: _Paths.PRINT_SERVICE,
       page: () => const PrintServiceView(),
       binding: PrintServiceBinding(),
+    ),
+    GetPage(
+      name: _Paths.SHOP_CONTROLS_SCREEN,
+      page: () => const ShopControlsView(),
+      binding: ShopControlsBinding(),
     ),
   ];
 }
