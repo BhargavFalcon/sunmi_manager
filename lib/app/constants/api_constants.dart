@@ -1,6 +1,6 @@
 class ArgumentConstant {
-  // static const baseUrl = "https://partner.dinemetrics.app/";
-  static const baseUrl = "https://dev.dinemetrics.app/";
+  static const baseUrl = "https://partner.dinemetrics.app/";
+  // static const baseUrl = "https://dev.dinemetrics.app/";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
@@ -32,6 +32,8 @@ class ArgumentConstant {
       "api/v1/pos/orders/:order_uuid/remaining-split-items";
   static const allOrdersEndpoint = "api/v1/pos/orders";
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
+  static const updateOrderStatusEndpoint =
+      "api/v1/pos/orders/:order_uuid/main-status";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
   static const customersEndpoint = "api/v1/pos/customers";
   static const zipcodesEndpoint = "api/v1/pos/zipcodes";
@@ -59,12 +61,6 @@ class ArgumentConstant {
   // Printer Settings Keys
   static const autoPrintSettingsEndpoint =
       "api/v1/pos/branch/auto-print-settings";
-  static const printerAutoPrintKey = "printer_auto_print";
-  static const printerNumberOfCopiesKey = "printer_number_of_copies";
-  static const printerAutoPrintReceiptWhenPaidKey =
-      "printer_auto_print_receipt_when_paid";
-  static const printerReceiptNumberOfCopiesKey =
-      "printer_receipt_number_of_copies";
   static const printerWidthKey = "printer_width";
   static const kitchenPaperWidthKey = "kitchen_paper_width";
   static const orderPaperWidthKey = "order_paper_width";

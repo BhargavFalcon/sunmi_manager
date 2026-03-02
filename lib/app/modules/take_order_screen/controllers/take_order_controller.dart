@@ -1671,8 +1671,8 @@ class TakeOrderController extends GetxController {
         cartItem.quantity.value = orderItem.quantity ?? 1;
         cartItem.cartTotalPrice = totalPrice;
         cartItem.cartOrderType = orderType;
-        cartItem.cartNote = '';
-        cartItem.cartNoteDraft = '';
+        cartItem.cartNote = orderItem.note ?? '';
+        cartItem.cartNoteDraft = orderItem.note ?? '';
         cartItem.cartEditingNote = false;
         cartItem.cartKotItemId = orderItem.kotItemId;
 

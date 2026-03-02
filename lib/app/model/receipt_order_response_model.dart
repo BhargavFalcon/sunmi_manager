@@ -486,6 +486,7 @@ class ReceiptOrderItem {
   int? quantity;
   String? formattedPrice;
   String? formattedLineAmount;
+  String? note;
 
   ReceiptOrderItem({
     this.displayItemName,
@@ -495,6 +496,7 @@ class ReceiptOrderItem {
     this.quantity,
     this.formattedPrice,
     this.formattedLineAmount,
+    this.note,
   });
 
   ReceiptOrderItem.fromJson(Map<String, dynamic> json) {
@@ -513,6 +515,7 @@ class ReceiptOrderItem {
     quantity = _receiptToInt(json['quantity']);
     formattedPrice = json['formatted_price']?.toString();
     formattedLineAmount = json['formatted_line_amount']?.toString();
+    note = json['note']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
@@ -523,6 +526,7 @@ class ReceiptOrderItem {
     'quantity': quantity,
     'formatted_price': formattedPrice,
     'formatted_line_amount': formattedLineAmount,
+    'note': note,
   };
 }
 

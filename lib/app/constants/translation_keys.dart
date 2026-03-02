@@ -437,6 +437,9 @@ class TranslationKeys {
 
   // Order Payment Dialog
   static const String pay = 'pay';
+  static const String confirmPayment = 'confirmPayment';
+  static const String reportUnpaid = 'reportUnpaid';
+  static const String unpaid = 'unpaid';
   static const String paymentProcessedSuccessfully =
       'paymentProcessedSuccessfully';
   static const String failedToProcessPayment = 'failedToProcessPayment';

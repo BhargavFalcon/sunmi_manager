@@ -418,6 +418,9 @@ class LocaleString extends Translations {
 
       // Order Payment Dialog
       'pay': 'PAY',
+      'confirmPayment': 'Confirm Payment',
+      'reportUnpaid': 'Report Unpaid',
+      'unpaid': 'Unpaid',
       'paymentProcessedSuccessfully': 'Payment processed successfully',
       'failedToProcessPayment': 'Failed to process payment',
       'card': 'Card',
@@ -811,6 +814,9 @@ class LocaleString extends Translations {
 
       // Order Payment Dialog
       'pay': 'BETAL',
+      'confirmPayment': 'Bekræft betaling',
+      'reportUnpaid': 'Rapporter ubetalt',
+      'unpaid': 'Ubetalt',
       'paymentProcessedSuccessfully': 'Betaling behandlet',
       'failedToProcessPayment': 'Kunne ikke behandle betaling',
       'card': 'Kort',
@@ -1210,6 +1216,9 @@ class LocaleString extends Translations {
 
       // Order Payment Dialog
       'pay': 'BEZAHLEN',
+      'confirmPayment': 'Zahlung bestätigen',
+      'reportUnpaid': 'Als unbezahlt melden',
+      'unpaid': 'Unbezahlt',
       'paymentProcessedSuccessfully': 'Zahlung erfolgreich verarbeitet',
       'failedToProcessPayment': 'Zahlung konnte nicht verarbeitet werden',
       'card': 'Karte',
@@ -1602,6 +1611,9 @@ class LocaleString extends Translations {
 
       // Order Payment Dialog
       'pay': 'BETALEN',
+      'confirmPayment': 'Betaling bevestigen',
+      'reportUnpaid': 'Onbetaald melden',
+      'unpaid': 'Onbetaald',
       'paymentProcessedSuccessfully': 'Betaling succesvol verwerkt',
       'failedToProcessPayment': 'Betaling kon niet worden verwerkt',
       'card': 'Kaart',

@@ -321,7 +321,7 @@ class SunmiInvoicePrinterService {
         final formattedOrderDateTime = _formatDateTimeString(order.dateTime);
         final orderText =
             formattedOrderDateTime.isNotEmpty
-                ? '$orderLine   $formattedOrderDateTime'
+                ? _formatLabelValue(orderLine, formattedOrderDateTime)
                 : orderLine;
 
         await _printLeftBody(orderText);
@@ -449,6 +449,16 @@ class SunmiInvoicePrinterService {
                 );
                 await _printSep();
               }
+            }
+            if (item.note != null && item.note!.isNotEmpty) {
+              await SunmiPrinter.printText(
+                '  ${TranslationKeys.note.tr}: ${item.note}',
+                style: SunmiTextStyle(
+                  align: SunmiPrintAlign.LEFT,
+                  fontSize: _fontSizeSmall,
+                ),
+              );
+              await _printSep();
             }
             await _printSep();
           }
@@ -799,6 +809,18 @@ class SunmiInvoicePrinterService {
                 await _printSep();
               }
             }
+
+            if (oi.note != null && oi.note!.isNotEmpty) {
+              await SunmiPrinter.printText(
+                '  ${TranslationKeys.note.tr}: ${oi.note}',
+                style: SunmiTextStyle(
+                  align: SunmiPrintAlign.LEFT,
+                  fontSize: _fontSizeSmall,
+                ),
+              );
+              await _printSep();
+            }
+
             await _printSep();
           }
         }

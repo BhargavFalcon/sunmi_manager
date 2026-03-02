@@ -1219,6 +1219,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
             SizedBox(height: MySize.getHeight(8)),
             _buildPaymentsTable(context, orderData, controller),
           ],
+          if (_isPendingVerification(orderData)) ...[
+            SizedBox(height: MySize.getHeight(8)),
+            _buildPendingVerificationSection(context, orderData, controller),
+          ],
           SizedBox(height: MySize.getHeight(16)),
         ],
       ),
@@ -1230,6 +1234,214 @@ class OrderScreenView extends GetView<OrderScreenController> {
           (p) => p.paymentMethod?.toLowerCase() == 'due',
         ) ??
         false;
+  }
+
+  bool _isPendingVerification(order_details_model.Data orderData) {
+    return orderData.order?.status?.toLowerCase() == 'pending_verification';
+  }
+
+  Widget _buildPendingVerificationSection(
+    BuildContext context,
+    order_details_model.Data orderData,
+    OrderScreenController controller,
+  ) {
+    final orderUuid = orderData.order?.uuid ?? '';
+    final payments = orderData.order?.payments ?? [];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(12),
+              vertical: MySize.getHeight(8),
+            ),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(MySize.getHeight(8)),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.pending_outlined,
+                  size: MySize.getHeight(16),
+                  color: Colors.orange.shade800,
+                ),
+                SizedBox(width: MySize.getWidth(6)),
+                Text(
+                  TranslationKeys.pendingVerificationStatus.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(13),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Payment rows
+          if (payments.isNotEmpty)
+            ...payments.map((payment) {
+              final methodRaw = payment.paymentMethod?.toLowerCase() ?? '';
+              final methodLabel =
+                  methodRaw == 'cash'
+                      ? TranslationKeys.cash.tr
+                      : methodRaw == 'due'
+                      ? TranslationKeys.due.tr
+                      : methodRaw == 'card'
+                      ? TranslationKeys.card.tr
+                      : payment.paymentMethod ?? '—';
+              final amountStr =
+                  payment.amount != null
+                      ? CurrencyFormatter.formatPrice(
+                        payment.amount!.toString(),
+                      )
+                      : '—';
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MySize.getWidth(12),
+                  vertical: MySize.getHeight(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Row 1: amount + method chip
+                    Row(
+                      children: [
+                        Text(
+                          amountStr,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(13.5),
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(width: MySize.getWidth(6)),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(6),
+                            vertical: MySize.getHeight(3),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(4),
+                            ),
+                          ),
+                          child: Text(
+                            methodLabel,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(11),
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: MySize.getHeight(8)),
+                    // Row 2: Confirm Payment + Report Unpaid buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              if (orderUuid.isEmpty) return;
+                              final success = await controller
+                                  .updateOrderStatus(orderUuid, 'paid');
+                              if (success && context.mounted) {
+                                Navigator.of(context).pop();
+                                controller.fetchAllOrders();
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: MySize.getHeight(8),
+                              ),
+                              decoration: BoxDecoration(
+                                color: ColorConstants.successGreen,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(6),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  TranslationKeys.confirmPayment.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: MySize.getWidth(8)),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              if (orderUuid.isEmpty) return;
+                              final success = await controller
+                                  .updateOrderStatus(orderUuid, 'payment_due');
+                              if (success && context.mounted) {
+                                Navigator.of(context).pop();
+                                controller.fetchAllOrders();
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: MySize.getHeight(8),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade400,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(6),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  TranslationKeys.reportUnpaid.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList()
+          else
+            Padding(
+              padding: EdgeInsets.all(MySize.getWidth(12)),
+              child: Text(
+                'No payment details available.',
+                style: TextStyle(
+                  fontSize: MySize.getHeight(13),
+                  color: Colors.black54,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPaymentsTable(

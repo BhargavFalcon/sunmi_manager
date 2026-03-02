@@ -43,7 +43,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Future<void> _initService() async {
     isSunmi.value = await PrinterHelper.isSunmiDevice();
     _loadSavedPrinter();
-    await _loadGeneralSettings();
+    await loadGeneralSettings();
     if (isSunmi.value) {
       await _autoSelectSunmiPrinter();
     }
@@ -115,18 +115,9 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     } catch (_) {}
   }
 
-  Future<void> _loadGeneralSettings() async {
+  Future<void> loadGeneralSettings() async {
     try {
-      // Load from local storage first
-      autoPrintKitchen.value =
-          box.read(ArgumentConstant.printerAutoPrintKey) ?? true;
-      kitchenCopies.value =
-          box.read(ArgumentConstant.printerNumberOfCopiesKey) ?? 1;
-      autoPrintReceipt.value =
-          box.read(ArgumentConstant.printerAutoPrintReceiptWhenPaidKey) ?? true;
-      receiptCopies.value =
-          box.read(ArgumentConstant.printerReceiptNumberOfCopiesKey) ?? 1;
-
+      // Load local hardware settings
       kitchenWidth.value =
           box.read(ArgumentConstant.kitchenPaperWidthKey) ??
           box.read(ArgumentConstant.printerWidthKey) ??
@@ -141,7 +132,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       selectedReceiptPrinter.value =
           box.read(ArgumentConstant.selectedReceiptPrinterKey) ?? '';
 
-      // Then sync from API (only if authenticated)
+      // Sync auto-print settings from API (only if authenticated)
       if (box.hasData(ArgumentConstant.tokenKey)) {
         final response = await _networkClient.get(
           ArgumentConstant.autoPrintSettingsEndpoint,
@@ -161,17 +152,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   Future<void> saveGeneralSettings() async {
     try {
-      // Save locally
-      box.write(ArgumentConstant.printerAutoPrintKey, autoPrintKitchen.value);
-      box.write(ArgumentConstant.printerNumberOfCopiesKey, kitchenCopies.value);
-      box.write(
-        ArgumentConstant.printerAutoPrintReceiptWhenPaidKey,
-        autoPrintReceipt.value,
-      );
-      box.write(
-        ArgumentConstant.printerReceiptNumberOfCopiesKey,
-        receiptCopies.value,
-      );
+      // Save local hardware settings
       box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenWidth.value);
       box.write(ArgumentConstant.orderPaperWidthKey, receiptWidth.value);
       box.write(
@@ -183,7 +164,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         selectedReceiptPrinter.value,
       );
 
-      // Save to API
+      // Save to API for auto print settings
       await _networkClient.patch(
         ArgumentConstant.autoPrintSettingsEndpoint,
         data: {
@@ -199,50 +180,42 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   // --- Helper Methods ---
   void toggleAutoPrintKitchen() {
     autoPrintKitchen.value = !autoPrintKitchen.value;
-    saveGeneralSettings();
   }
 
   void incrementKitchenCopies() {
     if (kitchenCopies.value < 5) {
       kitchenCopies.value++;
-      saveGeneralSettings();
     }
   }
 
   void decrementKitchenCopies() {
     if (kitchenCopies.value > 1) {
       kitchenCopies.value--;
-      saveGeneralSettings();
     }
   }
 
   void setKitchenWidth(String width) {
     kitchenWidth.value = width;
-    saveGeneralSettings();
   }
 
   void toggleAutoPrintReceipt() {
     autoPrintReceipt.value = !autoPrintReceipt.value;
-    saveGeneralSettings();
   }
 
   void incrementReceiptCopies() {
     if (receiptCopies.value < 5) {
       receiptCopies.value++;
-      saveGeneralSettings();
     }
   }
 
   void decrementReceiptCopies() {
     if (receiptCopies.value > 1) {
       receiptCopies.value--;
-      saveGeneralSettings();
     }
   }
 
   void setReceiptWidth(String width) {
     receiptWidth.value = width;
-    saveGeneralSettings();
   }
 
   Future<void> checkConnection() async {

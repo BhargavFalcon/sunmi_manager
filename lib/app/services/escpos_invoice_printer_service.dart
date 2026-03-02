@@ -403,6 +403,12 @@ class EscPosInvoicePrinterService {
                 );
               }
             }
+            if (orderItem.note != null && orderItem.note!.isNotEmpty) {
+              bytes += gen.text(
+                '    ${TranslationKeys.note.tr}: ${orderItem.note}',
+                styles: b,
+              );
+            }
           }
         }
 
@@ -725,6 +731,12 @@ class EscPosInvoicePrinterService {
                   styles: b,
                 );
               }
+            }
+            if (oi.note != null && oi.note!.isNotEmpty) {
+              bytes += gen.text(
+                '    ${TranslationKeys.note.tr}: ${oi.note}',
+                styles: b,
+              );
             }
           }
         }

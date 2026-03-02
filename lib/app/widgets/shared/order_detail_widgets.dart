@@ -259,7 +259,13 @@ class OrderDetailWidgets {
                     )
                     .toList();
             if (item.variationName != null && item.variationName!.isNotEmpty) {
-              details.insert(0, 'Variation: ${item.variationName}');
+              details.insert(
+                0,
+                '${TranslationKeys.variationPrefix.tr} ${item.variationName}',
+              );
+            }
+            if (item.note != null && item.note!.isNotEmpty) {
+              details.add('${TranslationKeys.note.tr}: ${item.note}');
             }
             final priceStr =
                 item.price is num

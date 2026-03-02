@@ -122,7 +122,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 vertical: MySize.getHeight(8),
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0B9F6E),
+                                color: ColorConstants.primaryColor,
                                 borderRadius: BorderRadius.circular(
                                   MySize.getHeight(6),
                                 ),

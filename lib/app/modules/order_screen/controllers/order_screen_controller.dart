@@ -246,6 +246,22 @@ class OrderScreenController extends GetxController {
     isLoadingOrderDetails.value = false;
   }
 
+  Future<bool> updateOrderStatus(String orderUuid, String status) async {
+    try {
+      final endpoint = ArgumentConstant.updateOrderStatusEndpoint.replaceAll(
+        ':order_uuid',
+        orderUuid,
+      );
+      final response = await networkClient.patch(
+        endpoint,
+        data: {'status': status},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void onClose() {
     if (_scrollListener != null && scrollController.hasClients) {

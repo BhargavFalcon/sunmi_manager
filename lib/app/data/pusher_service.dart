@@ -211,6 +211,10 @@ class PusherService {
     final data = await _fetchOrderOnly(orderUuid);
     if (data == null) return null;
     final printerService = Get.find<PrinterService>();
+
+    // Refresh settings from server before printing to guarantee we have the latest config
+    await printerService.loadGeneralSettings();
+
     // final autoPrintKot = printerService.autoPrintKitchen.value;
     final autoPrintKot = false;
     final autoPrintReceipt = printerService.autoPrintReceipt.value;

@@ -177,7 +177,7 @@ class CartSummaryPanel extends StatelessWidget {
               alignment: Alignment.center,
               padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
               decoration: BoxDecoration(
-                color: ColorConstants.primaryColor,
+                color: const Color(0xFF0B9F6E),
                 borderRadius: BorderRadius.circular(MySize.getHeight(6)),
               ),
               child: Text(
