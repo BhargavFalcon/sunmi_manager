@@ -1,10 +1,10 @@
 class ArgumentConstant {
-  static const bool isPartner = false;
+  static const bool isPartner = true;
 
   static String get baseUrl =>
       isPartner
           ? "https://partner.dinemetrics.app/"
-          : "https://dev.dinemetrics.app/";
+          : "https://dev.dinemetrics.de/";
 
   static String get envSuffix => isPartner ? "partner" : "dev";
   static const loginEndpoint = "api/v1/pos/auth/login";
