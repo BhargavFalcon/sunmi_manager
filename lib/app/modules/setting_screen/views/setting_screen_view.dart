@@ -99,20 +99,14 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(8)),
-                        Obx(
-                          () => _buildToggleSettingItem(
-                            icon: Icons.notifications,
-                            title: TranslationKeys.newShopOrderNotifications.tr,
-                            color: ColorConstants.primaryColor,
-                            value:
-                                controller
-                                    .newShopOrderNotificationsEnabled
-                                    .value,
-                            onToggle:
-                                () =>
-                                    controller
-                                        .toggleNewShopOrderNotifications(),
-                          ),
+                        _buildSettingItem(
+                          icon: Icons.notifications,
+                          title: TranslationKeys.manageNotifications.tr,
+                          color: ColorConstants.primaryColor,
+                          onTap: () {
+                            Get.toNamed(Routes.MANAGE_NOTIFICATION_SCREEN);
+                          },
+                          showArrow: true,
                         ),
                         SizedBox(height: MySize.getHeight(8)),
                         _buildSettingItem(

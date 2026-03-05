@@ -35,6 +35,8 @@ import '../modules/take_order_screen/bindings/take_order_binding.dart';
 import '../modules/take_order_screen/views/take_order_view.dart';
 import '../modules/shop_controls_screen/bindings/shop_controls_binding.dart';
 import '../modules/shop_controls_screen/views/shop_controls_view.dart';
+import '../modules/manage_notification_screen/bindings/manage_notification_binding.dart';
+import '../modules/manage_notification_screen/views/manage_notification_view.dart';
 
 part 'app_routes.dart';
 
@@ -146,6 +148,11 @@ class AppPages {
       name: _Paths.SHOP_CONTROLS_SCREEN,
       page: () => const ShopControlsView(),
       binding: ShopControlsBinding(),
+    ),
+    GetPage(
+      name: _Paths.MANAGE_NOTIFICATION_SCREEN,
+      page: () => const ManageNotificationView(),
+      binding: ManageNotificationBinding(),
     ),
   ];
 }

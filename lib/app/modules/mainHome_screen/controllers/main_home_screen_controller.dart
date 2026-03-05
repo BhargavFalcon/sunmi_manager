@@ -44,11 +44,11 @@ class MainHomeScreenController extends GetxController {
       final loginModelData = box.read(ArgumentConstant.loginModelKey);
       if (loginModelData != null && loginModelData is Map<String, dynamic>) {
         final loginModel = LoginModel.fromJson(loginModelData);
-        final restaurantId = loginModel.data?.user?.restaurantId;
+        final branchId = loginModel.data?.user?.branchId;
 
-        if (restaurantId != null) {
+        if (branchId != null) {
           final pusherService = PusherService();
-          await pusherService.subscribeToOrders(restaurantId);
+          await pusherService.subscribeToOrders(branchId);
         }
       }
     } catch (_) {

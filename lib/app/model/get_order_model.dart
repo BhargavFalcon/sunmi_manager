@@ -763,7 +763,7 @@ class Totals {
   double? subTotal;
   double? totalTaxAmount;
   double? tipAmount;
-  int? deliveryFee;
+  double? deliveryFee;
   double? total;
   int? amountPaid;
   double? discountAmount;
@@ -782,7 +782,7 @@ class Totals {
     : subTotal = _toDouble(json['sub_total']),
       totalTaxAmount = _toDouble(json['total_tax_amount']),
       tipAmount = _toDouble(json['tip_amount']),
-      deliveryFee = _toInt(json['delivery_fee']),
+      deliveryFee = _toDouble(json['delivery_fee']),
       total = _toDouble(json['total']),
       amountPaid = _toInt(json['amount_paid']),
       discountAmount = _toDouble(json['discount_amount']);

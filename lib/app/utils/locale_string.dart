@@ -302,6 +302,12 @@ class LocaleString extends Translations {
       'quickControlsOnly':
           'Quick controls only. Full settings available on the web dashboard.',
       'minutes': 'Minutes',
+      'manageNotifications': 'Manage Notifications',
+      'newShopOrders': 'New Shop orders',
+      'qrCodeOrders': 'QR code orders',
+      'newKitchenTickets': 'New Kitchen Tickets',
+      'kitchenTicketStatusChange': 'Kitchen Ticket Status change',
+      'newTableReservations': 'New Table Reservations',
       'logout': 'Logout',
       'areYouSureLogout': 'Are you sure you want to logout?',
       'selectLanguage': 'Select Language',

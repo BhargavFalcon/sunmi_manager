@@ -92,6 +92,12 @@ class TranslationKeys {
   static const String printOnlyAvailableOnAndroid =
       'printOnlyAvailableOnAndroid';
   static const String shopControls = 'shopControls';
+  static const String manageNotifications = 'manageNotifications';
+  static const String newShopOrders = 'newShopOrders';
+  static const String qrCodeOrders = 'qrCodeOrders';
+  static const String newKitchenTickets = 'newKitchenTickets';
+  static const String kitchenTicketStatusChange = 'kitchenTicketStatusChange';
+  static const String newTableReservations = 'newTableReservations';
   static const String onOffDesc = 'onOffDesc';
   static const String scheduleDesc = 'scheduleDesc';
   static const String acceptNewOrders = 'acceptNewOrders';

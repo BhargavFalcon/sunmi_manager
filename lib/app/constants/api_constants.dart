@@ -1,6 +1,12 @@
 class ArgumentConstant {
-  static const baseUrl = "https://partner.dinemetrics.app/";
-  // static const baseUrl = "https://dev.dinemetrics.app/";
+  static const bool isPartner = false;
+
+  static String get baseUrl =>
+      isPartner
+          ? "https://partner.dinemetrics.app/"
+          : "https://dev.dinemetrics.app/";
+
+  static String get envSuffix => isPartner ? "partner" : "dev";
   static const loginEndpoint = "api/v1/pos/auth/login";
   static const logoutEndpoint = "api/v1/pos/auth/logout";
   static const menuItemsEndpoint = "api/v1/pos/menu-items";
@@ -75,6 +81,10 @@ class ArgumentConstant {
   static const selectedLanguageKey = "selected_language";
   static const newShopOrderNotificationsKey =
       "new_shop_order_notifications_enabled";
+  static const orderPlacedFromQrCodeKey = "order_placed_from_qr_code_enabled";
+  static const kitchenTicketGenerationKey = "kitchen_ticket_generation_enabled";
+  static const kotStatusChangeKey = "kot_status_change_enabled";
+  static const newTableReservationsKey = "new_table_reservations_enabled";
 
   // Shop Settings
   static const shopSettingsEndpoint = "api/v1/pos/branch/pos-settings";

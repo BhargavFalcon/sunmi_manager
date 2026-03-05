@@ -36,10 +36,10 @@ class PusherService {
 
   Future<void> initPusher() async {}
 
-  Future<void> subscribeToOrders(int? restaurantId) async {
-    if (restaurantId == null) return;
-
-    final channelName = "new-order-created.$restaurantId";
+  Future<void> subscribeToOrders(int? branchId) async {
+    if (branchId == null) return;
+    final channelName =
+        "new-order-created.$branchId.${ArgumentConstant.envSuffix}";
 
     try {
       final scheme = pusherUseTLS ? 'wss' : 'ws';
@@ -57,7 +57,7 @@ class PusherService {
           _isConnected = false;
           _pingTimer?.cancel();
           Future.delayed(const Duration(seconds: 3), () {
-            subscribeToOrders(restaurantId);
+            subscribeToOrders(branchId);
           });
         },
         onError: (err) {
@@ -66,7 +66,7 @@ class PusherService {
       );
     } catch (_) {
       Future.delayed(const Duration(seconds: 5), () {
-        subscribeToOrders(restaurantId);
+        subscribeToOrders(branchId);
       });
     }
   }
