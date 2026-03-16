@@ -42,6 +42,11 @@ class EscPosInvoicePrinterService {
     '\u20A7': 'Pts',
   };
 
+  String _truncate(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength - 1)}.';
+  }
+
   String _escCurrency(String text) {
     String result = text.replaceAll('\u20AC', '\u00D5');
     for (final entry in _currencyFallback.entries) {
@@ -1032,10 +1037,10 @@ class EscPosInvoicePrinterService {
 
         // Header
         bytes += gen.row([
-          PosColumn(text: TranslationKeys.itemName.tr, width: 9, styles: bb),
-          PosColumn(text: TranslationKeys.qty.tr, width: 3, styles: r),
+          PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: bb),
+          PosColumn(text: TranslationKeys.itemName.tr, width: 10, styles: bb),
         ]);
-        bytes += gen.hr(ch: '-');
+        bytes += gen.hr(ch: '.');
 
         if (items != null && items.isNotEmpty) {
           for (final item in items) {
@@ -1043,8 +1048,8 @@ class EscPosInvoicePrinterService {
             final qty = item.quantity?.toString() ?? '1';
 
             bytes += gen.row([
-              PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
-              PosColumn(text: qty, width: 3, styles: r),
+              PosColumn(text: qty, width: 2, styles: b),
+              PosColumn(text: _escCurrency(itemName), width: 10, styles: b),
             ]);
 
             if (item.variationName != null && item.variationName!.isNotEmpty) {
@@ -1067,7 +1072,7 @@ class EscPosInvoicePrinterService {
               );
             }
 
-            bytes += gen.hr(ch: '-');
+            bytes += gen.hr(ch: '.');
           }
         }
 
@@ -1273,18 +1278,18 @@ class EscPosInvoicePrinterService {
 
       // Header
       bytes += gen.row([
-        PosColumn(text: TranslationKeys.itemName.tr, width: 9, styles: bb),
-        PosColumn(text: TranslationKeys.qty.tr, width: 3, styles: r),
+        PosColumn(text: TranslationKeys.qty.tr, width: 2, styles: bb),
+        PosColumn(text: TranslationKeys.itemName.tr, width: 10, styles: bb),
       ]);
-      bytes += gen.hr(ch: '-');
+      bytes += gen.hr(ch: '.');
 
       for (final item in order.items!) {
         final itemName = item.itemName ?? '';
         final qty = item.quantity?.toString() ?? '1';
 
         bytes += gen.row([
-          PosColumn(text: _escCurrency(itemName), width: 9, styles: b),
-          PosColumn(text: qty, width: 3, styles: r),
+          PosColumn(text: qty, width: 2, styles: b),
+          PosColumn(text: _escCurrency(itemName), width: 10, styles: b),
         ]);
 
         if (item.variationName != null && item.variationName!.isNotEmpty) {
@@ -1307,7 +1312,7 @@ class EscPosInvoicePrinterService {
           );
         }
 
-        bytes += gen.hr(ch: '-');
+        bytes += gen.hr(ch: '.');
       }
 
       if (order.note != null && order.note!.isNotEmpty) {

@@ -21,11 +21,17 @@ class SunmiInvoicePrinterService {
         isKitchen
             ? printerService.kitchenWidth.value
             : printerService.receiptWidth.value;
-    return width == '80mm' ? 48 : 38;
+
+    if (width == '80mm') return 48;
+
+    // Standard 58mm paper fits ~32 characters at standard font size.
+    // Receipt (Invoice) uses 38 for a slightly tighter font/style if available, 
+    // but for KOT we'll use 32 to be safe for dynamic spacing.
+    return isKitchen ? 32 : 38;
   }
 
   String _getLineSeparator({bool isKitchen = false}) {
-    final int width = 32;
+    final int width = _getTotalWidth(isKitchen: isKitchen);
     return List.filled(width, '-').join();
   }
 
@@ -38,7 +44,7 @@ class SunmiInvoicePrinterService {
       'Amount Payment Method   Date & Time';
 
   int _getItemQtyWidth(int totalWidth) => totalWidth == 48 ? 6 : 4;
-  int _getItemNameWidth(int totalWidth) => totalWidth == 48 ? 30 : 15;
+  int _getItemNameWidth(int totalWidth) => totalWidth == 48 ? 30 : 17; // Increased from 15 to 17
   int _getItemPriceWidth(int totalWidth) => totalWidth == 48 ? 12 : 10;
 
   Future<void> _printSep() async => SunmiPrinter.lineWrap(5);
@@ -223,10 +229,9 @@ class SunmiInvoicePrinterService {
         label,
         style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: fontSize),
       );
-      final spacing = List.filled(width - valueLength, ' ').join();
       await SunmiPrinter.printText(
-        '$spacing$value',
-        style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: fontSize),
+        value,
+        style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, fontSize: fontSize),
       );
     }
   }
@@ -1027,17 +1032,32 @@ class SunmiInvoicePrinterService {
                 : '';
 
         if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
-          await SunmiPrinter.printText(
-            _formatLabelValue(
-              '${TranslationKeys.date.tr}: $dateStr',
-              '${TranslationKeys.time.tr}: $timeStr',
-              totalWidth: totalWidth,
-            ),
-            style: SunmiTextStyle(
-              align: SunmiPrintAlign.LEFT,
-              fontSize: _fontSizeSub,
-            ),
-          );
+          final datePart = '${TranslationKeys.date.tr}: $dateStr';
+          final timePart = '${TranslationKeys.time.tr}: $timeStr';
+          if (datePart.length + timePart.length + 1 <= totalWidth) {
+            await SunmiPrinter.printText(
+              _formatLabelValue(datePart, timePart, totalWidth: totalWidth),
+              style: SunmiTextStyle(
+                align: SunmiPrintAlign.LEFT,
+                fontSize: _fontSizeSub,
+              ),
+            );
+          } else {
+            await SunmiPrinter.printText(
+              datePart,
+              style: SunmiTextStyle(
+                align: SunmiPrintAlign.LEFT,
+                fontSize: _fontSizeSub,
+              ),
+            );
+            await SunmiPrinter.printText(
+              timePart,
+              style: SunmiTextStyle(
+                align: SunmiPrintAlign.LEFT,
+                fontSize: _fontSizeSub,
+              ),
+            );
+          }
           await _printSep();
         } else if (dateStr.isNotEmpty) {
           await SunmiPrinter.printText(
@@ -1085,7 +1105,12 @@ class SunmiInvoicePrinterService {
             final qty = item.quantity?.toString() ?? '1';
 
             // Print name and qty
-            await _printLabelValue(itemName, qty, totalWidth: totalWidth);
+            await _printLabelValue(
+              itemName,
+              qty,
+              totalWidth: totalWidth,
+              isKitchen: true,
+            );
             await _printSep();
 
             if (item.variationName != null && item.variationName!.isNotEmpty) {
@@ -1233,7 +1258,12 @@ class SunmiInvoicePrinterService {
       for (final item in order.items!) {
         final itemName = item.itemName ?? '';
         final qty = item.quantity?.toString() ?? '1';
-        await _printLabelValue(itemName, qty, totalWidth: totalWidth);
+        await _printLabelValue(
+          itemName,
+          qty,
+          totalWidth: totalWidth,
+          isKitchen: true,
+        );
 
         if (item.variationName != null && item.variationName!.isNotEmpty) {
           await _printLeftBody('  (${item.variationName})');

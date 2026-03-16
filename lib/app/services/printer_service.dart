@@ -164,16 +164,18 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         selectedReceiptPrinter.value,
       );
 
-      // Save to API for auto print settings
-      await _networkClient.patch(
-        ArgumentConstant.autoPrintSettingsEndpoint,
-        data: {
-          "auto_print_kot": autoPrintKitchen.value,
-          "kot_print_copies": kitchenCopies.value,
-          "auto_print_receipt": autoPrintReceipt.value,
-          "receipt_print_copies": receiptCopies.value,
-        },
-      );
+      // Save to API for auto print settings (only if authenticated)
+      if (box.hasData(ArgumentConstant.tokenKey)) {
+        await _networkClient.patch(
+          ArgumentConstant.autoPrintSettingsEndpoint,
+          data: {
+            "auto_print_kot": autoPrintKitchen.value,
+            "kot_print_copies": kitchenCopies.value,
+            "auto_print_receipt": autoPrintReceipt.value,
+            "receipt_print_copies": receiptCopies.value,
+          },
+        );
+      }
     } catch (_) {}
   }
 

@@ -6,6 +6,8 @@ import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../model/kitchen_ticket_model.dart';
 import '../controllers/kitchen_tickets_screen_controller.dart';
 
@@ -64,6 +66,31 @@ class KitchenTicketsScreenView
                                             () => controller.updateTabIndex(1),
                                         activeColor:
                                             ColorConstants.successGreen,
+                                      ),
+                                    ),
+                                    SizedBox(width: MySize.getWidth(8)),
+                                    InkWell(
+                                      onTap: controller.toggleSound,
+                                      borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                                      child: Container(
+                                        padding: EdgeInsets.all(MySize.getHeight(10)),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          controller.isSoundEnabled.value
+                                              ? Icons.volume_up_rounded
+                                              : Icons.volume_off_rounded,
+                                          color: controller.isSoundEnabled.value
+                                              ? ColorConstants.primaryColor
+                                              : Colors.grey,
+                                          size: MySize.getHeight(22),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -126,7 +153,7 @@ class KitchenTicketsScreenView
                                   final rowCount =
                                       (tickets.length / crossAxisCount).ceil();
 
-                                  return ListView.builder(
+                                  return ScrollablePositionedList.builder(
                                     physics:
                                         const AlwaysScrollableScrollPhysics(),
                                     padding: EdgeInsets.symmetric(
@@ -134,6 +161,10 @@ class KitchenTicketsScreenView
                                       vertical: MySize.getHeight(8),
                                     ),
                                     itemCount: rowCount,
+                                    itemScrollController:
+                                        controller.itemScrollController,
+                                    itemPositionsListener:
+                                        controller.itemPositionsListener,
                                     itemBuilder: (context, rowIndex) {
                                       final start = rowIndex * crossAxisCount;
                                       final rowTickets =
@@ -151,44 +182,93 @@ class KitchenTicketsScreenView
                                         child: Row(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
-                                          children: List.generate(
-                                            crossAxisCount,
-                                            (col) {
-                                              if (col < rowTickets.length) {
-                                                final ticket = rowTickets[col];
-                                                return Expanded(
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                      right:
-                                                          col < crossAxisCount - 1
-                                                              ? MySize.getWidth(
-                                                                4,
-                                                              )
-                                                              : 0,
-                                                    ),
-                                                    child: _KitchenTicketCard(
-                                                      ticket: ticket,
-                                                      formattedTime: controller
-                                                          .formatTime(
-                                                            ticket.createdAt,
-                                                          ),
-                                                      onPrint:
-                                                          () => controller
-                                                              .onPrint(ticket),
-                                                      onFoodReady:
-                                                          () => controller
-                                                              .onFoodReady(
-                                                                ticket,
-                                                              ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }
+                                          children: List.generate(crossAxisCount, (
+                                            col,
+                                          ) {
+                                            if (col < rowTickets.length) {
+                                              final ticket = rowTickets[col];
                                               return Expanded(
-                                                child: SizedBox.shrink(),
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(
+                                                    right:
+                                                        col < crossAxisCount - 1
+                                                            ? MySize.getWidth(4)
+                                                            : 0,
+                                                  ),
+                                                  child: Obx(() {
+                                                    final isNew =
+                                                        controller
+                                                            .newlyAddedKotId
+                                                            .value ==
+                                                        ticket.id;
+                                                    Widget cardContent =
+                                                        _KitchenTicketCard(
+                                                          ticket: ticket,
+                                                          formattedTime: controller
+                                                              .formatTime(
+                                                                ticket
+                                                                    .createdAt,
+                                                              ),
+                                                          onPrint:
+                                                              () => controller
+                                                                  .onPrint(
+                                                                    ticket,
+                                                                  ),
+                                                          onFoodReady:
+                                                              () => controller
+                                                                  .onFoodReady(
+                                                                    ticket,
+                                                                  ),
+                                                        );
+
+                                                    if (isNew) {
+                                                      return Flash(
+                                                        duration:
+                                                            const Duration(
+                                                              seconds: 2,
+                                                            ),
+                                                        infinite: true,
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  MySize.getHeight(
+                                                                    10,
+                                                                  ),
+                                                                ),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: ColorConstants
+                                                                    .primaryColor
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.6,
+                                                                    ),
+                                                                blurRadius: 15,
+                                                                spreadRadius: 3,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          child:
+                                                              RepaintBoundary(
+                                                                child:
+                                                                    cardContent,
+                                                              ),
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    return RepaintBoundary(
+                                                      child: cardContent,
+                                                    );
+                                                  }),
+                                                ),
                                               );
-                                            },
-                                          ),
+                                            }
+                                            return Expanded(
+                                              child: SizedBox.shrink(),
+                                            );
+                                          }),
                                         ),
                                       );
                                     },

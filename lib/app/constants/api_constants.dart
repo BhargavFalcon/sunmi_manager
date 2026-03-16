@@ -1,5 +1,5 @@
 class ArgumentConstant {
-  static const bool isPartner = true;
+  static const bool isPartner = false;
 
   static String get baseUrl =>
       isPartner
@@ -46,10 +46,14 @@ class ArgumentConstant {
   static const reservationsEndpoint = "api/v1/pos/reservations";
   static const reservationsAvailableTimeSlotsEndpoint =
       "api/v1/pos/reservations/available-time-slots";
+  static const reservationsAvailableTablesEndpoint =
+      "api/v1/pos/reservations/available-tables";
   static const reservationsCheckAvailabilityEndpoint =
       "api/v1/pos/reservations/check-availability";
   static const reservationStatusEndpoint =
       "api/v1/pos/reservations/:reservation_id/status";
+  static const reservationAssignTableEndpoint =
+      "api/v1/pos/reservations/:reservation_id/assign-table";
   static const kotsEndpoint = "api/v1/pos/kots";
   static const updateKotStatusEndpoint = "api/v1/pos/kots/:kot_id/status";
   static const updateKotItemStatusEndpoint =

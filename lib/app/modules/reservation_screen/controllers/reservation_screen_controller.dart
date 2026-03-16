@@ -13,6 +13,7 @@ import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/table_model.dart' as table_model;
 import '../../../model/reservation_list_model.dart';
 import '../../../model/available_time_slots_model.dart';
+import '../../../model/available_tables_model.dart';
 import '../../../model/login_models.dart';
 import '../../../model/customer_list_model.dart';
 import '../../../data/NetworkClient.dart';
@@ -45,9 +46,12 @@ class ReservationScreenController extends GetxController {
   RxString selectedCountryFlag = '🇩🇪'.obs;
 
   final networkClient = NetworkClient();
-  final RxList<table_model.Data> tableAreasList = <table_model.Data>[].obs;
   final Rx<table_model.Tables?> selectedTable = Rx<table_model.Tables?>(null);
   final RxBool isTableExpanded = false.obs;
+
+  final RxList<table_model.Tables> availableTablesList =
+      <table_model.Tables>[].obs;
+  final RxBool isAvailableTablesLoading = false.obs;
 
   final FocusNode reservationNameFocusNode = FocusNode();
   final FocusNode reservationPhoneFocusNode = FocusNode();
@@ -64,6 +68,7 @@ class ReservationScreenController extends GetxController {
   Timer? _customerSearchDebounce;
   VoidCallback? onCustomerSearchResultsChanged;
   bool _isPrefillingFromCustomerSelection = false;
+  bool _isInitialEditPrefill = false;
 
   bool get isReservationCustomerSelected =>
       selectedReservationCustomer.value != null;
@@ -256,6 +261,7 @@ class ReservationScreenController extends GetxController {
     editingReservationIndex.value = index;
     final item = reservations[index];
     final dateStr = item['reservationDate'] as String?;
+    _isInitialEditPrefill = true;
     if (dateStr != null && dateStr.isNotEmpty) {
       final parsed = DateTime.tryParse(dateStr);
       if (parsed != null) selectedDateReservation.value = parsed;
@@ -273,12 +279,51 @@ class ReservationScreenController extends GetxController {
     customerNameController.text = (item['name'] as String?) ?? '';
     customerPhoneController.text = (item['phone'] as String?) ?? '';
     customerEmailController.text = (item['email'] as String?) ?? '';
+
+    // Handle Phone Code & Flag for Edit
+    final rawPhone = (item['phone'] as String?) ?? '';
+    final phoneParts = rawPhone.split(' ');
+    if (phoneParts.length > 1 && phoneParts[0].startsWith('+')) {
+      selectedCountryCode.value = phoneParts[0];
+      customerPhoneController.text = phoneParts.sublist(1).join(' ');
+    } else {
+      selectedCountryCode.value = '+49'; // Default
+      customerPhoneController.text = rawPhone;
+    }
+    selectedCountryFlag.value = _flagFromPhoneCode(selectedCountryCode.value);
+
     selectedReservationCustomer.value = null;
     nameError.value = '';
     phoneError.value = '';
     isNameValid.value = true;
     isPhoneValid.value = true;
     selectedTable.value = null;
+    availableTablesList.clear();
+    // Load available tables for the existing reservation's date/time/party_size
+    // After loading, auto-select the table that was assigned to this reservation
+    final existingTableId = item['table_id']?.toString();
+    final existingTableLabel = item['table']?.toString();
+    fetchAvailableTables().then((_) {
+      if ((existingTableId != null || existingTableLabel != null) &&
+          selectedTable.value == null) {
+        final match = availableTablesList.firstWhereOrNull(
+          (t) =>
+              (existingTableId != null && t.id?.toString() == existingTableId) ||
+              (existingTableLabel != null &&
+                  t.tableCode == existingTableLabel),
+        );
+        if (match != null) {
+          selectedTable.value = match;
+        } else if (item['table_data'] != null) {
+          // The table is already assigned to this reservation, so the API excluded it.
+          // We set it as the selected table, but DO NOT add it to the available list grid.
+          final currentTable = table_model.Tables.fromJson(
+            Map<String, dynamic>.from(item['table_data'] as Map),
+          );
+          selectedTable.value = currentTable;
+        }
+      }
+    });
   }
 
   int? _getBranchIdFromStorage() {
@@ -294,9 +339,15 @@ class ReservationScreenController extends GetxController {
   }
 
   static bool _isSuccessResponse(dynamic response) {
+    if (response == null || response.data == null) return false;
     final code = response.statusCode;
-    return (code == 200 || code == 201) &&
-        response.data is Map<String, dynamic>;
+    final isHttpSuccess = code == 200 || code == 201;
+    if (response.data is List) return isHttpSuccess;
+    if (response.data is Map<String, dynamic>) {
+      return isHttpSuccess &&
+          (response.data['success'] == true || response.data['data'] != null);
+    }
+    return false;
   }
 
   static int? _displayTimeToMinutes(String display) {
@@ -377,7 +428,6 @@ class ReservationScreenController extends GetxController {
     reservationNameFocusNode.addListener(_onReservationNameFocusChange);
     reservationPhoneFocusNode.addListener(_onReservationPhoneFocusChange);
     _updateDatesByOption('Today');
-    fetchTablesAreas();
     fetchReservations();
     reservationsScrollController.addListener(_onReservationsScroll);
   }
@@ -404,18 +454,26 @@ class ReservationScreenController extends GetxController {
   }
 
   void _onCustomerPhoneOrEmailChanged() {
-    if (_isPrefillingFromCustomerSelection) return;
-    if (isReservationCustomerSelected) {
-      selectedReservationCustomer.value = null;
-      customerSearchResults.clear();
-    }
+    // Do NOT auto-clear selected customer when phone/email is edited.
+    // Customer is only cleared via the explicit Clear button.
   }
 
   void _onCustomerNameChangedForSearch() {
     if (_isPrefillingFromCustomerSelection) return;
-    if (isReservationCustomerSelected) {
+    if (_isInitialEditPrefill) {
+      _isInitialEditPrefill = false;
+      return;
+    }
+
+    // If user edits the name while a customer is selected, they are diverging from the selection.
+    // We nullify the selected customer so that phone/email fields become editable.
+    if (isReservationCustomerSelected &&
+        customerNameController.text.trim() !=
+            selectedReservationCustomer.value?.name) {
       selectedReservationCustomer.value = null;
     }
+
+    if (isReservationCustomerSelected) return;
     final query = customerNameController.text.trim();
     if (query.length < 2) {
       _customerSearchDebounce?.cancel();
@@ -489,6 +547,9 @@ class ReservationScreenController extends GetxController {
     phoneError.value = '';
     isNameValid.value = false;
     isPhoneValid.value = false;
+    customerSearchResults.clear();
+    onCustomerSearchResultsChanged?.call();
+    _customerSearchDebounce?.cancel();
   }
 
   static String _flagFromPhoneCode(String? phoneCode) {
@@ -858,6 +919,7 @@ class ReservationScreenController extends GetxController {
       if (ok && _isCheckAvailabilitySuccess(response)) {
         selectedTimeSlotTitle.value = title;
         selectedTimeSlot.value = timeSlot;
+        fetchAvailableTables();
       } else {
         _showCheckAvailabilityError(response);
       }
@@ -867,6 +929,105 @@ class ReservationScreenController extends GetxController {
       isCheckingAvailability.value = false;
       checkingSlotSectionTitle.value = '';
       checkingSlotValue.value = '';
+    }
+  }
+
+  Future<void> fetchAvailableTables() async {
+    if (selectedTimeSlot.value.isEmpty) return;
+    isAvailableTablesLoading.value = true;
+    try {
+      final dateStr =
+          DateFormat('yyyy-MM-dd').format(selectedDateReservation.value);
+      final timeSlotApi = _displayTimeToApiTime(selectedTimeSlot.value);
+      final partySize = int.parse(selectedPerson.value.split(' ')[0]);
+      final response = await networkClient.get(
+        ArgumentConstant.reservationsAvailableTablesEndpoint,
+        queryParameters: <String, dynamic>{
+          'date': dateStr,
+          'time_slot': timeSlotApi,
+          'party_size': partySize,
+        },
+      );
+      if (!_isSuccessResponse(response)) {
+        availableTablesList.clear();
+        return;
+      }
+      final model = AvailableTablesModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      final tables = model.data ?? [];
+      availableTablesList.assignAll(tables);
+      // Clear selected table if it's no longer in the new list
+      if (selectedTable.value != null) {
+        final stillAvailable = tables.any(
+          (t) => t.id == selectedTable.value!.id,
+        );
+        if (!stillAvailable) selectedTable.value = null;
+      }
+    } catch (_) {
+      availableTablesList.clear();
+    } finally {
+      isAvailableTablesLoading.value = false;
+    }
+  }
+
+  Map<String, List<table_model.Tables>> get groupedAvailableTables {
+    final Map<String, List<table_model.Tables>> groups = {};
+    for (var table in availableTablesList) {
+      final areaName = areaNameFromTable(table);
+      if (!groups.containsKey(areaName)) {
+        groups[areaName] = [];
+      }
+      groups[areaName]!.add(table);
+    }
+    return groups;
+  }
+
+  String areaNameFromTable(table_model.Tables table) {
+    return table.area?.name ?? TranslationKeys.unnamedArea.tr;
+  }
+
+  Future<void> fetchAvailableTablesForReservation(int index) async {
+    if (index < 0 || index >= reservations.length) return;
+    final res = reservations[index];
+    final date = res['reservationDate'];
+    final timeRaw = res['reservationTime'];
+    final partySize = res['guests'] as int;
+
+    if (date == null || timeRaw == null) return;
+
+    // Ensure time is HH:mm:ss
+    String time = timeRaw.toString();
+    final parts = time.split(':');
+    if (parts.length == 2) {
+      time = "$time:00";
+    } else if (parts.length > 3) {
+      time = parts.sublist(0, 3).join(':');
+    }
+
+    isAvailableTablesLoading.value = true;
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.reservationsAvailableTablesEndpoint,
+        queryParameters: <String, dynamic>{
+          'date': date.toString(),
+          'time_slot': time,
+          'party_size': partySize,
+        },
+      );
+      if (!_isSuccessResponse(response)) {
+        availableTablesList.clear();
+        return;
+      }
+      final model = AvailableTablesModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      final tables = model.data ?? [];
+      availableTablesList.assignAll(tables);
+    } catch (_) {
+      availableTablesList.clear();
+    } finally {
+      isAvailableTablesLoading.value = false;
     }
   }
 
@@ -944,10 +1105,47 @@ class ReservationScreenController extends GetxController {
     }
   }
 
-  void assignTableToReservationAt(int index, table_model.Tables table) {
+  Future<void> assignTableToReservationAt(
+    int index,
+    table_model.Tables table,
+  ) async {
     if (index < 0 || index >= reservations.length) return;
-    reservations[index]['table'] = table.tableCode ?? '${table.id}';
-    reservations.refresh();
+    final resId = reservations[index]['id'];
+    if (resId == null) return;
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
+    try {
+      final endpoint = ArgumentConstant.reservationAssignTableEndpoint.replaceAll(
+        ':reservation_id',
+        resId.toString(),
+      );
+      final response = await networkClient.post(
+        endpoint,
+        data: {
+          'table_id': table.id,
+          'force': true,
+        },
+      );
+
+      Get.back(); // Close loading dialog
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        reservations[index]['table'] = table.tableCode ?? '${table.id}';
+        reservations.refresh();
+        AppToast.showSuccess('Table assigned successfully');
+      } else {
+        AppToast.showError('Failed to assign table. Please try again.');
+      }
+    } catch (e) {
+      Get.back(); // Close loading dialog
+      AppToast.showError(
+        e is Exception ? e.toString().replaceFirst('Exception: ', '') : e.toString(),
+      );
+    }
   }
 
   bool validateName(String name) {
@@ -967,19 +1165,8 @@ class ReservationScreenController extends GetxController {
   }
 
   bool validatePhone(String phone) {
-    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
     if (phone.isEmpty) {
       phoneError.value = TranslationKeys.phoneNumberRequired.tr;
-      isPhoneValid.value = false;
-      return false;
-    }
-    if (cleanPhone.length < 10) {
-      phoneError.value = TranslationKeys.phoneNumberMustBeAtLeast10Digits.tr;
-      isPhoneValid.value = false;
-      return false;
-    }
-    if (cleanPhone.length > 15) {
-      phoneError.value = TranslationKeys.phoneNumberTooLong.tr;
       isPhoneValid.value = false;
       return false;
     }
@@ -992,22 +1179,6 @@ class ReservationScreenController extends GetxController {
       isNameValid.value &&
       isPhoneValid.value &&
       selectedTimeSlot.value.isNotEmpty;
-
-  Future<void> fetchTablesAreas() async {
-    tableAreasList.clear();
-    try {
-      final response = await networkClient.get(
-        ArgumentConstant.tablesAreasEndpoint,
-      );
-      if (!_isSuccessResponse(response)) return;
-      final tableModelData = table_model.TableModel.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-      if (tableModelData.data != null) {
-        tableAreasList.assignAll(tableModelData.data!);
-      }
-    } catch (_) {}
-  }
 
   String _formatReservationTime(String? date, String? time) {
     if (date == null || date.isEmpty) return '';
@@ -1033,12 +1204,23 @@ class ReservationScreenController extends GetxController {
     List<ReservationListItem> list,
   ) {
     return list.map((r) {
-      final tableLabel =
-          (r.table != null && r.table!.isNotEmpty)
-              ? (r.table!.first.raw?['table_code'] ??
-                  r.table!.first.raw?['name'] ??
-                  '')
-              : null;
+      String? tableLabel;
+      String? areaLabel;
+
+      if (r.table != null && r.table!.isNotEmpty) {
+        final firstTable = r.table!.first.raw;
+        if (firstTable != null) {
+          tableLabel = firstTable['table_code']?.toString() ?? 
+                       firstTable['name']?.toString() ?? 
+                       firstTable['id']?.toString();
+          
+          final area = firstTable['area'];
+          if (area is Map) {
+            areaLabel = area['name']?.toString();
+          }
+        }
+      }
+
       return <String, dynamic>{
         'id': r.id,
         'guests': r.partySize ?? 0,
@@ -1052,8 +1234,14 @@ class ReservationScreenController extends GetxController {
         'reservationTime': r.reservationTime,
         'reservationSlotType': r.reservationSlotType ?? '',
         'customer_id': r.customer?.id,
-        if (tableLabel != null && tableLabel.toString().isNotEmpty)
-          'table': tableLabel.toString(),
+        if (tableLabel != null && tableLabel.isNotEmpty)
+          'table': tableLabel,
+        if (areaLabel != null && areaLabel.isNotEmpty)
+          'area': areaLabel,
+        if (r.table != null && r.table!.isNotEmpty) ...{
+          'table_id': r.table!.first.raw?['id'],
+          'table_data': r.table!.first.raw,
+        },
       };
     }).toList();
   }
@@ -1076,6 +1264,7 @@ class ReservationScreenController extends GetxController {
         'per_page': reservationsPerPage,
         'page': page,
       };
+
       if (selectedOrderFilter.value != 'All') {
         queryParams['status'] = _statusToApiFilter(selectedOrderFilter.value);
       }
@@ -1083,20 +1272,34 @@ class ReservationScreenController extends GetxController {
         ArgumentConstant.reservationsEndpoint,
         queryParameters: queryParams,
       );
+
       if (!_isSuccessResponse(response)) {
         if (!loadMore) reservations.clear();
         return;
       }
-      final model = ReservationListModel.fromJson(
-        response.data as Map<String, dynamic>,
-      );
+
+      // Handle both Map and List responses
+      Map<String, dynamic> responseData;
+      if (response.data is Map<String, dynamic>) {
+        responseData = response.data as Map<String, dynamic>;
+      } else if (response.data is List) {
+        responseData = {'success': true, 'data': response.data};
+      } else {
+        if (!loadMore) reservations.clear();
+        return;
+      }
+
+      final model = ReservationListModel.fromJson(responseData);
       final list = model.data?.reservations ?? [];
+
       final pagination = model.data?.pagination;
       if (pagination != null) {
         currentReservationsPage.value = pagination.currentPage ?? page;
         lastReservationsPage.value = pagination.lastPage ?? 1;
       }
+      
       final mapped = _mapReservationList(list);
+
       if (loadMore) {
         reservations.addAll(mapped);
       } else {
@@ -1147,14 +1350,26 @@ class ReservationScreenController extends GetxController {
     selectedTable.value = null;
     isTableExpanded.value = false;
     selectedReservationStatus.value = 'Pending';
+    availableTablesList.clear();
   }
 
   Future<void> saveReservation() async {
     final nameValid = validateName(customerNameController.text);
     final phoneValid = validatePhone(customerPhoneController.text);
-    if (!nameValid || !phoneValid) {
+    if (!nameValid) {
       AppToast.showError(
-        TranslationKeys.pleaseFillAllRequiredFields.tr,
+        nameError.value.isNotEmpty
+            ? nameError.value
+            : TranslationKeys.customerNameRequired.tr,
+        title: TranslationKeys.validationError.tr,
+      );
+      return;
+    }
+    if (!phoneValid) {
+      AppToast.showError(
+        phoneError.value.isNotEmpty
+            ? phoneError.value
+            : TranslationKeys.phoneNumberRequired.tr,
         title: TranslationKeys.validationError.tr,
       );
       return;
@@ -1194,6 +1409,7 @@ class ReservationScreenController extends GetxController {
       'special_requests': specialRequestController.text.trim(),
       'customer_name': customerNameController.text.trim(),
       'customer_phone': customerPhoneController.text.trim(),
+      'customer_phone_code': selectedCountryCode.value,
       'customer_email': customerEmailController.text.trim(),
     };
     if (selectedTable.value?.id != null) {
@@ -1213,7 +1429,7 @@ class ReservationScreenController extends GetxController {
     );
     if (!_isSuccessResponse(response)) {
       AppToast.showError(
-        TranslationKeys.pleaseFillAllRequiredFields.tr,
+        _extractApiError(response),
         title: TranslationKeys.error.tr,
       );
       return;
@@ -1239,7 +1455,7 @@ class ReservationScreenController extends GetxController {
     );
     if (!_isSuccessResponse(response)) {
       AppToast.showError(
-        TranslationKeys.pleaseFillAllRequiredFields.tr,
+        _extractApiError(response),
         title: TranslationKeys.error.tr,
       );
       return;
@@ -1251,6 +1467,32 @@ class ReservationScreenController extends GetxController {
     clearForm();
     Get.back();
     fetchReservations();
+  }
+
+  /// Extracts the best human-readable error message from an API response.
+  static String _extractApiError(dynamic response) {
+    try {
+      if (response?.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        // Try common error fields
+        final msg = data['message'] ?? data['error'] ?? data['msg'];
+        if (msg is String && msg.isNotEmpty) return msg;
+        // Try nested errors object (e.g. validation errors)
+        final errors = data['errors'];
+        if (errors is Map) {
+          final first = errors.values.first;
+          if (first is List && first.isNotEmpty) return first.first.toString();
+          if (first is String) return first;
+        }
+        // Try data.message
+        final inner = data['data'];
+        if (inner is Map<String, dynamic>) {
+          final innerMsg = inner['message'] ?? inner['error'];
+          if (innerMsg is String && innerMsg.isNotEmpty) return innerMsg;
+        }
+      }
+    } catch (_) {}
+    return TranslationKeys.somethingWentWrong.tr;
   }
 
   static const Map<String, Color> _statusTextColor = {

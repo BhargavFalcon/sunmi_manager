@@ -132,6 +132,8 @@ class NewOrderDetailsBottomSheet {
               helpers.hasCustomerInfo(orderDetails.customer!))
             OrderDetailWidgets.buildCustomerDetails(
               orderDetails.customer!,
+              orderType: orderDetails.orderType,
+              deliveryAddress: orderDetails.deliveryAddress,
               fontSize: 12,
               titleFontSize: 14,
             ),

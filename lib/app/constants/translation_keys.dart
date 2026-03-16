@@ -288,6 +288,7 @@ class TranslationKeys {
   static const String remove = 'remove';
   static const String percent = 'percent';
   static const String assignTable = 'assignTable';
+  static const String changeTable = 'changeTable';
 
   // Printer Screen
   static const String testPrint = 'testPrint';

@@ -6,6 +6,7 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/utils/order_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Shared order detail UI widgets extracted from order_screen_view.dart
 /// and new_order_details_bottom_sheet.dart to eliminate code duplication.
@@ -121,35 +122,67 @@ class OrderDetailWidgets {
     String label,
     String value, {
     double fontSize = 13,
+    VoidCallback? onTap,
+    bool isClickable = false,
   }) {
+    Widget content = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: MySize.getWidth(80),
+          child: Text(
+            '$label:',
+            style: TextStyle(
+              fontSize: MySize.getHeight(fontSize),
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: MySize.getHeight(fontSize),
+              color: isClickable ? Colors.blue : Colors.black87,
+              decoration: isClickable ? TextDecoration.underline : TextDecoration.none,
+            ),
+          ),
+        ),
+      ],
+    );
+
     return Padding(
       padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: MySize.getWidth(80),
-            child: Text(
-              '$label:',
-              style: TextStyle(
-                fontSize: MySize.getHeight(fontSize),
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+      child: onTap != null
+          ? Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  debugPrint('DEBUG: Tapped row: $label');
+                  onTap();
+                },
+                child: content,
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: MySize.getHeight(fontSize),
-                color: Colors.black87,
-              ),
-            ),
-          ),
-        ],
-      ),
+            )
+          : content,
     );
+  }
+  /// Launch URL using url_launcher
+  static Future<void> _launchUrl(Uri url) async {
+    try {
+      debugPrint('DEBUG: Attempting to launch URL: $url');
+      // Note: On iOS, canLaunchUrl can return false if no app is configured (like Mail) 
+      // or if on a simulator (cannot make calls). We try to launch anyway with a catch.
+      final success = await launchUrl(url, mode: LaunchMode.externalApplication);
+      debugPrint('DEBUG: launchUrl success: $success');
+      if (!success) {
+        // Fallback for devices where externalApplication might be too strict
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('DEBUG: Exception in _launchUrl for $url: $e');
+    }
   }
 
   /// Builds the order items table widget.
@@ -466,9 +499,12 @@ class OrderDetailWidgets {
   /// Uses dynamic to work with both order_model.Customer and order_details_model.Customer.
   static Widget buildCustomerDetails(
     dynamic customer, {
+    String? orderType,
+    String? deliveryAddress,
     double fontSize = 13,
     double titleFontSize = 15,
   }) {
+    final formattedPhone = _formatPhoneWithPlus(customer.phoneCode, customer.phoneNumber);
     return Container(
       padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
@@ -511,17 +547,31 @@ class OrderDetailWidgets {
               customer.name!,
               fontSize: fontSize,
             ),
+          if (orderType?.toLowerCase() == 'delivery' && deliveryAddress != null && deliveryAddress.isNotEmpty)
+            buildDetailRow(
+              TranslationKeys.address.tr,
+              deliveryAddress,
+              fontSize: fontSize,
+            ),
           if (customer.email != null && customer.email!.isNotEmpty)
             buildDetailRow(
               TranslationKeys.email.tr,
               customer.email!,
               fontSize: fontSize,
+              isClickable: true,
+              onTap: () => _launchUrl(Uri(scheme: 'mailto', path: customer.email!)),
             ),
-          if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty)
+          if (formattedPhone.isNotEmpty)
             buildDetailRow(
               TranslationKeys.phone.tr,
-              _formatPhoneWithPlus(customer.phoneCode, customer.phoneNumber),
+              formattedPhone,
               fontSize: fontSize,
+              isClickable: true,
+              onTap: () {
+                // Sanitize phone number for URI (remove spaces, parentheses, etc.)
+                final sanitizedPhone = formattedPhone.replaceAll(RegExp(r'[\s\(\)\-]'), '');
+                _launchUrl(Uri(scheme: 'tel', path: sanitizedPhone));
+              },
             ),
         ],
       ),

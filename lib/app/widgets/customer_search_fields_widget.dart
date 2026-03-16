@@ -262,13 +262,15 @@ class CustomerSearchFieldsWidget extends StatelessWidget {
           () => Container(
             key: controller.reservationPhoneFieldKey,
             decoration: _textFieldDecoration(
-              controller.isReservationCustomerSelected,
+              controller.isReservationCustomerSelected ||
+                  controller.isEditingReservation,
             ),
             child: Row(
               children: [
                 GestureDetector(
                   onTap:
-                      controller.isReservationCustomerSelected
+                      controller.isReservationCustomerSelected ||
+                              controller.isEditingReservation
                           ? null
                           : onShowCountryPicker,
                   child: Container(
@@ -307,7 +309,8 @@ class CustomerSearchFieldsWidget extends StatelessWidget {
                       controller: controller.customerPhoneController,
                       focusNode: controller.reservationPhoneFocusNode,
                       keyboardType: TextInputType.phone,
-                      readOnly: controller.isReservationCustomerSelected,
+                      readOnly: controller.isReservationCustomerSelected ||
+                          controller.isEditingReservation,
                       onChanged: controller.validatePhone,
                       style: TextStyle(
                         fontSize: MySize.getHeight(12),
@@ -340,7 +343,8 @@ class CustomerSearchFieldsWidget extends StatelessWidget {
             textController: controller.customerEmailController,
             hint: TranslationKeys.enterCustomerEmail.tr,
             keyboardType: TextInputType.emailAddress,
-            readOnly: controller.isReservationCustomerSelected,
+            readOnly: controller.isReservationCustomerSelected ||
+                controller.isEditingReservation,
           ),
         ),
       ],

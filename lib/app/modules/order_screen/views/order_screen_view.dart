@@ -1190,7 +1190,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
           SizedBox(height: MySize.getHeight(8)),
           if (orderDetails?.customer != null &&
               helpers.hasCustomerInfo(orderDetails!.customer!))
-            OrderDetailWidgets.buildCustomerDetails(orderDetails.customer!),
+            OrderDetailWidgets.buildCustomerDetails(
+              orderDetails.customer!,
+              orderType: orderDetails.orderType,
+              deliveryAddress: orderDetails.deliveryAddress,
+            ),
           if (orderDetails?.customer != null &&
               helpers.hasCustomerInfo(orderDetails!.customer!))
             SizedBox(height: MySize.getHeight(8)),
@@ -1230,10 +1234,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   bool _hasPaymentDue(order_details_model.Data orderData) {
-    return orderData.order?.payments?.any(
+    final statusDue =
+        orderData.order?.status?.toLowerCase() == 'payment_due';
+    final paymentDue =
+        orderData.order?.payments?.any(
           (p) => p.paymentMethod?.toLowerCase() == 'due',
         ) ??
         false;
+    return statusDue || paymentDue;
   }
 
   bool _isPendingVerification(order_details_model.Data orderData) {

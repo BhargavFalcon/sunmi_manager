@@ -5,11 +5,20 @@ class ReservationListModel {
   ReservationListModel({this.success, this.data});
 
   ReservationListModel.fromJson(Map<String, dynamic> json) {
-    success = json['success'];
-    data =
-        json['data'] != null
-            ? ReservationListData.fromJson(json['data'] as Map<String, dynamic>)
-            : null;
+    success = json['success'] == true;
+    if (json['data'] != null) {
+      if (json['data'] is Map<String, dynamic>) {
+        data = ReservationListData.fromJson(json['data'] as Map<String, dynamic>);
+      } else if (json['data'] is List) {
+        data = ReservationListData(
+          reservations:
+              (json['data'] as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map((v) => ReservationListItem.fromJson(v))
+                  .toList(),
+        );
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -29,16 +38,22 @@ class ReservationListData {
   ReservationListData({this.reservations, this.pagination});
 
   ReservationListData.fromJson(Map<String, dynamic> json) {
-    if (json['reservations'] != null) {
-      reservations = <ReservationListItem>[];
-      for (final v in json['reservations'] as List) {
-        if (v is Map<String, dynamic>) {
-          reservations!.add(ReservationListItem.fromJson(v));
-        }
-      }
+    if (json['reservations'] != null && json['reservations'] is List) {
+      reservations =
+          (json['reservations'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map((v) => ReservationListItem.fromJson(v))
+              .toList();
+    } else if (json['data'] != null && json['data'] is List) {
+      // Some APIs wrap data in another 'data' key
+      reservations =
+          (json['data'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map((v) => ReservationListItem.fromJson(v))
+              .toList();
     }
     pagination =
-        json['pagination'] != null
+        json['pagination'] != null && json['pagination'] is Map<String, dynamic>
             ? ReservationPagination.fromJson(
               json['pagination'] as Map<String, dynamic>,
             )
@@ -91,35 +106,38 @@ class ReservationListItem {
   });
 
   ReservationListItem.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    reservationDateTime = json['reservation_date_time'];
-    reservationDate = json['reservation_date'];
-    reservationTime = json['reservation_time'];
-    reservationSlotType = json['reservation_slot_type'];
-    reservationStatus = json['reservation_status'];
-    statusLabel = json['status_label'];
-    partySize = json['party_size'];
-    specialRequests = json['special_requests'];
+    id = int.tryParse(json['id']?.toString() ?? '');
+    reservationDateTime = json['reservation_date_time']?.toString();
+    reservationDate = json['reservation_date']?.toString();
+    reservationTime = json['reservation_time']?.toString();
+    reservationSlotType = json['reservation_slot_type']?.toString();
+    reservationStatus = json['reservation_status']?.toString();
+    statusLabel = json['status_label']?.toString();
+    partySize = int.tryParse(json['party_size']?.toString() ?? '');
+    specialRequests = json['special_requests']?.toString();
     customer =
-        json['customer'] != null
+        json['customer'] != null && json['customer'] is Map<String, dynamic>
             ? ReservationCustomer.fromJson(
               json['customer'] as Map<String, dynamic>,
             )
             : null;
     if (json['table'] != null) {
-      table = <ReservationTable>[];
-      for (final v in json['table'] as List) {
-        if (v is Map<String, dynamic>) {
-          table!.add(ReservationTable.fromJson(v));
-        }
+      if (json['table'] is List) {
+        table =
+            (json['table'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map((v) => ReservationTable.fromJson(v))
+                .toList();
+      } else if (json['table'] is Map<String, dynamic>) {
+        table = [ReservationTable.fromJson(json['table'] as Map<String, dynamic>)];
       }
     }
     branch =
-        json['branch'] != null
+        json['branch'] != null && json['branch'] is Map<String, dynamic>
             ? ReservationBranch.fromJson(json['branch'] as Map<String, dynamic>)
             : null;
-    createdAt = json['created_at'];
-    updatedAt = json['updated_at'];
+    createdAt = json['created_at']?.toString();
+    updatedAt = json['updated_at']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -157,10 +175,10 @@ class ReservationCustomer {
   ReservationCustomer({this.id, this.name, this.phone, this.email});
 
   ReservationCustomer.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    phone = json['phone'];
-    email = json['email'];
+    id = int.tryParse(json['id']?.toString() ?? '');
+    name = json['name']?.toString();
+    phone = json['phone']?.toString();
+    email = json['email']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -217,10 +235,10 @@ class ReservationPagination {
   });
 
   ReservationPagination.fromJson(Map<String, dynamic> json) {
-    currentPage = json['current_page'];
-    perPage = json['per_page'];
-    lastPage = json['last_page'];
-    total = json['total'];
+    currentPage = int.tryParse(json['current_page']?.toString() ?? '');
+    perPage = int.tryParse(json['per_page']?.toString() ?? '');
+    lastPage = int.tryParse(json['last_page']?.toString() ?? '');
+    total = int.tryParse(json['total']?.toString() ?? '');
   }
 
   Map<String, dynamic> toJson() {

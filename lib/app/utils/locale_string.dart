@@ -230,6 +230,7 @@ class LocaleString extends Translations {
           'Selecting a table is optional, skip if you want to assign it later.',
       'remove': 'Remove',
       'assignTable': 'Assign Table',
+      'changeTable': 'Change Table',
 
       // ========== KITCHEN TICKETS SCREEN ==========
       'kitchenTickets': 'Kitchen Tickets',
@@ -684,6 +685,7 @@ class LocaleString extends Translations {
           'Valg af bord er valgfrit, spring over, hvis du vil tildele det senere.',
       'remove': 'Fjern',
       'assignTable': 'Tildel bord',
+      'changeTable': 'Skift bord',
 
       // ========== KITCHEN TICKETS SCREEN ==========
       'kitchenTickets': 'Køkkenbilletter',
@@ -1083,6 +1085,7 @@ class LocaleString extends Translations {
           'Die Auswahl eines Tisches ist optional, überspringen Sie es, wenn Sie es später zuweisen möchten.',
       'remove': 'Entfernen',
       'assignTable': 'Tisch zuweisen',
+      'changeTable': 'Tisch ändern',
 
       // ========== KITCHEN TICKETS SCREEN ==========
       'kitchenTickets': 'Küchenbons',
@@ -1482,6 +1485,7 @@ class LocaleString extends Translations {
           'Het selecteren van een tafel is optioneel, sla over als u dit later wilt toewijzen.',
       'remove': 'Verwijderen',
       'assignTable': 'Tafel toewijzen',
+      'changeTable': 'Tafel wijzigen',
 
       // ========== KITCHEN TICKETS SCREEN ==========
       'kitchenTickets': 'Keukenbonnen',

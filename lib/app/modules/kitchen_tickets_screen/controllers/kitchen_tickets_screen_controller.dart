@@ -13,6 +13,8 @@ import '../../../utils/printer_helper.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../services/escpos_invoice_printer_service.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class KitchenTicketsScreenController extends GetxController {
   NetworkClient networkClient = NetworkClient();
@@ -21,9 +23,47 @@ class KitchenTicketsScreenController extends GetxController {
   RxBool showAccessDialog = false.obs;
   RxInt selectedTabIndex = 0.obs; // 0: In Kitchen, 1: Food is Ready
 
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
+  
+  RxInt newlyAddedKotId = (-1).obs;
+  RxBool isSoundEnabled = true.obs;
+
+  void setNewKotId(int id) {
+    if (newlyAddedKotId.value == id) return;
+    newlyAddedKotId.value = id;
+
+    // Trigger scroll immediately without waiting for API
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final index = filteredTickets.indexWhere((t) => t.id == id);
+      if (index != -1 && itemScrollController.isAttached) {
+        final rowIndex = index ~/ getCrossAxisCount();
+        itemScrollController.scrollTo(
+          index: rowIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (newlyAddedKotId.value == id) {
+        newlyAddedKotId.value = -1;
+      }
+    });
+  }
+
+  int getCrossAxisCount() {
+    if (Get.context == null) return 1;
+    final width = MediaQuery.of(Get.context!).size.width;
+    final orientation = MediaQuery.of(Get.context!).orientation;
+    return orientation == Orientation.landscape ? 3 : width > 600 ? 2 : 1;
+  }
+
   @override
   void onInit() {
     super.onInit();
+    isSoundEnabled.value = box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
     fetchKitchenTickets();
   }
 
@@ -38,6 +78,11 @@ class KitchenTicketsScreenController extends GetxController {
 
   void updateTabIndex(int index) {
     selectedTabIndex.value = index;
+  }
+
+  void toggleSound() {
+    isSoundEnabled.value = !isSoundEnabled.value;
+    box.write(ArgumentConstant.kitchenTicketGenerationKey, isSoundEnabled.value);
   }
 
   List<KitchenTicket> get inKitchenTickets =>
