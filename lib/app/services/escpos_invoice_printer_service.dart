@@ -1072,7 +1072,7 @@ class EscPosInvoicePrinterService {
               );
             }
 
-            bytes += gen.hr(ch: '.');
+            bytes += gen.hr(ch: '-');
           }
         }
 
