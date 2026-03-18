@@ -142,7 +142,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                     ],
                   ),
                   Obx(() {
-                    if (!controller.isDineInOrder) {
+                    if (!controller.isDineInOrder && !controller.isCounterOrder) {
                       return Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
@@ -276,7 +276,10 @@ class CartScreenView extends GetWidget<CartScreenController> {
                           ),
                           SizedBox(width: MySize.getWidth(5.0)),
                           Text(
-                            controller.selectedTable.value?.tableCode ?? '',
+                            controller.isCounterOrder
+                                ? 'Counter'
+                                : (controller.selectedTable.value?.tableCode ??
+                                    ''),
                             style: TextStyle(
                               fontSize: MySize.getHeight(15.0),
                               fontWeight: FontWeight.w600,
@@ -308,7 +311,7 @@ class CartScreenView extends GetWidget<CartScreenController> {
                             ),
                           ),
                           SizedBox(width: MySize.getWidth(8.0)),
-                          if (!controller.hideTableSection)
+                          if (!controller.hideTableSection && !controller.isCounterOrder)
                             InkWell(
                               hoverColor: Colors.transparent,
                               focusColor: Colors.transparent,

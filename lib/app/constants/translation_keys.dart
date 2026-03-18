@@ -98,6 +98,7 @@ class TranslationKeys {
   static const String newKitchenTickets = 'newKitchenTickets';
   static const String kitchenTicketStatusChange = 'kitchenTicketStatusChange';
   static const String newTableReservations = 'newTableReservations';
+  static const String waiterRequest = 'waiterRequest';
   static const String onOffDesc = 'onOffDesc';
   static const String scheduleDesc = 'scheduleDesc';
   static const String acceptNewOrders = 'acceptNewOrders';
@@ -269,6 +270,7 @@ class TranslationKeys {
   static const String optionName = 'optionName';
   static const String uncategorized = 'uncategorized';
   static const String preOrder = 'preOrder';
+  static const String counter = 'counter';
 
   // Table Screen
   static const String available = 'available';

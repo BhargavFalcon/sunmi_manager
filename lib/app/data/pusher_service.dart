@@ -11,9 +11,13 @@ import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
 import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
+import '../modules/table_screen/controllers/table_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
 import '../widgets/new_reservation_dialog.dart';
+import '../widgets/kot_ready_dialog.dart';
+import '../widgets/waiter_request_dialog.dart';
+import '../modules/mainHome_screen/controllers/main_home_screen_controller.dart';
 import '../modules/reservation_screen/controllers/reservation_screen_controller.dart';
 import '../data/NetworkClient.dart';
 import '../constants/api_constants.dart';
@@ -57,6 +61,8 @@ class PusherService {
         "kots.created.$branchId.${ArgumentConstant.envSuffix}";
     final kotUpdatedChannel =
         "kots.update.$branchId.${ArgumentConstant.envSuffix}";
+    final waiterRequestChannel =
+        "active-waiter-requests.$branchId.${ArgumentConstant.envSuffix}";
 
     try {
       final scheme = pusherUseTLS ? 'wss' : 'ws';
@@ -74,6 +80,7 @@ class PusherService {
             reservationChannel,
             kotCreatedChannel,
             kotUpdatedChannel,
+            waiterRequestChannel,
           );
         },
         onDone: () {
@@ -100,13 +107,13 @@ class PusherService {
     String reservationChannel,
     String kotCreatedChannel,
     String kotUpdatedChannel,
+    String waiterRequestChannel,
   ) async {
     try {
       final decoded = jsonDecode(message.toString());
       final event = decoded['event'] as String?;
       final dataStr = decoded['data'];
       final channel = decoded['channel'] as String?;
-      log('[Pusher] event=$event | channel=$channel');
 
       if (event == 'pusher:connection_established') {
         _isConnected = true;
@@ -143,6 +150,14 @@ class PusherService {
           }),
         );
 
+        // Subscribe to Waiter Requests
+        _socket?.add(
+          jsonEncode({
+            "event": "pusher:subscribe",
+            "data": {"channel": waiterRequestChannel},
+          }),
+        );
+
         _pingTimer?.cancel();
         _pingTimer = Timer.periodic(const Duration(seconds: 120), (timer) {
           if (_isConnected) {
@@ -157,15 +172,64 @@ class PusherService {
         // This is where actual data events land
         if (dataStr != null) {
           if (channel == orderChannel) {
+            log('[Pusher] Event: New Order | Data: $dataStr');
             await _handleOrderEvent(dataStr);
           } else if (channel == reservationChannel) {
+            log('[Pusher] Event: New Reservation | Data: $dataStr');
             await _handleReservationEvent(dataStr);
           } else if (channel == kotCreatedChannel) {
+            log('[Pusher] Event: KOT Created | Data: $dataStr');
             await _handleKotCreatedEvent(dataStr);
           } else if (channel == kotUpdatedChannel) {
+            log('[Pusher] Event: KOT Updated | Data: $dataStr');
             await _handleKotUpdatedEvent(dataStr);
+          } else if (channel == waiterRequestChannel) {
+            log('[Pusher] Event: Waiter Request | Data: $dataStr');
+            await _handleWaiterRequestEvent(dataStr);
           }
         }
+      }
+    } catch (e) {}
+  }
+
+  Future<void> _handleWaiterRequestEvent(dynamic eventData) async {
+    try {
+      final isWaiterRequestEnabled =
+          box.read(ArgumentConstant.waiterRequestKey) ?? true;
+      if (!isWaiterRequestEnabled) return;
+
+      final decoded = _parseEventData(eventData);
+      final waiterRequest = decoded?['waiterRequest'] as Map<String, dynamic>?;
+      final tableId = waiterRequest?['table_id'];
+
+      if (tableId != null) {
+        String? tableLabel;
+        // Try to find table label from TableScreenController if registered
+        try {
+          if (Get.isRegistered<TableScreenController>()) {
+            final tableController = Get.find<TableScreenController>();
+            final tableModel = tableController.tableModel.value;
+            if (tableModel?.data != null) {
+              for (var area in tableModel!.data!) {
+                if (area.tables != null) {
+                  for (var table in area.tables!) {
+                    if (table.id == tableId) {
+                      tableLabel = table.tableCode;
+                      break;
+                    }
+                  }
+                }
+                if (tableLabel != null) break;
+              }
+            }
+          }
+        } catch (_) {}
+
+        WaiterRequestDialog.show(
+          tableId: int.parse(tableId.toString()),
+          tableLabel: tableLabel,
+        );
+        await _audioPlayer.play(AssetSource('audio/new_order.wav'));
       }
     } catch (e) {}
   }
@@ -177,25 +241,11 @@ class PusherService {
       final decoded = _parseEventData(eventData);
       if (decoded == null) return;
 
-      // Log the full decoded payload for debugging
-      try {
-        log('[PUSHER][ORDER] payload=${jsonEncode(decoded)}');
-      } catch (_) {
-        log('[PUSHER][ORDER] payload (non-encodable): ${decoded.toString()}');
-      }
-
       final order = decoded['order'] as Map<String, dynamic>?;
       if (order == null) return;
 
       final orderUuid = order['uuid'] as String?;
       if (orderUuid == null || orderUuid.isEmpty) return;
-
-      // Log some key order details
-      try {
-        log(
-          '[PUSHER][ORDER] uuid=$orderUuid | number=${_extractOrderNumber(order)}',
-        );
-      } catch (_) {}
 
       _refreshOrderList();
 
@@ -246,7 +296,7 @@ class PusherService {
       if (decoded is Map) return decoded.isNotEmpty;
       if (decoded is List) return decoded.isNotEmpty;
       return true;
-    } catch (_) {
+    } catch (e) {
       return false;
     }
   }
@@ -267,7 +317,9 @@ class PusherService {
         return null;
       }
 
-      if (response.data is! Map<String, dynamic>) return null;
+      if (response.data is! Map<String, dynamic>) {
+        return null;
+      }
 
       final getOrderModel = order_model.GetOrderModel.fromJson(
         response.data as Map<String, dynamic>,
@@ -278,14 +330,16 @@ class PusherService {
       }
 
       return getOrderModel.data;
-    } catch (_) {
+    } catch (e) {
       return null;
     }
   }
 
   Future<order_model.Data?> _fetchAndPrintInvoice(String orderUuid) async {
     final data = await _fetchOrderOnly(orderUuid);
-    if (data == null) return null;
+    if (data == null) {
+      return null;
+    }
     final printerService = Get.find<PrinterService>();
 
     // Refresh settings from server before printing to guarantee we have the latest config
@@ -303,29 +357,28 @@ class PusherService {
     try {
       // 1) Print Receipt (Order)
       if (autoPrintReceipt) {
-        try {
-          final receiptPrinter = box.read(
-            ArgumentConstant.selectedReceiptPrinterKey,
-          );
-          final isConnected = await printerService.checkPrinterConnectivity(
-            receiptPrinter,
-          );
-          if (isConnected) {
-            if (isSunmi) {
-              await _sunmiService.printInvoice(data, copies: receiptCopies);
-            } else {
-              await _escPosService.printInvoice(data, copies: receiptCopies);
-            }
-            // Add a small delay after printing to ensure hardware separation
-            await Future.delayed(const Duration(seconds: 2));
+        final receiptPrinter = box.read(
+          ArgumentConstant.selectedReceiptPrinterKey,
+        );
+        final isConnected = await printerService.checkPrinterConnectivity(
+          receiptPrinter,
+        );
+        if (isConnected) {
+          if (isSunmi) {
+            await _sunmiService.printInvoice(data, copies: receiptCopies);
+          } else {
+            await _escPosService.printInvoice(data, copies: receiptCopies);
           }
-        } catch (_) {}
+          // Add a small delay after printing to ensure hardware separation
+          await Future.delayed(const Duration(seconds: 2));
+        }
       }
 
       if (autoPrintReceipt) {
         showPrintToast(TranslationKeys.printSuccessful.tr);
       }
       _processedOrderUuids.add(orderUuid);
+    } catch (_) {
     } finally {
       completer.complete();
     }
@@ -337,15 +390,6 @@ class PusherService {
     try {
       final decoded = _parseEventData(eventData);
       if (decoded == null) return;
-
-      // Log the full decoded payload for debugging
-      try {
-        log('[PUSHER][RESERVATION] payload=${jsonEncode(decoded)}');
-      } catch (_) {
-        log(
-          '[PUSHER][RESERVATION] payload (non-encodable): ${decoded.toString()}',
-        );
-      }
 
       final reservation = decoded['reservation'] as Map<String, dynamic>?;
       if (reservation == null) return;
@@ -379,59 +423,45 @@ class PusherService {
   }
 
   Future<void> _refreshReservationList() async {
-    if (!Get.isRegistered<ReservationScreenController>()) return;
-
     try {
-      final controller = Get.find<ReservationScreenController>();
-      controller.currentReservationsPage.value = 1;
-      await controller.fetchReservations();
+      if (Get.isRegistered<ReservationScreenController>()) {
+        final controller = Get.find<ReservationScreenController>();
+        controller.currentReservationsPage.value = 1;
+        await controller.fetchReservations();
+      }
     } catch (e) {}
   }
 
   Future<void> _refreshOrderList() async {
-    if (!Get.isRegistered<OrderScreenController>()) return;
-
     try {
-      final controller = Get.find<OrderScreenController>();
-      controller.currentPage = 1;
-      await controller.fetchAllOrders();
-    } catch (_) {}
+      if (Get.isRegistered<OrderScreenController>()) {
+        final controller = Get.find<OrderScreenController>();
+        controller.currentPage = 1;
+        await controller.fetchAllOrders();
+      }
+    } catch (e) {}
   }
 
   Future<void> _handleKotCreatedEvent(dynamic eventData) async {
     int? newKotId;
     try {
-      if (eventData is Map) {
-        newKotId =
-            eventData['kot_id'] ??
-            (eventData['kot'] != null ? eventData['kot']['id'] : null);
-      } else {
-        final decoded = jsonDecode(eventData.toString());
-        // Log the decoded payload for debugging
-        try {
-          log('[PUSHER][KOT_CREATED] payload=${jsonEncode(decoded)}');
-        } catch (_) {
-          log(
-            '[PUSHER][KOT_CREATED] payload (non-encodable): ${decoded.toString()}',
-          );
-        }
-
+      final decoded = _parseEventData(eventData);
+      if (decoded != null) {
         newKotId =
             decoded['kot_id'] ??
             (decoded['kot'] != null ? decoded['kot']['id'] : null);
       }
-    } catch (_) {}
+    } catch (e) {}
 
     _refreshKitchenTicketsList(newKotId: newKotId);
 
-    // Check sound condition here before playing
-    final isKotSoundEnabled =
-        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
-    log('[KOT_SOUND] isKotSoundEnabled=$isKotSoundEnabled');
-    if (isKotSoundEnabled) {
-      log('[KOT_SOUND] Playing sound...');
-      _playNotificationSound();
+    // Set new KOT pulse state for animation
+    if (Get.isRegistered<MainHomeScreenController>()) {
+      Get.find<MainHomeScreenController>().hasNewKotPulse.value = true;
     }
+
+    // Sound alert for new KOT (always play as per user request to shift switch focus to animation)
+    _playNotificationSound();
 
     if (newKotId != null) {
       _fetchAndPrintKOT(newKotId);
@@ -440,69 +470,109 @@ class PusherService {
 
   Future<void> _playNotificationSound() async {
     try {
-      log('[KOT_SOUND] Audio player play called');
       await _audioPlayer.play(AssetSource('audio/new_order.wav'));
-      log('[KOT_SOUND] Audio player play completed');
-    } catch (e) {
-      log('[KOT_SOUND] Error playing sound: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _handleKotUpdatedEvent(dynamic eventData) async {
-    log('[KOT UPDATE] Raw eventData: ${eventData.toString()}');
-    // Try to parse and log structured payload
     try {
-      final decoded =
-          eventData is Map ? eventData : jsonDecode(eventData.toString());
-      try {
-        log('[PUSHER][KOT_UPDATED] payload=${jsonEncode(decoded)}');
-      } catch (_) {
-        log(
-          '[PUSHER][KOT_UPDATED] payload (non-encodable): ${decoded.toString()}',
-        );
+      final isKotSoundEnabled =
+          box.read(ArgumentConstant.kotStatusChangeKey) ?? true;
+      if (isKotSoundEnabled) {
+        _playNotificationSound();
       }
-    } catch (_) {}
 
-    // Check sound condition here before playing
-    final isKotSoundEnabled =
-        box.read(ArgumentConstant.kotStatusChangeKey) ?? true;
-    if (isKotSoundEnabled) {
-      _playNotificationSound();
-    }
+      final decoded = _parseEventData(eventData);
+      final kot = decoded?['kot'] as Map<String, dynamic>?;
+      if (kot != null) {
+        final order = kot['order'] as Map<String, dynamic>?;
+        final orderNumber =
+            order?['order_number']?.toString() ??
+            kot['kot_number']?.toString() ??
+            '';
+        final orderType = order?['order_type']?.toString();
+        final items = kot['items'] as List<dynamic>?;
+
+        if (items != null) {
+          final readyItems =
+              items
+                  .where((item) {
+                    if (item is! Map<String, dynamic>) return false;
+                    final status = item['status']?.toString().toLowerCase();
+                    final foodReady = item['food_ready']?.toString();
+                    return (status == 'ready' ||
+                        foodReady == '1' ||
+                        foodReady == 'true');
+                  })
+                  .cast<Map<String, dynamic>>()
+                  .toList();
+
+          if (readyItems.isNotEmpty) {
+            final tableData = order?['table'] as Map<String, dynamic>?;
+            final tableId = order?['table_id'] ?? tableData?['id'];
+            final tableLabel = tableData?['table_code']?.toString();
+
+            final updatedAtRaw =
+                kot['updated_at']?.toString() ?? DateTime.now().toString();
+            final dt = DateTime.tryParse(updatedAtRaw) ?? DateTime.now();
+            final hour =
+                dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+            final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+            final updatedAt =
+                '${dt.day} ${_getMonthName(dt.month)}, ${hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} $ampm';
+
+            if (orderType?.toLowerCase().contains('dine') ?? false) {
+              if (tableId != null) {
+                Get.find<MainHomeScreenController>().addReadyItems(
+                  int.parse(tableId.toString()),
+                  readyItems,
+                  updatedAt,
+                  tableLabel: tableLabel,
+                );
+              } else {
+                KotReadyDialog.show(
+                  orderNumber: orderNumber,
+                  readyItems: readyItems,
+                  orderType: orderType,
+                  readyTime: updatedAt,
+                  tableCode: tableLabel,
+                );
+              }
+            } else {
+              KotReadyDialog.show(
+                orderNumber: orderNumber,
+                readyItems: readyItems,
+                orderType: orderType,
+                readyTime: updatedAt,
+                tableCode: tableLabel,
+              );
+            }
+          }
+        }
+      }
+    } catch (e) {}
   }
 
   Future<void> _refreshKitchenTicketsList({int? newKotId}) async {
-    if (!Get.isRegistered<KitchenTicketsScreenController>()) {
-      log('[KOT] KitchenTicketsScreenController not registered — skip refresh');
-      return;
-    }
-
     try {
-      final controller = Get.find<KitchenTicketsScreenController>();
-      log('[KOT] Refreshing kitchen tickets list');
-      if (newKotId != null) {
-        controller.setNewKotId(newKotId);
+      if (Get.isRegistered<KitchenTicketsScreenController>()) {
+        final controller = Get.find<KitchenTicketsScreenController>();
+        if (newKotId != null) {
+          controller.setNewKotId(newKotId);
+        }
+        await controller.fetchKitchenTickets();
       }
-      await controller.fetchKitchenTickets();
-      log('[KOT] Kitchen tickets list refreshed successfully');
-    } catch (e) {
-      log('[KOT] Error refreshing list: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _fetchAndPrintKOT(int kotId) async {
     final printerService = Get.find<PrinterService>();
-
-    // Refresh settings from server before printing to guarantee we have the latest config
     await printerService.loadGeneralSettings();
 
     final autoPrintKot = printerService.autoPrintKitchen.value;
     if (!autoPrintKot) return;
 
-    if (_processedKotIds.contains(kotId)) {
-      log('[KOT] skipping duplicate print for kotId=$kotId');
-      return;
-    }
+    if (_processedKotIds.contains(kotId)) return;
 
     final completer = Completer<void>();
     final previousTask = _printingLock;
@@ -510,11 +580,7 @@ class PusherService {
     await previousTask;
 
     try {
-      // Double check inside the lock
-      if (_processedKotIds.contains(kotId)) {
-        log('[KOT] skipping duplicate print inside lock for kotId=$kotId');
-        return;
-      }
+      if (_processedKotIds.contains(kotId)) return;
 
       final kotData = await _fetchKotOnly(kotId);
       if (kotData == null) return;
@@ -536,12 +602,9 @@ class PusherService {
         }
         _processedKotIds.add(kotId);
         showPrintToast(TranslationKeys.printSuccessful.tr);
-
-        // Add a small delay after printing to ensure hardware separation
         await Future.delayed(const Duration(seconds: 2));
       }
     } catch (e) {
-      log('[KOT] Error printing: $e');
     } finally {
       completer.complete();
     }
@@ -566,5 +629,25 @@ class PusherService {
     } catch (_) {
       return null;
     }
+  }
+
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  String _getMonthName(int month) {
+    if (month < 1 || month > 12) return '';
+    return _months[month - 1];
   }
 }

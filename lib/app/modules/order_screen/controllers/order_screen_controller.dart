@@ -98,7 +98,7 @@ class OrderScreenController extends GetxController {
     if (table == null) return;
     final orderData = orderDetails.data?.order;
     final orderType = orderData?.orderType?.toLowerCase() ?? '';
-    final allowSplit = orderType.contains('dine');
+    final allowSplit = orderType.contains('dine') || orderType.contains('counter');
     final status = orderData?.status ?? '';
     final hasAnyPayment = orderData?.payments?.isNotEmpty ?? false;
     final isPaymentDue = status == 'payment_due';
@@ -174,6 +174,7 @@ class OrderScreenController extends GetxController {
 
     const orderTypeMap = {
       'Dine In': 'dine_in',
+      'Counter': 'counter',
       'Pickup': 'pickup',
       'Delivery': 'delivery',
     };

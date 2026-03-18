@@ -7,7 +7,6 @@ import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
 import 'package:managerapp/app/widgets/running_table_dialog.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
-import 'package:managerapp/app/widgets/order_payment_dialog.dart';
 import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 
@@ -20,7 +19,6 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/all_orders_model.dart' as order_model;
 import '../../../model/get_order_model.dart' as order_details_model;
 import '../../../model/receipt_order_response_model.dart';
-import '../../../model/split_payment_remaining_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../services/escpos_invoice_printer_service.dart';
 import '../../../utils/printer_helper.dart';
@@ -417,6 +415,26 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                           child: _buildOrderTypeButton(
                                                             icon:
                                                                 ImageConstant
+                                                                    .counter,
+                                                            label:
+                                                                TranslationKeys
+                                                                    .counter
+                                                                    .tr,
+                                                            isSelected:
+                                                                selectedType ==
+                                                                'Counter',
+                                                            onTap:
+                                                                () => controller
+                                                                    .updateOrderType(
+                                                                      'Counter',
+                                                                    ),
+                                                            isTablet: isTablet,
+                                                          ),
+                                                        ),
+                                                        Flexible(
+                                                          child: _buildOrderTypeButton(
+                                                            icon:
+                                                                ImageConstant
                                                                     .pickup,
                                                             label:
                                                                 TranslationKeys
@@ -493,6 +511,24 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                               () => controller
                                                                   .updateOrderType(
                                                                     'Dine In',
+                                                                  ),
+                                                          isTablet: isTablet,
+                                                        ),
+                                                        _buildOrderTypeButton(
+                                                          icon:
+                                                              ImageConstant
+                                                                  .counter,
+                                                          label:
+                                                              TranslationKeys
+                                                                  .counter
+                                                                  .tr,
+                                                          isSelected:
+                                                              selectedType ==
+                                                              'Counter',
+                                                          onTap:
+                                                              () => controller
+                                                                  .updateOrderType(
+                                                                    'Counter',
                                                                   ),
                                                           isTablet: isTablet,
                                                         ),
@@ -671,8 +707,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 final isDeliveryOrPickup =
                     order.orderType?.toLowerCase() == 'delivery' ||
                     order.orderType?.toLowerCase() == 'pickup';
+                final isCounter = order.orderType?.toLowerCase() == 'counter';
                 final showRunningDialog =
-                    isKotStatus && (hasTable || isDeliveryOrPickup);
+                    isKotStatus && (hasTable || isDeliveryOrPickup || isCounter);
                 if (isBilledStatus) {
                   _openPaymentForOrderCard(context, controller, order);
                   return;
@@ -687,7 +724,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         (bool show) =>
                             controller.isNavigatingToOrder.value = show,
                     sourceScreen: Routes.ORDER_SCREEN,
-                    hideChangeTable: isDeliveryOrPickup,
+                    hideChangeTable: isDeliveryOrPickup || isCounter,
                   );
                 } else {
                   showOrderBottomSheet(context, controller, order);
@@ -1698,36 +1735,14 @@ class OrderScreenView extends GetView<OrderScreenController> {
   ) async {
     Navigator.pop(context);
     final getOrderModel = controller.orderDetails.value;
-    if (getOrderModel == null) return;
-    final table = RunningTableService.tablesFromOrderDetails(getOrderModel);
-    if (table == null) return;
-    final orderData = getOrderModel.data?.order;
-    final orderType = orderData?.orderType?.toLowerCase() ?? '';
-    final allowSplit = orderType.contains('dine');
-    final status = orderData?.status;
-    final hasAnyPayment = (orderData?.payments?.isNotEmpty ?? false);
-    final isPaymentDue = status == 'payment_due';
+    final orderUuid = getOrderModel?.data?.order?.uuid;
+    if (orderUuid == null || orderUuid.isEmpty) return;
 
-    SplitPaymentData? remainingSplitData;
-    var splitOnly = false;
-
-    if (allowSplit && isPaymentDue && hasAnyPayment) {
-      final orderUuid = orderData?.uuid;
-      if (orderUuid != null && orderUuid.isNotEmpty) {
-        final remainingModel =
-            await RunningTableService.fetchRemainingSplitItems(orderUuid);
-        remainingSplitData = remainingModel?.data;
-        splitOnly = true;
-      }
-    }
-
-    final success = await OrderPaymentDialog.show(
-      orderDetails: getOrderModel,
-      table: table,
-      allowSplit: allowSplit,
-      splitOnly: splitOnly,
-      remainingSplitData: remainingSplitData,
+    final success = await RunningTableService.openPaymentFlow(
+      context: context,
+      orderUuid: orderUuid,
     );
+
     if (success == true) {
       controller.fetchAllOrders();
     }
@@ -1741,48 +1756,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
     final orderUuid = order.uuid;
     if (orderUuid == null || orderUuid.isEmpty) return;
 
-    final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
-    if (orderDetails == null) {
-      AppToast.showError(
-        TranslationKeys.failedToCreatePayment.tr,
-        title: TranslationKeys.error.tr,
-      );
-      return;
-    }
-
-    final table = RunningTableService.tablesFromOrderDetails(orderDetails);
-    if (table == null) {
-      AppToast.showError(
-        TranslationKeys.failedToCreatePayment.tr,
-        title: TranslationKeys.error.tr,
-      );
-      return;
-    }
-
-    final orderData = orderDetails.data?.order;
-    final orderType = orderData?.orderType?.toLowerCase() ?? '';
-    final allowSplit = orderType.contains('dine');
-    final status = orderData?.status ?? order.status;
-    final hasAnyPayment = (orderData?.payments?.isNotEmpty ?? false);
-    final isPaymentDue = status == 'payment_due';
-
-    SplitPaymentData? remainingSplitData;
-    var splitOnly = false;
-
-    if (allowSplit && isPaymentDue && hasAnyPayment) {
-      final remainingModel = await RunningTableService.fetchRemainingSplitItems(
-        orderUuid,
-      );
-      remainingSplitData = remainingModel?.data;
-      splitOnly = true;
-    }
-
-    final success = await OrderPaymentDialog.show(
-      orderDetails: orderDetails,
-      table: table,
-      allowSplit: allowSplit,
-      splitOnly: splitOnly,
-      remainingSplitData: remainingSplitData,
+    final success = await RunningTableService.openPaymentFlow(
+      context: context,
+      orderUuid: orderUuid,
     );
 
     if (success == true) {
@@ -2007,6 +1983,12 @@ class OrderCard extends StatelessWidget {
                           : order.orderType?.toLowerCase() == 'delivery'
                           ? Image.asset(
                             ImageConstant.delivery,
+                            width: MySize.getHeight(16),
+                            height: MySize.getHeight(16),
+                          )
+                          : order.orderType?.toLowerCase() == 'counter'
+                          ? Image.asset(
+                            ImageConstant.counter,
                             width: MySize.getHeight(16),
                             height: MySize.getHeight(16),
                           )

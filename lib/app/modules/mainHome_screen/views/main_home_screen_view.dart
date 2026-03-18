@@ -11,6 +11,9 @@ import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
+import '../../../constants/api_constants.dart';
+import '../../../../main.dart';
+import '../../../widgets/pulsing_widget.dart';
 import '../controllers/main_home_screen_controller.dart';
 
 class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
@@ -102,24 +105,47 @@ class _CustomBottomNavBar extends StatelessWidget {
                     isSelected: selectedIndex == 0,
                     onTap: () => onTabChange(0),
                   ),
-                  _NavBarItem(
-                    icon: ImageConstant.table,
-                    label: TranslationKeys.dineIn.tr,
-                    isSelected: selectedIndex == 1,
-                    onTap: () => onTabChange(1),
-                  ),
+                  Obx(() {
+                    final mainController = Get.find<MainHomeScreenController>();
+                    final hasReadyItems = mainController.hasAnyReadyTable();
+                    return PulsingWidget(
+                      isPulsing: hasReadyItems &&
+                          (box.read(ArgumentConstant.kotStatusChangeKey) ?? true),
+                      pulseStyle: PulseStyle.fill,
+                      pulsingColor: ColorConstants.primaryColor,
+                      borderRadius: 12,
+                      child: _NavBarItem(
+                        icon: ImageConstant.table,
+                        label: TranslationKeys.dineIn.tr,
+                        isSelected: selectedIndex == 1,
+                        onTap: () => onTabChange(1),
+                      ),
+                    );
+                  }),
                   _NavBarItem(
                     icon: ImageConstant.deliveryPickup,
                     label: TranslationKeys.deliveryPickup.tr,
                     isSelected: selectedIndex == 2,
                     onTap: () => onTabChange(2),
                   ),
-                  _NavBarItem(
-                    icon: ImageConstant.kitchenTickets,
-                    label: TranslationKeys.kitchenTickets.tr,
-                    isSelected: selectedIndex == 3,
-                    onTap: () => onTabChange(3),
-                  ),
+                  Obx(() {
+                    final mainController = Get.find<MainHomeScreenController>();
+                    final hasNewKot = mainController.hasNewKotPulse.value;
+                    return PulsingWidget(
+                      isPulsing: hasNewKot &&
+                          (box.read(ArgumentConstant.kitchenTicketGenerationKey) ??
+                              true),
+                      pulseStyle: PulseStyle.fill,
+                      pulsingColor: ColorConstants.primaryColor,
+                      borderRadius: 12,
+                      child: _NavBarItem(
+                        icon: ImageConstant.kitchenTickets,
+                        label: TranslationKeys.kitchenTickets.tr,
+                        isSelected: selectedIndex == 3,
+                        onTap: () => onTabChange(3),
+                      ),
+                    );
+                  }),
                   _NavBarItem(
                     icon: ImageConstant.tableReservation,
                     label: TranslationKeys.reservation.tr,

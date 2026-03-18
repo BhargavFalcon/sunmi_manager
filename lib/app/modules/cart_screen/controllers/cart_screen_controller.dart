@@ -43,12 +43,14 @@ class CartScreenController extends GetxController {
   RxString orderNote = ''.obs;
 
   bool get hasTable => selectedTable.value != null;
-  bool get isDineInOrder => !isDeliveryOrder && !isPickupOrder;
+  bool get isDineInOrder => !isDeliveryOrder && !isPickupOrder || isCounterOrder;
 
   bool get isDeliveryOrder =>
       currentOrderType.value.toLowerCase() == 'delivery';
 
   bool get isPickupOrder => currentOrderType.value.toLowerCase() == 'pickup';
+
+  bool get isCounterOrder => currentOrderType.value.toLowerCase() == 'counter';
 
   bool get showTableSection => hasTable && !hideTableSection;
 
@@ -184,7 +186,11 @@ class CartScreenController extends GetxController {
 
   String? _validateForSubmit(bool isExistingOrder, int? waiterId) {
     if (cartItems.isEmpty) return TranslationKeys.cartIsEmpty.tr;
-    if (!isExistingOrder && !isDeliveryOrder && !isPickupOrder && !hasTable) {
+    if (!isExistingOrder &&
+        !isDeliveryOrder &&
+        !isPickupOrder &&
+        !isCounterOrder &&
+        !hasTable) {
       return TranslationKeys.pleaseSelectTableFirst.tr;
     }
     if (!isExistingOrder && isDeliveryOrder) {
@@ -206,6 +212,7 @@ class CartScreenController extends GetxController {
     if (!isExistingOrder &&
         !isDeliveryOrder &&
         !isPickupOrder &&
+        !isCounterOrder &&
         selectedTable.value?.id == null) {
       return TranslationKeys.tableInformationMissing.tr;
     }
@@ -277,56 +284,50 @@ class CartScreenController extends GetxController {
         ),
       );
     }
-    if (isDeliveryOrder) {
-      final body = <String, dynamic>{
-        'order_type': 'delivery',
-        'customer_id': deliveryCustomerId!,
-        'via': 'pos',
-        'items': itemsList,
-        'status': status,
-        'delivery_address': (deliveryAddress ?? '').trim(),
-      };
-      if (deliveryPreOrderDateTime != null &&
-          deliveryPreOrderDateTime!.isNotEmpty) {
-        body['date_time'] = deliveryPreOrderDateTime;
-      }
-      if (deliveryTipAmount > 0) {
-        body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
-      }
-      if (_discountPayload != null) body.addAll(_discountPayload!);
-      if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
-      return (body: body, endpoint: ArgumentConstant.deliveryOrdersEndpoint);
+
+    var orderType = currentOrderType.value.toLowerCase();
+    if (orderType == 'dine in') {
+      orderType = 'dine_in';
     }
-    if (isPickupOrder) {
-      final body = <String, dynamic>{
-        'order_type': 'pickup',
-        'customer_id': deliveryCustomerId!,
-        'via': 'pos',
-        'items': itemsList,
-        'status': status,
-      };
-      if (deliveryPreOrderDateTime != null &&
-          deliveryPreOrderDateTime!.isNotEmpty) {
-        body['date_time'] = deliveryPreOrderDateTime;
-      }
-      if (deliveryTipAmount > 0) {
-        body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
-      }
-      if (_discountPayload != null) body.addAll(_discountPayload!);
-      if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
-      return (body: body, endpoint: ArgumentConstant.pickupOrdersEndpoint);
-    }
+
+    final isBilled = status.toLowerCase() == 'billed';
+
     final body = <String, dynamic>{
-      'order_type': 'dine_in',
-      'table_id': selectedTable.value!.id,
-      'waiter_id': waiterId,
-      'number_of_pax': pax.value,
+      'order_type': orderType,
+      'via': 'pos',
       'items': itemsList,
-      'status': status,
     };
-    if (_discountPayload != null) body.addAll(_discountPayload!);
+
     if (orderNote.value.isNotEmpty) body['note'] = orderNote.value;
-    return (body: body, endpoint: ArgumentConstant.ordersEndpoint);
+    if (_discountPayload != null) body.addAll(_discountPayload!);
+
+    if (isDeliveryOrder || isPickupOrder) {
+      body['customer_id'] = deliveryCustomerId!;
+      if (isDeliveryOrder) {
+        body['delivery_address'] = (deliveryAddress ?? '').trim();
+      }
+      if (deliveryPreOrderDateTime != null &&
+          deliveryPreOrderDateTime!.isNotEmpty) {
+        body['date_time'] = deliveryPreOrderDateTime;
+      }
+      if (deliveryTipAmount > 0) {
+        body['tip_amount'] = deliveryTipAmount.toStringAsFixed(2);
+      }
+    } else {
+      // Dine In or Counter
+      body['waiter_id'] = waiterId;
+      body['number_of_pax'] = pax.value;
+      if (!isCounterOrder) {
+        body['table_id'] = selectedTable.value!.id;
+      }
+    }
+
+    return (
+      body: body,
+      endpoint: isBilled
+          ? ArgumentConstant.ordersBillEndpoint
+          : ArgumentConstant.ordersKotEndpoint,
+    );
   }
 
   Future<void> submitOrder({
@@ -722,7 +723,7 @@ class CartScreenController extends GetxController {
 
   String get _orderTypeTaxKey {
     final t = currentOrderType.value.toLowerCase();
-    if (t == 'dine in') return 'dine_in';
+    if (t == 'dine in' || t == 'counter') return 'dine_in';
     if (t == 'delivery') return 'delivery';
     return 'pickup';
   }
@@ -791,7 +792,9 @@ class CartScreenController extends GetxController {
   String get _orderTypeForCharges => currentOrderType.value.toLowerCase();
 
   List<({String label, double amount})> get _restaurantAdditionalCharges {
-    if (_orderTypeForCharges == 'dine in') return [];
+    if (_orderTypeForCharges == 'dine in' || _orderTypeForCharges == 'counter') {
+      return [];
+    }
     final raw = <({String label, double amount})>[];
     try {
       final storedData = box.read(ArgumentConstant.restaurantDetailsKey);

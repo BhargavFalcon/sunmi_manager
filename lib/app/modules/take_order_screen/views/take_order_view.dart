@@ -327,6 +327,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                           Expanded(
                                             child: _buildOrderTypeButton(
                                               context: context,
+                                              icon: ImageConstant.counter,
+                                              label: TranslationKeys.counter.tr,
+                                              isSelected:
+                                                  selectedType == 'Counter',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Counter',
+                                                      ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
                                               icon: ImageConstant.delivery,
                                               label:
                                                   TranslationKeys.delivery.tr,
@@ -359,71 +373,89 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                   );
                                 }),
                               ),
-                              SizedBox(width: MySize.getWidth(6)),
                               Obx(() {
-                                final isSelected =
-                                    controller.selectedPreOrderDate.value !=
-                                    null;
-                                String label =
-                                    isSelected
-                                        ? TranslationKeys.resetPreOrder.tr
-                                        : TranslationKeys.preOrder.tr;
+                                final isCounter =
+                                    controller.selectedOrderType.value ==
+                                    'Counter';
+                                return Visibility(
+                                  visible: !isCounter,
+                                  maintainSize: true,
+                                  maintainAnimation: true,
+                                  maintainState: true,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: MySize.getWidth(6)),
+                                      Obx(() {
+                                        final isSelected =
+                                            controller.selectedPreOrderDate.value !=
+                                            null;
+                                        String label =
+                                            isSelected
+                                                ? TranslationKeys.resetPreOrder.tr
+                                                : TranslationKeys.preOrder.tr;
 
-                                return _buildActionButton(
-                                  icon:
-                                      isSelected
-                                          ? Icons.restart_alt
-                                          : Icons.access_time,
-                                  label: label,
-                                  onTap: () {
-                                    if (isSelected) {
-                                      controller.updatePreOrderDateTime(
-                                        null,
-                                        null,
-                                      );
-                                    } else {
-                                      Get.dialog(
-                                        PreOrderDateTimePicker(
-                                          initialDate:
-                                              controller
-                                                  .selectedPreOrderDate
-                                                  .value,
-                                          initialTime:
-                                              controller
-                                                  .selectedPreOrderTime
-                                                  .value,
-                                          onSave: (date, time) {
-                                            controller.updatePreOrderDateTime(
-                                              date,
-                                              time,
-                                            );
+                                        return _buildActionButton(
+                                          icon:
+                                              isSelected
+                                                  ? Icons.restart_alt
+                                                  : Icons.access_time,
+                                          label: label,
+                                          onTap: () {
+                                            if (isSelected) {
+                                              controller.updatePreOrderDateTime(
+                                                null,
+                                                null,
+                                              );
+                                            } else {
+                                              Get.dialog(
+                                                PreOrderDateTimePicker(
+                                                  initialDate:
+                                                      controller
+                                                          .selectedPreOrderDate
+                                                          .value,
+                                                  initialTime:
+                                                      controller
+                                                          .selectedPreOrderTime
+                                                          .value,
+                                                  onSave: (date, time) {
+                                                    controller
+                                                        .updatePreOrderDateTime(
+                                                          date,
+                                                          time,
+                                                        );
+                                                  },
+                                                  onReset: () {
+                                                    controller
+                                                        .updatePreOrderDateTime(
+                                                          null,
+                                                          null,
+                                                        );
+                                                  },
+                                                ),
+                                              );
+                                            }
                                           },
-                                          onReset: () {
-                                            controller.updatePreOrderDateTime(
-                                              null,
-                                              null,
-                                            );
-                                          },
+                                        );
+                                      }),
+                                      SizedBox(width: MySize.getWidth(6)),
+                                      Obx(
+                                        () => _buildActionButton(
+                                          icon: Icons.person,
+                                          label:
+                                              controller.hasCustomer
+                                                  ? controller.customerName.value
+                                                  : TranslationKeys.customer.tr,
+                                          onTap:
+                                              () => TakeOrderView
+                                                  .openCustomerDialog(
+                                                    controller,
+                                                  ),
                                         ),
-                                      );
-                                    }
-                                  },
+                                      ),
+                                    ],
+                                  ),
                                 );
                               }),
-                              SizedBox(width: MySize.getWidth(6)),
-                              Obx(
-                                () => _buildActionButton(
-                                  icon: Icons.person,
-                                  label:
-                                      controller.hasCustomer
-                                          ? controller.customerName.value
-                                          : TranslationKeys.customer.tr,
-                                  onTap:
-                                      () => TakeOrderView.openCustomerDialog(
-                                        controller,
-                                      ),
-                                ),
-                              ),
                               SizedBox(width: MySize.getWidth(8)),
                               Expanded(
                                 flex: 4,
@@ -504,6 +536,20 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                           Expanded(
                                             child: _buildOrderTypeButton(
                                               context: context,
+                                              icon: ImageConstant.counter,
+                                              label: TranslationKeys.counter.tr,
+                                              isSelected:
+                                                  selectedType == 'Counter',
+                                              onTap:
+                                                  () => controller
+                                                      .updateOrderType(
+                                                        'Counter',
+                                                      ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: _buildOrderTypeButton(
+                                              context: context,
                                               icon: ImageConstant.delivery,
                                               label:
                                                   TranslationKeys.delivery.tr,
@@ -536,71 +582,89 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                   );
                                 }),
                               ),
-                              SizedBox(width: MySize.getWidth(4)),
                               Obx(() {
-                                final isSelected =
-                                    controller.selectedPreOrderDate.value !=
-                                    null;
-                                String label =
-                                    isSelected
-                                        ? TranslationKeys.resetPreOrder.tr
-                                        : TranslationKeys.preOrder.tr;
+                                final isCounter =
+                                    controller.selectedOrderType.value ==
+                                    'Counter';
+                                return Visibility(
+                                  visible: !isCounter,
+                                  maintainSize: true,
+                                  maintainAnimation: true,
+                                  maintainState: true,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: MySize.getWidth(4)),
+                                      Obx(() {
+                                        final isSelected =
+                                            controller.selectedPreOrderDate.value !=
+                                            null;
+                                        String label =
+                                            isSelected
+                                                ? TranslationKeys.resetPreOrder.tr
+                                                : TranslationKeys.preOrder.tr;
 
-                                return _buildActionButton(
-                                  icon:
-                                      isSelected
-                                          ? Icons.restart_alt
-                                          : Icons.access_time,
-                                  label: label,
-                                  onTap: () {
-                                    if (isSelected) {
-                                      controller.updatePreOrderDateTime(
-                                        null,
-                                        null,
-                                      );
-                                    } else {
-                                      Get.dialog(
-                                        PreOrderDateTimePicker(
-                                          initialDate:
-                                              controller
-                                                  .selectedPreOrderDate
-                                                  .value,
-                                          initialTime:
-                                              controller
-                                                  .selectedPreOrderTime
-                                                  .value,
-                                          onSave: (date, time) {
-                                            controller.updatePreOrderDateTime(
-                                              date,
-                                              time,
-                                            );
+                                        return _buildActionButton(
+                                          icon:
+                                              isSelected
+                                                  ? Icons.restart_alt
+                                                  : Icons.access_time,
+                                          label: label,
+                                          onTap: () {
+                                            if (isSelected) {
+                                              controller.updatePreOrderDateTime(
+                                                null,
+                                                null,
+                                              );
+                                            } else {
+                                              Get.dialog(
+                                                PreOrderDateTimePicker(
+                                                  initialDate:
+                                                      controller
+                                                          .selectedPreOrderDate
+                                                          .value,
+                                                  initialTime:
+                                                      controller
+                                                          .selectedPreOrderTime
+                                                          .value,
+                                                  onSave: (date, time) {
+                                                    controller
+                                                        .updatePreOrderDateTime(
+                                                          date,
+                                                          time,
+                                                        );
+                                                  },
+                                                  onReset: () {
+                                                    controller
+                                                        .updatePreOrderDateTime(
+                                                          null,
+                                                          null,
+                                                        );
+                                                  },
+                                                ),
+                                              );
+                                            }
                                           },
-                                          onReset: () {
-                                            controller.updatePreOrderDateTime(
-                                              null,
-                                              null,
-                                            );
-                                          },
+                                        );
+                                      }),
+                                      SizedBox(width: MySize.getWidth(6)),
+                                      Obx(
+                                        () => _buildActionButton(
+                                          icon: Icons.person,
+                                          label:
+                                              controller.hasCustomer
+                                                  ? controller.customerName.value
+                                                  : TranslationKeys.customer.tr,
+                                          onTap:
+                                              () => TakeOrderView
+                                                  .openCustomerDialog(
+                                                    controller,
+                                                  ),
                                         ),
-                                      );
-                                    }
-                                  },
+                                      ),
+                                    ],
+                                  ),
                                 );
                               }),
-                              SizedBox(width: MySize.getWidth(6)),
-                              Obx(
-                                () => _buildActionButton(
-                                  icon: Icons.person,
-                                  label:
-                                      controller.hasCustomer
-                                          ? controller.customerName.value
-                                          : TranslationKeys.customer.tr,
-                                  onTap:
-                                      () => TakeOrderView.openCustomerDialog(
-                                        controller,
-                                      ),
-                                ),
-                              ),
                             ],
                           ),
                 ),

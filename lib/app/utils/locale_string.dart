@@ -145,6 +145,7 @@ class LocaleString extends Translations {
       'optionName': 'OPTION NAME',
       'uncategorized': 'Uncategorized',
       'preOrder': 'Pre-Order',
+      'counter': 'Counter',
       'searchMenuItems': 'Search your menu item here',
       'pleaseChooseAtLeastOneOption':
           'Please choose at least one option to continue.',
@@ -305,7 +306,7 @@ class LocaleString extends Translations {
       'minutes': 'Minutes',
       'manageNotifications': 'Manage Notifications',
       'newShopOrders': 'New Shop orders',
-      'qrCodeOrders': 'QR code orders',
+      'waiterRequest': 'Waiter Request',
       'newKitchenTickets': 'New Kitchen Tickets',
       'kitchenTicketStatusChange': 'Kitchen Ticket Status change',
       'newTableReservations': 'New Table Reservations',

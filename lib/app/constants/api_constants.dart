@@ -25,6 +25,8 @@ class ArgumentConstant {
   static const ordersEndpoint = "api/v1/pos/orders/dine-in";
   static const deliveryOrdersEndpoint = "api/v1/pos/orders/delivery";
   static const pickupOrdersEndpoint = "api/v1/pos/orders/pickup";
+  static const ordersKotEndpoint = "api/v1/pos/orders/kot";
+  static const ordersBillEndpoint = "api/v1/pos/orders/bill";
   static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const deleteOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const changeOrderTableEndpoint = "api/v1/pos/orders/:order_uuid/table";
@@ -89,6 +91,7 @@ class ArgumentConstant {
   static const kitchenTicketGenerationKey = "kitchen_ticket_generation_enabled";
   static const kotStatusChangeKey = "kot_status_change_enabled";
   static const newTableReservationsKey = "new_table_reservations_enabled";
+  static const waiterRequestKey = "waiter_request_enabled";
 
   // Shop Settings
   static const shopSettingsEndpoint = "api/v1/pos/branch/pos-settings";

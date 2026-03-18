@@ -8,6 +8,7 @@ import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
 import '../../../model/mobile_app_modules_model.dart';
+import '../../../model/login_models.dart';
 import '../../../model/kitchen_ticket_model.dart';
 import '../../../utils/printer_helper.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
@@ -63,8 +64,20 @@ class KitchenTicketsScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    isSoundEnabled.value = box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+    isSoundEnabled.value =
+        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? _isChef();
     fetchKitchenTickets();
+  }
+
+  bool _isChef() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final loginModel = LoginModel.fromJson(loginModelData);
+        return loginModel.data?.user?.role?.name?.toLowerCase() == 'chef';
+      }
+    } catch (_) {}
+    return false;
   }
 
   @override

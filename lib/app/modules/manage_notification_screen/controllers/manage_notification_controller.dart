@@ -1,13 +1,14 @@
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
+import '../../../model/login_models.dart';
 
 class ManageNotificationController extends GetxController {
-  final orderPlacedFromQrCodeEnabled = true.obs;
   final kitchenTicketGenerationEnabled = true.obs;
   final kotStatusChangeEnabled = true.obs;
   final newTableReservationsEnabled = true.obs;
   final newShopOrderNotificationsEnabled = true.obs;
+  final waiterRequestEnabled = true.obs;
 
   @override
   void onInit() {
@@ -16,16 +17,29 @@ class ManageNotificationController extends GetxController {
   }
 
   void _loadSettings() {
+    final isChef = _isChef();
+
     newShopOrderNotificationsEnabled.value =
-        box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
-    orderPlacedFromQrCodeEnabled.value =
-        box.read(ArgumentConstant.orderPlacedFromQrCodeKey) ?? true;
+        box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? !isChef;
     kitchenTicketGenerationEnabled.value =
-        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? isChef;
     kotStatusChangeEnabled.value =
-        box.read(ArgumentConstant.kotStatusChangeKey) ?? true;
+        box.read(ArgumentConstant.kotStatusChangeKey) ?? !isChef;
     newTableReservationsEnabled.value =
-        box.read(ArgumentConstant.newTableReservationsKey) ?? true;
+        box.read(ArgumentConstant.newTableReservationsKey) ?? !isChef;
+    waiterRequestEnabled.value =
+        box.read(ArgumentConstant.waiterRequestKey) ?? !isChef;
+  }
+
+  bool _isChef() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final loginModel = LoginModel.fromJson(loginModelData);
+        return loginModel.data?.user?.role?.name?.toLowerCase() == 'chef';
+      }
+    } catch (_) {}
+    return false;
   }
 
   void toggleNewShopOrderNotifications() {
@@ -34,14 +48,6 @@ class ManageNotificationController extends GetxController {
     box.write(
       ArgumentConstant.newShopOrderNotificationsKey,
       newShopOrderNotificationsEnabled.value,
-    );
-  }
-
-  void toggleOrderPlacedFromQrCode() {
-    orderPlacedFromQrCodeEnabled.value = !orderPlacedFromQrCodeEnabled.value;
-    box.write(
-      ArgumentConstant.orderPlacedFromQrCodeKey,
-      orderPlacedFromQrCodeEnabled.value,
     );
   }
 
@@ -67,6 +73,14 @@ class ManageNotificationController extends GetxController {
     box.write(
       ArgumentConstant.newTableReservationsKey,
       newTableReservationsEnabled.value,
+    );
+  }
+
+  void toggleWaiterRequest() {
+    waiterRequestEnabled.value = !waiterRequestEnabled.value;
+    box.write(
+      ArgumentConstant.waiterRequestKey,
+      waiterRequestEnabled.value,
     );
   }
 }

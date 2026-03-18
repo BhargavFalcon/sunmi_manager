@@ -223,22 +223,32 @@ class ActiveOrder {
   int? orderNumber;
   String? status;
   double? total;
+  double? dueAmount;
+  String? orderType;
 
-  ActiveOrder({this.id, this.uuid, this.orderNumber, this.status, this.total});
+  ActiveOrder({
+    this.id,
+    this.uuid,
+    this.orderNumber,
+    this.status,
+    this.total,
+    this.dueAmount,
+    this.orderType,
+  });
 
   ActiveOrder.fromJson(Map<String, dynamic> json) {
     id =
         json['id'] is int
             ? json['id']
             : (json['id'] is String ? int.tryParse(json['id']) : null);
-    uuid = json['uuid'];
+    uuid = json['uuid']?.toString();
     orderNumber =
         json['order_number'] is int
             ? json['order_number']
             : (json['order_number'] is String
                 ? int.tryParse(json['order_number'])
                 : null);
-    status = json['status'];
+    status = json['status']?.toString();
     total =
         json['total'] != null
             ? (json['total'] is double
@@ -247,6 +257,15 @@ class ActiveOrder {
                     ? (json['total'] as num).toDouble()
                     : double.tryParse(json['total'].toString())))
             : null;
+    dueAmount =
+        json['due_amount'] != null
+            ? (json['due_amount'] is double
+                ? json['due_amount']
+                : (json['due_amount'] is num
+                    ? (json['due_amount'] as num).toDouble()
+                    : double.tryParse(json['due_amount'].toString())))
+            : null;
+    orderType = json['order_type']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -256,6 +275,8 @@ class ActiveOrder {
     data['order_number'] = orderNumber;
     data['status'] = status;
     data['total'] = total;
+    data['due_amount'] = dueAmount;
+    data['order_type'] = orderType;
     return data;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer';
 import 'package:get/get.dart';
 import '../../../data/pusher_service.dart';
 import '../../../data/NetworkClient.dart';
@@ -21,6 +22,48 @@ class MainHomeScreenController extends GetxController {
   final PageController pageController = PageController(initialPage: 0);
   int _previousIndex = 0;
   final networkClient = NetworkClient();
+  
+  // Ready items state: tableId -> { "items": List, "time": String }
+  final readyTables = <int, Map<String, dynamic>>{}.obs;
+  
+  // New KOT pulse state
+  final hasNewKotPulse = false.obs;
+
+  void addReadyItems(int tableId, List<Map<String, dynamic>> items, String time, {String? tableLabel}) {
+    log('[MainController] addReadyItems for table $tableId ($tableLabel), new items: ${items.length}');
+    
+    // As per user request: "baki pehleka deta remove kar dena he" (remove previous data)
+    // We overwrite the state for this table with the latest ready items from the notification.
+    readyTables[tableId] = {
+      'items': items,
+      'time': time,
+      'tableLabel': tableLabel,
+    };
+    
+    readyTables.refresh();
+  }
+
+  void clearTableReadyState(int tableId) {
+    log('[MainController] clearTableReadyState for table $tableId');
+    readyTables.remove(tableId);
+  }
+
+  bool isTableReady(int tableId) {
+    return readyTables.containsKey(tableId);
+  }
+
+  bool isAreaReady(List<dynamic>? tables) {
+    if (tables == null || tables.isEmpty) return false;
+    return tables.any((table) => readyTables.containsKey(table.id));
+  }
+
+  bool hasAnyReadyTable() {
+    return readyTables.isNotEmpty;
+  }
+
+  void clearNewKotPulse() {
+    hasNewKotPulse.value = false;
+  }
 
   @override
   void onInit() {
@@ -57,6 +100,9 @@ class MainHomeScreenController extends GetxController {
   }
 
   void changeTab(int index) {
+    if (index == 3) {
+      clearNewKotPulse();
+    }
     if (selectedIndex.value == 2 && index != 2 && _hasCartItems()) {
       _showNavigationConfirmationDialog(index);
       return;

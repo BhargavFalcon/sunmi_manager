@@ -401,7 +401,7 @@ class TakeOrderController extends GetxController {
   void updateOrderType(String value) {
     if (selectedOrderType.value == value) return;
     selectedOrderType.value = value;
-    if (value == 'Delivery' || value == 'Pickup') {
+    if (value == 'Delivery' || value == 'Pickup' || value == 'Counter') {
       currentOrder.value = null;
       selectedTable.value = null;
       if (Get.isRegistered<CartScreenController>()) {
@@ -448,8 +448,9 @@ class TakeOrderController extends GetxController {
     final customerId = selectedCustomerId.value;
     final preOrderIso = preOrderDateTimeISO;
     final isPickup = selectedOrderType.value == 'Pickup';
+    final isCounter = selectedOrderType.value == 'Counter';
 
-    // ✨ Validation: Delivery & Pickup require a customer
+    // ✨ Validation: Delivery & Pickup require a customer. Counter does not.
     if ((_isDelivery || isPickup) && customerId == null) {
       AppToast.showError('${TranslationKeys.customer.tr} is required');
       return;
@@ -464,10 +465,10 @@ class TakeOrderController extends GetxController {
         arguments[ArgumentConstant.deliveryAddressKey] = addr;
       }
     }
-    if (isPickup && customerId != null) {
+    if ((isPickup || isCounter) && customerId != null) {
       arguments[ArgumentConstant.deliveryCustomerIdKey] = customerId;
     }
-    if (preOrderIso != null && (_isDelivery || isPickup)) {
+    if (preOrderIso != null && (_isDelivery || isPickup || isCounter)) {
       arguments[ArgumentConstant.deliveryPreOrderDateTimeKey] = preOrderIso;
     }
 
@@ -491,13 +492,14 @@ class TakeOrderController extends GetxController {
     }
     final cart = Get.find<CartScreenController>();
     final isPickup = selectedOrderType.value == 'Pickup';
-    if (!_isDelivery && !isPickup) return;
+    final isCounter = selectedOrderType.value == 'Counter';
+    if (!_isDelivery && !isPickup && !isCounter) return;
     cart.deliveryCustomerId = customerId;
     cart.deliveryPreOrderDateTime = preOrderIso;
     if (_isDelivery) {
       cart.deliveryAddress =
           _deliveryAddressString.isEmpty ? null : _deliveryAddressString;
-    } else if (isPickup) {
+    } else {
       cart.deliveryAddress = null;
     }
   }
@@ -509,12 +511,11 @@ class TakeOrderController extends GetxController {
 
   String _getBasePrice(Items item, String orderType) {
     switch (orderType) {
-      case 'Pickup':
-        return item.pickupPrice ?? '0';
-      case 'Delivery':
-        return item.deliveryPrice ?? '0';
+      case 'Counter':
       case 'Dine In':
         return item.dineInPrice ?? '0';
+      case 'Pickup':
+        return item.pickupPrice ?? '0';
       default:
         return item.pickupPrice ?? item.deliveryPrice ?? '0';
     }
@@ -526,6 +527,7 @@ class TakeOrderController extends GetxController {
         return variation.onlinePrice ?? variation.price;
       case 'Delivery':
         return variation.takeAwayPrice ?? variation.price;
+      case 'Counter':
       case 'Dine In':
       default:
         return variation.price;

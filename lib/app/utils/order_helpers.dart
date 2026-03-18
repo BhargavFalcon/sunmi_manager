@@ -20,6 +20,8 @@ String formatOrderType(String? orderType) {
       return TranslationKeys.pickup.tr;
     case 'delivery':
       return TranslationKeys.delivery.tr;
+    case 'counter':
+      return TranslationKeys.counter.tr;
     default:
       return TranslationKeys.na.tr;
   }

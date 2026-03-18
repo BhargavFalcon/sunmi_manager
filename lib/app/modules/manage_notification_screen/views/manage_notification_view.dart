@@ -92,14 +92,6 @@ class ManageNotificationView extends GetView<ManageNotificationController> {
           _buildDivider(),
           Obx(
             () => _buildToggleItem(
-              title: TranslationKeys.qrCodeOrders.tr,
-              value: controller.orderPlacedFromQrCodeEnabled.value,
-              onToggle: () => controller.toggleOrderPlacedFromQrCode(),
-            ),
-          ),
-          _buildDivider(),
-          Obx(
-            () => _buildToggleItem(
               title: TranslationKeys.newKitchenTickets.tr,
               value: controller.kitchenTicketGenerationEnabled.value,
               onToggle: () => controller.toggleKitchenTicketGeneration(),
@@ -119,6 +111,14 @@ class ManageNotificationView extends GetView<ManageNotificationController> {
               title: TranslationKeys.newTableReservations.tr,
               value: controller.newTableReservationsEnabled.value,
               onToggle: () => controller.toggleNewTableReservations(),
+            ),
+          ),
+          _buildDivider(),
+          Obx(
+            () => _buildToggleItem(
+              title: TranslationKeys.waiterRequest.tr,
+              value: controller.waiterRequestEnabled.value,
+              onToggle: () => controller.toggleWaiterRequest(),
             ),
           ),
         ],

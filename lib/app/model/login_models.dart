@@ -65,7 +65,10 @@ class User {
   int? branchId;
   Restaurant? restaurant;
   Restaurant? branch;
-  List<String>? managerAppPermissions; // NEW
+  Role? role;
+  List<String>? managerAppPermissions;
+  int? defaultBranchId;
+  List<AvailableBranches>? availableBranches;
 
   User({
     this.id,
@@ -75,7 +78,10 @@ class User {
     this.branchId,
     this.restaurant,
     this.branch,
+    this.role,
     this.managerAppPermissions,
+    this.defaultBranchId,
+    this.availableBranches,
   });
 
   User.fromJson(Map<String, dynamic> json) {
@@ -90,10 +96,18 @@ class User {
             : null;
     branch =
         json['branch'] != null ? Restaurant.fromJson(json['branch']) : null;
+    role = json['role'] != null ? Role.fromJson(json['role']) : null;
     managerAppPermissions =
         json['manager_app_permissions'] != null
             ? List<String>.from(json['manager_app_permissions'])
             : null;
+    defaultBranchId = json['default_branch_id'];
+    if (json['available_branches'] != null) {
+      availableBranches = <AvailableBranches>[];
+      json['available_branches'].forEach((v) {
+        availableBranches!.add(AvailableBranches.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -105,9 +119,34 @@ class User {
     data['branch_id'] = branchId;
     if (restaurant != null) data['restaurant'] = restaurant!.toJson();
     if (branch != null) data['branch'] = branch!.toJson();
+    if (role != null) data['role'] = role!.toJson();
     if (managerAppPermissions != null) {
       data['manager_app_permissions'] = managerAppPermissions;
     }
+    data['default_branch_id'] = defaultBranchId;
+    if (availableBranches != null) {
+      data['available_branches'] =
+          availableBranches!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Role {
+  String? name;
+  String? displayName;
+
+  Role({this.name, this.displayName});
+
+  Role.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    displayName = json['display_name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['display_name'] = displayName;
     return data;
   }
 }

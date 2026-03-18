@@ -933,6 +933,25 @@ class _KitchenTicketCard extends StatelessWidget {
         ),
       );
     }
+    if (orderType == 'counter') {
+      return Container(
+        height: MySize.getHeight(boxHeight),
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(horizontalPadding),
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8E8E8),
+          borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        alignment: Alignment.center,
+        child: Image.asset(
+          ImageConstant.counter,
+          width: MySize.getHeight(iconSize),
+          height: MySize.getHeight(iconSize),
+        ),
+      );
+    }
     final tableData = ticket.order?.table;
     final tableCode =
         tableData != null

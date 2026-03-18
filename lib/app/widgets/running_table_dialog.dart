@@ -120,6 +120,7 @@ class RunningTableService {
       orderNumber: orderNum,
       status: order.status,
       total: order.totals?.total,
+      orderType: order.orderType,
     );
     final orderTable = order.table;
     return Tables(
@@ -300,6 +301,55 @@ class RunningTableService {
       _showError(_getErrorMessage(e, 'Failed to cancel order'));
       return false;
     }
+  }
+
+  static Future<bool?> openPaymentFlow({
+    required BuildContext context,
+    required String orderUuid,
+    Tables? table,
+  }) async {
+    // Show loader and fetch order details
+    Get.dialog(
+      const Center(child: CupertinoActivityIndicator(color: Colors.white)),
+      barrierDismissible: false,
+    );
+    final orderDetails = await fetchOrderDetails(orderUuid);
+    Get.back();
+
+    if (orderDetails == null) {
+      _showError(TranslationKeys.failedToCreatePayment.tr);
+      return false;
+    }
+
+    final finalTable = table ?? tablesFromOrderDetails(orderDetails);
+    if (finalTable == null) {
+      _showError(TranslationKeys.failedToCreatePayment.tr);
+      return false;
+    }
+
+    final orderData = orderDetails.data?.order;
+    final orderType = orderData?.orderType?.toLowerCase() ?? '';
+    final allowSplit = orderType.contains('dine') || orderType.contains('counter');
+    final status = orderData?.status;
+    final hasAnyPayment = (orderData?.payments?.isNotEmpty ?? false);
+    final isPaymentDue = status == 'payment_due';
+
+    SplitPaymentData? remainingSplitData;
+    var splitOnly = false;
+
+    if (allowSplit && isPaymentDue && hasAnyPayment) {
+      final remainingModel = await fetchRemainingSplitItems(orderUuid);
+      remainingSplitData = remainingModel?.data;
+      splitOnly = true;
+    }
+
+    return await OrderPaymentDialog.show(
+      orderDetails: orderDetails,
+      table: finalTable,
+      allowSplit: allowSplit,
+      splitOnly: splitOnly,
+      remainingSplitData: remainingSplitData,
+    );
   }
 }
 
@@ -494,7 +544,10 @@ class RunningTableDialog {
         onTap: () => _handlePrint(context, finalTable),
       ),
     ];
-    if (!hideChangeTable) {
+    final orderType = finalTable.activeOrder?.orderType?.toLowerCase() ?? '';
+    final isCounter = orderType == 'counter';
+
+    if (!hideChangeTable && !isCounter) {
       buttons.addAll([
         _buttonSpacer,
         _buildActionButton(
@@ -556,18 +609,13 @@ class RunningTableDialog {
       );
       return;
     }
-    final orderDetails = await _fetchOrderDetailsWithLoader(orderUuid);
-    if (orderDetails == null) {
-      RunningTableService._showError('Failed to fetch order details');
-      return;
-    }
-    final orderType = orderDetails.data?.order?.orderType?.toLowerCase() ?? '';
-    final allowSplit = orderType.contains('dine');
-    final success = await OrderPaymentDialog.show(
-      orderDetails: orderDetails,
+
+    final success = await RunningTableService.openPaymentFlow(
+      context: context,
+      orderUuid: orderUuid,
       table: finalTable,
-      allowSplit: allowSplit,
     );
+
     if (success == true) onRefreshTables?.call();
   }
 
