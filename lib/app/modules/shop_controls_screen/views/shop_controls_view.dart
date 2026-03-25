@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../controllers/shop_controls_controller.dart';
 
 class ShopControlsView extends GetView<ShopControlsController> {
@@ -213,7 +214,7 @@ class ShopControlsView extends GetView<ShopControlsController> {
             borderRadius: BorderRadius.circular(MySize.getHeight(8)),
             boxShadow: ColorConstants.getShadow2,
           ),
-          child: TextField(
+          child: CommonTextField(
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
@@ -223,14 +224,33 @@ class ShopControlsView extends GetView<ShopControlsController> {
                 ),
               ),
             ],
-            decoration: InputDecoration(
-              prefixText: prefix,
-              suffixText: suffix,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: MySize.getWidth(16),
-                vertical: MySize.getHeight(10),
-              ),
+            prefix: prefix != null
+                ? Padding(
+                  padding: EdgeInsets.only(left: MySize.getWidth(16)),
+                  child: Text(
+                    prefix,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(15.0),
+                      color: Colors.black87,
+                    ),
+                  ),
+                )
+                : null,
+            suffix: suffix != null
+                ? Padding(
+                  padding: EdgeInsets.only(right: MySize.getWidth(16)),
+                  child: Text(
+                    suffix,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(15.0),
+                      color: Colors.black87,
+                    ),
+                  ),
+                )
+                : null,
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(16),
+              vertical: MySize.getHeight(10),
             ),
           ),
         ),

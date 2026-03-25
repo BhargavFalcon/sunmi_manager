@@ -10,6 +10,7 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 
 import '../controllers/cart_screen_controller.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import 'widgets/cart_note_editor.dart';
 import 'widgets/cart_summary_panel.dart';
 
@@ -235,26 +236,20 @@ class CartScreenView extends GetWidget<CartScreenController> {
                                 width: 1,
                               ),
                             ),
-                            child: TextField(
+                            child: CommonTextField(
                               controller: controller.paxController,
                               textAlign: TextAlign.center,
+                              decoration: const BoxDecoration(
+                                color: Colors.transparent,
+                              ),
                               keyboardType: TextInputType.number,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(3),
                               ],
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(15.0),
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: MySize.getWidth(8),
-                                  vertical: MySize.getHeight(10),
-                                ),
-                                isDense: true,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(8),
+                                vertical: MySize.getHeight(10),
                               ),
                               onChanged: (value) {
                                 final intValue = int.tryParse(value);
@@ -1132,42 +1127,15 @@ class CartScreenView extends GetWidget<CartScreenController> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: CommonTextField(
                           controller: discountValueController,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
-                          style: TextStyle(fontSize: MySize.getHeight(15.0)),
-                          decoration: InputDecoration(
-                            hintText: TranslationKeys.enterDiscountValue.tr,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                              borderSide: BorderSide(
-                                color: ColorConstants.primaryColor,
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: MySize.getWidth(12),
-                              vertical: MySize.getHeight(12),
-                            ),
+                          placeholder: TranslationKeys.enterDiscountValue.tr,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(12),
+                            vertical: MySize.getHeight(12),
                           ),
                         ),
                       ),
@@ -1423,19 +1391,11 @@ class CartScreenView extends GetWidget<CartScreenController> {
                       borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                       border: Border.all(color: Colors.grey.shade400),
                     ),
-                    child: TextField(
+                    child: CommonTextField(
                       controller: noteController,
                       maxLines: 4,
-                      style: TextStyle(fontSize: MySize.getHeight(15)),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(MySize.getHeight(12)),
-                        hintText: TranslationKeys.enterYourSpecialRequest.tr,
-                        hintStyle: TextStyle(
-                          fontSize: MySize.getHeight(14),
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
+                      placeholder: TranslationKeys.enterYourSpecialRequest.tr,
+                      padding: EdgeInsets.all(MySize.getHeight(12)),
                     ),
                   ),
                   SizedBox(height: MySize.getHeight(24)),
@@ -1503,14 +1463,12 @@ class QuantitySelector extends StatefulWidget {
 class _QuantitySelectorState extends State<QuantitySelector> {
   late TextEditingController _controller;
   late int _currentQuantity;
-  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _currentQuantity = widget.initialQuantity;
     _controller = TextEditingController(text: _currentQuantity.toString());
-    _focusNode = FocusNode();
   }
 
   @override
@@ -1525,7 +1483,6 @@ class _QuantitySelectorState extends State<QuantitySelector> {
   @override
   void dispose() {
     _controller.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -1614,34 +1571,25 @@ class _QuantitySelectorState extends State<QuantitySelector> {
             height: MySize.getHeight(26.0),
             decoration: const BoxDecoration(color: Colors.transparent),
             alignment: Alignment.center,
-            child: TextField(
+            child: CommonTextField(
               controller: _controller,
-              focusNode: _focusNode,
               textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+              ),
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(2),
               ],
-              style: TextStyle(
-                fontSize: MySize.getHeight(15.0),
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                height: 1.0,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
-              ),
+              padding: EdgeInsets.zero,
               onChanged: _onTextChanged,
               onSubmitted: (value) {
                 _onTextChanged(value);
-                _focusNode.unfocus();
+                FocusManager.instance.primaryFocus?.unfocus();
               },
               onTapOutside: (event) {
-                _focusNode.unfocus();
+                FocusManager.instance.primaryFocus?.unfocus();
               },
             ),
           ),

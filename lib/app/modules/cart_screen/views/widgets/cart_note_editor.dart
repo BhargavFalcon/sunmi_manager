@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../../controllers/cart_screen_controller.dart';
 
 class CartNoteEditor extends StatefulWidget {
@@ -58,16 +59,15 @@ class _CartNoteEditorState extends State<CartNoteEditor> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: CommonTextField(
               controller: _controller,
               style: const TextStyle(fontSize: 13.0),
-              decoration: const InputDecoration(
-                hintText:
-                    'Special Instructions? (e.g., no onions, extra spicy)',
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 4),
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
               ),
+              placeholder:
+                  'Special Instructions? (e.g., no onions, extra spicy)',
+              padding: const EdgeInsets.symmetric(vertical: 4),
               onChanged:
                   (v) => _controllerGet.updateNoteDraft(widget.itemId, v),
               onSubmitted: (_) => _controllerGet.saveNote(widget.itemId),

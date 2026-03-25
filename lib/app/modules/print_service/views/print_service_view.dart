@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../controllers/print_service_controller.dart';
 
 class PrintServiceView extends GetWidget<PrintServiceController> {
@@ -720,45 +721,23 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
           ),
           SizedBox(height: MySize.getHeight(6)),
           // API Key TextField (full width)
-          TextField(
+          CommonTextField(
             controller: controller.apiKeyController,
-            style: TextStyle(
-              fontSize: MySize.getHeight(14),
-              color: Colors.black87,
+            placeholder: TranslationKeys.apiKeyHint.tr,
+            placeholderStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: MySize.getHeight(13),
             ),
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: MySize.getWidth(12),
-                vertical: MySize.getHeight(14),
-              ),
-              hintText: TranslationKeys.apiKeyHint.tr,
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: MySize.getHeight(13),
-              ),
-              prefixIcon: Icon(
+            prefix: Padding(
+              padding: EdgeInsets.only(left: MySize.getWidth(12), right: MySize.getWidth(8)),
+              child: Icon(
                 Icons.key_outlined,
                 color: Colors.grey.shade400,
                 size: MySize.getHeight(18),
               ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(MySize.getHeight(10)),
-                borderSide: BorderSide(color: Colors.grey.shade200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(MySize.getHeight(10)),
-                borderSide: BorderSide(color: Colors.grey.shade200),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(MySize.getHeight(10)),
-                borderSide: BorderSide(
-                  color: ColorConstants.primaryColor,
-                  width: 1.5,
-                ),
-              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              vertical: MySize.getHeight(14),
             ),
           ),
           SizedBox(height: MySize.getHeight(14)),

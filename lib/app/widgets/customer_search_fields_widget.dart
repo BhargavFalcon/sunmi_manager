@@ -6,6 +6,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/model/customer_list_model.dart';
 import 'package:managerapp/app/modules/reservation_screen/controllers/reservation_screen_controller.dart';
+import 'shared/common_text_field.dart';
 
 class CustomerSearchFieldsWidget extends StatelessWidget {
   const CustomerSearchFieldsWidget({
@@ -41,28 +42,13 @@ class CustomerSearchFieldsWidget extends StatelessWidget {
     FocusNode? focusNode,
     void Function(String)? onChanged,
   }) {
-    return Container(
-      decoration: _textFieldDecoration(readOnly),
-      child: TextField(
-        controller: textController,
-        focusNode: focusNode,
-        keyboardType: keyboardType,
-        readOnly: readOnly,
-        onChanged: onChanged,
-        style: TextStyle(fontSize: MySize.getHeight(12), color: Colors.black87),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color: ColorConstants.grey600,
-            fontSize: MySize.getHeight(12),
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(12),
-            vertical: MySize.getHeight(10),
-          ),
-        ),
-      ),
+    return CommonTextField(
+      controller: textController,
+      focusNode: focusNode,
+      keyboardType: keyboardType,
+      readOnly: readOnly,
+      onChanged: onChanged,
+      placeholder: hint,
     );
   }
 
@@ -305,28 +291,20 @@ class CustomerSearchFieldsWidget extends StatelessWidget {
                 ),
                 Expanded(
                   child: Obx(
-                    () => TextField(
+                    () => CommonTextField(
                       controller: controller.customerPhoneController,
                       focusNode: controller.reservationPhoneFocusNode,
                       keyboardType: TextInputType.phone,
                       readOnly: controller.isReservationCustomerSelected ||
                           controller.isEditingReservation,
                       onChanged: controller.validatePhone,
-                      style: TextStyle(
-                        fontSize: MySize.getHeight(12),
-                        color: Colors.black87,
+                      placeholder: TranslationKeys.enterPhoneNumber.tr,
+                      decoration: const BoxDecoration(
+                        color: Colors.transparent,
                       ),
-                      decoration: InputDecoration(
-                        hintText: TranslationKeys.enterPhoneNumber.tr,
-                        hintStyle: TextStyle(
-                          color: ColorConstants.grey600,
-                          fontSize: MySize.getHeight(12),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: MySize.getWidth(12),
-                          vertical: MySize.getHeight(10),
-                        ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(10),
                       ),
                     ),
                   ),

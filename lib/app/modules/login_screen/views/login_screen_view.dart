@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 
 import '../controllers/login_screen_controller.dart';
 
@@ -105,32 +106,13 @@ class LoginScreenView extends GetView<LoginScreenController> {
                         SizedBox(height: MySize.getHeight(5)),
                         SizedBox(
                           height: MySize.getHeight(35),
-                          child: CupertinoTextField(
+                          child: CommonTextField(
                             controller: controller.emailController,
                             padding: EdgeInsets.symmetric(
                               horizontal: MySize.getWidth(12),
                               vertical: 0,
                             ),
-                            textAlignVertical: TextAlignVertical.center,
                             placeholder: TranslationKeys.emailOrUsername.tr,
-                            placeholderStyle: TextStyle(
-                              color: ColorConstants.grey600,
-                              fontSize: MySize.getHeight(14),
-                            ),
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: MySize.getHeight(14),
-                            ),
-                            decoration: BoxDecoration(
-                              color: ColorConstants.bgColor,
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                              border: Border.all(
-                                color: ColorConstants.grey600,
-                                width: MySize.getWidth(1),
-                              ),
-                            ),
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(15)),
@@ -149,7 +131,7 @@ class LoginScreenView extends GetView<LoginScreenController> {
                             children: [
                               SizedBox(
                                 height: MySize.getHeight(35),
-                                child: CupertinoTextField(
+                                child: CommonTextField(
                                   controller: controller.passwordController,
                                   padding: EdgeInsets.only(
                                     left: MySize.getWidth(12),
@@ -157,28 +139,9 @@ class LoginScreenView extends GetView<LoginScreenController> {
                                     bottom: 0,
                                     right: MySize.getWidth(45),
                                   ),
-                                  textAlignVertical: TextAlignVertical.center,
                                   placeholder: TranslationKeys.password.tr,
-                                  placeholderStyle: TextStyle(
-                                    color: ColorConstants.grey600,
-                                    fontSize: MySize.getHeight(14),
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: MySize.getHeight(14),
-                                  ),
                                   obscureText:
                                       !controller.isPasswordVisible.value,
-                                  decoration: BoxDecoration(
-                                    color: ColorConstants.bgColor,
-                                    borderRadius: BorderRadius.circular(
-                                      MySize.getHeight(8),
-                                    ),
-                                    border: Border.all(
-                                      color: ColorConstants.grey600,
-                                      width: MySize.getWidth(1),
-                                    ),
-                                  ),
                                 ),
                               ),
                               Positioned(

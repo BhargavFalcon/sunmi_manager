@@ -464,6 +464,9 @@ class TranslationKeys {
   static const String custom = 'custom';
   static const String enterValue = 'enterValue';
   static const String tipAdded = 'tipAdded';
+  static const String discountVoucher = 'discountVoucher';
+  static const String voucherCode = 'voucherCode';
+  static const String pleaseEnterVoucherCode = 'pleaseEnterVoucherCode';
 
   // Split Bill
   static const String availableItems = 'availableItems';

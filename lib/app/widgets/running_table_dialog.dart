@@ -20,6 +20,7 @@ import 'order_payment_dialog.dart';
 import 'new_order_details_bottom_sheet.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../constants/translation_keys.dart';
+import 'shared/common_text_field.dart';
 
 class RunningTableService {
   static final NetworkClient networkClient = NetworkClient();
@@ -977,21 +978,12 @@ class RunningTableDialog {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: _borderRadius8,
-                              border: Border.all(color: Colors.grey.shade300),
                             ),
-                            child: TextField(
+                            child: CommonTextField(
                               controller: commentController,
                               maxLines: 4,
-                              decoration: InputDecoration(
-                                hintText: 'Additional Comment (Optional)',
-                                hintStyle: _textStyle(
-                                  14,
-                                  color: Colors.grey.shade600,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.all(16),
-                              ),
-                              style: _textStyle(14),
+                              placeholder: 'Additional Comment (Optional)',
+                              padding: const EdgeInsets.all(16),
                             ),
                           ),
                           SizedBox(height: MySize.getHeight(24)),

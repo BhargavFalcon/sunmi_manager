@@ -9,6 +9,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/widgets/customer_search_fields_widget.dart';
 import 'package:managerapp/app/widgets/time_slot_grid_widget.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 
 import '../controllers/reservation_screen_controller.dart';
 import '../../../model/table_model.dart' as table_model;
@@ -566,24 +567,12 @@ class ReservationScreenView extends GetView<ReservationScreenController> {
                                               SizedBox(
                                                 height: MySize.getHeight(8),
                                               ),
-                                              CupertinoTextField(
+                                              CommonTextField(
                                                 controller: controller
                                                     .specialRequestController,
                                                 maxLines: 2,
                                                 placeholder: TranslationKeys
                                                     .enterYourSpecialRequest.tr,
-                                                decoration: BoxDecoration(
-                                                  color: ColorConstants.bgColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        MySize.getHeight(8),
-                                                      ),
-                                                  border: Border.all(
-                                                    color:
-                                                        ColorConstants.grey9E9E9E,
-                                                    width: 1,
-                                                  ),
-                                                ),
                                                 padding: EdgeInsets.all(
                                                   MySize.getWidth(12),
                                                 ),

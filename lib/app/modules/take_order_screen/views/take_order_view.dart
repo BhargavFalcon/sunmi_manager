@@ -12,6 +12,7 @@ import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/widgets/add_customer_dialog.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/widgets/pre_order_datetime_picker.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 
 class TakeOrderView extends GetWidget<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -461,7 +462,7 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 flex: 4,
                                 child: SizedBox(
                                   height: MySize.getHeight(40),
-                                  child: CupertinoTextField(
+                                  child: CommonTextField(
                                     controller: controller.searchController,
                                     padding: EdgeInsets.symmetric(
                                       horizontal: MySize.getWidth(2),
@@ -469,24 +470,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                     ),
                                     placeholder:
                                         TranslationKeys.searchMenuItems.tr,
-                                    placeholderStyle: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: MySize.getHeight(12),
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: MySize.getHeight(12),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade50,
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                        width: 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        MySize.getHeight(8),
-                                      ),
-                                    ),
                                     prefix: Padding(
                                       padding: EdgeInsets.only(
                                         left: MySize.getWidth(4),
@@ -500,8 +483,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                         color: Colors.grey.shade600,
                                       ),
                                     ),
-                                    clearButtonMode:
-                                        OverlayVisibilityMode.editing,
                                     onChanged: (value) {},
                                   ),
                                 ),
@@ -798,31 +779,13 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                       Expanded(
                         child: SizedBox(
                           height: MySize.getHeight(40),
-                          child: CupertinoTextField(
+                          child: CommonTextField(
                             controller: controller.searchController,
                             padding: EdgeInsets.symmetric(
                               horizontal: MySize.getWidth(2),
                               vertical: MySize.getHeight(2),
                             ),
                             placeholder: TranslationKeys.searchMenuItems.tr,
-                            placeholderStyle: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: MySize.getHeight(12),
-                            ),
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: MySize.getHeight(12),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              border: Border.all(
-                                color: Colors.grey.shade300,
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                            ),
                             prefix: Padding(
                               padding: EdgeInsets.only(
                                 left: MySize.getWidth(4),
@@ -836,7 +799,6 @@ class TakeOrderView extends GetWidget<TakeOrderController> {
                                 color: Colors.grey.shade600,
                               ),
                             ),
-                            clearButtonMode: OverlayVisibilityMode.editing,
                             onChanged: (value) {},
                           ),
                         ),

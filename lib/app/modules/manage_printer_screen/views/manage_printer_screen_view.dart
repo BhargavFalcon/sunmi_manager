@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../controllers/manage_printer_screen_controller.dart';
 
 class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
@@ -712,14 +713,10 @@ class ManagePrinterScreenView extends GetWidget<ManagePrinterScreenController> {
     required String placeholder,
     TextInputType? keyboardType,
   }) {
-    return CupertinoTextField(
+    return CommonTextField(
       controller: controller,
       placeholder: placeholder,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
-      ),
       keyboardType: keyboardType,
     );
   }

@@ -10,6 +10,7 @@ import '../constants/translation_keys.dart';
 import '../data/NetworkClient.dart';
 import '../model/address_list_model.dart' as address_model;
 import '../model/customer_list_model.dart';
+import 'shared/common_text_field.dart';
 
 class AddCustomerDialog extends StatefulWidget {
   final String initialName;
@@ -734,25 +735,17 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                       ),
                     ),
                     Expanded(
-                      child: TextField(
+                      child: CommonTextField(
                         controller: phoneController,
                         keyboardType: TextInputType.phone,
                         readOnly: _isSelectedFromList,
-                        style: TextStyle(
-                          fontSize: MySize.getHeight(12),
-                          color: Colors.black87,
+                        placeholder: TranslationKeys.enterCustomerPhone.tr,
+                        decoration: const BoxDecoration(
+                          color: Colors.transparent,
                         ),
-                        decoration: InputDecoration(
-                          hintText: TranslationKeys.enterCustomerPhone.tr,
-                          hintStyle: TextStyle(
-                            color: ColorConstants.grey600,
-                            fontSize: MySize.getHeight(12),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(12),
-                            vertical: MySize.getHeight(10),
-                          ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(12),
+                          vertical: MySize.getHeight(10),
                         ),
                       ),
                     ),
@@ -781,7 +774,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                             MySize.getHeight(8),
                           ),
                         ),
-                        child: TextField(
+                        child: CommonTextField(
                           controller: zipcodeController,
                           focusNode: _zipcodeFocusNode,
                           readOnly: _isSelectedFromList,
@@ -792,21 +785,13 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                             }
                           },
                           keyboardType: TextInputType.text,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(12),
-                            color: Colors.black87,
+                          placeholder: TranslationKeys.zipcode.tr,
+                          decoration: const BoxDecoration(
+                            color: Colors.transparent,
                           ),
-                          decoration: InputDecoration(
-                            hintText: TranslationKeys.zipcode.tr,
-                            hintStyle: TextStyle(
-                              color: ColorConstants.grey600,
-                              fontSize: MySize.getHeight(12),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: MySize.getWidth(12),
-                              vertical: MySize.getHeight(10),
-                            ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(12),
+                            vertical: MySize.getHeight(10),
                           ),
                         ),
                       ),
@@ -1018,31 +1003,12 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     int maxLines = 1,
     bool readOnly = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: readOnly ? Colors.grey.shade100 : Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        readOnly: readOnly,
-        style: TextStyle(fontSize: MySize.getHeight(12), color: Colors.black87),
-        decoration: InputDecoration(
-          hintText: placeholder,
-          hintStyle: TextStyle(
-            color: ColorConstants.grey600,
-            fontSize: MySize.getHeight(12),
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(12),
-            vertical: MySize.getHeight(10),
-          ),
-        ),
-      ),
+    return CommonTextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      readOnly: readOnly,
+      placeholder: placeholder,
     );
   }
 }

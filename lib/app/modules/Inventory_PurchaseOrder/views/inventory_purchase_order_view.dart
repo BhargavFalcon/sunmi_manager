@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 
 import '../controllers/inventory_purchase_order_controller.dart';
 
@@ -68,21 +69,11 @@ class InventoryPurchaseOrderView
                     ),
                     child: Column(
                       children: [
-                        CupertinoTextField(
+                        CommonTextField(
                           placeholder: "Search Purchase Order",
-                          placeholderStyle: TextStyle(
-                            color: Colors.grey,
-                            fontSize: MySize.getHeight(12),
-                          ),
-                          cursorColor: Colors.grey,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: ColorConstants.getShadow2,
                           ),
                           prefix: Padding(
                             padding: const EdgeInsets.all(8.0),

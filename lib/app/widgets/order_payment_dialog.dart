@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'shared/common_text_field.dart';
 import 'package:get/get.dart';
 import '../constants/color_constant.dart';
 import '../constants/sizeConstant.dart';
@@ -40,6 +41,7 @@ class OrderPaymentController extends GetxController {
   var paymentType = 'Full Payment'.obs;
   var selectedMethod = 'Cash'.obs;
   var amountToPayController = TextEditingController();
+  var voucherController = TextEditingController();
   var tipAmount = 0.0.obs;
   var discountAmount = 0.0.obs;
   var discountType = 'fixed'.obs;
@@ -49,6 +51,10 @@ class OrderPaymentController extends GetxController {
   var considerReturnAsTip = false.obs;
   var availableQty = <int, int>{}.obs;
   var splitQty = <int, int>{}.obs;
+  var amountFocusNode = FocusNode();
+  var voucherFocusNode = FocusNode();
+  var isAmountFocused = false.obs;
+  var isVoucherFocused = false.obs;
 
   @override
   void onInit() {
@@ -73,6 +79,12 @@ class OrderPaymentController extends GetxController {
       currentRemainingData.value = remainingSplitData;
     }
     _initializeSplitBill();
+    amountFocusNode.addListener(() {
+      isAmountFocused.value = amountFocusNode.hasFocus;
+    });
+    voucherFocusNode.addListener(() {
+      isVoucherFocused.value = voucherFocusNode.hasFocus;
+    });
 
     if (splitOnly) {
       paymentType.value = 'Split Bill';
@@ -87,6 +99,9 @@ class OrderPaymentController extends GetxController {
   @override
   void onClose() {
     amountToPayController.dispose();
+    voucherController.dispose();
+    amountFocusNode.dispose();
+    voucherFocusNode.dispose();
     super.onClose();
   }
 
@@ -454,6 +469,16 @@ class OrderPaymentController extends GetxController {
       considerReturnAsTip.value = false;
     }
     _updateAmountToPayWithPayable();
+  }
+
+  void applyVoucher() {
+    final code = voucherController.text.trim();
+    if (code.isEmpty) {
+      AppToast.showError(TranslationKeys.pleaseEnterVoucherCode.tr);
+      return;
+    }
+    // Placeholder for actual voucher application logic
+    AppToast.showSuccess('Voucher "$code" applied successfully');
   }
 
   void _updateAmountToPayWithPayable() {
@@ -1159,7 +1184,7 @@ class OrderPaymentDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPaymentMethodsRow(controller),
-        SizedBox(height: MySize.getHeight(8)),
+        SizedBox(height: MySize.getHeight(4)),
         Text(
           TranslationKeys.amountToPay.tr,
           style: TextStyle(
@@ -1167,25 +1192,22 @@ class OrderPaymentDialog extends StatelessWidget {
             fontSize: MySize.getHeight(14),
           ),
         ),
-        SizedBox(height: MySize.getHeight(8)),
-        TextField(
-          controller: controller.amountToPayController,
-          style: TextStyle(fontSize: MySize.getHeight(14)),
-          decoration: InputDecoration(
-            fillColor: Colors.grey.shade50,
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+        SizedBox(height: MySize.getHeight(4)),
+        SizedBox(
+          height: MySize.getHeight(36),
+          child: CommonTextField(
+            controller: controller.amountToPayController,
+            focusNode: controller.amountFocusNode,
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(12),
+              vertical: 0,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
             ),
           ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
-        SizedBox(height: MySize.getHeight(12)),
+        SizedBox(height: MySize.getHeight(6)),
         // Tip and Discount side-by-side buttons (using reusable helpers)
         Obx(() {
           final isCard =
@@ -1200,7 +1222,9 @@ class OrderPaymentDialog extends StatelessWidget {
             ],
           );
         }),
-        SizedBox(height: MySize.getHeight(12)),
+        SizedBox(height: MySize.getHeight(8)),
+        _buildVoucherSection(controller),
+        SizedBox(height: MySize.getHeight(8)),
         Obx(
           () => Container(
             padding: const EdgeInsets.all(16),
@@ -1519,6 +1543,67 @@ class OrderPaymentDialog extends StatelessWidget {
     );
   }
 
+  Widget _buildVoucherSection(OrderPaymentController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          TranslationKeys.discountVoucher.tr,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: MySize.getHeight(12),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: MySize.getHeight(4)),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: MySize.getHeight(36),
+                  child: CommonTextField(
+                    controller: controller.voucherController,
+                    focusNode: controller.voucherFocusNode,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MySize.getWidth(12),
+                      vertical: 0,
+                    ),
+                    placeholder: TranslationKeys.voucherCode.tr,
+                  ),
+                ),
+              ),
+              SizedBox(width: MySize.getWidth(8)),
+              ElevatedButton(
+                onPressed: () => controller.applyVoucher(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorConstants.primaryColor,
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(20),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  TranslationKeys.apply.tr,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: MySize.getHeight(14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showTipSelectionDialog(
     BuildContext context,
     OrderPaymentController controller,
@@ -1625,38 +1710,15 @@ class OrderPaymentDialog extends StatelessWidget {
                     ),
                     if (activeOption.value == 'Custom') ...[
                       SizedBox(height: MySize.getHeight(16)),
-                      TextField(
+                      CommonTextField(
                         controller: customController,
-                        style: TextStyle(fontSize: MySize.getHeight(12)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(12),
+                          vertical: MySize.getHeight(10),
+                        ),
+                        placeholder: TranslationKeys.enterCustomAmount.tr,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
-                        ),
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: TranslationKeys.enterCustomAmount.tr,
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              '€', // Using Euro symbol as per screenshots
-                              style: TextStyle(
-                                fontSize: MySize.getHeight(12),
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 0,
-                            minHeight: 0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(12),
-                            vertical: MySize.getHeight(12),
-                          ),
                         ),
                         onChanged: (val) {
                           tempTip.value = double.tryParse(val) ?? 0.0;
@@ -1880,24 +1942,16 @@ class OrderPaymentDialog extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: CommonTextField(
                       controller: amountController,
-                      style: TextStyle(fontSize: MySize.getHeight(12)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(12),
+                      ),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: InputDecoration(
-                        hintText: TranslationKeys.enterValue.tr,
-                        hintStyle: TextStyle(fontSize: MySize.getHeight(12)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: MySize.getWidth(12),
-                          vertical: MySize.getHeight(12),
-                        ),
-                      ),
+                      placeholder: TranslationKeys.enterValue.tr,
                     ),
                   ),
                   SizedBox(width: MySize.getWidth(12)),
@@ -3076,6 +3130,7 @@ class OrderPaymentDialog extends StatelessWidget {
     BuildContext context,
     OrderPaymentController controller,
   ) {
+    final isWide = MediaQuery.of(context).size.width > 600;
     // Initialize split amount in controller (respecting tax inclusivity)
     final bool isInclusive = controller.orderDetails.data?.taxInclusive ?? true;
     final splitAmountTotal =
@@ -3093,9 +3148,12 @@ class OrderPaymentDialog extends StatelessWidget {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.white,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(isWide ? 100 : 20),
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
-          width: MySize.getWidth(350),
+          width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -3106,179 +3164,168 @@ class OrderPaymentDialog extends StatelessWidget {
             final returnAmt = controller.returnAmount;
             final canPaySplit = controller.canPay;
 
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.payment,
-                        color: ColorConstants.primaryColor,
-                        size: MySize.getHeight(20),
-                      ),
-                      SizedBox(width: MySize.getWidth(8)),
-                      Text(
-                        TranslationKeys.makePayment.tr,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: MySize.getHeight(16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: MySize.getHeight(16)),
-
-                  _buildPaymentMethodsRow(controller),
-                  SizedBox(height: MySize.getHeight(12)),
-
-                  // Amount to Pay
-                  Text(
-                    TranslationKeys.amountToPay.tr,
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: MySize.getHeight(12),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Icon(
+                      Icons.payment,
+                      color: ColorConstants.primaryColor,
+                      size: MySize.getHeight(20),
                     ),
+                    SizedBox(width: MySize.getWidth(8)),
+                    Text(
+                      TranslationKeys.makePayment.tr,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: MySize.getHeight(16),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: MySize.getHeight(10)),
+                _buildPaymentMethodsRow(controller),
+                SizedBox(height: MySize.getHeight(4)),
+
+                Text(
+                  TranslationKeys.amountToPay.tr,
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontSize: MySize.getHeight(12),
                   ),
-                  SizedBox(height: MySize.getHeight(6)),
-                  TextField(
+                ),
+                SizedBox(height: MySize.getHeight(4)),
+                SizedBox(
+                  height: MySize.getHeight(36),
+                  child: CommonTextField(
                     controller: controller.amountToPayController,
-                    style: TextStyle(fontSize: MySize.getHeight(14)),
-                    decoration: InputDecoration(
-                      fillColor: Colors.grey.shade50,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: MySize.getWidth(12),
-                        vertical: MySize.getHeight(10),
-                      ),
+                    focusNode: controller.amountFocusNode,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MySize.getWidth(12),
+                      vertical: 0,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                   ),
-                  SizedBox(height: MySize.getHeight(12)),
+                ),
+                SizedBox(height: MySize.getHeight(6)),
 
-                  // Tip and Discount Buttons (using reusable helpers)
-                  Obx(() {
-                    final isCard =
-                        controller.selectedMethod.value ==
-                        TranslationKeys.card.tr;
-                    return Row(
-                      children: [
-                        if (!isCard) ...[
-                          Expanded(
-                            child: _buildTipButton(
-                              context,
-                              controller,
-                              compact: true,
-                            ),
-                          ),
-                          SizedBox(width: MySize.getWidth(8)),
-                        ],
+                // Tip and Discount Buttons (using reusable helpers)
+                Obx(() {
+                  final isCardInside =
+                      controller.selectedMethod.value ==
+                      TranslationKeys.card.tr;
+                  return Row(
+                    children: [
+                      if (!isCardInside) ...[
                         Expanded(
-                          child: _buildDiscountButton(
+                          child: _buildTipButton(
                             context,
                             controller,
                             compact: true,
                           ),
                         ),
+                        SizedBox(width: MySize.getWidth(8)),
                       ],
-                    );
-                  }),
-                  SizedBox(height: MySize.getHeight(12)),
-
-                  // Summary
-                  Container(
-                    padding: EdgeInsets.all(MySize.getHeight(10)),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSummaryRow('Split Amount', splitAmountTotal),
-                        if (controller.discountAmount.value > 0)
-                          _buildSummaryRow(
-                            TranslationKeys.discount.tr,
-                            controller.discountAmount.value,
-                            color: ColorConstants.successGreen,
-                          ),
-                        if (controller.tipAmount.value > 0)
-                          _buildSummaryRow(
-                            TranslationKeys.tip.tr,
-                            controller.tipAmount.value,
-                          ),
-                        const Divider(height: 12),
-                        _buildSummaryRow(
-                          TranslationKeys.payableAmount.tr,
-                          splitPayable,
-                          isBold: true,
+                      Expanded(
+                        child: _buildDiscountButton(
+                          context,
+                          controller,
+                          compact: true,
                         ),
-                        if (returnAmt > 0 &&
-                            !controller.considerReturnAsTip.value)
-                          _buildSummaryRow(
-                            TranslationKeys.returnAmount.tr,
-                            returnAmt,
-                            color: ColorConstants.successGreen,
-                          ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  );
+                }),
+                SizedBox(height: MySize.getHeight(8)),
+                _buildVoucherSection(controller),
+                SizedBox(height: MySize.getHeight(8)),
+
+                // Summary
+                Container(
+                  padding: EdgeInsets.all(MySize.getHeight(10)),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-
-                  // Return as tip switch
-                  Obx(() {
-                    final isCard =
-                        controller.selectedMethod.value ==
-                        TranslationKeys.card.tr;
-                    if (!isCard &&
-                        returnAmt > 0 &&
-                        controller.tipAmount.value == 0) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: MySize.getHeight(8),
+                  child: Column(
+                    children: [
+                      _buildSummaryRow('Split Amount', splitAmountTotal),
+                      if (controller.discountAmount.value > 0)
+                        _buildSummaryRow(
+                          TranslationKeys.discount.tr,
+                          controller.discountAmount.value,
+                          color: ColorConstants.successGreen,
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                TranslationKeys.considerReturnAsTip.tr,
-                                style: TextStyle(
-                                  fontSize: MySize.getHeight(11),
-                                  color: Colors.grey.shade700,
-                                ),
+                      if (controller.tipAmount.value > 0)
+                        _buildSummaryRow(
+                          TranslationKeys.tip.tr,
+                          controller.tipAmount.value,
+                        ),
+                      const Divider(height: 12),
+                      _buildSummaryRow(
+                        TranslationKeys.payableAmount.tr,
+                        splitPayable,
+                        isBold: true,
+                      ),
+                      if (returnAmt > 0 &&
+                          !controller.considerReturnAsTip.value)
+                        _buildSummaryRow(
+                          TranslationKeys.returnAmount.tr,
+                          returnAmt,
+                          color: ColorConstants.successGreen,
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Return as tip switch
+                Obx(() {
+                  final isCardInside2 =
+                      controller.selectedMethod.value ==
+                      TranslationKeys.card.tr;
+                  if (!isCardInside2 &&
+                      returnAmt > 0 &&
+                      controller.tipAmount.value == 0) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: MySize.getHeight(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              TranslationKeys.considerReturnAsTip.tr,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(11),
+                                color: Colors.grey.shade700,
                               ),
                             ),
-                            Switch(
-                              value: controller.considerReturnAsTip.value,
-                              activeThumbColor: ColorConstants.successGreen,
-                              onChanged: (val) {
-                                controller.considerReturnAsTip.value = val;
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                  SizedBox(height: MySize.getHeight(8)),
-                  _buildCancelPayRow(
-                    controller,
-                    onPay: controller.completeSplitPayment,
-                    canPay: canPaySplit,
-                  ),
-                ],
-              ),
+                          ),
+                          Switch(
+                            value: controller.considerReturnAsTip.value,
+                            activeThumbColor: ColorConstants.successGreen,
+                            onChanged: (val) {
+                              controller.considerReturnAsTip.value = val;
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
+                SizedBox(height: MySize.getHeight(8)),
+                _buildCancelPayRow(
+                  controller,
+                  onPay: controller.completeSplitPayment,
+                  canPay: canPaySplit,
+                ),
+              ],
             );
           }),
         ),
