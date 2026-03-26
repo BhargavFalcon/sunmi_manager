@@ -1,0 +1,1628 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+
+import 'package:get/get.dart';
+import 'package:managerapp/app/constants/color_constant.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
+import 'package:managerapp/app/constants/sizeConstant.dart';
+import 'package:managerapp/app/constants/translation_keys.dart';
+import 'package:managerapp/app/utils/currency_formatter.dart';
+
+import '../controllers/cart_screen_controller.dart';
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
+import 'widgets/cart_note_editor.dart';
+import 'widgets/cart_summary_panel.dart';
+
+class CartScreenView extends GetWidget<CartScreenController> {
+  const CartScreenView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<CartScreenController>(
+      assignId: true,
+      init: CartScreenController(),
+      builder: (controller) {
+        MySize().init(context);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.fetchTableFromArguments();
+          controller.fetchTablesAreas();
+          if (controller.cartItems.isNotEmpty) {
+            controller.syncOrderTypeFromCartItems();
+          }
+        });
+
+        return Scaffold(
+          backgroundColor: ColorConstants.bgColor,
+          resizeToAvoidBottomInset: false,
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(MySize.getHeight(12)).copyWith(
+                          top:
+                              MediaQuery.of(context).padding.top +
+                              MySize.getHeight(12),
+                          bottom: MySize.getHeight(15.0),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: ColorConstants.getShadow2,
+                        ),
+                        child: Center(
+                          child: Text(
+                            TranslationKeys.cart.tr,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(17.0),
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: MySize.getWidth(12),
+                        top:
+                            MediaQuery.of(context).padding.top +
+                            MySize.getHeight(8),
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            Get.back();
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: MySize.getHeight(30.0),
+                            width: MySize.getHeight(30.0),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor.withValues(
+                                alpha: 0.10,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: ColorConstants.primaryColor,
+                              size: MySize.getHeight(20.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: MySize.getWidth(12),
+                        top:
+                            MediaQuery.of(context).padding.top +
+                            MySize.getHeight(8),
+                        child: Obx(() {
+                          if (controller.cartItems.isEmpty ||
+                              controller.existingOrderId != null) {
+                            return const SizedBox.shrink();
+                          }
+                          return InkWell(
+                            hoverColor: Colors.transparent,
+                            focusColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            onTap: () {
+                              controller.submitOrder(
+                                createPayment: true,
+                                status: 'billed',
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(14),
+                                vertical: MySize.getHeight(8),
+                              ),
+                              decoration: BoxDecoration(
+                                color: ColorConstants.primaryColor,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(6),
+                                ),
+                              ),
+                              child: Text(
+                                "Bill & Pay",
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(13.5),
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                  Obx(() {
+                    if (!controller.isDineInOrder && !controller.isCounterOrder) {
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MySize.getWidth(12),
+                          vertical: MySize.getHeight(8),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey.shade200,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              controller.currentOrderType.value,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(15.0),
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
+                              onTap: () {
+                                _showAddNoteDialog(context, controller);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(MySize.getHeight(6)),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(6),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.note_alt_outlined,
+                                  size: MySize.getHeight(18.0),
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(8),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Pax',
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(15.0),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(width: MySize.getWidth(12.0)),
+                          Container(
+                            width: MySize.getWidth(60.0),
+                            height: MySize.getHeight(36.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(6),
+                              ),
+                              border: Border.all(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                            child: CommonTextField(
+                              controller: controller.paxController,
+                              textAlign: TextAlign.center,
+                              decoration: const BoxDecoration(
+                                color: Colors.transparent,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(3),
+                              ],
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(8),
+                                vertical: MySize.getHeight(10),
+                              ),
+                              onChanged: (value) {
+                                final intValue = int.tryParse(value);
+                                if (intValue != null && intValue > 0) {
+                                  controller.updatePax(intValue);
+                                } else if (value.isEmpty) {
+                                  controller.pax.value = 1;
+                                }
+                              },
+                            ),
+                          ),
+                          Spacer(),
+                          Image.asset(
+                            ImageConstant.table,
+                            width: MySize.getHeight(24.0),
+                            height: MySize.getHeight(24.0),
+                            color: ColorConstants.primaryColor,
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(width: MySize.getWidth(5.0)),
+                          Text(
+                            controller.isCounterOrder
+                                ? 'Counter'
+                                : (controller.selectedTable.value?.tableCode ??
+                                    ''),
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(15.0),
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(width: MySize.getWidth(10.0)),
+                          InkWell(
+                            onTap: () {
+                              _showAddNoteDialog(context, controller);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(MySize.getHeight(6)),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(6),
+                                ),
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.note_alt_outlined,
+                                size: MySize.getHeight(18.0),
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: MySize.getWidth(8.0)),
+                          if (!controller.hideTableSection && !controller.isCounterOrder)
+                            InkWell(
+                              hoverColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              onTap: () {
+                                _showAvailableTablesBottomSheet(
+                                  context,
+                                  controller,
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(MySize.getHeight(6)),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(6),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.settings_outlined,
+                                  size: MySize.getHeight(18.0),
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                  Obx(() {
+                    if (controller.orderNote.value.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(4),
+                      ),
+                      padding: EdgeInsets.all(MySize.getHeight(10)),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(
+                          MySize.getHeight(8),
+                        ),
+                        border: Border.all(color: Colors.amber.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.note_alt_outlined,
+                            size: MySize.getHeight(16),
+                            color: Colors.amber.shade800,
+                          ),
+                          SizedBox(width: MySize.getWidth(8)),
+                          Expanded(
+                            child: Text(
+                              controller.orderNote.value,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(13),
+                                color: Colors.black87,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  Expanded(
+                    child: Obx(() {
+                      if (controller.cartItems.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                size: MySize.getHeight(64.0),
+                                color: Colors.grey.shade400,
+                              ),
+                              SizedBox(height: MySize.getHeight(16.0)),
+                              Text(
+                                TranslationKeys.yourCartIsEmpty.tr,
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(19.0),
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: EdgeInsets.only(
+                          left: MySize.getWidth(8),
+                          right: MySize.getWidth(8),
+                          top: MySize.getHeight(8),
+                          bottom: MySize.getHeight(180),
+                        ),
+                        itemCount: controller.cartItems.length,
+                        itemBuilder: (context, index) {
+                          final item = controller.cartItems[index];
+                          final itemId = item.cartItemId ?? '';
+                          final selectedVariation = item.selectedVariation;
+                          final selectedExtras = item.selectedExtras;
+
+                          return Stack(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(MySize.getHeight(12)),
+                                margin: EdgeInsets.only(
+                                  bottom: MySize.getHeight(8),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(8),
+                                  ),
+                                  boxShadow: ColorConstants.getShadow2,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: MySize.getWidth(8),
+                                        vertical: MySize.getHeight(4),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ColorConstants.primaryColor
+                                            .withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(
+                                          MySize.getHeight(4),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        item.itemNumber ?? '',
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(13.0),
+                                          fontWeight: FontWeight.bold,
+                                          color: ColorConstants.primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: MySize.getWidth(12.0)),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.itemName ??
+                                                TranslationKeys.itemName.tr,
+                                            style: TextStyle(
+                                              fontSize: MySize.getHeight(15.0),
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(
+                                            height: MySize.getHeight(4.0),
+                                          ),
+                                          if (selectedVariation != null)
+                                            Text(
+                                              selectedVariation.variation ?? '',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: MySize.getHeight(
+                                                  13.0,
+                                                ),
+                                                color: Colors.grey.shade600,
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          if (selectedExtras != null &&
+                                              selectedExtras.isNotEmpty)
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                top: MySize.getHeight(4.0),
+                                              ),
+                                              child: Wrap(
+                                                spacing: MySize.getWidth(4.0),
+                                                runSpacing: MySize.getHeight(
+                                                  4.0,
+                                                ),
+                                                children:
+                                                    selectedExtras.map<Widget>((
+                                                      extra,
+                                                    ) {
+                                                      return Container(
+                                                        padding: EdgeInsets.symmetric(
+                                                          horizontal:
+                                                              MySize.getWidth(
+                                                                8,
+                                                              ),
+                                                          vertical:
+                                                              MySize.getHeight(
+                                                                4,
+                                                              ),
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(
+                                                            0xFFF0F2F5,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                MySize.getHeight(
+                                                                  6,
+                                                                ),
+                                                              ),
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Flexible(
+                                                              child: Text(
+                                                                extra.name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      MySize.getHeight(
+                                                                        12.0,
+                                                                      ),
+                                                                  color:
+                                                                      Colors
+                                                                          .black87,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                maxLines: 1,
+                                                              ),
+                                                            ),
+                                                            if (extra.price !=
+                                                                    null &&
+                                                                extra
+                                                                        .price
+                                                                        ?.isNotEmpty ==
+                                                                    true) ...[
+                                                              SizedBox(
+                                                                width:
+                                                                    MySize.getWidth(
+                                                                      4.0,
+                                                                    ),
+                                                              ),
+                                                              Text(
+                                                                CurrencyFormatter.formatPrice(
+                                                                  extra.price ??
+                                                                      '0',
+                                                                ),
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      MySize.getHeight(
+                                                                        12.0,
+                                                                      ),
+                                                                  color:
+                                                                      Colors
+                                                                          .black54,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                              ),
+                                            ),
+                                          if (selectedVariation != null)
+                                            SizedBox(
+                                              height: MySize.getHeight(4.0),
+                                            ),
+                                          InkWell(
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            onTap: () {
+                                              controller.startEditingNote(
+                                                itemId,
+                                              );
+                                            },
+                                            child: Builder(
+                                              builder: (context) {
+                                                final bool isEditing =
+                                                    item.cartEditingNote;
+                                                final String existingNote =
+                                                    item.cartNote ?? '';
+                                                if (!isEditing) {
+                                                  return Text(
+                                                    existingNote.isEmpty
+                                                        ? "+ Add Note"
+                                                        : existingNote,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MySize.getHeight(
+                                                            13.0,
+                                                          ),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color:
+                                                          existingNote.isEmpty
+                                                              ? Colors
+                                                                  .grey
+                                                                  .shade600
+                                                              : Colors.black87,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  );
+                                                }
+
+                                                return CartNoteEditor(
+                                                  itemId: itemId,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        QuantitySelector(
+                                          key: ValueKey(itemId),
+                                          initialQuantity: item.quantity.value,
+                                          onQuantityChanged: (newQuantity) {
+                                            if (newQuantity == 0) {
+                                              controller.removeItem(itemId);
+                                            } else {
+                                              controller.updateItemQuantity(
+                                                itemId,
+                                                newQuantity,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: MySize.getHeight(4.0)),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Price: ',
+                                              style: TextStyle(
+                                                fontSize: MySize.getHeight(
+                                                  11.0,
+                                                ),
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                            Text(
+                                              CurrencyFormatter.formatPriceFromDouble(
+                                                item.cartTotalPrice ?? 0.0,
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: MySize.getHeight(
+                                                  12.0,
+                                                ),
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: MySize.getHeight(2.0)),
+                                        Obx(
+                                          () => Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Amount: ',
+                                                style: TextStyle(
+                                                  fontSize: MySize.getHeight(
+                                                    12.0,
+                                                  ),
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              Text(
+                                                CurrencyFormatter.formatPriceFromDouble(
+                                                  (item.cartTotalPrice ?? 0.0) *
+                                                      item.quantity.value,
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: MySize.getHeight(
+                                                    13.0,
+                                                  ),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }),
+                  ),
+                ],
+              ),
+              Obx(() {
+                if (controller.cartItems.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: CartSummaryPanel(
+                      controller: controller,
+                      onAddDiscount:
+                          () => _showAddDiscountDialog(context, controller),
+                    ),
+                  ),
+                );
+              }),
+              Obx(() {
+                if (controller.isSubmittingOrder.value) {
+                  return Container(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(MySize.getHeight(20)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            MySize.getHeight(12),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CupertinoActivityIndicator(
+                          radius: MySize.getHeight(12),
+                          color: ColorConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox.shrink();
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAvailableTablesBottomSheet(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MySize.getHeight(16)),
+        ),
+      ),
+      builder:
+          (_) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            builder:
+                (_, scrollController) => Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.bgColor,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(MySize.getHeight(16)),
+                    ),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(MySize.getHeight(16)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(MySize.getHeight(16)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              TranslationKeys.availableTables.tr,
+                              style: TextStyle(
+                                fontSize: MySize.getHeight(19.0),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Icon(
+                                Icons.close,
+                                size: MySize.getHeight(24.0),
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Obx(() {
+                          if (controller.tableAreasList.isEmpty) {
+                            return Center(
+                              child: Text(
+                                TranslationKeys.noTablesAvailable.tr,
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(15.0),
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            controller: scrollController,
+                            padding: EdgeInsets.all(MySize.getHeight(16)),
+                            itemCount: controller.tableAreasList.length,
+                            itemBuilder: (context, areaIndex) {
+                              final area = controller.tableAreasList[areaIndex];
+                              final availableTables =
+                                  area.tables
+                                      ?.where(
+                                        (table) =>
+                                            table.availableStatus
+                                                    ?.toLowerCase() ==
+                                                'available' &&
+                                            table.status?.toLowerCase() ==
+                                                'active',
+                                      )
+                                      .toList() ??
+                                  [];
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: MySize.getHeight(12),
+                                    ),
+                                    child: Text(
+                                      area.name ??
+                                          TranslationKeys.unnamedArea.tr,
+                                      style: TextStyle(
+                                        fontSize: MySize.getHeight(17.0),
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  if (availableTables.isEmpty)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: MySize.getHeight(20),
+                                      ),
+                                      child: Text(
+                                        TranslationKeys.noAvailableTables.tr,
+                                        style: TextStyle(
+                                          fontSize: MySize.getHeight(13.0),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    GridView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                            crossAxisSpacing: MySize.getWidth(
+                                              12,
+                                            ),
+                                            mainAxisSpacing: MySize.getHeight(
+                                              12,
+                                            ),
+                                            childAspectRatio: 1.2,
+                                          ),
+                                      itemCount: availableTables.length,
+                                      itemBuilder: (context, tableIndex) {
+                                        final table =
+                                            availableTables[tableIndex];
+                                        final isSelected =
+                                            controller
+                                                .selectedTable
+                                                .value
+                                                ?.id ==
+                                            table.id;
+
+                                        return InkWell(
+                                          onTap: () {
+                                            controller.selectedTable.value =
+                                                table;
+                                            final capacity =
+                                                table.seatingCapacity ?? 1;
+                                            controller.pax.value = capacity;
+                                            controller.paxController.text =
+                                                capacity.toString();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    MySize.getHeight(8),
+                                                  ),
+                                              border: Border.all(
+                                                color:
+                                                    isSelected
+                                                        ? ColorConstants
+                                                            .primaryColor
+                                                        : Colors.grey.shade300,
+                                                width: isSelected ? 2 : 1,
+                                              ),
+                                              boxShadow:
+                                                  isSelected
+                                                      ? [
+                                                        BoxShadow(
+                                                          color: ColorConstants
+                                                              .primaryColor
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                          blurRadius: 4,
+                                                          spreadRadius: 1,
+                                                        ),
+                                                      ]
+                                                      : null,
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: MySize.getWidth(
+                                                      8,
+                                                    ),
+                                                    vertical: MySize.getHeight(
+                                                      4,
+                                                    ),
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        ColorConstants
+                                                            .tableGreen,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          MySize.getHeight(4),
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    table.tableCode ??
+                                                        '${table.id}',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MySize.getHeight(
+                                                            13.0,
+                                                          ),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: MySize.getHeight(4.0),
+                                                ),
+                                                Text(
+                                                  '${table.seatingCapacity ?? 0} Seat(s)',
+                                                  style: TextStyle(
+                                                    fontSize: MySize.getHeight(
+                                                      11.0,
+                                                    ),
+                                                    color: Colors.grey.shade700,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  SizedBox(height: MySize.getHeight(20.0)),
+                                ],
+                              );
+                            },
+                          );
+                        }),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(MySize.getHeight(16)),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(MySize.getHeight(16)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: MySize.getWidth(24),
+                                  vertical: MySize.getHeight(12),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(8),
+                                  ),
+                                ),
+                                child: Text(
+                                  TranslationKeys.cancel.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(15.0),
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
+    );
+  }
+
+  void _showAddDiscountDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    final discountValueController = TextEditingController(
+      text:
+          controller.discountValue.value > 0
+              ? controller.discountValue.value.toString()
+              : '',
+    );
+    final discountTypeController = controller.discountType;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Obx(
+          () => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+              side: BorderSide(color: ColorConstants.bgColor),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(MySize.getHeight(20.0)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    TranslationKeys.addDiscount.tr,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(21.0),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(20)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CommonTextField(
+                          controller: discountValueController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          placeholder: TranslationKeys.enterDiscountValue.tr,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(12),
+                            vertical: MySize.getHeight(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: MySize.getWidth(8)),
+                      MenuAnchor(
+                        builder: (context, menuController, child) {
+                          return InkWell(
+                            onTap: () {
+                              if (menuController.isOpen) {
+                                menuController.close();
+                              } else {
+                                menuController.open();
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MySize.getWidth(12),
+                                vertical: MySize.getHeight(12),
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(8),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    discountTypeController.value,
+                                    style: TextStyle(
+                                      fontSize: MySize.getHeight(15.0),
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(width: MySize.getWidth(4)),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    size: MySize.getHeight(20),
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              discountTypeController.value = 'Fixed';
+                            },
+                            child: Row(
+                              children: [
+                                if (discountTypeController.value == 'Fixed')
+                                  Icon(
+                                    Icons.check,
+                                    size: MySize.getHeight(16),
+                                    color: ColorConstants.primaryColor,
+                                  ),
+                                if (discountTypeController.value == 'Fixed')
+                                  SizedBox(width: MySize.getWidth(8)),
+                                Text(
+                                  TranslationKeys.fixed.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14.0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              discountTypeController.value = 'Percent';
+                            },
+                            child: Row(
+                              children: [
+                                if (discountTypeController.value == 'Percent')
+                                  Icon(
+                                    Icons.check,
+                                    size: MySize.getHeight(16),
+                                    color: ColorConstants.primaryColor,
+                                  ),
+                                if (discountTypeController.value == 'Percent')
+                                  SizedBox(width: MySize.getWidth(8)),
+                                Text(
+                                  TranslationKeys.percent.tr,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(14.0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: MySize.getHeight(24)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                TranslationKeys.cancel.tr,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: MySize.getHeight(14.0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: MySize.getWidth(12)),
+                      Expanded(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            final value =
+                                double.tryParse(discountValueController.text) ??
+                                0.0;
+                            if (value > 0) {
+                              if (discountTypeController.value == 'Fixed') {
+                                if (value > controller.totalPrice) {
+                                  controller.setDiscount(
+                                    controller.totalPrice,
+                                    discountTypeController.value,
+                                  );
+                                } else {
+                                  controller.setDiscount(
+                                    value,
+                                    discountTypeController.value,
+                                  );
+                                }
+                              } else {
+                                if (value > 100.0) {
+                                  controller.setDiscount(
+                                    100.0,
+                                    discountTypeController.value,
+                                  );
+                                } else {
+                                  controller.setDiscount(
+                                    value,
+                                    discountTypeController.value,
+                                  );
+                                }
+                              }
+                            }
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: MySize.getHeight(12),
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(8),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                TranslationKeys.save.tr,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: MySize.getHeight(14.0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddNoteDialog(
+    BuildContext context,
+    CartScreenController controller,
+  ) {
+    final TextEditingController noteController = TextEditingController(
+      text: controller.orderNote.value,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: MySize.getWidth(340),
+            padding: EdgeInsets.all(MySize.getHeight(20)),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    TranslationKeys.addNote.tr,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(18),
+                      fontWeight: FontWeight.bold,
+                      color: ColorConstants.grey800,
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(8)),
+                  Divider(color: Colors.grey.shade200),
+                  SizedBox(height: MySize.getHeight(16)),
+                  Text(
+                    TranslationKeys.orderNote.tr,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(14),
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(8)),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: CommonTextField(
+                      controller: noteController,
+                      maxLines: 4,
+                      placeholder: TranslationKeys.enterYourSpecialRequest.tr,
+                      padding: EdgeInsets.all(MySize.getHeight(12)),
+                    ),
+                  ),
+                  SizedBox(height: MySize.getHeight(24)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          controller.orderNote.value =
+                              noteController.text.trim();
+                          Get.back();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorConstants.primaryColor,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(24),
+                            vertical: MySize.getHeight(12),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(8),
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          TranslationKeys.save.tr,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(15),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class QuantitySelector extends StatefulWidget {
+  final int initialQuantity;
+  final Function(int) onQuantityChanged;
+  final int minQuantity;
+  final int maxQuantity;
+
+  const QuantitySelector({
+    super.key,
+    required this.initialQuantity,
+    required this.onQuantityChanged,
+    this.minQuantity = 1,
+    this.maxQuantity = 99,
+  });
+
+  @override
+  State<QuantitySelector> createState() => _QuantitySelectorState();
+}
+
+class _QuantitySelectorState extends State<QuantitySelector> {
+  late TextEditingController _controller;
+  late int _currentQuantity;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentQuantity = widget.initialQuantity;
+    _controller = TextEditingController(text: _currentQuantity.toString());
+  }
+
+  @override
+  void didUpdateWidget(QuantitySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialQuantity != widget.initialQuantity) {
+      _currentQuantity = widget.initialQuantity;
+      _controller.text = _currentQuantity.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateQuantity(int newQuantity) {
+    if (newQuantity >= widget.minQuantity &&
+        newQuantity <= widget.maxQuantity) {
+      setState(() {
+        _currentQuantity = newQuantity;
+        _controller.text = newQuantity.toString();
+      });
+      widget.onQuantityChanged(newQuantity);
+    }
+  }
+
+  void _increment() {
+    _updateQuantity(_currentQuantity + 1);
+  }
+
+  void _decrement() {
+    if (_currentQuantity <= widget.minQuantity) {
+      widget.onQuantityChanged(0);
+    } else {
+      _updateQuantity(_currentQuantity - 1);
+    }
+  }
+
+  void _onTextChanged(String value) {
+    if (value.isEmpty) {
+      return;
+    }
+
+    int? quantity = int.tryParse(value);
+    if (quantity != null) {
+      if (quantity >= widget.minQuantity && quantity <= widget.maxQuantity) {
+        setState(() {
+          _currentQuantity = quantity;
+        });
+        widget.onQuantityChanged(quantity);
+      } else {
+        _controller.text = _currentQuantity.toString();
+      }
+    } else {
+      _controller.text = _currentQuantity.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MySize.getHeight(26.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+        border: Border.all(color: ColorConstants.primaryColor),
+        color: Colors.pink.shade50,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _decrement,
+            child: Container(
+              width: MySize.getWidth(26.0),
+              height: MySize.getHeight(26.0),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(MySize.getHeight(6)),
+                  bottomLeft: Radius.circular(MySize.getHeight(6)),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '-',
+                style: TextStyle(
+                  fontSize: MySize.getHeight(17.0),
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.primaryColor,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ),
+
+          Container(
+            width: MySize.getWidth(35.0),
+            height: MySize.getHeight(26.0),
+            decoration: const BoxDecoration(color: Colors.transparent),
+            alignment: Alignment.center,
+            child: CommonTextField(
+              controller: _controller,
+              textAlign: TextAlign.center,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(2),
+              ],
+              padding: EdgeInsets.zero,
+              onChanged: _onTextChanged,
+              onSubmitted: (value) {
+                _onTextChanged(value);
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              onTapOutside: (event) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+            ),
+          ),
+
+          GestureDetector(
+            onTap: _currentQuantity < widget.maxQuantity ? _increment : null,
+            child: Container(
+              width: MySize.getWidth(26.0),
+              height: MySize.getHeight(26.0),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(MySize.getHeight(6)),
+                  bottomRight: Radius.circular(MySize.getHeight(6)),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '+',
+                style: TextStyle(
+                  fontSize: MySize.getHeight(17.0),
+                  fontWeight: FontWeight.bold,
+                  color:
+                      _currentQuantity < widget.maxQuantity
+                          ? ColorConstants.primaryColor
+                          : Colors.grey.shade400,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
