@@ -11,6 +11,8 @@ import '../../../routes/app_pages.dart';
 import '../../../model/login_models.dart';
 import '../../../model/restaurant_details_model.dart';
 import '../../../utils/currency_formatter.dart';
+import '../../../services/printer_service.dart';
+import '../../../services/network_connectivity_service.dart';
 
 class SettingScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -226,6 +228,20 @@ class SettingScreenController extends GetxController {
   void _clearUserData() {
     networkClient.removeAuthToken();
     box.erase();
+    
+    // Hard clear of cached controllers in memory
+    try {
+      Get.deleteAll(force: true); // Wipes all controllers from memory to completely erase session RAM cache
+      
+      // Re-inject core persistent services that were just wiped
+      if(!Get.isRegistered<PrinterService>()) {
+        Get.put(PrinterService(), permanent: true);
+      }
+      if(!Get.isRegistered<NetworkConnectivityService>()) {
+        Get.put(NetworkConnectivityService(), permanent: true);
+      }
+    } catch (_) {}
+
     Get.offAllNamed(Routes.LOGIN_SCREEN);
   }
 
