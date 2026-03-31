@@ -76,8 +76,6 @@ class ArgumentConstant {
   static const printerWidthKey = "printer_width";
   static const kitchenPaperWidthKey = "kitchen_paper_width";
   static const orderPaperWidthKey = "order_paper_width";
-  static const savedPrinterDeviceKey = "saved_printer_device";
-  static const savedWifiPrintersKey = "saved_wifi_printers";
   static const selectedKitchenPrinterKey = "selected_kitchen_printer";
   static const selectedReceiptPrinterKey = "selected_receipt_printer";
 

@@ -30,7 +30,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                 child: Center(
                   child: Text(
                     TranslationKeys.printService.tr,
-                    style: TextStyle(fontSize: 20, color: Colors.black),
+                    style: const TextStyle(fontSize: 20, color: Colors.black),
                   ),
                 ),
               ),
@@ -74,9 +74,6 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                         Obx(() {
                           if (controller.isConnected.value &&
                               !controller.isConfiguring.value) {
-                            if (controller.isSunmi.value) {
-                              return const SizedBox.shrink();
-                            }
                             return Column(
                               children: [
                                 _buildConnectedStatus(),
@@ -91,9 +88,60 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                           }
                         }),
 
+                        // --- Internal Printer Info (Sunmi Only) ---
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: EdgeInsets.only(bottom: MySize.getHeight(12)),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: ColorConstants.getShadow2,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: ColorConstants.successGreen
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.print,
+                                  color: ColorConstants.successGreen,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Internal Sunmi Printer',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Connected & Ready',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: ColorConstants.successGreen,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                         // ── Printing Rules Section ───────────────────────────
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -102,264 +150,6 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      TranslationKeys.autoPrintKitchenTicket.tr,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  Obx(() {
-                                    return Switch(
-                                      value: controller.autoPrintKitchen.value,
-                                      onChanged:
-                                          (value) =>
-                                              controller
-                                                  .toggleAutoPrintKitchen(),
-                                      activeThumbColor:
-                                          ColorConstants.primaryColor,
-                                    );
-                                  }),
-                                ],
-                              ),
-                              SizedBox(height: 6),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  TranslationKeys.autoPrintKitchenTicketDesc.tr,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    TranslationKeys.numberOfCopies.tr,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Obx(() {
-                                        return IconButton(
-                                          onPressed:
-                                              controller
-                                                          .kitchenNumberOfCopies
-                                                          .value >
-                                                      1
-                                                  ? () =>
-                                                      controller
-                                                          .decrementKitchenCopies()
-                                                  : null,
-                                          icon: Icon(
-                                            Icons.remove_circle_outline,
-                                          ),
-                                          color:
-                                              controller
-                                                          .kitchenNumberOfCopies
-                                                          .value >
-                                                      1
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
-                                        );
-                                      }),
-                                      Obx(() {
-                                        return Container(
-                                          width: 40,
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            '${controller.kitchenNumberOfCopies.value}',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                      Obx(() {
-                                        return IconButton(
-                                          onPressed:
-                                              controller
-                                                          .kitchenNumberOfCopies
-                                                          .value <
-                                                      5
-                                                  ? () =>
-                                                      controller
-                                                          .incrementKitchenCopies()
-                                                  : null,
-                                          icon: Icon(Icons.add_circle_outline),
-                                          color:
-                                              controller
-                                                          .kitchenNumberOfCopies
-                                                          .value <
-                                                      5
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Obx(() {
-                                    return Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                TranslationKeys.printer.tr,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[700],
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade100,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton<String>(
-                                                    isExpanded: true,
-                                                    hint: Text(
-                                                      'Select Printer',
-                                                    ),
-                                                    value:
-                                                        controller
-                                                                .selectedKitchenPrinter
-                                                                .value
-                                                                .isEmpty
-                                                            ? null
-                                                            : controller
-                                                                .selectedKitchenPrinter
-                                                                .value,
-                                                    items:
-                                                        controller
-                                                            .connectedPrinters
-                                                            .map(
-                                                              (
-                                                                p,
-                                                              ) => DropdownMenuItem(
-                                                                value:
-                                                                    p['name'],
-                                                                child: Text(
-                                                                  '${p['name']} (${p['type']})',
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              ),
-                                                            )
-                                                            .toList(),
-                                                    onChanged:
-                                                        (v) => controller
-                                                            .onPrinterSelected(
-                                                              'kitchen',
-                                                              v,
-                                                            ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                TranslationKeys.printerWidth.tr,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[700],
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade100,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton<String>(
-                                                    isExpanded: true,
-                                                    value:
-                                                        controller
-                                                            .kitchenPaperWidth
-                                                            .value,
-                                                    items:
-                                                        ['58mm', '80mm']
-                                                            .map(
-                                                              (w) =>
-                                                                  DropdownMenuItem(
-                                                                    value: w,
-                                                                    child: Text(
-                                                                      w,
-                                                                      softWrap:
-                                                                          false,
-                                                                    ),
-                                                                  ),
-                                                            )
-                                                            .toList(),
-                                                    onChanged: (v) {
-                                                      if (v != null) {
-                                                        controller
-                                                            .kitchenPaperWidth
-                                                            .value = v;
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-
                               // --- Receipt: Auto print when order is paid ---
                               Row(
                                 mainAxisAlignment:
@@ -367,10 +157,8 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      TranslationKeys
-                                          .autoPrintReceiptWhenPaid
-                                          .tr,
-                                      style: TextStyle(
+                                      TranslationKeys.autoPrintReceiptWhenPaid.tr,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         color: Colors.black,
                                       ),
@@ -378,41 +166,35 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                   ),
                                   Obx(() {
                                     return Switch(
-                                      value:
-                                          controller
-                                              .autoPrintReceiptWhenPaid
-                                              .value,
-                                      onChanged:
-                                          (value) =>
-                                              controller
-                                                  .toggleAutoPrintReceiptWhenPaid(),
+                                      value: controller
+                                          .autoPrintReceiptWhenPaid.value,
+                                      onChanged: (value) => controller
+                                          .toggleAutoPrintReceiptWhenPaid(),
                                       activeThumbColor:
                                           ColorConstants.primaryColor,
                                     );
                                   }),
                                 ],
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  TranslationKeys
-                                      .autoPrintReceiptWhenPaidDesc
-                                      .tr,
+                                  TranslationKeys.autoPrintReceiptWhenPaidDesc.tr,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey[600],
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     TranslationKeys.numberOfCopies.tr,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.black,
                                     ),
@@ -421,25 +203,21 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                     children: [
                                       Obx(() {
                                         return IconButton(
-                                          onPressed:
-                                              controller
-                                                          .receiptNumberOfCopies
-                                                          .value >
-                                                      1
-                                                  ? () =>
-                                                      controller
-                                                          .decrementReceiptCopies()
-                                                  : null,
-                                          icon: Icon(
+                                          onPressed: controller
+                                                      .receiptNumberOfCopies
+                                                      .value >
+                                                  1
+                                              ? () => controller
+                                                  .decrementReceiptCopies()
+                                              : null,
+                                          icon: const Icon(
                                             Icons.remove_circle_outline,
                                           ),
-                                          color:
-                                              controller
-                                                          .receiptNumberOfCopies
-                                                          .value >
-                                                      1
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
+                                          color: controller.receiptNumberOfCopies
+                                                      .value >
+                                                  1
+                                              ? ColorConstants.primaryColor
+                                              : Colors.grey,
                                         );
                                       }),
                                       Obx(() {
@@ -448,7 +226,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                           alignment: Alignment.center,
                                           child: Text(
                                             '${controller.receiptNumberOfCopies.value}',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black,
@@ -458,170 +236,69 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                       }),
                                       Obx(() {
                                         return IconButton(
-                                          onPressed:
-                                              controller
-                                                          .receiptNumberOfCopies
-                                                          .value <
-                                                      5
-                                                  ? () =>
-                                                      controller
-                                                          .incrementReceiptCopies()
-                                                  : null,
-                                          icon: Icon(Icons.add_circle_outline),
-                                          color:
-                                              controller
-                                                          .receiptNumberOfCopies
-                                                          .value <
-                                                      5
-                                                  ? ColorConstants.primaryColor
-                                                  : Colors.grey,
+                                          onPressed: controller
+                                                      .receiptNumberOfCopies
+                                                      .value <
+                                                  5
+                                              ? () => controller
+                                                  .incrementReceiptCopies()
+                                              : null,
+                                          icon: const Icon(Icons.add_circle_outline),
+                                          color: controller.receiptNumberOfCopies
+                                                      .value <
+                                                  5
+                                              ? ColorConstants.primaryColor
+                                              : Colors.grey,
                                         );
                                       }),
                                     ],
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Obx(() {
-                                    return Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                TranslationKeys.printer.tr,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[700],
-                                                ),
+                                  Text(
+                                    TranslationKeys.printerWidth.tr,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        isExpanded: true,
+                                        value:
+                                            controller.receiverPaperWidth.value,
+                                        items: ['58mm', '80mm']
+                                            .map(
+                                              (w) => DropdownMenuItem(
+                                                value: w,
+                                                child: Text(w),
                                               ),
-                                              SizedBox(height: 4),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade100,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton<String>(
-                                                    isExpanded: true,
-                                                    hint: Text(
-                                                      'Select Printer',
-                                                    ),
-                                                    value:
-                                                        controller
-                                                                .selectedReceiptPrinter
-                                                                .value
-                                                                .isEmpty
-                                                            ? null
-                                                            : controller
-                                                                .selectedReceiptPrinter
-                                                                .value,
-                                                    items:
-                                                        controller
-                                                            .connectedPrinters
-                                                            .map(
-                                                              (
-                                                                p,
-                                                              ) => DropdownMenuItem(
-                                                                value:
-                                                                    p['name'],
-                                                                child: Text(
-                                                                  '${p['name']} (${p['type']})',
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              ),
-                                                            )
-                                                            .toList(),
-                                                    onChanged:
-                                                        (v) => controller
-                                                            .onPrinterSelected(
-                                                              'receipt',
-                                                              v,
-                                                            ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                TranslationKeys.printerWidth.tr,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[700],
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade100,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton<String>(
-                                                    isExpanded: true,
-                                                    value:
-                                                        controller
-                                                            .receiverPaperWidth
-                                                            .value,
-                                                    items:
-                                                        ['58mm', '80mm']
-                                                            .map(
-                                                              (w) =>
-                                                                  DropdownMenuItem(
-                                                                    value: w,
-                                                                    child: Text(
-                                                                      w,
-                                                                      softWrap:
-                                                                          false,
-                                                                    ),
-                                                                  ),
-                                                            )
-                                                            .toList(),
-                                                    onChanged: (v) {
-                                                      if (v != null) {
-                                                        controller
-                                                            .receiverPaperWidth
-                                                            .value = v;
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }),
+                                            )
+                                            .toList(),
+                                        onChanged: (v) {
+                                          if (v != null) {
+                                            controller.receiverPaperWidth.value = v;
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -720,7 +397,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
             ),
           ),
           SizedBox(height: MySize.getHeight(6)),
-          // API Key TextField (full width)
+          // API Key TextField
           CommonTextField(
             controller: controller.apiKeyController,
             placeholder: TranslationKeys.apiKeyHint.tr,
@@ -729,7 +406,8 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
               fontSize: MySize.getHeight(13),
             ),
             prefix: Padding(
-              padding: EdgeInsets.only(left: MySize.getWidth(12), right: MySize.getWidth(8)),
+              padding: EdgeInsets.only(
+                  left: MySize.getWidth(12), right: MySize.getWidth(8)),
               child: Icon(
                 Icons.key_outlined,
                 color: Colors.grey.shade400,
@@ -769,27 +447,25 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
             }
             return const SizedBox.shrink();
           }),
-          // Connect button (full width)
+          // Connect button
           Obx(
             () => SizedBox(
               width: double.infinity,
               height: MySize.getHeight(48),
               child: ElevatedButton.icon(
-                onPressed:
-                    controller.connectionLoading.value
-                        ? null
-                        : () => controller.testConnection(),
-                icon:
-                    controller.connectionLoading.value
-                        ? SizedBox(
-                          width: MySize.getHeight(18),
-                          height: MySize.getHeight(18),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                        : Icon(Icons.link, size: MySize.getHeight(20)),
+                onPressed: controller.connectionLoading.value
+                    ? null
+                    : () => controller.testConnection(),
+                icon: controller.connectionLoading.value
+                    ? SizedBox(
+                        width: MySize.getHeight(18),
+                        height: MySize.getHeight(18),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(Icons.link, size: MySize.getHeight(20)),
                 label: Text(
                   TranslationKeys.connection.tr,
                   style: TextStyle(
@@ -808,7 +484,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
               ),
             ),
           ),
-          // Done button (shown after successful connection)
+          // Done button
           Obx(() {
             if (controller.isConnected.value) {
               return Padding(
@@ -831,7 +507,7 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: ColorConstants.successGreen,
-                      side: BorderSide(color: ColorConstants.successGreen),
+                      side: const BorderSide(color: ColorConstants.successGreen),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           MySize.getHeight(10),
@@ -918,13 +594,13 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
             ],
           ),
           SizedBox(height: MySize.getHeight(10)),
-          Text(
-            '${TranslationKeys.key.tr}: ${controller.maskedApiKey}',
-            style: TextStyle(
-              fontSize: MySize.getHeight(13),
-              color: Colors.black87,
-            ),
-          ),
+          Obx(() => Text(
+                '${TranslationKeys.key.tr}: ${controller.maskedApiKey}',
+                style: TextStyle(
+                  fontSize: MySize.getHeight(13),
+                  color: Colors.black87,
+                ),
+              )),
         ],
       ),
     );

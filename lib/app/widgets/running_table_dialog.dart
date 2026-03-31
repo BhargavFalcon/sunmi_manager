@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/escpos_invoice_printer_service.dart';
-import '../utils/printer_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../constants/api_constants.dart';
@@ -692,11 +690,8 @@ class RunningTableDialog {
       return;
     }
     try {
-      if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printInvoice(orderDetails!.data!);
-      } else {
-        await EscPosInvoicePrinterService().printInvoice(orderDetails!.data!);
-      }
+      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
+      await SunmiInvoicePrinterService().printInvoice(orderDetails!.data!);
       RunningTableService._showSuccess('Print job sent successfully');
     } catch (e) {
       RunningTableService._showError('Failed to print: $e');

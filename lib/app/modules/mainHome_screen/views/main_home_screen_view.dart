@@ -1,19 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/modules/order_screen/views/order_screen_view.dart';
-import 'package:managerapp/app/modules/kitchen_tickets_screen/views/kitchen_tickets_screen_view.dart';
-import 'package:managerapp/app/modules/reservation_screen/views/reservation_screen_view.dart';
 import 'package:managerapp/app/modules/setting_screen/views/setting_screen_view.dart';
-import 'package:managerapp/app/modules/table_screen/views/table_screen_view.dart';
-import 'package:managerapp/app/modules/take_order_screen/views/take_order_view.dart';
 import '../../../constants/color_constant.dart';
 import '../../../constants/image_constants.dart';
 import '../../../constants/sizeConstant.dart';
 import '../../../constants/translation_keys.dart';
-import '../../../constants/api_constants.dart';
-import '../../../../main.dart';
-import '../../../widgets/pulsing_widget.dart';
 import '../controllers/main_home_screen_controller.dart';
 
 class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
@@ -28,14 +20,8 @@ class MainHomeScreenView extends GetWidget<MainHomeScreenController> {
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: controller.onPageChanged,
         children: [
-          // DashboardScreenView(),
           OrderScreenView(),
-          TableScreenView(),
-          TakeOrderView(),
-          KitchenTicketsScreenView(),
-          ReservationScreenView(),
           SettingScreenView(),
-          // InventoryScreenView(),
         ],
       ),
       bottomNavigationBar: Obx(() {
@@ -75,95 +61,47 @@ class _CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom:
-              Platform.isAndroid
-                  ? MediaQuery.of(context).padding.bottom
-                  : Platform.isIOS
-                  ? 10
-                  : MySize.getHeight(0),
-        ),
+      child: SizedBox(
+        height: MySize.getHeight(68),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Top Divider for clean separation
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey.withValues(alpha: 0.1),
+            ),
+            Expanded(
+              child: Stack(
                 children: [
-                  // _NavBarItem(
-                  //   icon: ImageConstant.dashboard,
-                  //   label: "Home",
-                  //   isSelected: selectedIndex == 0,
-                  //   onTap: () => onTabChange(0),
-                  // ),
-                  _NavBarItem(
-                    icon: ImageConstant.order,
-                    label: TranslationKeys.allOrders.tr,
-                    isSelected: selectedIndex == 0,
-                    onTap: () => onTabChange(0),
+                  // Selection Indicator Line (Top)
+                  Row(
+                    children: [
+                      _IndicatorLine(isSelected: selectedIndex == 0),
+                      _IndicatorLine(isSelected: selectedIndex == 1),
+                    ],
                   ),
-                  Obx(() {
-                    final mainController = Get.find<MainHomeScreenController>();
-                    final hasReadyItems = mainController.hasAnyReadyTable();
-                    return PulsingWidget(
-                      isPulsing: hasReadyItems &&
-                          (box.read(ArgumentConstant.kotStatusChangeKey) ?? true),
-                      pulseStyle: PulseStyle.fill,
-                      pulsingColor: ColorConstants.primaryColor,
-                      borderRadius: 12,
-                      child: _NavBarItem(
-                        icon: ImageConstant.table,
-                        label: TranslationKeys.dineIn.tr,
-                        isSelected: selectedIndex == 1,
-                        onTap: () => onTabChange(1),
-                      ),
-                    );
-                  }),
-                  _NavBarItem(
-                    icon: ImageConstant.deliveryPickup,
-                    label: TranslationKeys.deliveryPickup.tr,
-                    isSelected: selectedIndex == 2,
-                    onTap: () => onTabChange(2),
+                  // Icons and Labels with more breathing room from the top
+                  Padding(
+                    padding: EdgeInsets.only(top: MySize.getHeight(12)),
+                    child: Row(
+                      children: [
+                        _FullWidthNavItem(
+                          icon: ImageConstant.order,
+                          label: TranslationKeys.allOrders.tr,
+                          isSelected: selectedIndex == 0,
+                          onTap: () => onTabChange(0),
+                        ),
+                        _FullWidthNavItem(
+                          icon: ImageConstant.setting,
+                          label: TranslationKeys.settings.tr,
+                          isSelected: selectedIndex == 1,
+                          onTap: () => onTabChange(1),
+                        ),
+                      ],
+                    ),
                   ),
-                  Obx(() {
-                    final mainController = Get.find<MainHomeScreenController>();
-                    final hasNewKot = mainController.hasNewKotPulse.value;
-                    return PulsingWidget(
-                      isPulsing: hasNewKot &&
-                          (box.read(ArgumentConstant.kitchenTicketGenerationKey) ??
-                              true),
-                      pulseStyle: PulseStyle.fill,
-                      pulsingColor: ColorConstants.primaryColor,
-                      borderRadius: 12,
-                      child: _NavBarItem(
-                        icon: ImageConstant.kitchenTickets,
-                        label: TranslationKeys.kitchenTickets.tr,
-                        isSelected: selectedIndex == 3,
-                        onTap: () => onTabChange(3),
-                      ),
-                    );
-                  }),
-                  _NavBarItem(
-                    icon: ImageConstant.tableReservation,
-                    label: TranslationKeys.reservation.tr,
-                    isSelected: selectedIndex == 4,
-                    onTap: () => onTabChange(4),
-                  ),
-                  _NavBarItem(
-                    icon: ImageConstant.setting,
-                    label: TranslationKeys.settings.tr,
-                    isSelected: selectedIndex == 5,
-                    onTap: () => onTabChange(5),
-                  ),
-                  // _NavBarItem(
-                  //   icon: ImageConstant.inventory,
-                  //   label: "Inventory",
-                  //   isSelected: selectedIndex == 3,
-                  //   onTap: () => onTabChange(3),
-                  // ),
                 ],
               ),
             ),
@@ -174,13 +112,36 @@ class _CustomBottomNavBar extends StatelessWidget {
   }
 }
 
-class _NavBarItem extends StatefulWidget {
+class _IndicatorLine extends StatelessWidget {
+  final bool isSelected;
+  const _IndicatorLine({required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 250),
+        opacity: isSelected ? 1 : 0,
+        child: Container(
+          height: 3,
+          margin: EdgeInsets.symmetric(horizontal: MySize.getWidth(40)),
+          decoration: BoxDecoration(
+            color: ColorConstants.primaryColor,
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FullWidthNavItem extends StatelessWidget {
   final String icon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _NavBarItem({
+  const _FullWidthNavItem({
     required this.icon,
     required this.label,
     required this.isSelected,
@@ -188,123 +149,32 @@ class _NavBarItem extends StatefulWidget {
   });
 
   @override
-  State<_NavBarItem> createState() => _NavBarItemState();
-}
-
-class _NavBarItemState extends State<_NavBarItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _backgroundAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Interval(0.3, 1.0)));
-
-    _backgroundAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    if (widget.isSelected) {
-      _controller.forward();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _NavBarItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return InkWell(
-          onTap: widget.onTap,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          focusColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-            constraints: const BoxConstraints(minWidth: 0),
-            decoration: BoxDecoration(
-              color: ColorConstants.primaryColor.withValues(
-                alpha: 0.1 * _backgroundAnimation.value,
-              ),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: ColorConstants.primaryColor.withValues(
-                  alpha: _backgroundAnimation.value,
-                ),
-                width: 1,
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: ColorConstants.primaryColor.withValues(alpha: 0.05),
+        highlightColor: Colors.transparent,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              icon,
+              height: MySize.getHeight(22),
+              color: isSelected ? ColorConstants.primaryColor : Colors.grey[400],
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: MySize.getHeight(13),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? ColorConstants.primaryColor : Colors.grey[500],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Image.asset(
-                    widget.icon,
-                    height: MySize.getHeight(20),
-                    color: Color.lerp(
-                      Colors.grey[600]!,
-                      ColorConstants.primaryColor,
-                      _backgroundAnimation.value,
-                    ),
-                  ),
-                ),
-                if (_fadeAnimation.value > 0)
-                  SizeTransition(
-                    axis: Axis.horizontal,
-                    sizeFactor: _fadeAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 6),
-                      child: Text(
-                        widget.label,
-                        style: TextStyle(
-                          fontSize: MySize.getHeight(11),
-                          color: ColorConstants.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

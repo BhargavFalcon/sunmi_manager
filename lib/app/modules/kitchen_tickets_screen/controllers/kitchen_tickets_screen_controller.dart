@@ -10,9 +10,7 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/login_models.dart';
 import '../../../model/kitchen_ticket_model.dart';
-import '../../../utils/printer_helper.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
-import '../../../services/escpos_invoice_printer_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -179,14 +177,9 @@ class KitchenTicketsScreenController extends GetxController {
         return;
       }
 
-      final isSunmi = await PrinterHelper.isSunmiDevice();
-      if (isSunmi) {
-        final sunmiService = SunmiInvoicePrinterService();
-        await sunmiService.printKOT(ticket, copies: 1);
-      } else {
-        final escPosService = EscPosInvoicePrinterService();
-        await escPosService.printKOT(ticket, copies: 1);
-      }
+      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
+      final sunmiService = SunmiInvoicePrinterService();
+      await sunmiService.printKOT(ticket, copies: 1);
     } catch (e) {
       log('Manual-print KOT Error: $e');
       AppToast.showError(

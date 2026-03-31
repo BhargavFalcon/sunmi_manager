@@ -9,8 +9,6 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/receipt_order_response_model.dart';
 import 'package:managerapp/app/services/sunmi_invoice_printer_service.dart';
-import 'package:managerapp/app/services/escpos_invoice_printer_service.dart';
-import 'package:managerapp/app/utils/printer_helper.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/utils/order_helpers.dart' as helpers;
@@ -150,11 +148,8 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       return;
     }
     try {
-      if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printReceiptFromApi(receiptData);
-      } else {
-        await EscPosInvoicePrinterService().printReceiptFromApi(receiptData);
-      }
+      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
+      await SunmiInvoicePrinterService().printReceiptFromApi(receiptData);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,

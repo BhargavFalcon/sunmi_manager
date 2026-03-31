@@ -4,14 +4,8 @@ import 'package:get/get.dart';
 import '../../../data/pusher_service.dart';
 import '../../../data/NetworkClient.dart';
 import '../../order_screen/controllers/order_screen_controller.dart';
-import '../../table_screen/controllers/table_screen_controller.dart';
-import '../../cart_screen/controllers/cart_screen_controller.dart';
-import '../../take_order_screen/controllers/take_order_controller.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
-import '../../../constants/translation_keys.dart';
-import '../../../constants/color_constant.dart';
-import '../../../constants/sizeConstant.dart';
 import '../../../model/login_models.dart';
 import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/restaurant_details_model.dart';
@@ -20,7 +14,6 @@ import '../../../services/printer_service.dart';
 class MainHomeScreenController extends GetxController {
   final selectedIndex = 0.obs;
   final PageController pageController = PageController(initialPage: 0);
-  int _previousIndex = 0;
   final networkClient = NetworkClient();
   
   // Ready items state: tableId -> { "items": List, "time": String }
@@ -75,11 +68,11 @@ class MainHomeScreenController extends GetxController {
     _subscribeToPusher();
     _fetchMobileAppModules();
 
-    // Ensure printer auto-connection is triggered
+    // Ensure printer settings are loaded
     Future.delayed(const Duration(seconds: 3), () {
       try {
         if (Get.isRegistered<PrinterService>()) {
-          Get.find<PrinterService>().checkConnection();
+          Get.find<PrinterService>().loadGeneralSettings();
         }
       } catch (_) {}
     });
@@ -103,120 +96,10 @@ class MainHomeScreenController extends GetxController {
   }
 
   void changeTab(int index) {
-    if (index == 3) {
-      clearNewKotPulse();
-    }
-    if (selectedIndex.value == 2 && index != 2 && _hasCartItems()) {
-      _showNavigationConfirmationDialog(index);
-      return;
-    }
-
     _performTabChange(index);
   }
 
-  bool _hasCartItems() {
-    try {
-      return Get.isRegistered<CartScreenController>() &&
-          Get.find<CartScreenController>().cartItems.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  void _showNavigationConfirmationDialog(int targetIndex) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: ColorConstants.bgColor),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                TranslationKeys.warning.tr,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(16),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                TranslationKeys.areYouSureExit.tr,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: MySize.getHeight(12)),
-              ),
-              SizedBox(height: MySize.getHeight(20)),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Get.back(),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        padding: EdgeInsets.symmetric(
-                          vertical: MySize.getHeight(12),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        TranslationKeys.cancel.tr,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: MySize.getHeight(14),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Get.back();
-                        _clearCartIfExists();
-                        _performTabChange(targetIndex);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: ColorConstants.primaryColor,
-                        padding: EdgeInsets.symmetric(
-                          vertical: MySize.getHeight(12),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        TranslationKeys.confirm.tr,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: MySize.getHeight(14),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
   void _performTabChange(int index) {
-    if (index == 2 && selectedIndex.value != 2) {
-      _clearCartIfExists();
-      _resetTakeOrderForNewOrder();
-    }
-
     selectedIndex.value = index;
     pageController.animateToPage(
       index,
@@ -224,25 +107,13 @@ class MainHomeScreenController extends GetxController {
       curve: Curves.easeInOut,
     );
 
-    _previousIndex = index;
-
-    // Refresh data when switching to All Orders or Dine In (e.g. when returning from cart/order update)
+    // Refresh data when switching to All Orders (index 0)
     if (index == 0) {
       try {
         if (Get.isRegistered<OrderScreenController>()) {
           Get.find<OrderScreenController>().fetchAllOrders();
         }
-      } catch (_) {
-        // OrderScreenController not registered
-      }
-    } else if (index == 1) {
-      try {
-        if (Get.isRegistered<TableScreenController>()) {
-          Get.find<TableScreenController>().fetchTablesAreas();
-        }
-      } catch (_) {
-        // TableScreenController not registered
-      }
+      } catch (_) {}
     }
   }
 
@@ -251,11 +122,6 @@ class MainHomeScreenController extends GetxController {
   }
 
   void onPageChanged(int index) {
-    if (index == 2 && _previousIndex != 2) {
-      _clearCartIfExists();
-      _resetTakeOrderForNewOrder();
-    }
-
     selectedIndex.value = index;
 
     if (index == 0) {
@@ -264,39 +130,7 @@ class MainHomeScreenController extends GetxController {
           final orderController = Get.find<OrderScreenController>();
           orderController.fetchAllOrders();
         }
-      } catch (_) {
-        // OrderScreenController not registered
-      }
-    } else if (index == 1) {
-      try {
-        final tableController = Get.find<TableScreenController>();
-        tableController.fetchTablesAreas();
-      } catch (_) {
-        // TableScreenController not registered
-      }
-    }
-
-    _previousIndex = index;
-  }
-
-  void _clearCartIfExists() {
-    try {
-      if (Get.isRegistered<CartScreenController>()) {
-        final cartController = Get.find<CartScreenController>();
-        cartController.clearCart();
-      }
-    } catch (_) {
-      // Controller not registered or already disposed
-    }
-  }
-
-  void _resetTakeOrderForNewOrder() {
-    try {
-      if (Get.isRegistered<TakeOrderController>()) {
-        Get.find<TakeOrderController>().resetForNewOrder();
-      }
-    } catch (_) {
-      // Controller not registered or already disposed
+      } catch (_) {}
     }
   }
 

@@ -204,6 +204,13 @@ class LocaleString extends Translations {
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'All Orders',
+      'newStatus': 'New',
+      'preparingStatus': 'Preparing',
+      'readyStatus': 'Ready',
+      'startPreparing': 'Start Preparing',
+      'setToReady': 'Start Ready',
+      'completeOrder': 'Complete Order',
+      'shop': 'Shop',
       'dineIn': 'Dine In',
       'pickup': 'Pickup',
       'delivery': 'Delivery',
@@ -659,6 +666,13 @@ class LocaleString extends Translations {
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle bestillinger',
+      'newStatus': 'Ny',
+      'preparingStatus': 'Under tilberedning',
+      'readyStatus': 'Klar',
+      'startPreparing': 'Start Under tilberedning',
+      'setToReady': 'Start Klar',
+      'completeOrder': 'Gennemfør bestilling',
+      'shop': 'Butik',
       'dineIn': 'Spis på stedet',
       'pickup': 'Afhentning',
       'delivery': 'Levering',
@@ -1059,6 +1073,13 @@ class LocaleString extends Translations {
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle Bestellungen',
+      'newStatus': 'Neu',
+      'preparingStatus': 'In Arbeit',
+      'readyStatus': 'Bereit',
+      'startPreparing': 'Start In Arbeit',
+      'setToReady': 'Start Bereit',
+      'completeOrder': 'Bestellung abschließen',
+      'shop': 'Shop',
       'dineIn': 'Vor Ort essen',
       'pickup': 'Abholung',
       'delivery': 'Lieferung',
@@ -1459,7 +1480,14 @@ class LocaleString extends Translations {
 
       // ========== ORDER SCREEN ==========
       'allOrders': 'Alle bestellingen',
-      'dineIn': 'Ter plaatse eten',
+      'newStatus': 'Nieuw',
+      'preparingStatus': 'In bereiding',
+      'readyStatus': 'Klaar',
+      'startPreparing': 'Start In bereiding',
+      'setToReady': 'Start Klaar',
+      'completeOrder': 'Bestelling afronden',
+      'shop': 'Winkel',
+      'dineIn': 'Eten ter plaatse',
       'pickup': 'Afhalen',
       'delivery': 'Bezorging',
       'noOrdersFound': 'Geen bestellingen gevonden',

@@ -20,8 +20,6 @@ import '../../../model/all_orders_model.dart' as order_model;
 import '../../../model/get_order_model.dart' as order_details_model;
 import '../../../model/receipt_order_response_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
-import '../../../services/escpos_invoice_printer_service.dart';
-import '../../../utils/printer_helper.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../utils/date_time_formatter.dart';
 import '../../../utils/order_helpers.dart' as helpers;
@@ -53,6 +51,7 @@ String _formatPlacedViaTextStatic(String placedVia) {
       return placedVia.toUpperCase();
   }
 }
+
 
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
@@ -99,6 +98,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                   children: [
                                     Row(
                                       children: [
+                                        // Date Filter
                                         Expanded(
                                           child: MenuAnchor(
                                             style: MenuStyle(
@@ -126,7 +126,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                         EdgeInsets.symmetric(
                                                           horizontal:
                                                               MySize.getWidth(
-                                                                5,
+                                                                8,
                                                               ),
                                                           vertical:
                                                               MySize.getHeight(
@@ -230,6 +230,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                           ),
                                         ),
                                         SizedBox(width: MySize.getWidth(4)),
+                                        // Status Filter
                                         Expanded(
                                           child: MenuAnchor(
                                             style: MenuStyle(
@@ -257,7 +258,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                         EdgeInsets.symmetric(
                                                           horizontal:
                                                               MySize.getWidth(
-                                                                6,
+                                                                8,
                                                               ),
                                                           vertical:
                                                               MySize.getHeight(
@@ -283,19 +284,25 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                           MainAxisAlignment
                                                               .spaceBetween,
                                                       children: [
-                                                        Text(
-                                                          _translateOrderFilter(
-                                                            controller
-                                                                .selectedOrderFilter
-                                                                .value,
-                                                          ),
-                                                          style: TextStyle(
-                                                            fontSize:
-                                                                MySize.getHeight(
-                                                                  13,
-                                                                ),
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                                        Expanded(
+                                                          child: Text(
+                                                            _translateOrderFilter(
+                                                              controller
+                                                                  .selectedOrderFilter
+                                                                  .value,
+                                                            ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  MySize.getHeight(
+                                                                    13,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
                                                           ),
                                                         ),
                                                         Icon(
@@ -341,235 +348,42 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                     ),
                                     SizedBox(height: MySize.getHeight(8)),
                                     Obx(() {
-                                      final selectedType =
-                                          controller.selectedOrderType.value;
-                                      final shortestSide =
-                                          MediaQuery.of(
-                                            context,
-                                          ).size.shortestSide;
-                                      final isTablet = shortestSide >= 600;
-                                      return Center(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            border: Border.all(
-                                              color: Colors.grey.shade300,
-                                              width: 1.5,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              MySize.getHeight(8),
-                                            ),
+                                      final selectedStatus =
+                                          controller.selectedLocalStatus.value;
+                                      return Container(
+                                        height: MySize.getHeight(45),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            MySize.getHeight(8),
                                           ),
-                                          child: Padding(
-                                            padding: EdgeInsets.all(
-                                              MySize.getHeight(2),
-                                            ),
-                                            child:
-                                                isTablet
-                                                    ? Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Flexible(
-                                                          child: _buildOrderTypeButton(
-                                                            icon:
-                                                                ImageConstant
-                                                                    .allOrders,
-                                                            label:
-                                                                TranslationKeys
-                                                                    .allOrders
-                                                                    .tr,
-                                                            isSelected:
-                                                                selectedType ==
-                                                                'All Orders',
-                                                            onTap:
-                                                                () => controller
-                                                                    .updateOrderType(
-                                                                      'All Orders',
-                                                                    ),
-                                                            isTablet: isTablet,
-                                                          ),
-                                                        ),
-                                                        Flexible(
-                                                          child: _buildOrderTypeButton(
-                                                            icon:
-                                                                ImageConstant
-                                                                    .dinein,
-                                                            label:
-                                                                TranslationKeys
-                                                                    .dineIn
-                                                                    .tr,
-                                                            isSelected:
-                                                                selectedType ==
-                                                                'Dine In',
-                                                            onTap:
-                                                                () => controller
-                                                                    .updateOrderType(
-                                                                      'Dine In',
-                                                                    ),
-                                                            isTablet: isTablet,
-                                                          ),
-                                                        ),
-                                                        Flexible(
-                                                          child: _buildOrderTypeButton(
-                                                            icon:
-                                                                ImageConstant
-                                                                    .counter,
-                                                            label:
-                                                                TranslationKeys
-                                                                    .counter
-                                                                    .tr,
-                                                            isSelected:
-                                                                selectedType ==
-                                                                'Counter',
-                                                            onTap:
-                                                                () => controller
-                                                                    .updateOrderType(
-                                                                      'Counter',
-                                                                    ),
-                                                            isTablet: isTablet,
-                                                          ),
-                                                        ),
-                                                        Flexible(
-                                                          child: _buildOrderTypeButton(
-                                                            icon:
-                                                                ImageConstant
-                                                                    .pickup,
-                                                            label:
-                                                                TranslationKeys
-                                                                    .pickup
-                                                                    .tr,
-                                                            isSelected:
-                                                                selectedType ==
-                                                                'Pickup',
-                                                            onTap:
-                                                                () => controller
-                                                                    .updateOrderType(
-                                                                      'Pickup',
-                                                                    ),
-                                                            isTablet: isTablet,
-                                                          ),
-                                                        ),
-                                                        Flexible(
-                                                          child: _buildOrderTypeButton(
-                                                            icon:
-                                                                ImageConstant
-                                                                    .delivery,
-                                                            label:
-                                                                TranslationKeys
-                                                                    .delivery
-                                                                    .tr,
-                                                            isSelected:
-                                                                selectedType ==
-                                                                'Delivery',
-                                                            onTap:
-                                                                () => controller
-                                                                    .updateOrderType(
-                                                                      'Delivery',
-                                                                    ),
-                                                            isTablet: isTablet,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    )
-                                                    : Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceAround,
-                                                      children: [
-                                                        _buildOrderTypeButton(
-                                                          icon:
-                                                              ImageConstant
-                                                                  .allOrders,
-                                                          label:
-                                                              TranslationKeys
-                                                                  .allOrders
-                                                                  .tr,
-                                                          isSelected:
-                                                              selectedType ==
-                                                              'All Orders',
-                                                          onTap:
-                                                              () => controller
-                                                                  .updateOrderType(
-                                                                    'All Orders',
-                                                                  ),
-                                                          isTablet: isTablet,
-                                                        ),
-                                                        _buildOrderTypeButton(
-                                                          icon:
-                                                              ImageConstant
-                                                                  .dinein,
-                                                          label:
-                                                              TranslationKeys
-                                                                  .dineIn
-                                                                  .tr,
-                                                          isSelected:
-                                                              selectedType ==
-                                                              'Dine In',
-                                                          onTap:
-                                                              () => controller
-                                                                  .updateOrderType(
-                                                                    'Dine In',
-                                                                  ),
-                                                          isTablet: isTablet,
-                                                        ),
-                                                        _buildOrderTypeButton(
-                                                          icon:
-                                                              ImageConstant
-                                                                  .counter,
-                                                          label:
-                                                              TranslationKeys
-                                                                  .counter
-                                                                  .tr,
-                                                          isSelected:
-                                                              selectedType ==
-                                                              'Counter',
-                                                          onTap:
-                                                              () => controller
-                                                                  .updateOrderType(
-                                                                    'Counter',
-                                                                  ),
-                                                          isTablet: isTablet,
-                                                        ),
-                                                        _buildOrderTypeButton(
-                                                          icon:
-                                                              ImageConstant
-                                                                  .pickup,
-                                                          label:
-                                                              TranslationKeys
-                                                                  .pickup
-                                                                  .tr,
-                                                          isSelected:
-                                                              selectedType ==
-                                                              'Pickup',
-                                                          onTap:
-                                                              () => controller
-                                                                  .updateOrderType(
-                                                                    'Pickup',
-                                                                  ),
-                                                          isTablet: isTablet,
-                                                        ),
-                                                        _buildOrderTypeButton(
-                                                          icon:
-                                                              ImageConstant
-                                                                  .delivery,
-                                                          label:
-                                                              TranslationKeys
-                                                                  .delivery
-                                                                  .tr,
-                                                          isSelected:
-                                                              selectedType ==
-                                                              'Delivery',
-                                                          onTap:
-                                                              () => controller
-                                                                  .updateOrderType(
-                                                                    'Delivery',
-                                                                  ),
-                                                          isTablet: isTablet,
-                                                        ),
-                                                      ],
-                                                    ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            MySize.getHeight(8),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              _buildStatusTab(
+                                                label: TranslationKeys.newStatus.tr,
+                                                isSelected: selectedStatus == 'New',
+                                                onTap: () => controller.selectedLocalStatus.value = 'New',
+                                              ),
+                                              _buildStatusTab(
+                                                label: TranslationKeys.preparingStatus.tr,
+                                                isSelected: selectedStatus == 'Preparing',
+                                                onTap: () => controller.selectedLocalStatus.value = 'Preparing',
+                                              ),
+                                              _buildStatusTab(
+                                                label: TranslationKeys.readyStatus.tr,
+                                                isSelected: selectedStatus == 'Ready',
+                                                onTap: () => controller.selectedLocalStatus.value = 'Ready',
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       );
@@ -643,7 +457,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
       onRefresh: controller.onRefresh,
       color: ColorConstants.primaryColor,
       child: Obx(() {
-        if (controller.allOrders.isEmpty && !controller.isLoading.value) {
+        final filteredList = controller.filteredOrdersByLocalStatus;
+        if (filteredList.isEmpty && !controller.isLoading.value) {
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
@@ -678,11 +493,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount:
-              controller.allOrders.length +
+              filteredList.length +
               (controller.isLoadingMore.value ? 1 : 0),
           separatorBuilder: (_, __) => SizedBox(height: MySize.getHeight(10)),
           itemBuilder: (context, index) {
-            if (index == controller.allOrders.length) {
+            if (index == filteredList.length) {
               return Padding(
                 padding: EdgeInsets.all(MySize.getWidth(16)),
                 child: Center(
@@ -693,7 +508,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 ),
               );
             }
-            final order = controller.allOrders[index];
+            final order = filteredList[index];
             return InkWell(
               hoverColor: Colors.transparent,
               focusColor: Colors.transparent,
@@ -1153,11 +968,17 @@ class OrderScreenView extends GetView<OrderScreenController> {
               if (couponCode != null && couponCode.isNotEmpty) ...[
                 SizedBox(width: MySize.getWidth(8)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.purple.shade100,
                     borderRadius: BorderRadius.circular(MySize.getHeight(6)),
-                    border: Border.all(color: Colors.purple.shade300, width: 1.5),
+                    border: Border.all(
+                      color: Colors.purple.shade300,
+                      width: 1.5,
+                    ),
                   ),
                   child: Text(
                     '${TranslationKeys.coupon.tr.toUpperCase()}: ${couponCode.toUpperCase()}',
@@ -1821,17 +1642,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
         return;
       }
 
-      if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printReceiptFromApi(
-          model.data!,
-          copies: 1,
-        );
-      } else {
-        await EscPosInvoicePrinterService().printReceiptFromApi(
-          model.data!,
-          copies: 1,
-        );
-      }
+      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
+      await SunmiInvoicePrinterService().printReceiptFromApi(
+        model.data!,
+        copies: 1,
+      );
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
@@ -1870,11 +1685,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
         return;
       }
 
-      if (await PrinterHelper.isSunmiDevice()) {
-        await SunmiInvoicePrinterService().printInvoice(orderData, copies: 1);
-      } else {
-        await EscPosInvoicePrinterService().printInvoice(orderData, copies: 1);
-      }
+      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
+      await SunmiInvoicePrinterService().printInvoice(orderData, copies: 1);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
@@ -1886,21 +1698,37 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 }
 
-Widget _buildOrderTypeButton({
-  required String icon,
+Widget _buildStatusTab({
   required String label,
   required bool isSelected,
   required VoidCallback onTap,
-  required bool isTablet,
 }) {
-  return _OrderTypeButtonItem(
-    icon: icon,
-    label: label,
-    isSelected: isSelected,
-    onTap: onTap,
-    isTablet: isTablet,
+  return Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: MySize.getWidth(4)),
+        decoration: BoxDecoration(
+          color: isSelected ? ColorConstants.primaryColor : Colors.white,
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.grey.shade700,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: MySize.getHeight(14),
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
+
 
 class OrderCard extends StatelessWidget {
   final order_model.Orders order;
@@ -1925,7 +1753,6 @@ class OrderCard extends StatelessWidget {
       order.dateTime,
       order.formattedDateTime,
     );
-    final itemsCount = order.itemsCount ?? 0;
     final formattedPrice = CurrencyFormatter.formatPrice(order.total ?? '0');
     final waiterName = order.waiter?.name ?? '';
 
@@ -1957,27 +1784,27 @@ class OrderCard extends StatelessWidget {
                       order.orderType?.toLowerCase() == 'pickup'
                           ? Image.asset(
                             ImageConstant.pickup,
-                            width: MySize.getHeight(16),
-                            height: MySize.getHeight(16),
+                            width: MySize.getHeight(28),
+                            height: MySize.getHeight(28),
                           )
                           : order.orderType?.toLowerCase() == 'delivery'
                           ? Image.asset(
                             ImageConstant.delivery,
-                            width: MySize.getHeight(16),
-                            height: MySize.getHeight(16),
+                            width: MySize.getHeight(28),
+                            height: MySize.getHeight(28),
                           )
                           : order.orderType?.toLowerCase() == 'counter'
                           ? Image.asset(
                             ImageConstant.counter,
-                            width: MySize.getHeight(16),
-                            height: MySize.getHeight(16),
+                            width: MySize.getHeight(28),
+                            height: MySize.getHeight(28),
                           )
                           : Text(
                             tableCode,
                             style: TextStyle(
                               color: ColorConstants.primaryColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: MySize.getHeight(11),
+                              fontSize: MySize.getHeight(13),
                             ),
                           ),
                 ),
@@ -1991,15 +1818,15 @@ class OrderCard extends StatelessWidget {
                         orderNumber,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: MySize.getHeight(12),
+                          fontSize: MySize.getHeight(14),
                         ),
                       ),
                       if (order.customer != null && customerName.isNotEmpty)
                         Text(
                           customerName,
                           style: TextStyle(
-                            color: ColorConstants.grey600,
-                            fontSize: MySize.getHeight(11),
+                            color: Colors.black,
+                            fontSize: MySize.getHeight(13),
                           ),
                         ),
                     ],
@@ -2008,21 +1835,11 @@ class OrderCard extends StatelessWidget {
                 _statusBadge(formattedStatus, statusColor),
               ],
             ),
-            SizedBox(height: MySize.getHeight(6)),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: Text(
-                    formattedDateTime,
-                    style: TextStyle(
-                      color: ColorConstants.grey600,
-                      fontSize: MySize.getHeight(12),
-                    ),
-                  ),
-                ),
                 Text(
-                  "$itemsCount ${TranslationKeys.itemsPlural.tr}",
+                  formattedDateTime,
                   style: TextStyle(
                     color: ColorConstants.grey600,
                     fontSize: MySize.getHeight(12),
@@ -2033,7 +1850,7 @@ class OrderCard extends StatelessWidget {
             Divider(
               color: Colors.grey.shade300,
               thickness: MySize.getHeight(1),
-              height: MySize.getHeight(10),
+              height: MySize.getHeight(6),
             ),
             Row(
               children: [
@@ -2041,7 +1858,7 @@ class OrderCard extends StatelessWidget {
                   formattedPrice,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: MySize.getHeight(15),
+                    fontSize: MySize.getHeight(17),
                   ),
                 ),
                 if (waiterName.isNotEmpty) SizedBox(width: MySize.getWidth(10)),
@@ -2062,31 +1879,7 @@ class OrderCard extends StatelessWidget {
                     ],
                   ),
                 const Spacer(),
-                if (order.coupon != null && order.coupon!.code != null)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.shade100,
-                      borderRadius: BorderRadius.circular(MySize.getHeight(6)),
-                      border: Border.all(
-                        color: Colors.purple.shade300,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
-                      style: TextStyle(
-                        color: Colors.purple.shade700,
-                        fontSize: MySize.getHeight(11),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                if (order.coupon != null &&
-                    order.coupon!.code != null &&
-                    order.placedVia != null &&
-                    order.placedVia!.isNotEmpty)
-                  SizedBox(width: MySize.getWidth(6)),
+
                 if (order.placedVia != null && order.placedVia!.isNotEmpty)
                   Builder(
                     builder: (context) {
@@ -2109,16 +1902,67 @@ class OrderCard extends StatelessWidget {
                           _formatPlacedViaTextStatic(order.placedVia!),
                           style: TextStyle(
                             color: placedViaColor,
-                            fontSize: MySize.getHeight(11),
+                            fontSize: MySize.getHeight(13),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       );
                     },
                   ),
+                const Spacer(),
+                _buildActionButtons(context),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    final controller = Get.find<OrderScreenController>();
+    final currentLocalStatus = controller.getLocalStatus(order.id.toString());
+
+    if (currentLocalStatus == 'New') {
+      return _buildActionButton(
+        label: TranslationKeys.startPreparing.tr,
+        color: ColorConstants.primaryColor,
+        onTap: () => controller.updateLocalStatus(order.id.toString(), 'Preparing'),
+      );
+    } else if (currentLocalStatus == 'Preparing') {
+      return _buildActionButton(
+        label: TranslationKeys.setToReady.tr,
+        color: ColorConstants.statusPaid,
+        onTap: () => controller.updateLocalStatus(order.id.toString(), 'Ready'),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(12),
+          vertical: MySize.getHeight(6),
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+          border: Border.all(color: color, width: 1.5),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: MySize.getHeight(13),
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

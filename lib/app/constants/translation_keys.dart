@@ -48,6 +48,7 @@ class TranslationKeys {
   static const String qtyItemNamePriceAmount = 'qtyItemNamePriceAmount';
   static const String noData = 'noData';
   static const String empty = 'empty';
+  static const String apiKeyRequired = 'apiKeyRequired';
   static const String na = 'na';
   static const String incl = 'incl';
   static const String inc = 'inc';
@@ -57,6 +58,13 @@ class TranslationKeys {
 
   // Order Screen
   static const String allOrders = 'allOrders';
+  static const String newStatus = 'newStatus';
+  static const String preparingStatus = 'preparingStatus';
+  static const String readyStatus = 'readyStatus';
+  static const String startPreparing = 'startPreparing';
+  static const String setToReady = 'setToReady';
+  static const String completeOrder = 'completeOrder';
+  static const String shop = 'shop';
   static const String dineIn = 'dineIn';
   static const String pickup = 'pickup';
   static const String delivery = 'delivery';

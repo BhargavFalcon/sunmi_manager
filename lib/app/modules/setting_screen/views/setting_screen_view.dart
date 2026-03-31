@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/language_utils.dart';
-
+import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../controllers/setting_screen_controller.dart';
 
 class SettingScreenView extends GetWidget<SettingScreenController> {
@@ -38,20 +38,23 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                   boxShadow: ColorConstants.getShadow2,
                 ),
                 child: Obx(() {
-                  final hasBranchDetails = controller.branchName.value.isNotEmpty;
+                  final hasBranchDetails =
+                      controller.branchName.value.isNotEmpty;
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (controller.branchLogo.value.isNotEmpty)
                         Container(
                           margin: EdgeInsets.only(right: MySize.getWidth(12)),
-                          height: MySize.getHeight(44),
-                          width: MySize.getHeight(44),
+                          height: MySize.getHeight(40),
+                          width: MySize.getHeight(40),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
                             border: Border.all(
-                              color: ColorConstants.primaryColor.withValues(alpha: 0.3),
+                              color: ColorConstants.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
                               width: MySize.getWidth(1.5),
                             ),
                           ),
@@ -96,19 +99,74 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Obx(
-                          () => _buildSettingItemWithLoader(
-                            icon: Icons.sync,
-                            title: TranslationKeys.syncMenu.tr,
-                            color: ColorConstants.primaryColor,
-                            onTap: () {
-                              showSyncMenuDialog(context: context);
-                            },
-                            showArrow: false,
-                            isLoading: controller.isSyncingMenu.value,
-                          ),
-                        ),
-                        SizedBox(height: MySize.getHeight(8)),
+                        // Shop Controls Section
+                        Obx(() => _buildSectionHeader(
+                          title: TranslationKeys.shopControls.tr,
+                          isExpanded: controller.isShopSettingsExpanded.value,
+                          onTap: () => controller.isShopSettingsExpanded.toggle(),
+                        )),
+                        Obx(() {
+                          if (!controller.isShopSettingsExpanded.value) return const SizedBox();
+                          
+                          if (controller.isShopSettingsLoading.value) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: MySize.getHeight(20)),
+                              child: Center(
+                                child: CupertinoActivityIndicator(
+                                  color: ColorConstants.primaryColor,
+                                ),
+                              ),
+                            );
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildShopControlSwitch(
+                                title: TranslationKeys.acceptNewOrders.tr,
+                                value: controller.acceptNewOrders.value,
+                                onChanged:
+                                    (val) =>
+                                        controller.acceptNewOrders.value = val,
+                              ),
+                                    SizedBox(height: MySize.getHeight(10)),
+                              _buildShopControlSwitch(
+                                title: TranslationKeys.enableScheduleForLater.tr,
+                                value: controller.enableScheduleForLater.value,
+                                onChanged:
+                                    (val) =>
+                                        controller.enableScheduleForLater.value =
+                                            val,
+                              ),
+                                    SizedBox(height: MySize.getHeight(12)),
+                              _buildShopControlField(
+                                label: TranslationKeys.minOrderAmount.tr,
+                                controller: controller.minOrderAmountController,
+                                decimalSeparator:
+                                    controller.decimalSeparator.value,
+                              ),
+                                    SizedBox(height: MySize.getHeight(10)),
+                                    SizedBox(height: MySize.getHeight(8)),
+                              _buildShopControlField(
+                                label: TranslationKeys.deliveryFee.tr,
+                                controller: controller.deliveryFeeController,
+                                decimalSeparator:
+                                    controller.decimalSeparator.value,
+                              ),
+                                    SizedBox(height: MySize.getHeight(8)),
+                              _buildShopControlField(
+                                label: TranslationKeys.freeDeliveryOverAmount.tr,
+                                controller:
+                                    controller.freeDeliveryAmountController,
+                                decimalSeparator:
+                                    controller.decimalSeparator.value,
+                              ),
+                              SizedBox(height: MySize.getHeight(8)),
+                              _buildShopSaveButton(controller),
+                            ],
+                          );
+                        }),
+                        SizedBox(height: MySize.getHeight(12)),
+
                         Obx(
                           () => _buildLanguageSettingItem(
                             controller: controller,
@@ -117,7 +175,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             },
                           ),
                         ),
-                        SizedBox(height: MySize.getHeight(8)),
+                        SizedBox(height: MySize.getHeight(6)),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.vibration,
@@ -127,7 +185,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             onToggle: () => controller.toggleHapticFeedback(),
                           ),
                         ),
-                        SizedBox(height: MySize.getHeight(8)),
+                        SizedBox(height: MySize.getHeight(6)),
                         Obx(
                           () => _buildToggleSettingItem(
                             icon: Icons.volume_up,
@@ -137,97 +195,31 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             onToggle: () => controller.toggleBeepSound(),
                           ),
                         ),
-                        SizedBox(height: MySize.getHeight(8)),
-                        _buildSettingItem(
-                          icon: Icons.notifications,
-                          title: TranslationKeys.manageNotifications.tr,
-                          color: ColorConstants.primaryColor,
-                          onTap: () {
-                            Get.toNamed(Routes.MANAGE_NOTIFICATION_SCREEN);
-                          },
-                          showArrow: true,
-                        ),
-                        SizedBox(height: MySize.getHeight(8)),
-                        _buildSettingItem(
-                          icon: Icons.storefront,
-                          title: TranslationKeys.shopControls.tr,
-                          color: ColorConstants.primaryColor,
-                          onTap: () {
-                            Get.toNamed(Routes.SHOP_CONTROLS_SCREEN);
-                          },
-                          showArrow: true,
-                        ),
-                        SizedBox(height: MySize.getHeight(8)),
+                        SizedBox(height: MySize.getHeight(6)),
                         Obx(
-                          () => Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(14),
-                              ),
-                              border: Border.all(
-                                color: ColorConstants.primaryColor.withValues(
-                                  alpha: 0.2,
-                                ),
-                                width: MySize.getWidth(1),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: MySize.getWidth(6),
-                                  offset: Offset(0, MySize.getHeight(2)),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                _buildSettingItemNoCard(
-                                  icon: Icons.print,
-                                  title: TranslationKeys.printerSettings.tr,
-                                  color: ColorConstants.primaryColor,
-                                  onTap:
-                                      () => controller.togglePrinterSection(),
-                                  showArrow: true,
-                                  isExpanded:
-                                      controller.isPrinterSectionExpanded.value,
-                                ),
-                                if (controller
-                                    .isPrinterSectionExpanded
-                                    .value) ...[
-                                  Divider(
-                                    height: 1,
-                                    color: ColorConstants.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    indent: MySize.getWidth(10),
-                                    endIndent: MySize.getWidth(10),
-                                  ),
-                                  _buildSettingItemNoCardIndented(
-                                    title: TranslationKeys.managePrinters.tr,
-                                    color: ColorConstants.primaryColor,
-                                    onTap: () {
-                                      Get.toNamed(Routes.MANAGE_PRINTER_SCREEN);
-                                    },
-                                  ),
-                                  Divider(
-                                    height: 1,
-                                    color: ColorConstants.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    indent: MySize.getWidth(10),
-                                    endIndent: MySize.getWidth(10),
-                                  ),
-                                  _buildSettingItemNoCardIndented(
-                                    title: TranslationKeys.printService.tr,
-                                    color: ColorConstants.primaryColor,
-                                    onTap: () {
-                                      Get.toNamed(Routes.PRINT_SERVICE);
-                                    },
-                                  ),
-                                ],
-                              ],
-                            ),
+                          () => _buildToggleSettingItem(
+                            icon: Icons.notifications_active,
+                            title: TranslationKeys.newShopOrders.tr,
+                            color: ColorConstants.primaryColor,
+                            value:
+                                controller.newShopOrderNotificationsEnabled.value,
+                            onToggle:
+                                () =>
+                                    controller.toggleNewShopOrderNotifications(),
                           ),
                         ),
-                        SizedBox(height: MySize.getHeight(8)),
+                        SizedBox(height: MySize.getHeight(6)),
+                        _buildSettingItem(
+                          icon: Icons.print,
+                          title: TranslationKeys.printerSettings.tr,
+                          color: ColorConstants.primaryColor,
+                          onTap: () {
+                            Get.toNamed(Routes.PRINT_SERVICE);
+                          },
+                          showArrow: true,
+                        ),
+
+                        SizedBox(height: MySize.getHeight(12)),
                         _buildSettingItem(
                           icon: Icons.power_settings_new_sharp,
                           title: TranslationKeys.logout.tr,
@@ -237,6 +229,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           },
                           showArrow: false,
                         ),
+                        SizedBox(height: MySize.getHeight(20)),
                       ],
                     ),
                   ),
@@ -246,6 +239,164 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSectionHeader({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(8),
+            vertical: MySize.getHeight(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: MySize.getWidth(4),
+                height: MySize.getHeight(16),
+                decoration: BoxDecoration(
+                  color: ColorConstants.primaryColor,
+                  borderRadius: BorderRadius.circular(MySize.getHeight(2)),
+                ),
+              ),
+              SizedBox(width: MySize.getWidth(8)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(16),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Icon(
+                isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                color: ColorConstants.primaryColor,
+                size: MySize.getHeight(20),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShopControlSwitch({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(16),
+        vertical: MySize.getHeight(10),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+        boxShadow: ColorConstants.getShadow2,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: MySize.getHeight(14),
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          Switch.adaptive(
+            value: value,
+            activeColor: ColorConstants.primaryColor,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShopControlField({
+    required String label,
+    required TextEditingController controller,
+    required String decimalSeparator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: MySize.getWidth(4), bottom: MySize.getHeight(4)),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: MySize.getHeight(12),
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+            boxShadow: ColorConstants.getShadow2,
+          ),
+          child: CommonTextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp('^\\d*[$decimalSeparator]?\\d*'),
+              ),
+            ],
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(16),
+              vertical: MySize.getHeight(10),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShopSaveButton(SettingScreenController controller) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed:
+            controller.isSavingShopSettings.value
+                ? null
+                : () => controller.saveShopSettings(),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ColorConstants.primaryColor,
+          padding: EdgeInsets.symmetric(vertical: MySize.getHeight(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MySize.getHeight(10)),
+          ),
+          elevation: 0,
+        ),
+        child:
+            controller.isSavingShopSettings.value
+                ? CupertinoActivityIndicator(color: Colors.white)
+                : Text(
+                  TranslationKeys.save.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+      ),
     );
   }
 
@@ -267,7 +418,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                   Text(
                     TranslationKeys.logout.tr,
                     style: TextStyle(
                       fontSize: MySize.getHeight(20),
@@ -288,10 +439,6 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                     children: [
                       Expanded(
                         child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
                           onTap:
                               controller.isLoading.value
                                   ? null
@@ -323,10 +470,6 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                       SizedBox(width: MySize.getWidth(12)),
                       Expanded(
                         child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
                           onTap:
                               controller.isLoading.value
                                   ? null
@@ -380,213 +523,6 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           ),
         );
       },
-    );
-  }
-
-  void showSyncMenuDialog({required BuildContext context}) {
-    final controller = Get.find<SettingScreenController>();
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Obx(
-          () => Dialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MySize.getHeight(12)),
-              side: BorderSide(color: ColorConstants.bgColor),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(MySize.getWidth(20)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    TranslationKeys.syncMenu.tr,
-                    style: TextStyle(
-                      fontSize: MySize.getHeight(20),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: MySize.getHeight(12)),
-                  Text(
-                    TranslationKeys.syncMenuMessage.tr,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: MySize.getHeight(14),
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: MySize.getHeight(24)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap:
-                              controller.isSyncingMenu.value
-                                  ? null
-                                  : () {
-                                    Navigator.of(context).pop();
-                                  },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: MySize.getHeight(12),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                TranslationKeys.cancel.tr,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: MySize.getHeight(14),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: MySize.getWidth(12)),
-                      Expanded(
-                        child: InkWell(
-                          hoverColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap:
-                              controller.isSyncingMenu.value
-                                  ? null
-                                  : () {
-                                    Navigator.of(context).pop();
-                                    controller.syncMenu();
-                                  },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: MySize.getHeight(12),
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  controller.isSyncingMenu.value
-                                      ? Colors.grey
-                                      : ColorConstants.primaryColor,
-                              borderRadius: BorderRadius.circular(
-                                MySize.getHeight(8),
-                              ),
-                            ),
-                            child: Center(
-                              child:
-                                  controller.isSyncingMenu.value
-                                      ? SizedBox(
-                                        width: MySize.getHeight(20),
-                                        height: MySize.getHeight(20),
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: MySize.getWidth(2),
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                      : Text(
-                                        TranslationKeys.sync.tr,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: MySize.getHeight(14),
-                                        ),
-                                      ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLanguageSettingItem({
-    required SettingScreenController controller,
-    required VoidCallback onTap,
-  }) {
-    final currentLanguage = controller.selectedLanguage.value;
-    final flagEmoji = LanguageUtils.getFlagEmoji(currentLanguage);
-    final languageName = LanguageUtils.getLanguageName(currentLanguage);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
-        child: Container(
-          height: MySize.getHeight(50),
-          padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(10),
-            vertical: MySize.getHeight(6),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
-            border: Border.all(
-              color: ColorConstants.primaryColor.withValues(alpha: 0.2),
-              width: MySize.getWidth(1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: MySize.getWidth(6),
-                offset: Offset(0, MySize.getHeight(2)),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                decoration: BoxDecoration(
-                  color: ColorConstants.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                ),
-                child: Icon(
-                  Icons.language,
-                  color: ColorConstants.primaryColor,
-                  size: MySize.getHeight(24),
-                ),
-              ),
-              SizedBox(width: MySize.getWidth(12)),
-              Expanded(
-                child: Text(
-                  languageName,
-                  style: TextStyle(
-                    fontSize: MySize.getHeight(12),
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-              Text(flagEmoji, style: TextStyle(fontSize: MySize.getHeight(18))),
-              SizedBox(width: MySize.getWidth(8)),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: MySize.getHeight(14),
-                color: Colors.grey.shade600,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -721,143 +657,34 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
     );
   }
 
-  Widget _buildSettingItem({
-    required IconData icon,
-    required String title,
-    required Color color,
+  Widget _buildLanguageSettingItem({
+    required SettingScreenController controller,
     required VoidCallback onTap,
-    required bool showArrow,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
-        child: Container(
-          height: MySize.getHeight(50),
-          padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(10),
-            vertical: MySize.getHeight(6),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: MySize.getWidth(1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: MySize.getWidth(6),
-                offset: Offset(0, MySize.getHeight(2)),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                ),
-                child: Icon(icon, color: color, size: MySize.getHeight(24)),
-              ),
-              SizedBox(width: MySize.getWidth(12)),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: MySize.getHeight(12),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (showArrow)
-                Icon(
-                  Icons.chevron_right,
-                  color: color.withValues(alpha: 0.6),
-                  size: MySize.getHeight(14),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    final currentLanguage = controller.selectedLanguage.value;
+    final flagEmoji = LanguageUtils.getFlagEmoji(currentLanguage);
+    final languageName = LanguageUtils.getLanguageName(currentLanguage);
 
-  Widget _buildSettingItemWithLoader({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-    required bool showArrow,
-    required bool isLoading,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
-        child: Container(
-          height: MySize.getHeight(50),
-          padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(10),
-            vertical: MySize.getHeight(6),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: MySize.getWidth(1),
+    return _buildSettingItem(
+      icon: Icons.language,
+      title: TranslationKeys.language.tr,
+      color: ColorConstants.primaryColor,
+      onTap: onTap,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            languageName,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: MySize.getHeight(14),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: MySize.getWidth(6),
-                offset: Offset(0, MySize.getHeight(2)),
-              ),
-            ],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(MySize.getHeight(6)),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                ),
-                child: Icon(icon, color: color, size: MySize.getHeight(24)),
-              ),
-              SizedBox(width: MySize.getWidth(12)),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: MySize.getHeight(12),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (isLoading)
-                CupertinoActivityIndicator(
-                  radius: MySize.getHeight(8),
-                  color: color,
-                )
-              else if (showArrow)
-                Icon(
-                  Icons.chevron_right,
-                  color: color.withValues(alpha: 0.6),
-                  size: MySize.getHeight(14),
-                ),
-            ],
-          ),
-        ),
+          SizedBox(width: MySize.getWidth(8)),
+          Text(flagEmoji, style: TextStyle(fontSize: MySize.getHeight(18))),
+        ],
       ),
+      showArrow: true,
     );
   }
 
@@ -868,31 +695,42 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
     required bool value,
     required VoidCallback onToggle,
   }) {
+    return _buildSettingItem(
+      icon: icon,
+      title: title,
+      color: color,
+      onTap: onToggle,
+      trailing: Switch.adaptive(
+        value: value,
+        activeColor: color,
+        onChanged: (_) => onToggle(),
+      ),
+      showArrow: false,
+    );
+  }
+
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+    Widget? trailing,
+    bool showArrow = true,
+  }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(MySize.getHeight(16)),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(MySize.getHeight(12)),
         child: Container(
-          height: MySize.getHeight(50),
           padding: EdgeInsets.symmetric(
-            horizontal: MySize.getWidth(10),
-            vertical: MySize.getHeight(6),
+            horizontal: MySize.getWidth(16),
+            vertical: MySize.getHeight(10),
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(MySize.getHeight(14)),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: MySize.getWidth(1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: MySize.getWidth(6),
-                offset: Offset(0, MySize.getHeight(2)),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
+            boxShadow: ColorConstants.getShadow2,
           ),
           child: Row(
             children: [
@@ -902,7 +740,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                 ),
-                child: Icon(icon, color: color, size: MySize.getHeight(24)),
+                child: Icon(icon, color: color, size: MySize.getHeight(20)),
               ),
               SizedBox(width: MySize.getWidth(12)),
               Expanded(
@@ -910,108 +748,20 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                   title,
                   style: TextStyle(
                     color: Colors.black87,
-                    fontSize: MySize.getHeight(12),
-                    fontWeight: FontWeight.w600,
+                    fontSize: MySize.getHeight(14),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              Switch(
-                value: value,
-                onChanged: (_) => onToggle(),
-                activeThumbColor: color,
-              ),
+              if (trailing != null) trailing,
+              if (showArrow)
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey.shade400,
+                  size: MySize.getHeight(14),
+                ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingItemNoCard({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-    required bool showArrow,
-    bool isExpanded = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: MySize.getHeight(50),
-        padding: EdgeInsets.symmetric(
-          horizontal: MySize.getWidth(10),
-          vertical: MySize.getHeight(6),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(MySize.getHeight(6)),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-              ),
-              child: Icon(icon, color: color, size: MySize.getHeight(24)),
-            ),
-            SizedBox(width: MySize.getWidth(12)),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: MySize.getHeight(12),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            if (showArrow)
-              Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: color.withValues(alpha: 0.6),
-                size: MySize.getHeight(18),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingItemNoCardIndented({
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: MySize.getHeight(50),
-        padding: EdgeInsets.symmetric(
-          horizontal: MySize.getWidth(10),
-          vertical: MySize.getHeight(6),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: MySize.getWidth(42),
-            ), // Indent to align with text above
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: MySize.getHeight(12),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: color.withValues(alpha: 0.6),
-              size: MySize.getHeight(14),
-            ),
-          ],
         ),
       ),
     );

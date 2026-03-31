@@ -55,14 +55,73 @@ class OrderScreenController extends GetxController {
   ];
 
   RxString selectedOrderType = 'All Orders'.obs;
+  RxString selectedSourceFilter = 'All Sources'.obs;
 
   Rx<DateTime> startDate = DateTime.now().obs;
   Rx<DateTime> endDate = DateTime.now().obs;
 
+  // Local Status Workflow
+  final String _localStatusKey = 'order_local_statuses';
+  final RxMap<String, String> orderLocalStatuses = <String, String>{}.obs;
+  final RxString selectedLocalStatus = 'New'.obs; // Default to New status
+  final List<String> localStatusOptions = [
+    'New',
+    'Preparing',
+    'Ready',
+  ];
+
+  final List<String> sourceOptions = [
+    'All Sources',
+    'iOS',
+    'Android',
+    'Shop',
+  ];
+
   @override
   void onInit() {
     super.onInit();
+    _initLocalStatuses();
     _updateDatesByOption('Today');
+  }
+
+  void _initLocalStatuses() {
+    try {
+      final stored = box.read(_localStatusKey);
+      if (stored != null && stored is Map) {
+        orderLocalStatuses.assignAll(
+          stored.map((k, v) => MapEntry(k.toString(), v.toString())),
+        );
+      }
+    } catch (e) {
+      // Initialize empty if error
+      orderLocalStatuses.clear();
+    }
+  }
+
+  void updateLocalStatus(String orderId, String status) {
+    orderLocalStatuses[orderId] = status;
+    box.write(_localStatusKey, Map<String, String>.from(orderLocalStatuses));
+    allOrders.refresh(); // Trigger UI update for filtered lists
+  }
+
+  String getLocalStatus(String orderId) {
+    return orderLocalStatuses[orderId] ?? 'New';
+  }
+
+  List<Orders> get filteredOrdersByLocalStatus {
+    final status = selectedLocalStatus.value;
+    return allOrders.where((order) {
+      final orderId = order.id.toString();
+      final currentStatus = getLocalStatus(orderId);
+      if (status == 'New') {
+        return currentStatus == 'New';
+      } else if (status == 'Preparing') {
+        return currentStatus == 'Preparing';
+      } else if (status == 'Ready') {
+        return currentStatus == 'Ready';
+      }
+      return false;
+    }).toList();
   }
 
   @override
@@ -196,6 +255,17 @@ class OrderScreenController extends GetxController {
       queryParams['status'] = statusMap[selectedOrderFilter.value];
     }
 
+    if (selectedSourceFilter.value != 'All Sources') {
+      final sourceMap = {
+        'iOS': 'ios',
+        'Android': 'android',
+        'Shop': 'shop',
+      };
+      if (sourceMap.containsKey(selectedSourceFilter.value)) {
+        queryParams['placed_via'] = sourceMap[selectedSourceFilter.value];
+      }
+    }
+
     final response = await networkClient.get(
       ArgumentConstant.allOrdersEndpoint,
       queryParameters: queryParams,
@@ -205,10 +275,14 @@ class OrderScreenController extends GetxController {
       final allOrdersModel = AllOrdersModel.fromJson(response.data);
       if (allOrdersModel.success == true && allOrdersModel.data != null) {
         final ordersList = allOrdersModel.data!.orders ?? [];
+        final filteredOrders =
+            ordersList
+                .where((order) => order.placedVia?.toLowerCase() != 'pos')
+                .toList();
         if (isLoadMore) {
-          allOrders.addAll(ordersList);
+          allOrders.addAll(filteredOrders);
         } else {
-          allOrders.value = ordersList;
+          allOrders.value = filteredOrders;
         }
         pagination = allOrdersModel.data!.pagination;
       }
@@ -294,6 +368,12 @@ class OrderScreenController extends GetxController {
 
   void updateOrderType(String value) {
     selectedOrderType.value = value;
+    currentPage = 1;
+    fetchAllOrders();
+  }
+
+  void updateSourceFilter(String value) {
+    selectedSourceFilter.value = value;
     currentPage = 1;
     fetchAllOrders();
   }
