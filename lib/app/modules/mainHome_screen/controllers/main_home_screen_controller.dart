@@ -49,15 +49,18 @@ class MainHomeScreenController extends GetxController {
   }
 
   bool isTableReady(int tableId) {
+    readyTables.length; // Ensure reactivity
     return readyTables.containsKey(tableId);
   }
 
   bool isAreaReady(List<dynamic>? tables) {
+    readyTables.length; // Ensure reactivity
     if (tables == null || tables.isEmpty) return false;
     return tables.any((table) => readyTables.containsKey(table.id));
   }
 
   bool hasAnyReadyTable() {
+    readyTables.length; // Ensure reactivity
     return readyTables.isNotEmpty;
   }
 

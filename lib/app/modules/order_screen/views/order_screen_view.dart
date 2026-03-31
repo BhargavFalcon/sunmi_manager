@@ -709,7 +709,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     order.orderType?.toLowerCase() == 'pickup';
                 final isCounter = order.orderType?.toLowerCase() == 'counter';
                 final showRunningDialog =
-                    isKotStatus && (hasTable || isDeliveryOrPickup || isCounter);
+                    isKotStatus &&
+                    (hasTable || isDeliveryOrPickup || isCounter);
                 if (isBilledStatus) {
                   _openPaymentForOrderCard(context, controller, order);
                   return;
@@ -1138,6 +1139,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
@@ -1148,78 +1150,57 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   ),
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: MySize.getHeight(8)),
-          // Coupon and Placed Via badges
-          if ((couponCode != null && couponCode.isNotEmpty) ||
-              (placedVia != null && placedVia.isNotEmpty))
-            Padding(
-              padding: EdgeInsets.only(bottom: MySize.getHeight(8)),
-              child: Row(
-                children: [
-                  if (couponCode != null && couponCode.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              if (couponCode != null && couponCode.isNotEmpty) ...[
+                SizedBox(width: MySize.getWidth(8)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade100,
+                    borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+                    border: Border.all(color: Colors.purple.shade300, width: 1.5),
+                  ),
+                  child: Text(
+                    '${TranslationKeys.coupon.tr.toUpperCase()}: ${couponCode.toUpperCase()}',
+                    style: TextStyle(
+                      color: Colors.purple.shade700,
+                      fontSize: MySize.getHeight(11),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+              if (placedVia != null && placedVia.isNotEmpty) ...[
+                SizedBox(width: MySize.getWidth(8)),
+                Builder(
+                  builder: (context) {
+                    final placedViaColor = _getPlacedViaColorStatic(placedVia);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade100,
+                        color: placedViaColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(
                           MySize.getHeight(6),
                         ),
-                        border: Border.all(
-                          color: Colors.purple.shade300,
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: placedViaColor, width: 1.5),
                       ),
                       child: Text(
-                        '${TranslationKeys.coupon.tr.toUpperCase()}: ${couponCode.toUpperCase()}',
+                        _formatPlacedViaTextStatic(placedVia),
                         style: TextStyle(
-                          color: Colors.purple.shade700,
+                          color: placedViaColor,
                           fontSize: MySize.getHeight(11),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  if (couponCode != null &&
-                      couponCode.isNotEmpty &&
-                      placedVia != null &&
-                      placedVia.isNotEmpty)
-                    SizedBox(width: MySize.getWidth(8)),
-                  if (placedVia != null && placedVia.isNotEmpty)
-                    Builder(
-                      builder: (context) {
-                        final placedViaColor = _getPlacedViaColorStatic(
-                          placedVia,
-                        );
-                        return Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: placedViaColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(
-                              MySize.getHeight(6),
-                            ),
-                            border: Border.all(
-                              color: placedViaColor,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Text(
-                            _formatPlacedViaTextStatic(placedVia),
-                            style: TextStyle(
-                              color: placedViaColor,
-                              fontSize: MySize.getHeight(11),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
-            ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: MySize.getHeight(12)),
           OrderDetailWidgets.buildOrderTimeInfo(
             orderDetails,
             dateFormatter: (s) => DateTimeFormatter.formatDateTime(s),
@@ -1256,7 +1237,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           OrderDetailWidgets.buildOrderItemsTable(orderData),
           SizedBox(height: MySize.getHeight(8)),
           OrderDetailWidgets.buildPriceSummary(orderData),
-          if (_hasPaymentDue(orderData)) ...[
+          if (orderData.order?.payments?.isNotEmpty ?? false) ...[
             SizedBox(height: MySize.getHeight(8)),
             _buildPaymentsTable(context, orderData, controller),
           ],
@@ -1271,8 +1252,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
   }
 
   bool _hasPaymentDue(order_details_model.Data orderData) {
-    final statusDue =
-        orderData.order?.status?.toLowerCase() == 'payment_due';
+    final statusDue = orderData.order?.status?.toLowerCase() == 'payment_due';
     final paymentDue =
         orderData.order?.payments?.any(
           (p) => p.paymentMethod?.toLowerCase() == 'due',
@@ -1506,10 +1486,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       child: Table(
         columnWidths: const {
-          0: FlexColumnWidth(1),
-          1: FlexColumnWidth(1.05),
-          2: FlexColumnWidth(1.30),
-          3: FlexColumnWidth(2),
+          0: FlexColumnWidth(1.1),
+          1: FlexColumnWidth(1.1),
+          2: FlexColumnWidth(1.9),
+          3: FlexColumnWidth(1.5),
         },
         children: [
           TableRow(

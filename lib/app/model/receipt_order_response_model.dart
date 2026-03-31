@@ -469,7 +469,7 @@ class ReceiptItemEntry {
             ? ReceiptOrderItem.fromJson(
               json['order_item'] as Map<String, dynamic>,
             )
-            : null;
+            : ReceiptOrderItem.fromJson(json);
   }
 
   Map<String, dynamic> toJson() => {
@@ -500,8 +500,16 @@ class ReceiptOrderItem {
   });
 
   ReceiptOrderItem.fromJson(Map<String, dynamic> json) {
-    displayItemName = json['display_item_name']?.toString();
-    displayVariationName = json['display_variation_name']?.toString();
+    displayItemName =
+        (json['display_item_name'] ??
+                json['item_name'] ??
+                json['name'] ??
+                json['itemName'] ??
+                json['title'] ??
+                json['product_name'])
+            ?.toString();
+    displayVariationName =
+        (json['display_variation_name'] ?? json['variation_name'])?.toString();
     if (json['display_modifiers'] != null) {
       displayModifiers =
           (json['display_modifiers'] as List)
@@ -510,12 +518,31 @@ class ReceiptOrderItem {
                     ReceiptDisplayModifier.fromJson(e as Map<String, dynamic>),
               )
               .toList();
+    } else if (json['modifiers'] != null) {
+      displayModifiers =
+          (json['modifiers'] as List)
+              .map(
+                (e) =>
+                    ReceiptDisplayModifier.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
     }
-    amount = _receiptToDouble(json['amount']);
-    quantity = _receiptToInt(json['quantity']);
-    formattedPrice = json['formatted_price']?.toString();
-    formattedLineAmount = json['formatted_line_amount']?.toString();
-    note = json['note']?.toString();
+    amount = _receiptToDouble(
+      json['amount'] ??
+          json['price'] ??
+          json['item_price'] ??
+          json['rate'] ??
+          json['price_formatted'],
+    );
+    quantity = _receiptToInt(
+      json['quantity'] ?? json['qty'] ?? json['item_qty'] ?? json['item_quantity'],
+    );
+    formattedPrice =
+        (json['formatted_price'] ?? json['item_price_formatted'])?.toString();
+    formattedLineAmount =
+        (json['formatted_line_amount'] ?? json['item_amount_formatted'])
+            ?.toString();
+    note = (json['note'] ?? json['item_note'])?.toString();
   }
 
   Map<String, dynamic> toJson() => {

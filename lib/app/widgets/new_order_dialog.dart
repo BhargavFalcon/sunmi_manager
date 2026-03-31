@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../constants/translation_keys.dart';
+import '../utils/sound_service.dart';
 
 class NewOrderDialog {
-  static final AudioPlayer _audioPlayer = AudioPlayer();
   static bool _isDialogShowing = false;
 
   static Future<void> show({
@@ -15,15 +14,22 @@ class NewOrderDialog {
 
     if (_isDialogShowing) {
       Get.back();
+      await SoundService.stop();
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
     _isDialogShowing = true;
-    _playNotificationSound();
+    await SoundService.playLoop('audio/new_order.wav');
 
     Get.dialog(
       PopScope(
-        canPop: true,
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            _isDialogShowing = false;
+            SoundService.stop();
+          }
+        },
         child: Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -83,6 +89,7 @@ class NewOrderDialog {
                       child: ElevatedButton(
                         onPressed: () {
                           _isDialogShowing = false;
+                          SoundService.stop();
                           Get.back();
                           onViewOrder?.call();
                         },
@@ -109,6 +116,7 @@ class NewOrderDialog {
                       child: ElevatedButton(
                         onPressed: () {
                           _isDialogShowing = false;
+                          SoundService.stop();
                           Get.back();
                         },
                         style: ElevatedButton.styleFrom(
@@ -138,15 +146,10 @@ class NewOrderDialog {
       ),
       barrierDismissible: false,
     ).then((_) {
-      _isDialogShowing = false;
+      if (_isDialogShowing) {
+        _isDialogShowing = false;
+        SoundService.stop();
+      }
     });
-  }
-
-  static Future<void> _playNotificationSound() async {
-    try {
-      await _audioPlayer.play(AssetSource('audio/new_order.wav'));
-    } catch (e) {
-      // ignore empty catch
-    }
   }
 }

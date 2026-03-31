@@ -9,6 +9,8 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/menu_items_model.dart';
 import '../../../utils/language_utils.dart';
 import '../../../routes/app_pages.dart';
+import '../../../model/login_models.dart';
+import '../../../model/restaurant_details_model.dart';
 
 class SettingScreenController extends GetxController {
   final networkClient = NetworkClient();
@@ -18,6 +20,9 @@ class SettingScreenController extends GetxController {
   final beepSoundEnabled = true.obs;
   final selectedLanguage = 'en'.obs;
   final isPrinterSectionExpanded = false.obs;
+  final branchName = ''.obs;
+  final branchLogo = ''.obs;
+  final themeHex = ''.obs;
 
   @override
   void onInit() {
@@ -34,6 +39,37 @@ class SettingScreenController extends GetxController {
         box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
     beepSoundEnabled.value = box.read(ArgumentConstant.beepSoundKey) ?? true;
     selectedLanguage.value = LanguageUtils.getLanguage();
+
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
+      
+      if (loginModelData != null && loginModelData is Map<String, dynamic> &&
+          storedData != null && storedData is Map<String, dynamic>) {
+        
+        final loginModel = LoginModel.fromJson(loginModelData);
+        final restaurantModel = RestaurantModel.fromJson(storedData);
+        final branchId = loginModel.data?.user?.branchId;
+        
+        if (branchId != null) {
+          final branches = restaurantModel.data?.branches;
+          if (branches != null) {
+            Branches? currentBranch;
+            for (var b in branches) {
+              if (b.id == branchId) {
+                currentBranch = b;
+                break;
+              }
+            }
+            if (currentBranch != null) {
+              branchName.value = currentBranch.name ?? '';
+              branchLogo.value = currentBranch.logo ?? '';
+              themeHex.value = currentBranch.themeHex ?? '';
+            }
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   void toggleHapticFeedback() {

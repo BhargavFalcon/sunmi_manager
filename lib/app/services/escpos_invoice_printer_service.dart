@@ -42,11 +42,6 @@ class EscPosInvoicePrinterService {
     '\u20A7': 'Pts',
   };
 
-  String _truncate(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength - 1)}.';
-  }
-
   String _escCurrency(String text) {
     String result = text.replaceAll('\u20AC', '\u00D5');
     for (final entry in _currencyFallback.entries) {
