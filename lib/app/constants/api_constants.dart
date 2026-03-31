@@ -92,6 +92,7 @@ class ArgumentConstant {
   static const kotStatusChangeKey = "kot_status_change_enabled";
   static const newTableReservationsKey = "new_table_reservations_enabled";
   static const waiterRequestKey = "waiter_request_enabled";
+  static const kitchenSoundEnabledKey = "kitchen_sound_enabled";
 
   // Shop Settings
   static const shopSettingsEndpoint = "api/v1/pos/branch/pos-settings";

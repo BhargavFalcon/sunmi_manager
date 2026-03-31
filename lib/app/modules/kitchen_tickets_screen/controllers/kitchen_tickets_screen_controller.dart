@@ -65,7 +65,7 @@ class KitchenTicketsScreenController extends GetxController {
   void onInit() {
     super.onInit();
     isSoundEnabled.value =
-        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? _isChef();
+        box.read(ArgumentConstant.kitchenSoundEnabledKey) ?? _isChef();
     fetchKitchenTickets();
   }
 
@@ -79,6 +79,7 @@ class KitchenTicketsScreenController extends GetxController {
     } catch (_) {}
     return false;
   }
+
 
   @override
   void onReady() {
@@ -95,7 +96,7 @@ class KitchenTicketsScreenController extends GetxController {
 
   void toggleSound() {
     isSoundEnabled.value = !isSoundEnabled.value;
-    box.write(ArgumentConstant.kitchenTicketGenerationKey, isSoundEnabled.value);
+    box.write(ArgumentConstant.kitchenSoundEnabledKey, isSoundEnabled.value);
   }
 
   List<KitchenTicket> get inKitchenTickets =>
