@@ -61,8 +61,9 @@ class TranslationKeys {
   static const String newStatus = 'newStatus';
   static const String preparingStatus = 'preparingStatus';
   static const String readyStatus = 'readyStatus';
-  static const String startPreparing = 'startPreparing';
-  static const String setToReady = 'setToReady';
+  static const String start = 'start';
+  static const String ready = 'ready';
+  static const String operationSuccess = 'operationSuccess';
   static const String completeOrder = 'completeOrder';
   static const String shop = 'shop';
   static const String dineIn = 'dineIn';

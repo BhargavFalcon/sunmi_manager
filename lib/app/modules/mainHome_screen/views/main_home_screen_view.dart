@@ -62,7 +62,7 @@ class _CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: SizedBox(
-        height: MySize.getHeight(68),
+        height: MySize.getHeight(48),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -73,34 +73,19 @@ class _CustomBottomNavBar extends StatelessWidget {
               color: Colors.grey.withValues(alpha: 0.1),
             ),
             Expanded(
-              child: Stack(
+              child: Row(
                 children: [
-                  // Selection Indicator Line (Top)
-                  Row(
-                    children: [
-                      _IndicatorLine(isSelected: selectedIndex == 0),
-                      _IndicatorLine(isSelected: selectedIndex == 1),
-                    ],
+                  _FullWidthNavItem(
+                    icon: ImageConstant.order,
+                    label: TranslationKeys.allOrders.tr,
+                    isSelected: selectedIndex == 0,
+                    onTap: () => onTabChange(0),
                   ),
-                  // Icons and Labels with more breathing room from the top
-                  Padding(
-                    padding: EdgeInsets.only(top: MySize.getHeight(12)),
-                    child: Row(
-                      children: [
-                        _FullWidthNavItem(
-                          icon: ImageConstant.order,
-                          label: TranslationKeys.allOrders.tr,
-                          isSelected: selectedIndex == 0,
-                          onTap: () => onTabChange(0),
-                        ),
-                        _FullWidthNavItem(
-                          icon: ImageConstant.setting,
-                          label: TranslationKeys.settings.tr,
-                          isSelected: selectedIndex == 1,
-                          onTap: () => onTabChange(1),
-                        ),
-                      ],
-                    ),
+                  _FullWidthNavItem(
+                    icon: ImageConstant.setting,
+                    label: TranslationKeys.settings.tr,
+                    isSelected: selectedIndex == 1,
+                    onTap: () => onTabChange(1),
                   ),
                 ],
               ),
@@ -118,17 +103,15 @@ class _IndicatorLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
-        opacity: isSelected ? 1 : 0,
-        child: Container(
-          height: 3,
-          margin: EdgeInsets.symmetric(horizontal: MySize.getWidth(40)),
-          decoration: BoxDecoration(
-            color: ColorConstants.primaryColor,
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
-          ),
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: isSelected ? 1 : 0,
+      child: Container(
+        height: 3,
+        margin: EdgeInsets.symmetric(horizontal: MySize.getWidth(40)),
+        decoration: BoxDecoration(
+          color: ColorConstants.primaryColor,
+          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
         ),
       ),
     );
@@ -155,21 +138,28 @@ class _FullWidthNavItem extends StatelessWidget {
         onTap: onTap,
         splashColor: ColorConstants.primaryColor.withValues(alpha: 0.05),
         highlightColor: Colors.transparent,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
           children: [
-            Image.asset(
-              icon,
-              height: MySize.getHeight(22),
-              color: isSelected ? ColorConstants.primaryColor : Colors.grey[400],
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: MySize.getHeight(13),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? ColorConstants.primaryColor : Colors.grey[500],
+            _IndicatorLine(isSelected: isSelected),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    icon,
+                    height: MySize.getHeight(18),
+                    color: isSelected ? ColorConstants.primaryColor : Colors.grey[400],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(12),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? ColorConstants.primaryColor : Colors.grey[500],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

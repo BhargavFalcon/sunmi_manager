@@ -1925,13 +1925,13 @@ class OrderCard extends StatelessWidget {
 
     if (currentLocalStatus == 'New') {
       return _buildActionButton(
-        label: TranslationKeys.startPreparing.tr,
+        label: TranslationKeys.start.tr,
         color: ColorConstants.primaryColor,
         onTap: () => controller.updateLocalStatus(order.id.toString(), 'Preparing'),
       );
     } else if (currentLocalStatus == 'Preparing') {
       return _buildActionButton(
-        label: TranslationKeys.setToReady.tr,
+        label: TranslationKeys.ready.tr,
         color: ColorConstants.statusPaid,
         onTap: () => controller.updateLocalStatus(order.id.toString(), 'Ready'),
       );

@@ -12,6 +12,7 @@ import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/split_payment_remaining_model.dart';
 import '../../../widgets/order_payment_dialog.dart';
 import '../../../widgets/running_table_dialog.dart';
+import '../../../widgets/app_toast.dart';
 import '../../../../main.dart';
 
 class OrderScreenController extends GetxController {
@@ -102,6 +103,10 @@ class OrderScreenController extends GetxController {
     orderLocalStatuses[orderId] = status;
     box.write(_localStatusKey, Map<String, String>.from(orderLocalStatuses));
     allOrders.refresh(); // Trigger UI update for filtered lists
+
+    // Show success feedback and move to the next tab
+    AppToast.showSuccess(TranslationKeys.operationSuccess.tr);
+    selectedLocalStatus.value = status;
   }
 
   String getLocalStatus(String orderId) {
