@@ -37,15 +37,54 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                   color: Colors.white,
                   boxShadow: ColorConstants.getShadow2,
                 ),
-                child: Center(
-                  child: Text(
-                    TranslationKeys.settings.tr,
-                    style: TextStyle(
-                      fontSize: MySize.getHeight(20),
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+                child: Obx(() {
+                  final hasBranchDetails = controller.branchName.value.isNotEmpty;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (controller.branchLogo.value.isNotEmpty)
+                        Container(
+                          margin: EdgeInsets.only(right: MySize.getWidth(12)),
+                          height: MySize.getHeight(44),
+                          width: MySize.getHeight(44),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(
+                              color: ColorConstants.primaryColor.withValues(alpha: 0.3),
+                              width: MySize.getWidth(1.5),
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: Padding(
+                              padding: EdgeInsets.all(MySize.getWidth(2)),
+                              child: Image.network(
+                                controller.branchLogo.value,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (hasBranchDetails)
+                              Text(
+                                controller.branchName.value,
+                                style: TextStyle(
+                                  fontSize: MySize.getHeight(20),
+                                  color: ColorConstants.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }),
               ),
               Expanded(
                 child: SingleChildScrollView(

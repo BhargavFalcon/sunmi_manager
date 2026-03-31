@@ -4,13 +4,13 @@ import 'dart:developer';
 import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../../main.dart';
 import '../model/get_order_model.dart' as order_model;
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/escpos_invoice_printer_service.dart';
 import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
+import '../utils/sound_service.dart';
 import '../modules/table_screen/controllers/table_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
@@ -25,11 +25,11 @@ import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
 import '../modules/kitchen_tickets_screen/controllers/kitchen_tickets_screen_controller.dart';
 import '../model/kitchen_ticket_model.dart';
+import '../model/mobile_app_modules_model.dart';
 
 class PusherService {
   WebSocket? _socket;
   Timer? _pingTimer;
-  static final AudioPlayer _audioPlayer = AudioPlayer();
 
   final NetworkClient networkClient = NetworkClient();
   final SunmiInvoicePrinterService _sunmiService = SunmiInvoicePrinterService();
@@ -229,12 +229,13 @@ class PusherService {
           tableId: int.parse(tableId.toString()),
           tableLabel: tableLabel,
         );
-        await _audioPlayer.play(AssetSource('audio/new_order.wav'));
+        await SoundService.playOnce('audio/new_order.wav');
       }
     } catch (e) {}
   }
 
   Future<void> _handleOrderEvent(dynamic eventData) async {
+    if (!_hasPermission('All Orders')) return;
     if (!_isValidEventData(eventData)) return;
 
     try {
@@ -387,6 +388,7 @@ class PusherService {
   }
 
   Future<void> _handleReservationEvent(dynamic eventData) async {
+    if (!_hasPermission('Table Reservations')) return;
     try {
       final decoded = _parseEventData(eventData);
       if (decoded == null) return;
@@ -443,6 +445,7 @@ class PusherService {
   }
 
   Future<void> _handleKotCreatedEvent(dynamic eventData) async {
+    if (!_hasPermission('Kitchen Tickets')) return;
     int? newKotId;
     try {
       final decoded = _parseEventData(eventData);
@@ -470,11 +473,12 @@ class PusherService {
 
   Future<void> _playNotificationSound() async {
     try {
-      await _audioPlayer.play(AssetSource('audio/new_order.wav'));
+      await SoundService.playOnce('audio/new_order.wav');
     } catch (e) {}
   }
 
   Future<void> _handleKotUpdatedEvent(dynamic eventData) async {
+    if (!_hasPermission('Dine-in')) return;
     try {
       final isKotSoundEnabled =
           box.read(ArgumentConstant.kotStatusChangeKey) ?? true;
@@ -649,5 +653,24 @@ class PusherService {
   String _getMonthName(int month) {
     if (month < 1 || month > 12) return '';
     return _months[month - 1];
+  }
+
+  bool _hasPermission(String permissionName) {
+    try {
+      final modulesData = box.read(ArgumentConstant.mobileAppModulesKey);
+      if (modulesData != null && modulesData is Map<String, dynamic>) {
+        final modules = MobileAppModulesModel.fromJson(modulesData);
+        final permissions = modules.data?.managerAppPermissions;
+        if (permissions != null) {
+          return permissions.any(
+            (p) => p.toLowerCase() == permissionName.toLowerCase(),
+          );
+        }
+      }
+    } catch (_) {}
+    // If no permissions are found, default to true or false?
+    // Usually, in these apps, if permissions are missing it might mean they aren't loaded yet.
+    // But as per user request, we should only enable if it's there.
+    return false;
   }
 }

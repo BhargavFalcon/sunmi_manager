@@ -387,8 +387,16 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                       : '';
               details.add('• ${m.name ?? ""}$price');
             }
-            final price = oi?.formattedPrice ?? '';
-            final amount = oi?.formattedLineAmount ?? '';
+            final price = oi?.formattedPrice ??
+                (oi?.amount != null
+                    ? CurrencyFormatter.formatPrice(oi!.amount!.toString())
+                    : '');
+            final amount = oi?.formattedLineAmount ??
+                (oi?.amount != null
+                    ? CurrencyFormatter.formatPrice(
+                      ((oi!.quantity ?? 1) * oi.amount!).toString(),
+                    )
+                    : '');
             final effectiveFontSize = MySize.getHeight(10);
             return TableRow(
               decoration: const BoxDecoration(

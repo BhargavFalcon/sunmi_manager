@@ -68,12 +68,12 @@ class DateTimeFormatter {
     final locale = _currentLocale();
     final localeString = '${locale.languageCode}_${locale.countryCode}';
     try {
-      return DateFormat('d MMM yyyy,hh:mm a', localeString);
+      return DateFormat('d MMM yyyy, hh:mm a', localeString);
     } catch (_) {
       try {
-        return DateFormat('d MMM yyyy,hh:mm a', 'en_US');
+        return DateFormat('d MMM yyyy, hh:mm a', 'en_US');
       } catch (_) {
-        return DateFormat('d MMM yyyy,hh:mm a');
+        return DateFormat('d MMM yyyy, hh:mm a');
       }
     }
   }
