@@ -67,7 +67,7 @@ class PrintServiceController extends GetxController {
     connectedPrinters.clear();
     if (isSunmi.value) {
       connectedPrinters.add({
-        'name': 'Internal Sunmi Printer',
+        'name': TranslationKeys.internalSunmiPrinter.tr,
         'type': 'Internal',
         'address': 'Internal',
       });
@@ -103,7 +103,7 @@ class PrintServiceController extends GetxController {
         final model = PrintServiceValidateModel.fromJson(data);
 
         if (model.success != true || model.data == null) {
-          errorMessage.value = model.message ?? "Verification failed";
+          errorMessage.value = model.message ?? TranslationKeys.verificationFailed.tr;
           isConnected.value = false;
         } else {
           // Success
@@ -117,11 +117,11 @@ class PrintServiceController extends GetxController {
           AppToast.showSuccess(TranslationKeys.success.tr);
         }
       } else {
-        errorMessage.value = "Server returned ${response.statusCode}";
+        errorMessage.value = "${TranslationKeys.serverReturned.tr} ${response.statusCode}";
         isConnected.value = false;
       }
     } catch (e) {
-      errorMessage.value = "Connection error: ${e.toString()}";
+      errorMessage.value = "${TranslationKeys.connectionError.tr}: ${e.toString()}";
       isConnected.value = false;
     } finally {
       connectionLoading.value = false;
@@ -183,7 +183,9 @@ class PrintServiceController extends GetxController {
     } else {
       selectedReceiptPrinter.value = printerName;
     }
-    AppToast.showSuccess('Printer "$printerName" selected.');
+    AppToast.showSuccess(
+      TranslationKeys.printerSelected.tr.replaceAll('%s', printerName),
+    );
   }
 
   void toggleAutoPrintKitchen() => printerService.toggleAutoPrintKitchen();

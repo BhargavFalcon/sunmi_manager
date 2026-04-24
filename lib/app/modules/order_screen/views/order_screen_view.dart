@@ -52,7 +52,6 @@ String _formatPlacedViaTextStatic(String placedVia) {
   }
 }
 
-
 class OrderScreenView extends GetView<OrderScreenController> {
   const OrderScreenView({super.key});
 
@@ -369,19 +368,44 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                           child: Row(
                                             children: [
                                               _buildStatusTab(
-                                                label: TranslationKeys.newStatus.tr,
-                                                isSelected: selectedStatus == 'New',
-                                                onTap: () => controller.selectedLocalStatus.value = 'New',
+                                                label:
+                                                    TranslationKeys
+                                                        .newStatus
+                                                        .tr,
+                                                isSelected:
+                                                    selectedStatus == 'New',
+                                                onTap:
+                                                    () =>
+                                                        controller
+                                                            .selectedLocalStatus
+                                                            .value = 'New',
                                               ),
                                               _buildStatusTab(
-                                                label: TranslationKeys.preparingStatus.tr,
-                                                isSelected: selectedStatus == 'Preparing',
-                                                onTap: () => controller.selectedLocalStatus.value = 'Preparing',
+                                                label:
+                                                    TranslationKeys
+                                                        .preparingStatus
+                                                        .tr,
+                                                isSelected:
+                                                    selectedStatus ==
+                                                    'Preparing',
+                                                onTap:
+                                                    () =>
+                                                        controller
+                                                            .selectedLocalStatus
+                                                            .value = 'Preparing',
                                               ),
                                               _buildStatusTab(
-                                                label: TranslationKeys.readyStatus.tr,
-                                                isSelected: selectedStatus == 'Ready',
-                                                onTap: () => controller.selectedLocalStatus.value = 'Ready',
+                                                label:
+                                                    TranslationKeys
+                                                        .readyStatus
+                                                        .tr,
+                                                isSelected:
+                                                    selectedStatus == 'Ready',
+                                                onTap:
+                                                    () =>
+                                                        controller
+                                                            .selectedLocalStatus
+                                                            .value = 'Ready',
                                               ),
                                             ],
                                           ),
@@ -493,8 +517,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount:
-              filteredList.length +
-              (controller.isLoadingMore.value ? 1 : 0),
+              filteredList.length + (controller.isLoadingMore.value ? 1 : 0),
           separatorBuilder: (_, __) => SizedBox(height: MySize.getHeight(10)),
           itemBuilder: (context, index) {
             if (index == filteredList.length) {
@@ -1729,7 +1752,6 @@ Widget _buildStatusTab({
   );
 }
 
-
 class OrderCard extends StatelessWidget {
   final order_model.Orders order;
   const OrderCard({super.key, required this.order});
@@ -1927,7 +1949,9 @@ class OrderCard extends StatelessWidget {
       return _buildActionButton(
         label: TranslationKeys.start.tr,
         color: ColorConstants.primaryColor,
-        onTap: () => controller.updateLocalStatus(order.id.toString(), 'Preparing'),
+        onTap:
+            () =>
+                controller.updateLocalStatus(order.id.toString(), 'Preparing'),
       );
     } else if (currentLocalStatus == 'Preparing') {
       return _buildActionButton(

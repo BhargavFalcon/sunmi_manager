@@ -192,6 +192,19 @@ class TranslationKeys {
   static const String october = 'october';
   static const String november = 'november';
   static const String december = 'december';
+
+  static const String jan = 'jan';
+  static const String feb = 'feb';
+  static const String mar = 'mar';
+  static const String apr = 'apr';
+  static const String mayShort = 'mayShort';
+  static const String jun = 'jun';
+  static const String jul = 'jul';
+  static const String aug = 'aug';
+  static const String sep = 'sep';
+  static const String oct = 'oct';
+  static const String nov = 'nov';
+  static const String dec = 'dec';
   static const String kitchenStatus = 'kitchenStatus';
   static const String pendingVerificationStatus = 'pendingVerificationStatus';
 
@@ -489,4 +502,19 @@ class TranslationKeys {
   static const String makePayment = 'makePayment';
   static const String switchingToFullPayment = 'switchingToFullPayment';
   static const String allSplitItemsWillBeCleared = 'allSplitItemsWillBeCleared';
+
+  // Printing & Localization Refinement
+  static const String internalSunmiPrinter = 'internalSunmiPrinter';
+  static const String connectedAndReady = 'connectedAndReady';
+  static const String verificationFailed = 'verificationFailed';
+  static const String serverReturned = 'serverReturned';
+  static const String printerSelected = 'printerSelected';
+  static const String paymentReceiptHeader = 'paymentReceiptHeader';
+  static const String deliveryChargeLabel = 'deliveryChargeLabel';
+  static const String allSources = 'allSources';
+  static const String free = 'free';
+  static const String ios = 'ios';
+  static const String android = 'android';
+  static const String newLabel = 'newLabel';
+  static const String preparingLabel = 'preparingLabel';
 }

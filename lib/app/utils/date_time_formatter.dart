@@ -19,6 +19,32 @@ class DateTimeFormatter {
     }
   }
 
+  static String formatDateOnly(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) return '';
+    try {
+      final dateTime = _parseDateTime(dateTimeString);
+      if (dateTime == null) return dateTimeString;
+      final locale = _currentLocale();
+      final localeString = '${locale.languageCode}_${locale.countryCode}';
+      return DateFormat('dd-MM-yyyy', localeString).format(dateTime);
+    } catch (_) {
+      return dateTimeString;
+    }
+  }
+
+  static String formatTimeOnly(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) return '';
+    try {
+      final dateTime = _parseDateTime(dateTimeString);
+      if (dateTime == null) return dateTimeString;
+      final locale = _currentLocale();
+      final localeString = '${locale.languageCode}_${locale.countryCode}';
+      return DateFormat('hh:mm a', localeString).format(dateTime);
+    } catch (_) {
+      return dateTimeString;
+    }
+  }
+
   static String formatDateTimeWithRestaurantTimezone(String? dateTimeString) {
     try {
       final tzName = box.read<String>(ArgumentConstant.restaurantTimezoneKey);

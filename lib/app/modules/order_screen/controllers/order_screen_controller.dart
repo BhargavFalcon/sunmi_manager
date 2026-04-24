@@ -104,9 +104,8 @@ class OrderScreenController extends GetxController {
     box.write(_localStatusKey, Map<String, String>.from(orderLocalStatuses));
     allOrders.refresh(); // Trigger UI update for filtered lists
 
-    // Show success feedback and move to the next tab
+    // Show success feedback
     AppToast.showSuccess(TranslationKeys.operationSuccess.tr);
-    selectedLocalStatus.value = status;
   }
 
   String getLocalStatus(String orderId) {
@@ -741,20 +740,20 @@ class OrderScreenController extends GetxController {
   }
 
   String _monthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+    final List<String> monthKeys = [
+      TranslationKeys.jan,
+      TranslationKeys.feb,
+      TranslationKeys.mar,
+      TranslationKeys.apr,
+      TranslationKeys.mayShort,
+      TranslationKeys.jun,
+      TranslationKeys.jul,
+      TranslationKeys.aug,
+      TranslationKeys.sep,
+      TranslationKeys.oct,
+      TranslationKeys.nov,
+      TranslationKeys.dec,
     ];
-    return months[month - 1];
+    return monthKeys[month - 1].tr;
   }
 }

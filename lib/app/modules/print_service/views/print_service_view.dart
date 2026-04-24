@@ -117,16 +117,16 @@ class PrintServiceView extends GetWidget<PrintServiceController> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Internal Sunmi Printer',
-                                      style: TextStyle(
+                                    Text(
+                                      TranslationKeys.internalSunmiPrinter.tr,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
                                       ),
                                     ),
                                     Text(
-                                      'Connected & Ready',
+                                      TranslationKeys.connectedAndReady.tr,
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: ColorConstants.successGreen,

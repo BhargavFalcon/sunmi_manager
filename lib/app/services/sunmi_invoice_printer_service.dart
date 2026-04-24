@@ -10,8 +10,6 @@ import '../model/receipt_order_response_model.dart';
 import '../model/kitchen_ticket_model.dart';
 import '../constants/translation_keys.dart';
 import 'package:managerapp/app/services/printer_service.dart';
-import 'package:intl/intl.dart';
-
 class SunmiInvoicePrinterService {
   static final Dio _dio = Dio();
   final printerService = Get.find<PrinterService>();
@@ -34,8 +32,7 @@ class SunmiInvoicePrinterService {
   static const int _fontSizeBody = 20;
   static const int _fontSizeSmall = 18;
   static const int _fontSizeTotal = 25;
-  static const String _paymentTableHeader =
-      'Amount Payment Method   Date & Time';
+  static String get _paymentReceiptHeader => TranslationKeys.paymentReceiptHeader.tr;
 
   int _getItemQtyWidth(int totalWidth) => totalWidth == 48 ? 6 : 4;
   int _getItemNameWidth(int totalWidth) => totalWidth == 48 ? 30 : 15;
@@ -258,7 +255,7 @@ class SunmiInvoicePrinterService {
       for (final tax in taxes) {
         _mergeTax(
           aggregatedTaxes,
-          tax.taxName ?? 'Tax',
+          tax.taxName ?? TranslationKeys.tax.tr,
           tax.percent?.toString() ?? '',
           tax.amount ?? 0.0,
         );
@@ -268,7 +265,7 @@ class SunmiInvoicePrinterService {
         if (item.taxAmount != null && item.taxAmount! > 0) {
           _mergeTax(
             aggregatedTaxes,
-            'Tax',
+            TranslationKeys.tax.tr,
             item.taxPercentage?.toString() ?? '',
             item.taxAmount!,
           );
@@ -506,9 +503,9 @@ class SunmiInvoicePrinterService {
             order.totals!.deliveryFee! >= 0) {
           final deliveryValue =
           order.totals!.deliveryFee! == 0
-              ? 'Free'
+              ? TranslationKeys.free.tr
               : _formatPrice(null, order.totals!.deliveryFee!.toDouble());
-          await _printLabelValue('Delivery Charge:', deliveryValue);
+          await _printLabelValue('${TranslationKeys.deliveryCharge.tr}:', deliveryValue);
           await _printSep();
         }
 
@@ -611,7 +608,7 @@ class SunmiInvoicePrinterService {
 
         if (order.payments?.isNotEmpty == true) {
           await SunmiPrinter.printText(
-            _paymentTableHeader,
+            _paymentReceiptHeader,
             style: SunmiTextStyle(
               align: SunmiPrintAlign.CENTER,
               fontSize: _fontSizeBody,
@@ -860,12 +857,12 @@ class SunmiInvoicePrinterService {
               summary.deliveryFee! >= 0) {
             final deliveryValue =
             summary.deliveryFee! == 0
-                ? 'Free'
+                ? TranslationKeys.free.tr
                 : CurrencyFormatter.formatPriceFromDouble(
               summary.deliveryFee!,
             );
             await _printLeftBody(
-              _formatLabelValue('Delivery Charge:', deliveryValue),
+              _formatLabelValue('${TranslationKeys.deliveryCharge.tr}:', deliveryValue),
             );
           }
 
@@ -926,7 +923,7 @@ class SunmiInvoicePrinterService {
         await _printLine();
 
         await SunmiPrinter.printText(
-          _paymentTableHeader,
+          _paymentReceiptHeader,
           style: SunmiTextStyle(
             align: SunmiPrintAlign.CENTER,
             fontSize: _fontSizeBody,
@@ -1014,17 +1011,13 @@ class SunmiInvoicePrinterService {
         await _printSep();
 
         final dateStr =
-        ticket.createdAt != null
-            ? DateFormat(
-          'dd-MM-yyyy',
-        ).format(DateTime.parse(ticket.createdAt!))
-            : '';
+            ticket.createdAt != null
+                ? DateTimeFormatter.formatDateOnly(ticket.createdAt!)
+                : '';
         final timeStr =
-        ticket.createdAt != null
-            ? DateFormat(
-          'hh:mm a',
-        ).format(DateTime.parse(ticket.createdAt!))
-            : '';
+            ticket.createdAt != null
+                ? DateTimeFormatter.formatTimeOnly(ticket.createdAt!)
+                : '';
 
         if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
           await SunmiPrinter.printText(
@@ -1216,15 +1209,13 @@ class SunmiInvoicePrinterService {
       }
 
       final dateStr =
-      order.createdAt != null
-          ? DateFormat(
-        'dd-MM-yyyy',
-      ).format(DateTime.parse(order.createdAt!))
-          : '';
+          order.createdAt != null
+              ? DateTimeFormatter.formatDateOnly(order.createdAt!)
+              : '';
       final timeStr =
-      order.createdAt != null
-          ? DateFormat('hh:mm a').format(DateTime.parse(order.createdAt!))
-          : '';
+          order.createdAt != null
+              ? DateTimeFormatter.formatTimeOnly(order.createdAt!)
+              : '';
 
       if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
         await SunmiPrinter.printText(
