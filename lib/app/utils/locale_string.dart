@@ -407,6 +407,7 @@ class LocaleString extends Translations {
       'paymentId': 'Payment ID',
       'tableNo': 'Table no.',
       'pax': 'Pax',
+      'cover': 'Cover',
       'receiptPrintNotSupported':
           'Receipt print for this view is not yet supported.',
       'thankYouForVisit': 'Thank you for your visit!',
@@ -455,6 +456,10 @@ class LocaleString extends Translations {
       'paymentProcessedSuccessfully': 'Payment processed successfully',
       'failedToProcessPayment': 'Failed to process payment',
       'card': 'Card',
+      'onlinePayment': 'Online Payment',
+      'customerPaidOnline': 'Customer has already paid online',
+      'cashPayment': 'Cash Payment',
+      'amountPaid': 'Amount Paid',
       'upi': 'UPI',
       'bankTransfer': 'Bank Transfer',
       'amountToPay': 'Amount to Pay',
@@ -867,6 +872,7 @@ class LocaleString extends Translations {
       'paymentId': 'Betalings-ID',
       'tableNo': 'Bord nr.',
       'pax': 'Pax',
+      'cover': 'Cover',
       'receiptPrintNotSupported':
           'Kvitteringsudskrivning for denne visning understøttes ikke endnu.',
       'thankYouForVisit': 'Tak for dit besøg!',

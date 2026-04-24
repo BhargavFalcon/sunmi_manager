@@ -412,6 +412,7 @@ class TranslationKeys {
   static const String paymentId = 'paymentId';
   static const String tableNo = 'tableNo';
   static const String pax = 'pax';
+  static const String cover = 'cover';
   static const String receiptPrintNotSupported = 'receiptPrintNotSupported';
   static const String thankYouForVisit = 'thankYouForVisit';
   static const String totalTax = 'totalTax';
@@ -475,6 +476,10 @@ class TranslationKeys {
       'paymentProcessedSuccessfully';
   static const String failedToProcessPayment = 'failedToProcessPayment';
   static const String card = 'card';
+  static const String onlinePayment = 'onlinePayment';
+  static const String customerPaidOnline = 'customerPaidOnline';
+  static const String cashPayment = 'cashPayment';
+  static const String amountPaid = 'amountPaid';
   static const String upi = 'upi';
   static const String bankTransfer = 'bankTransfer';
   static const String amountToPay = 'amountToPay';
