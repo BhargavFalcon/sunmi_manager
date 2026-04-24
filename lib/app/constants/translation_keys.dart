@@ -517,7 +517,4 @@ class TranslationKeys {
   static const String android = 'android';
   static const String newLabel = 'newLabel';
   static const String preparingLabel = 'preparingLabel';
-  static const String printPreview = 'printPreview';
-  static const String paperSize = 'paperSize';
-  static const String printing = 'printing';
 }

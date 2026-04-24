@@ -1,5 +1,5 @@
 class ArgumentConstant {
-  static const bool isPartner = true;
+  static const bool isPartner = false;
 
   static String get baseUrl =>
       isPartner

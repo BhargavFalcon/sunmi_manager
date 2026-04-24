@@ -24,7 +24,6 @@ import '../../../utils/currency_formatter.dart';
 import '../../../utils/date_time_formatter.dart';
 import '../../../utils/order_helpers.dart' as helpers;
 import '../../../widgets/shared/order_detail_widgets.dart';
-import '../../../widgets/print_preview_dialog.dart';
 
 // Static helper functions for placed_via badge colors and text
 Color _getPlacedViaColorStatic(String placedVia) {
@@ -809,15 +808,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         onTap:
                             isPrinting
                                 ? null
-                                : () => PrintPreviewDialog.show(
-                                  context: context,
-                                  orderData: orderData,
-                                  isPrinting: isPrinting,
-                                  onPrint: () => _printInvoice(
-                                    context,
-                                    controller,
-                                    orderData,
-                                  ),
+                                : () => _printInvoice(
+                                  context,
+                                  controller,
+                                  orderData,
                                 ),
                         child: Container(
                           padding: EdgeInsets.symmetric(

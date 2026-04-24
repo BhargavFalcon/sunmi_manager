@@ -496,9 +496,6 @@ class LocaleString extends Translations {
       'android': 'Android',
       'newLabel': 'New',
       'preparingLabel': 'Preparing',
-      'printPreview': 'Print Preview',
-      'paperSize': 'Paper Size',
-      'printing': 'Printing...',
     },
     'da_DK': {
       // ========== COMMON (Shared across screens) ==========
@@ -932,9 +929,6 @@ class LocaleString extends Translations {
       'android': 'Android',
       'newLabel': 'Ny',
       'preparingLabel': 'Under tilberedning',
-      'printPreview': 'Udskriv Forhåndsvisning',
-      'paperSize': 'Papirstørrelse',
-      'printing': 'Udskriver...',
     },
     'de_DE': {
       // ========== COMMON (Shared across screens) ==========
@@ -1376,9 +1370,6 @@ class LocaleString extends Translations {
       'android': 'Android',
       'newLabel': 'Neu',
       'preparingLabel': 'In Arbeit',
-      'printPreview': 'Druckvorschau',
-      'paperSize': 'Papiergröße',
-      'printing': 'Drucken...',
     },
     'nl_NL': {
       // ========== COMMON (Shared across screens) ==========
@@ -1811,9 +1802,6 @@ class LocaleString extends Translations {
       'android': 'Android',
       'newLabel': 'Nieuw',
       'preparingLabel': 'In bereiding',
-      'printPreview': 'Afdrukvoorbeeld',
-      'paperSize': 'Papierformaat',
-      'printing': 'Afdrukken...',
     },
   };
 }
