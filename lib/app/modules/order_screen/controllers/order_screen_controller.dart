@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,7 +16,7 @@ import '../../../widgets/running_table_dialog.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../../main.dart';
 
-class OrderScreenController extends GetxController {
+class OrderScreenController extends GetxController with WidgetsBindingObserver {
   final networkClient = NetworkClient();
 
   RxString selectedMonth = 'Today'.obs;
@@ -33,6 +34,8 @@ class OrderScreenController extends GetxController {
   int currentPage = 1;
   final ScrollController scrollController = ScrollController();
   VoidCallback? _scrollListener;
+  Timer? _midnightTimer;
+  DateTime _lastCheckedDate = DateTime.now();
 
   final List<String> dateOptions = [
     'Today',
@@ -81,8 +84,10 @@ class OrderScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     _initLocalStatuses();
     _updateDatesByOption('Today');
+    _setupMidnightTimer();
   }
 
   void _initLocalStatuses() {
@@ -343,6 +348,8 @@ class OrderScreenController extends GetxController {
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _midnightTimer?.cancel();
     if (_scrollListener != null && scrollController.hasClients) {
       scrollController.removeListener(_scrollListener!);
     }
@@ -350,6 +357,39 @@ class OrderScreenController extends GetxController {
       scrollController.dispose();
     }
     super.onClose();
+  }
+
+  void _setupMidnightTimer() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    final durationToMidnight = nextMidnight.difference(now);
+    
+    _midnightTimer = Timer(durationToMidnight, () {
+      _lastCheckedDate = DateTime.now();
+      if (selectedMonth.value != 'Custom Date') {
+        _updateDatesByOption(selectedMonth.value);
+        fetchAllOrders();
+      }
+      _setupMidnightTimer(); 
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final now = DateTime.now();
+      if (now.day != _lastCheckedDate.day || 
+          now.month != _lastCheckedDate.month || 
+          now.year != _lastCheckedDate.year) {
+        _lastCheckedDate = now;
+        if (selectedMonth.value != 'Custom Date') {
+          _updateDatesByOption(selectedMonth.value);
+          fetchAllOrders();
+        }
+        _setupMidnightTimer();
+      }
+    }
   }
 
   Future<void> loadMoreOrders() async {
