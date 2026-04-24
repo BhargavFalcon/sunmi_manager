@@ -10,8 +10,6 @@ import '../model/receipt_order_response_model.dart';
 import '../model/kitchen_ticket_model.dart';
 import '../constants/translation_keys.dart';
 import 'package:managerapp/app/services/printer_service.dart';
-import 'receipt_image_service.dart';
-
 
 class SunmiInvoicePrinterService {
   static final Dio _dio = Dio();
@@ -309,11 +307,6 @@ class SunmiInvoicePrinterService {
   }
 
   Future<void> printInvoice(order_model.Data data, {int copies = 1}) async {
-    await printWoltStyleInvoice(data, copies: copies);
-  }
-
-  // Keeping original logic below as _printInvoiceLegacy if needed for fallback
-  Future<void> _printInvoiceLegacy(order_model.Data data, {int copies = 1}) async {
     try {
       final restaurant = data.restaurant;
       final branch = data.branch;
@@ -721,48 +714,7 @@ class SunmiInvoicePrinterService {
     }
   }
 
-  Future<void> printWoltStyleInvoice(order_model.Data data, {int copies = 1}) async {
-    try {
-      final String widthStr = printerService.receiptWidth.value;
-      final double width = widthStr == '80mm' ? 576 : 384;
-
-      final imageData = await ReceiptImageService.generateReceiptImage(data, width: width);
-
-      for (int i = 0; i < copies; i++) {
-        await SunmiPrinter.printImage(
-          imageData,
-          align: SunmiPrintAlign.CENTER,
-        );
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.cutPaper();
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-
   Future<void> printReceiptFromApi(ReceiptOrderData d, {int copies = 1}) async {
-    try {
-      final String widthStr = printerService.receiptWidth.value;
-      final double width = widthStr == '80mm' ? 576 : 384;
-
-      final imageData = await ReceiptImageService.generateReceiptImageFromApi(d, width: width);
-
-      for (int i = 0; i < copies; i++) {
-        await SunmiPrinter.printImage(
-          imageData,
-          align: SunmiPrintAlign.CENTER,
-        );
-        await SunmiPrinter.lineWrap(5);
-        await SunmiPrinter.cutPaper();
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> _printReceiptFromApiLegacy(ReceiptOrderData d, {int copies = 1}) async {
     try {
       final restaurant = d.restaurant;
       final branch = d.branch;
