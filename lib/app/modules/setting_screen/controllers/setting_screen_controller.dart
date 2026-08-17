@@ -6,11 +6,13 @@ import '../../../constants/api_constants.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../constants/translation_keys.dart';
 import '../../../data/NetworkClient.dart';
+import '../../../data/pusher_service.dart';
 import '../../../utils/language_utils.dart';
 import '../../../routes/app_pages.dart';
 import '../../../model/login_models.dart';
 import '../../../model/restaurant_details_model.dart';
 import '../../../utils/currency_formatter.dart';
+import '../../../services/app_lock_service.dart';
 import '../../../services/printer_service.dart';
 import '../../../services/network_connectivity_service.dart';
 
@@ -215,17 +217,20 @@ class SettingScreenController extends GetxController {
     try {
       isLoading.value = true;
       await networkClient.post(ArgumentConstant.logoutEndpoint);
-      _clearUserData();
-    } on ApiException catch (e) {
+    } on ApiException {
+      // Local logout still proceeds if the server session is already invalid.
+    } catch (_) {
+      // Local logout still proceeds when the API request cannot complete.
+    } finally {
       isLoading.value = false;
-      AppToast.showError(e.message, title: TranslationKeys.error.tr);
-    } catch (e) {
-      isLoading.value = false;
-      _clearUserData();
+      await _clearUserData();
     }
   }
 
-  void _clearUserData() {
+  Future<void> _clearUserData() async {
+    if (Get.isRegistered<PusherService>()) {
+      await Get.find<PusherService>().disconnect();
+    }
     networkClient.removeAuthToken();
     box.erase();
     
@@ -239,6 +244,12 @@ class SettingScreenController extends GetxController {
       }
       if(!Get.isRegistered<NetworkConnectivityService>()) {
         Get.put(NetworkConnectivityService(), permanent: true);
+      }
+      if (!Get.isRegistered<AppLockService>()) {
+        Get.put(AppLockService(), permanent: true);
+      }
+      if (!Get.isRegistered<PusherService>()) {
+        Get.put(PusherService(), permanent: true);
       }
     } catch (_) {}
 

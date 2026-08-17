@@ -1,13 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/language_utils.dart';
-import 'package:managerapp/app/widgets/shared/common_text_field.dart';
 import '../controllers/setting_screen_controller.dart';
 
 class SettingScreenView extends GetWidget<SettingScreenController> {
@@ -137,30 +135,30 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                         controller.enableScheduleForLater.value =
                                             val,
                               ),
-                                    SizedBox(height: MySize.getHeight(12)),
-                              _buildShopControlField(
-                                label: TranslationKeys.minOrderAmount.tr,
-                                controller: controller.minOrderAmountController,
-                                decimalSeparator:
-                                    controller.decimalSeparator.value,
+                              SizedBox(height: MySize.getHeight(12)),
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.all(MySize.getHeight(12)),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(
+                                    MySize.getHeight(8),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.blue.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  TranslationKeys.quickControlsOnly.tr,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: MySize.getHeight(12),
+                                    color: Colors.blue.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                                    SizedBox(height: MySize.getHeight(10)),
-                                    SizedBox(height: MySize.getHeight(8)),
-                              _buildShopControlField(
-                                label: TranslationKeys.deliveryFee.tr,
-                                controller: controller.deliveryFeeController,
-                                decimalSeparator:
-                                    controller.decimalSeparator.value,
-                              ),
-                                    SizedBox(height: MySize.getHeight(8)),
-                              _buildShopControlField(
-                                label: TranslationKeys.freeDeliveryOverAmount.tr,
-                                controller:
-                                    controller.freeDeliveryAmountController,
-                                decimalSeparator:
-                                    controller.decimalSeparator.value,
-                              ),
-                              SizedBox(height: MySize.getHeight(8)),
+                              SizedBox(height: MySize.getHeight(12)),
                               _buildShopSaveButton(controller),
                             ],
                           );
@@ -318,54 +316,11 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           ),
           Switch.adaptive(
             value: value,
-            activeColor: ColorConstants.primaryColor,
+            activeTrackColor: ColorConstants.primaryColor,
             onChanged: onChanged,
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildShopControlField({
-    required String label,
-    required TextEditingController controller,
-    required String decimalSeparator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: MySize.getWidth(4), bottom: MySize.getHeight(4)),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: MySize.getHeight(12),
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(MySize.getHeight(12)),
-            boxShadow: ColorConstants.getShadow2,
-          ),
-          child: CommonTextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp('^\\d*[$decimalSeparator]?\\d*'),
-              ),
-            ],
-            padding: EdgeInsets.symmetric(
-              horizontal: MySize.getWidth(16),
-              vertical: MySize.getHeight(10),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -702,7 +657,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       onTap: onToggle,
       trailing: Switch.adaptive(
         value: value,
-        activeColor: color,
+        activeTrackColor: color,
         onChanged: (_) => onToggle(),
       ),
       showArrow: false,

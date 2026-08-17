@@ -4,11 +4,13 @@ import 'package:get/get.dart' hide Response;
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../../main.dart';
 import '../constants/api_constants.dart';
+import 'pusher_service.dart';
 import '../routes/app_pages.dart';
 
 class NetworkClient {
   static final NetworkClient _instance = NetworkClient._internal();
   late Dio _dio;
+  bool _isLoggingOut = false;
 
   factory NetworkClient() {
     return _instance;
@@ -45,19 +47,14 @@ class NetworkClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onError: (error, handler) {
-          // Handle 401 Unauthorized - redirect to login
-          // Skip redirect if already on login screen or if it's a login request
           if (error.response?.statusCode == 401) {
             final requestPath = error.requestOptions.path;
             final isLoginRequest = requestPath.contains(
               ArgumentConstant.loginEndpoint,
             );
-            final isOnLoginScreen = Get.currentRoute == Routes.LOGIN_SCREEN;
 
-            if (!isOnLoginScreen && !isLoginRequest) {
-              removeAuthToken();
-              box.erase();
-              Get.offAllNamed(Routes.LOGIN_SCREEN);
+            if (!isLoginRequest) {
+              forceLogout();
             }
           }
           return handler.next(error);
@@ -67,6 +64,31 @@ class NetworkClient {
 
     // Load saved token on initialization
     _loadSavedToken();
+  }
+
+  void forceLogout() {
+    if (_isLoggingOut || Get.currentRoute == Routes.LOGIN_SCREEN) {
+      removeAuthToken();
+      box.erase();
+      return;
+    }
+    _isLoggingOut = true;
+
+    if (Get.isRegistered<PusherService>()) {
+      try {
+        Get.find<PusherService>().disconnect();
+      } catch (_) {}
+    }
+    removeAuthToken();
+    box.erase();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _isLoggingOut = false;
+    });
+
+    if (Get.currentRoute != Routes.LOGIN_SCREEN) {
+      Get.offAllNamed(Routes.LOGIN_SCREEN);
+    }
   }
 
   // Load saved token from GetStorage

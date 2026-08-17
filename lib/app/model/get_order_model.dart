@@ -14,6 +14,11 @@ int? _toInt(dynamic value) {
   return null;
 }
 
+String? _toString(dynamic value) {
+  if (value == null) return null;
+  return value.toString();
+}
+
 T? _fromJson<T>(dynamic json, T Function(Map<String, dynamic>) fromJson) {
   if (json == null) return null;
   if (json is Map<String, dynamic>) return fromJson(json);
@@ -284,6 +289,41 @@ class ReceiptSettings {
   };
 }
 
+class DeliveryExecutiveInfo {
+  int? id;
+  String? name;
+  String? phoneCode;
+  String? phone;
+  String? phoneFormatted;
+  String? status;
+
+  DeliveryExecutiveInfo({
+    this.id,
+    this.name,
+    this.phoneCode,
+    this.phone,
+    this.phoneFormatted,
+    this.status,
+  });
+
+  DeliveryExecutiveInfo.fromJson(Map<String, dynamic> json)
+    : id = _toInt(json['id']),
+      name = json['name'],
+      phoneCode = _toString(json['phone_code']),
+      phone = _toString(json['phone']),
+      phoneFormatted = _toString(json['phone_formatted']),
+      status = json['status'];
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'phone_code': phoneCode,
+    'phone': phone,
+    'phone_formatted': phoneFormatted,
+    'status': status,
+  };
+}
+
 class Order {
   String? uuid;
   int? id;
@@ -297,7 +337,9 @@ class Order {
   Table? table;
   Customer? customer;
   Waiter? waiter;
-  Map<String, dynamic>? deliveryExecutive;
+  dynamic placedBy;
+  dynamic cancelledBy;
+  DeliveryExecutiveInfo? deliveryExecutive;
   int? deliveryExecutiveId;
   Currency? currency;
   int? currencyId;
@@ -306,7 +348,10 @@ class Order {
   List<Payments>? payments;
   Map<String, dynamic>? kots;
   Totals? totals;
+  SplitInfo? splitInfo;
   int? numberOfPax;
+  String? refundStatus;
+  RefundSummary? refundSummary;
   String? discountType;
   int? discountValue;
   String? couponCode;
@@ -314,12 +359,20 @@ class Order {
   String? taxModeAtOrder;
   bool? taxInclusiveAtOrder;
   String? deliveryAddress;
+  double? customerLat;
+  double? customerLng;
   List<dynamic>? cancelReason;
   int? cancelReasonId;
   String? cancelReasonText;
+  List<dynamic>? histories;
+  List<dynamic>? auditLogs;
   String? createdAt;
   String? updatedAt;
   String? placedVia;
+  String? providerName;
+  int? itemsCount;
+  List<dynamic>? orderAllowedStates;
+  String? mergeportStatus;
 
   Order({
     this.uuid,
@@ -334,6 +387,8 @@ class Order {
     this.table,
     this.customer,
     this.waiter,
+    this.placedBy,
+    this.cancelledBy,
     this.deliveryExecutive,
     this.deliveryExecutiveId,
     this.currency,
@@ -343,7 +398,10 @@ class Order {
     this.payments,
     this.kots,
     this.totals,
+    this.splitInfo,
     this.numberOfPax,
+    this.refundStatus,
+    this.refundSummary,
     this.discountType,
     this.discountValue,
     this.couponCode,
@@ -351,12 +409,20 @@ class Order {
     this.taxModeAtOrder,
     this.taxInclusiveAtOrder,
     this.deliveryAddress,
+    this.customerLat,
+    this.customerLng,
     this.cancelReason,
     this.cancelReasonId,
     this.cancelReasonText,
+    this.histories,
+    this.auditLogs,
     this.createdAt,
     this.updatedAt,
     this.placedVia,
+    this.providerName,
+    this.itemsCount,
+    this.orderAllowedStates,
+    this.mergeportStatus,
   });
 
   Order.fromJson(Map<String, dynamic> json)
@@ -372,8 +438,19 @@ class Order {
       table = _fromJson(json['table'], Table.fromJson),
       customer = _fromJson(json['customer'], Customer.fromJson),
       waiter = _fromJson(json['waiter'], Waiter.fromJson),
-      deliveryExecutive = _mapFromJson(json['delivery_executive']),
-      deliveryExecutiveId = _toInt(json['delivery_executive_id']),
+      placedBy = json['placed_by'],
+      cancelledBy = json['cancelled_by'],
+      deliveryExecutive =
+          json['delivery_executive'] is Map<String, dynamic>
+              ? DeliveryExecutiveInfo.fromJson(
+                json['delivery_executive'] as Map<String, dynamic>,
+              )
+              : null,
+      deliveryExecutiveId =
+          _toInt(json['delivery_executive_id']) ??
+          (json['delivery_executive'] is Map
+              ? _toInt(json['delivery_executive']['id'])
+              : null),
       currency = _fromJson(json['currency'], Currency.fromJson),
       currencyId = _toInt(json['currency_id']),
       items = _listFromJson(json['items'], Items.fromJson),
@@ -381,7 +458,10 @@ class Order {
       payments = _listFromJson(json['payments'], Payments.fromJson),
       kots = _mapFromJson(json['kots']),
       totals = _fromJson(json['totals'], Totals.fromJson),
+      splitInfo = _fromJson(json['split_info'], SplitInfo.fromJson),
       numberOfPax = _toInt(json['number_of_pax']),
+      refundStatus = json['refund_status'],
+      refundSummary = _fromJson(json['refund_summary'], RefundSummary.fromJson),
       discountType = json['discount_type'],
       discountValue = _toInt(json['discount_value']),
       couponCode =
@@ -391,12 +471,20 @@ class Order {
       taxModeAtOrder = json['tax_mode_at_order'],
       taxInclusiveAtOrder = json['tax_inclusive_at_order'],
       deliveryAddress = json['delivery_address'],
+      customerLat = _toDouble(json['customer_lat']),
+      customerLng = _toDouble(json['customer_lng']),
       cancelReason = _toDynamicList(json['cancel_reason']),
       cancelReasonId = _toInt(json['cancel_reason_id']),
       cancelReasonText = json['cancel_reason_text'],
+      histories = _toDynamicList(json['histories']),
+      auditLogs = _toDynamicList(json['audit_logs']),
       createdAt = json['created_at'],
       updatedAt = json['updated_at'],
-      placedVia = json['placed_via'];
+      placedVia = json['placed_via'],
+      providerName = json['provider_name'],
+      itemsCount = _toInt(json['items_count']),
+      orderAllowedStates = _toDynamicList(json['order_allowed_states']),
+      mergeportStatus = json['mergeport_status'];
 
   Map<String, dynamic> toJson() => {
     'uuid': uuid,
@@ -411,7 +499,9 @@ class Order {
     'table': table?.toJson(),
     'customer': customer?.toJson(),
     'waiter': waiter?.toJson(),
-    'delivery_executive': deliveryExecutive,
+    'placed_by': placedBy,
+    'cancelled_by': cancelledBy,
+    'delivery_executive': deliveryExecutive?.toJson(),
     'delivery_executive_id': deliveryExecutiveId,
     'currency': currency?.toJson(),
     'currency_id': currencyId,
@@ -420,7 +510,10 @@ class Order {
     'payments': payments?.map((v) => v.toJson()).toList(),
     'kots': kots,
     'totals': totals?.toJson(),
+    'split_info': splitInfo?.toJson(),
     'number_of_pax': numberOfPax,
+    'refund_status': refundStatus,
+    'refund_summary': refundSummary?.toJson(),
     'discount_type': discountType,
     'discount_value': discountValue,
     'coupon_code': couponCode,
@@ -428,12 +521,20 @@ class Order {
     'tax_mode_at_order': taxModeAtOrder,
     'tax_inclusive_at_order': taxInclusiveAtOrder,
     'delivery_address': deliveryAddress,
+    'customer_lat': customerLat,
+    'customer_lng': customerLng,
     'cancel_reason': cancelReason,
     'cancel_reason_id': cancelReasonId,
     'cancel_reason_text': cancelReasonText,
+    'histories': histories,
+    'audit_logs': auditLogs,
     'created_at': createdAt,
     'updated_at': updatedAt,
     'placed_via': placedVia,
+    'provider_name': providerName,
+    'items_count': itemsCount,
+    'order_allowed_states': orderAllowedStates,
+    'mergeport_status': mergeportStatus,
   };
 }
 
@@ -460,8 +561,8 @@ class Customer {
     : id = _toInt(json['id']),
       name = json['name'],
       email = json['email'],
-      phoneNumber = json['phone_number'],
-      phoneCode = json['phone_code'],
+      phoneNumber = _toString(json['phone_number']),
+      phoneCode = _toString(json['phone_code']),
       addresses = _mapFromJson(json['addresses']),
       orderCount = _mapFromJson(json['order_count']);
 
@@ -499,8 +600,8 @@ class Waiter {
     : id = _toInt(json['id']),
       name = json['name'],
       email = json['email'],
-      phoneNumber = json['phone_number'],
-      phoneCode = json['phone_code'],
+      phoneNumber = _toString(json['phone_number']),
+      phoneCode = _toString(json['phone_code']),
       branchId = _toInt(json['branch_id']),
       restaurantId = _toInt(json['restaurant_id']);
 
@@ -637,7 +738,13 @@ class Items {
   List<Modifiers>? modifiers;
   int? quantity;
   double? price;
+  double? grossAmount;
   double? amount;
+  double? packagingCharge;
+  double? deposit;
+  String? discountType;
+  int? discountValue;
+  double? discountAmount;
   String? note;
   double? taxAmount;
   int? taxPercentage;
@@ -654,7 +761,13 @@ class Items {
     this.modifiers,
     this.quantity,
     this.price,
+    this.grossAmount,
     this.amount,
+    this.packagingCharge,
+    this.deposit,
+    this.discountType,
+    this.discountValue,
+    this.discountAmount,
     this.note,
     this.taxAmount,
     this.taxPercentage,
@@ -672,7 +785,13 @@ class Items {
       modifiers = _listFromJson(json['modifiers'], Modifiers.fromJson),
       quantity = _toInt(json['quantity']),
       price = _toDouble(json['price']),
+      grossAmount = _toDouble(json['gross_amount']),
       amount = _toDouble(json['amount']),
+      packagingCharge = _toDouble(json['packaging_charge']),
+      deposit = _toDouble(json['deposit']),
+      discountType = json['discount_type'],
+      discountValue = _toInt(json['discount_value']),
+      discountAmount = _toDouble(json['discount_amount']),
       note = json['note'],
       taxAmount = _toDouble(json['tax_amount']),
       taxPercentage = _toInt(json['tax_percentage']),
@@ -689,7 +808,13 @@ class Items {
     'modifiers': modifiers?.map((v) => v.toJson()).toList(),
     'quantity': quantity,
     'price': price,
+    'gross_amount': grossAmount,
     'amount': amount,
+    'packaging_charge': packagingCharge,
+    'deposit': deposit,
+    'discount_type': discountType,
+    'discount_value': discountValue,
+    'discount_amount': discountAmount,
     'note': note,
     'tax_amount': taxAmount,
     'tax_percentage': taxPercentage,
@@ -740,22 +865,55 @@ class Charges {
 class Payments {
   int? id;
   double? amount;
+  double? amountTotal;
+  double? tipAmount;
+  double? balance;
+  String? transactionId;
   String? paymentMethod;
   String? createdAt;
+  int? voucherId;
+  double? voucherAmount;
+  String? voucherCode;
 
-  Payments({this.id, this.amount, this.paymentMethod, this.createdAt});
+  Payments({
+    this.id,
+    this.amount,
+    this.amountTotal,
+    this.tipAmount,
+    this.balance,
+    this.transactionId,
+    this.paymentMethod,
+    this.createdAt,
+    this.voucherId,
+    this.voucherAmount,
+    this.voucherCode,
+  });
 
   Payments.fromJson(Map<String, dynamic> json)
     : id = _toInt(json['id']),
       amount = _toDouble(json['amount']),
+      amountTotal = _toDouble(json['amount_total']),
+      tipAmount = _toDouble(json['tip_amount']),
+      balance = _toDouble(json['balance']),
+      transactionId = json['transaction_id'],
       paymentMethod = json['payment_method'],
-      createdAt = json['created_at'];
+      createdAt = json['created_at'],
+      voucherId = _toInt(json['voucher_id']),
+      voucherAmount = _toDouble(json['voucher_amount']),
+      voucherCode = json['voucher_code'];
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'amount': amount,
+    'amount_total': amountTotal,
+    'tip_amount': tipAmount,
+    'balance': balance,
+    'transaction_id': transactionId,
     'payment_method': paymentMethod,
     'created_at': createdAt,
+    'voucher_id': voucherId,
+    'voucher_amount': voucherAmount,
+    'voucher_code': voucherCode,
   };
 }
 
@@ -765,7 +923,10 @@ class Totals {
   double? tipAmount;
   double? deliveryFee;
   double? total;
-  int? amountPaid;
+  double? effectiveTotal;
+  double? totalPackagingCharge;
+  double? totalDepositAmount;
+  double? amountPaid;
   double? discountAmount;
 
   Totals({
@@ -774,6 +935,9 @@ class Totals {
     this.tipAmount,
     this.deliveryFee,
     this.total,
+    this.effectiveTotal,
+    this.totalPackagingCharge,
+    this.totalDepositAmount,
     this.amountPaid,
     this.discountAmount,
   });
@@ -784,7 +948,10 @@ class Totals {
       tipAmount = _toDouble(json['tip_amount']),
       deliveryFee = _toDouble(json['delivery_fee']),
       total = _toDouble(json['total']),
-      amountPaid = _toInt(json['amount_paid']),
+      effectiveTotal = _toDouble(json['effective_total']),
+      totalPackagingCharge = _toDouble(json['total_packaging_charge']),
+      totalDepositAmount = _toDouble(json['total_deposit_amount']),
+      amountPaid = _toDouble(json['amount_paid']),
       discountAmount = _toDouble(json['discount_amount']);
 
   Map<String, dynamic> toJson() => {
@@ -793,6 +960,9 @@ class Totals {
     'tip_amount': tipAmount,
     'delivery_fee': deliveryFee,
     'total': total,
+    'effective_total': effectiveTotal,
+    'total_packaging_charge': totalPackagingCharge,
+    'total_deposit_amount': totalDepositAmount,
     'amount_paid': amountPaid,
     'discount_amount': discountAmount,
   };
@@ -814,5 +984,187 @@ class Taxes {
     'tax_name': taxName,
     'percent': percent,
     'amount': amount,
+  };
+}
+
+class SplitInfo {
+  String? splitType;
+  int? splitCount;
+  int? splitsPaid;
+  int? splitsRemaining;
+  List<SplitOrder>? splitOrders;
+
+  SplitInfo({
+    this.splitType,
+    this.splitCount,
+    this.splitsPaid,
+    this.splitsRemaining,
+    this.splitOrders,
+  });
+
+  SplitInfo.fromJson(Map<String, dynamic> json)
+    : splitType = json['split_type'],
+      splitCount = _toInt(json['split_count']),
+      splitsPaid = _toInt(json['splits_paid']),
+      splitsRemaining = _toInt(json['splits_remaining']),
+      splitOrders = _listFromJson(json['split_orders'], SplitOrder.fromJson);
+
+  Map<String, dynamic> toJson() => {
+    'split_type': splitType,
+    'split_count': splitCount,
+    'splits_paid': splitsPaid,
+    'splits_remaining': splitsRemaining,
+    'split_orders': splitOrders?.map((v) => v.toJson()).toList(),
+  };
+}
+
+class SplitOrder {
+  int? splitNumber;
+  int? splitOrderId;
+  String? status;
+  double? amount;
+  double? subtotal;
+  String? paymentMethod;
+  List<SplitOrderTax>? taxes;
+  double? tipAmount;
+  double? discountAmount;
+  String? discountType;
+  double? voucherAmount;
+  String? paidAt;
+
+  SplitOrder({
+    this.splitNumber,
+    this.splitOrderId,
+    this.status,
+    this.amount,
+    this.subtotal,
+    this.paymentMethod,
+    this.taxes,
+    this.tipAmount,
+    this.discountAmount,
+    this.discountType,
+    this.voucherAmount,
+    this.paidAt,
+  });
+
+  SplitOrder.fromJson(Map<String, dynamic> json)
+    : splitNumber = _toInt(json['split_number']),
+      splitOrderId = _toInt(json['split_order_id']),
+      status = json['status'],
+      amount = _toDouble(json['amount']),
+      subtotal = _toDouble(json['subtotal']),
+      paymentMethod = json['payment_method'],
+      taxes = _listFromJson(json['taxes'], SplitOrderTax.fromJson),
+      tipAmount = _toDouble(json['tip_amount']),
+      discountAmount = _toDouble(json['discount_amount']),
+      discountType = json['discount_type'],
+      voucherAmount = _toDouble(json['voucher_amount']),
+      paidAt = json['paid_at'];
+
+  Map<String, dynamic> toJson() => {
+    'split_number': splitNumber,
+    'split_order_id': splitOrderId,
+    'status': status,
+    'amount': amount,
+    'subtotal': subtotal,
+    'payment_method': paymentMethod,
+    'taxes': taxes?.map((v) => v.toJson()).toList(),
+    'tip_amount': tipAmount,
+    'discount_amount': discountAmount,
+    'discount_type': discountType,
+    'voucher_amount': voucherAmount,
+    'paid_at': paidAt,
+  };
+}
+
+class SplitOrderTax {
+  String? name;
+  double? amount;
+  double? percent;
+  bool? isInclusive;
+
+  SplitOrderTax({this.name, this.amount, this.percent, this.isInclusive});
+
+  SplitOrderTax.fromJson(Map<String, dynamic> json)
+    : name = json['name'],
+      amount = _toDouble(json['amount']),
+      percent = _toDouble(json['percent']),
+      isInclusive = json['is_inclusive'];
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'amount': amount,
+    'percent': percent,
+    'is_inclusive': isInclusive,
+  };
+}
+
+class RefundSummary {
+  double? totalRefunded;
+  double? refundableAmount;
+  double? pendingRefundAmount;
+  List<Refunds>? refunds;
+
+  RefundSummary({
+    this.totalRefunded,
+    this.refundableAmount,
+    this.pendingRefundAmount,
+    this.refunds,
+  });
+
+  RefundSummary.fromJson(Map<String, dynamic> json)
+    : totalRefunded = _toDouble(json['total_refunded']),
+      refundableAmount = _toDouble(json['refundable_amount']),
+      pendingRefundAmount = _toDouble(json['pending_refund_amount']),
+      refunds = _listFromJson(json['refunds'], Refunds.fromJson);
+
+  Map<String, dynamic> toJson() => {
+    'total_refunded': totalRefunded,
+    'refundable_amount': refundableAmount,
+    'pending_refund_amount': pendingRefundAmount,
+    'refunds': refunds?.map((v) => v.toJson()).toList(),
+  };
+}
+
+class Refunds {
+  int? id;
+  int? paymentId;
+  double? amount;
+  String? paymentMethod;
+  String? reason;
+  String? transactionId;
+  String? refundedBy;
+  String? createdAt;
+
+  Refunds({
+    this.id,
+    this.paymentId,
+    this.amount,
+    this.paymentMethod,
+    this.reason,
+    this.transactionId,
+    this.refundedBy,
+    this.createdAt,
+  });
+
+  Refunds.fromJson(Map<String, dynamic> json)
+    : id = _toInt(json['id']),
+      paymentId = _toInt(json['payment_id']),
+      amount = _toDouble(json['amount']),
+      paymentMethod = json['payment_method']?.toString(),
+      reason = json['reason']?.toString(),
+      transactionId = json['transaction_id']?.toString(),
+      refundedBy = json['refunded_by']?.toString(),
+      createdAt = json['created_at']?.toString();
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'payment_id': paymentId,
+    'amount': amount,
+    'payment_method': paymentMethod,
+    'reason': reason,
+    'transaction_id': transactionId,
+    'refunded_by': refundedBy,
+    'created_at': createdAt,
   };
 }

@@ -1,3 +1,5 @@
+import 'package:managerapp/app/model/get_order_model.dart' show DeliveryExecutiveInfo;
+
 class AllOrdersModel {
   bool? success;
   Data? data;
@@ -57,6 +59,7 @@ class Orders {
   String? formattedOrderNumber;
   String? orderType;
   String? status;
+  String? orderStatus;
   String? dateTime;
   String? formattedDateTime;
   Customer? customer;
@@ -65,9 +68,14 @@ class Orders {
   int? itemsCount;
   String? total;
   String? formattedTotal;
+  String? formattedEffectiveTotal;
+  double? effectiveTotal;
   int? currencyId;
   Coupon? coupon;
   String? placedVia;
+  String? providerName;
+  DeliveryExecutiveInfo? deliveryExecutive;
+  int? deliveryExecutiveId;
 
   Orders({
     this.id,
@@ -76,6 +84,7 @@ class Orders {
     this.formattedOrderNumber,
     this.orderType,
     this.status,
+    this.orderStatus,
     this.dateTime,
     this.formattedDateTime,
     this.customer,
@@ -84,18 +93,26 @@ class Orders {
     this.itemsCount,
     this.total,
     this.formattedTotal,
+    this.formattedEffectiveTotal,
+    this.effectiveTotal,
     this.currencyId,
     this.coupon,
     this.placedVia,
+    this.providerName,
+    this.deliveryExecutive,
+    this.deliveryExecutiveId,
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     uuid = json['uuid'];
-    orderNumber = json['order_number'];
-    formattedOrderNumber = json['formatted_order_number'].toString();
+    orderNumber = json['order_number']?.toString();
+    formattedOrderNumber =
+        json['formatted_order_number']?.toString() ??
+        json['order_number']?.toString();
     orderType = json['order_type'];
     status = json['status'];
+    orderStatus = json['order_status'];
     dateTime = json['date_time'];
     formattedDateTime = json['formatted_date_time'];
     customer =
@@ -128,10 +145,21 @@ class Orders {
                       : {}),
             )
             : null;
-    itemsCount = json['items_count'];
+    itemsCount =
+        json['items_count'] is int
+            ? json['items_count']
+            : int.tryParse(json['items_count']?.toString() ?? '');
     total = json['total']?.toString();
     formattedTotal = json['formatted_total']?.toString();
-    currencyId = json['currency_id'];
+    formattedEffectiveTotal = json['formatted_effective_total']?.toString();
+    effectiveTotal =
+        json['effective_total'] != null
+            ? double.tryParse(json['effective_total'].toString())
+            : null;
+    currencyId =
+        json['currency_id'] is int
+            ? json['currency_id']
+            : int.tryParse(json['currency_id']?.toString() ?? '');
     coupon =
         json['coupon'] != null
             ? Coupon.fromJson(
@@ -142,7 +170,21 @@ class Orders {
                       : {}),
             )
             : null;
-    placedVia = json['placed_via'];
+    placedVia = json['placed_via']?.toString();
+    providerName = json['provider_name']?.toString();
+    deliveryExecutive =
+        json['delivery_executive'] is Map
+            ? DeliveryExecutiveInfo.fromJson(
+              json['delivery_executive'] as Map<String, dynamic>,
+            )
+            : null;
+    deliveryExecutiveId =
+        json['delivery_executive_id'] != null
+            ? int.tryParse(json['delivery_executive_id'].toString())
+            : (json['delivery_executive'] is Map &&
+                    json['delivery_executive']['id'] != null
+                ? int.tryParse(json['delivery_executive']['id'].toString())
+                : null);
   }
 
   Map<String, dynamic> toJson() {
@@ -153,6 +195,7 @@ class Orders {
     data['formatted_order_number'] = formattedOrderNumber;
     data['order_type'] = orderType;
     data['status'] = status;
+    data['order_status'] = orderStatus;
     data['date_time'] = dateTime;
     data['formatted_date_time'] = formattedDateTime;
     if (customer != null) {
@@ -167,11 +210,16 @@ class Orders {
     data['items_count'] = itemsCount;
     data['total'] = total;
     data['formatted_total'] = formattedTotal;
+    data['formatted_effective_total'] = formattedEffectiveTotal;
+    data['effective_total'] = effectiveTotal;
     data['currency_id'] = currencyId;
     if (coupon != null) {
       data['coupon'] = coupon!.toJson();
     }
     data['placed_via'] = placedVia;
+    data['provider_name'] = providerName;
+    data['delivery_executive'] = deliveryExecutive?.toJson();
+    data['delivery_executive_id'] = deliveryExecutiveId;
     return data;
   }
 }
@@ -179,18 +227,27 @@ class Orders {
 class Customer {
   int? id;
   String? name;
+  String? email;
+  String? phone;
 
-  Customer({this.id, this.name});
+  Customer({this.id, this.name, this.email, this.phone});
 
   Customer.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
+    id =
+        json['id'] is int
+            ? json['id']
+            : int.tryParse(json['id']?.toString() ?? '');
+    name = json['name']?.toString();
+    email = json['email']?.toString();
+    phone = json['phone']?.toString();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['name'] = name;
+    data['email'] = email;
+    data['phone'] = phone;
     return data;
   }
 }
@@ -198,18 +255,24 @@ class Customer {
 class Table {
   int? id;
   String? tableCode;
+  String? tableName;
 
-  Table({this.id, this.tableCode});
+  Table({this.id, this.tableCode, this.tableName});
 
   Table.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    tableCode = json['table_code'];
+    id =
+        json['id'] is int
+            ? json['id']
+            : int.tryParse(json['id']?.toString() ?? '');
+    tableCode = json['table_code']?.toString() ?? json['name']?.toString();
+    tableName = json['table_name']?.toString() ?? json['name']?.toString();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['table_code'] = tableCode;
+    data['table_name'] = tableName;
     return data;
   }
 }
@@ -221,8 +284,11 @@ class Coupon {
   Coupon({this.id, this.code});
 
   Coupon.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    code = json['code'];
+    id =
+        json['id'] is int
+            ? json['id']
+            : int.tryParse(json['id']?.toString() ?? '');
+    code = json['code']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -242,10 +308,22 @@ class Pagination {
   Pagination({this.currentPage, this.lastPage, this.perPage, this.total});
 
   Pagination.fromJson(Map<String, dynamic> json) {
-    currentPage = json['current_page'];
-    lastPage = json['last_page'];
-    perPage = json['per_page'];
-    total = json['total'];
+    currentPage =
+        json['current_page'] is int
+            ? json['current_page']
+            : int.tryParse(json['current_page']?.toString() ?? '');
+    lastPage =
+        json['last_page'] is int
+            ? json['last_page']
+            : int.tryParse(json['last_page']?.toString() ?? '');
+    perPage =
+        json['per_page'] is int
+            ? json['per_page']
+            : int.tryParse(json['per_page']?.toString() ?? '');
+    total =
+        json['total'] is int
+            ? json['total']
+            : int.tryParse(json['total']?.toString() ?? '');
   }
 
   Map<String, dynamic> toJson() {

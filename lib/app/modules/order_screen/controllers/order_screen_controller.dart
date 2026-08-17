@@ -9,9 +9,6 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/all_orders_model.dart';
 import '../../../model/get_order_model.dart' as order_model;
 import '../../../model/mobile_app_modules_model.dart';
-import '../../../model/split_payment_remaining_model.dart';
-import '../../../widgets/order_payment_dialog.dart';
-import '../../../widgets/running_table_dialog.dart';
 import '../../../widgets/app_toast.dart';
 import '../../../../main.dart';
 
@@ -65,18 +62,9 @@ class OrderScreenController extends GetxController {
   final String _localStatusKey = 'order_local_statuses';
   final RxMap<String, String> orderLocalStatuses = <String, String>{}.obs;
   final RxString selectedLocalStatus = 'New'.obs; // Default to New status
-  final List<String> localStatusOptions = [
-    'New',
-    'Preparing',
-    'Ready',
-  ];
+  final List<String> localStatusOptions = ['New', 'Ready'];
 
-  final List<String> sourceOptions = [
-    'All Sources',
-    'iOS',
-    'Android',
-    'Shop',
-  ];
+  final List<String> sourceOptions = ['All Sources', 'iOS', 'Android', 'Shop'];
 
   @override
   void onInit() {
@@ -119,10 +107,8 @@ class OrderScreenController extends GetxController {
       final currentStatus = getLocalStatus(orderId);
       if (status == 'New') {
         return currentStatus == 'New';
-      } else if (status == 'Preparing') {
-        return currentStatus == 'Preparing';
       } else if (status == 'Ready') {
-        return currentStatus == 'Ready';
+        return currentStatus == 'Ready' || currentStatus == 'Preparing';
       }
       return false;
     }).toList();
@@ -137,53 +123,6 @@ class OrderScreenController extends GetxController {
     box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
       _checkAndShowDialog();
     });
-    _checkPendingPaymentAndOpenDialog();
-  }
-
-  void _checkPendingPaymentAndOpenDialog() {
-    try {
-      final orderId = box.read<String?>(
-        ArgumentConstant.pendingPaymentOrderIdKey,
-      );
-      if (orderId != null && orderId.isNotEmpty) {
-        box.remove(ArgumentConstant.pendingPaymentOrderIdKey);
-        Future.delayed(const Duration(milliseconds: 300), () {
-          openPaymentDialogForOrderId(orderId);
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> openPaymentDialogForOrderId(String orderUuid) async {
-    final orderDetails = await RunningTableService.fetchOrderDetails(orderUuid);
-    if (orderDetails == null) return;
-    final table = RunningTableService.tablesFromOrderDetails(orderDetails);
-    if (table == null) return;
-    final orderData = orderDetails.data?.order;
-    final orderType = orderData?.orderType?.toLowerCase() ?? '';
-    final allowSplit = orderType.contains('dine') || orderType.contains('counter');
-    final status = orderData?.status ?? '';
-    final hasAnyPayment = orderData?.payments?.isNotEmpty ?? false;
-    final isPaymentDue = status == 'payment_due';
-    SplitPaymentData? remainingSplitData;
-    var splitOnly = false;
-    if (allowSplit && isPaymentDue && hasAnyPayment) {
-      final remainingModel = await RunningTableService.fetchRemainingSplitItems(
-        orderUuid,
-      );
-      remainingSplitData = remainingModel?.data;
-      splitOnly = true;
-    }
-    final success = await OrderPaymentDialog.show(
-      orderDetails: orderDetails,
-      table: table,
-      allowSplit: allowSplit,
-      splitOnly: splitOnly,
-      remainingSplitData: remainingSplitData,
-    );
-    if (success == true) {
-      fetchAllOrders();
-    }
   }
 
   void _setupScrollListener() {
@@ -260,42 +199,42 @@ class OrderScreenController extends GetxController {
     }
 
     if (selectedSourceFilter.value != 'All Sources') {
-      final sourceMap = {
-        'iOS': 'ios',
-        'Android': 'android',
-        'Shop': 'shop',
-      };
+      final sourceMap = {'iOS': 'ios', 'Android': 'android', 'Shop': 'shop'};
       if (sourceMap.containsKey(selectedSourceFilter.value)) {
         queryParams['placed_via'] = sourceMap[selectedSourceFilter.value];
       }
     }
 
-    final response = await networkClient.get(
-      ArgumentConstant.allOrdersEndpoint,
-      queryParameters: queryParams,
-    );
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.allOrdersEndpoint,
+        queryParameters: queryParams,
+      );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final allOrdersModel = AllOrdersModel.fromJson(response.data);
-      if (allOrdersModel.success == true && allOrdersModel.data != null) {
-        final ordersList = allOrdersModel.data!.orders ?? [];
-        final filteredOrders =
-            ordersList
-                .where((order) => order.placedVia?.toLowerCase() != 'pos')
-                .toList();
-        if (isLoadMore) {
-          allOrders.addAll(filteredOrders);
-        } else {
-          allOrders.value = filteredOrders;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final allOrdersModel = AllOrdersModel.fromJson(response.data);
+        if (allOrdersModel.success == true && allOrdersModel.data != null) {
+          final ordersList = allOrdersModel.data!.orders ?? [];
+          final filteredOrders =
+              ordersList
+                  .where((order) => order.placedVia?.toLowerCase() != 'pos')
+                  .toList();
+          if (isLoadMore) {
+            allOrders.addAll(filteredOrders);
+          } else {
+            allOrders.value = filteredOrders;
+          }
+          pagination = allOrdersModel.data!.pagination;
         }
-        pagination = allOrdersModel.data!.pagination;
       }
-    }
-
-    if (isLoadMore) {
-      isLoadingMore.value = false;
-    } else {
-      isLoading.value = false;
+    } catch (_) {
+      // Network/auth error handled by interceptor or silent fallback
+    } finally {
+      if (isLoadMore) {
+        isLoadingMore.value = false;
+      } else {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -307,22 +246,62 @@ class OrderScreenController extends GetxController {
   Future<void> fetchOrderDetails(String orderUuid) async {
     isLoadingOrderDetails.value = true;
     orderDetails.value = null;
-    final response = await networkClient.get(
-      ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final orderDetailsModel = order_model.GetOrderModel.fromJson(
-        response.data,
+    try {
+      final response = await networkClient.get(
+        ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
       );
-      if (orderDetailsModel.success == true) {
-        orderDetails.value = orderDetailsModel;
-        final tz = orderDetailsModel.data?.restaurant?.timezone;
-        if (tz != null && tz.isNotEmpty) {
-          box.write(ArgumentConstant.restaurantTimezoneKey, tz);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final orderDetailsModel = order_model.GetOrderModel.fromJson(
+          response.data,
+        );
+        if (orderDetailsModel.success == true) {
+          orderDetails.value = orderDetailsModel;
+          final tz = orderDetailsModel.data?.restaurant?.timezone;
+          if (tz != null && tz.isNotEmpty) {
+            box.write(ArgumentConstant.restaurantTimezoneKey, tz);
+          }
         }
       }
+    } catch (_) {
+      // Handled silently
+    } finally {
+      isLoadingOrderDetails.value = false;
     }
-    isLoadingOrderDetails.value = false;
+  }
+
+  Future<void> refreshOrderDetails(String orderUuid) async {
+    await fetchOrderDetails(orderUuid);
+  }
+
+  Future<String?> createRefund({
+    required String orderUuid,
+    required int paymentId,
+    required double amount,
+    String? reason,
+  }) async {
+    try {
+      final endpoint = ArgumentConstant.createRefundEndpoint
+          .replaceAll(':order_uuid', orderUuid)
+          .replaceAll(':payment_id', paymentId.toString());
+
+      final payload = <String, dynamic>{'amount': amount.toStringAsFixed(2)};
+      final trimmedReason = reason?.trim();
+      if (trimmedReason != null && trimmedReason.isNotEmpty) {
+        payload['reason'] = trimmedReason;
+      }
+
+      final response = await networkClient.post(endpoint, data: payload);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await refreshOrderDetails(orderUuid);
+        await fetchAllOrders();
+        return null;
+      }
+      return TranslationKeys.somethingWentWrong.tr;
+    } on ApiException catch (e) {
+      return e.message;
+    } catch (_) {
+      return TranslationKeys.somethingWentWrong.tr;
+    }
   }
 
   Future<bool> updateOrderStatus(String orderUuid, String status) async {

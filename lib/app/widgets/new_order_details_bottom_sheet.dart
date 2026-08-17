@@ -102,7 +102,10 @@ class NewOrderDetailsBottomSheet {
     order_model.Order orderDetails,
   ) {
     return Padding(
-      padding: EdgeInsets.all(MySize.getHeight(8)),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(4),
+        vertical: MySize.getHeight(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -119,13 +122,13 @@ class NewOrderDetailsBottomSheet {
               ),
             ],
           ),
-          SizedBox(height: MySize.getHeight(8)),
+          SizedBox(height: MySize.getHeight(4)),
           OrderDetailWidgets.buildOrderTimeInfo(
             orderDetails,
             fontSize: 12,
             dateFormatter: (s) => DateTimeFormatter.formatDateTime(s),
           ),
-          SizedBox(height: MySize.getHeight(8)),
+          SizedBox(height: MySize.getHeight(4)),
           if (orderDetails.customer != null &&
               helpers.hasCustomerInfo(orderDetails.customer!))
             OrderDetailWidgets.buildCustomerDetails(
@@ -137,7 +140,7 @@ class NewOrderDetailsBottomSheet {
             ),
           if (orderDetails.customer != null &&
               helpers.hasCustomerInfo(orderDetails.customer!))
-            SizedBox(height: MySize.getHeight(8)),
+            SizedBox(height: MySize.getHeight(4)),
           Builder(
             builder: (context) {
               final shouldShowWaiter =
@@ -149,13 +152,13 @@ class NewOrderDetailsBottomSheet {
               if (!shouldShowWaiter) return const SizedBox.shrink();
 
               return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   OrderDetailWidgets.buildWaiterDetails(
                     orderDetails.waiter!,
                     fontSize: 12,
-                    titleFontSize: 14,
                   ),
-                  SizedBox(height: MySize.getHeight(8)),
+                  SizedBox(height: MySize.getHeight(4)),
                 ],
               );
             },
@@ -182,11 +185,11 @@ class NewOrderDetailsBottomSheet {
     order_model.Data orderData,
   ) {
     return Container(
-      padding: EdgeInsets.only(
-        top: MySize.getHeight(8),
-        left: MySize.getWidth(16),
-        right: MySize.getWidth(16),
-        bottom: MySize.getHeight(10),
+      padding: EdgeInsets.fromLTRB(
+        MySize.getWidth(4),
+        MySize.getHeight(8),
+        MySize.getWidth(4),
+        MySize.getHeight(8),
       ),
       decoration: BoxDecoration(
         color: ColorConstants.bgColor,
@@ -231,10 +234,9 @@ class NewOrderDetailsBottomSheet {
                 child: Container(
                   padding: EdgeInsets.all(MySize.getHeight(12)),
                   decoration: BoxDecoration(
-                    color:
-                        printing
-                            ? const Color(0xFF0E9F6E).withValues(alpha: 0.7)
-                            : const Color(0xFF0E9F6E),
+                    color: printing
+                        ? const Color(0xFF0E9F6E).withValues(alpha: 0.7)
+                        : const Color(0xFF0E9F6E),
                     borderRadius: BorderRadius.circular(MySize.getHeight(8)),
                     boxShadow: ColorConstants.getShadow2,
                   ),
@@ -282,7 +284,7 @@ class NewOrderDetailsBottomSheet {
     try {
       isPrinting.value = true;
       // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printInvoice(orderData);
+      await SunmiInvoicePrinterService().printSharpInvoice(orderData);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,

@@ -20,11 +20,7 @@ class AuthMiddleware extends GetMiddleware {
       return const RouteSettings(name: Routes.LOGIN_SCREEN);
     }
 
-    // If token exists and trying to access login, redirect to home
-    if (route == Routes.LOGIN_SCREEN) {
-      return const RouteSettings(name: Routes.MAIN_HOME_SCREEN);
-    }
-
+    // If token exists, allow access to all routes (including login for app lock)
     return null;
   }
 }

@@ -84,7 +84,7 @@ class CurrencyFormatter {
   }
 
   // Format price from double
-  static String formatPriceFromDouble(double price) {
+  static String formatPriceFromDouble(double price, {bool withSymbol = true}) {
     final currencySymbol = getCurrencySymbol();
     final currencyPosition = getCurrencyPosition();
     final thousandSeparator = getThousandSeparator();
@@ -116,11 +116,57 @@ class CurrencyFormatter {
             ? '$formattedInteger$decimalSeparator$decimalPart'
             : formattedInteger;
 
-    // Add currency symbol based on position
+    // Add currency symbol based on position if requested
+    if (!withSymbol) return finalNumber;
+    
     if (currencyPosition.toLowerCase() == 'after') {
       return '$finalNumber $currencySymbol';
     } else {
       return '$currencySymbol$finalNumber';
+    }
+  }
+
+  // Format only number (without currency symbol)
+  static String formatOnlyNumber(dynamic priceValue) {
+    try {
+      double price = 0.0;
+      if (priceValue is String) {
+        price = double.tryParse(priceValue) ?? 0.0;
+      } else if (priceValue is double) {
+        price = priceValue;
+      } else if (priceValue is int) {
+        price = priceValue.toDouble();
+      }
+
+      final thousandSeparator = getThousandSeparator();
+      final decimalSeparator = getDecimalSeparator();
+      final noOfDecimals = getNoOfDecimals();
+
+      // Format number with decimals
+      String formattedNumber = price.toStringAsFixed(noOfDecimals);
+
+      // Split integer and decimal parts
+      List<String> parts = formattedNumber.split('.');
+      String integerPart = parts[0];
+      String decimalPart = parts.length > 1 ? parts[1] : '';
+
+      // Add thousand separators
+      String formattedInteger = '';
+      int count = 0;
+      for (int i = integerPart.length - 1; i >= 0; i--) {
+        if (count > 0 && count % 3 == 0) {
+          formattedInteger = thousandSeparator + formattedInteger;
+        }
+        formattedInteger = integerPart[i] + formattedInteger;
+        count++;
+      }
+
+      // Combine integer and decimal parts
+      return decimalPart.isNotEmpty
+          ? '$formattedInteger$decimalSeparator$decimalPart'
+          : formattedInteger;
+    } catch (e) {
+      return priceValue.toString();
     }
   }
 }

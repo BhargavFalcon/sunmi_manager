@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 
@@ -32,7 +31,7 @@ class CommonTextField extends StatelessWidget {
   final void Function(PointerDownEvent)? onTapOutside;
 
   const CommonTextField({
-    Key? key,
+    super.key,
     this.controller,
     this.focusNode,
     this.placeholder,
@@ -54,22 +53,17 @@ class CommonTextField extends StatelessWidget {
     this.textAlignVertical,
     this.decoration,
     this.onTapOutside,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     if (focusNode != null) {
-      // If a focus node is provided, wrap with Obx for reactive border styling
-      // Note: We use an internal RxBool to manage focus state without polluting controllers.
-      final isFocused = false.obs;
-      
-      focusNode!.addListener(() {
-        isFocused.value = focusNode!.hasFocus;
-      });
-
-      return Obx(() {
-        return _buildField(isActive: isFocused.value);
-      });
+      return ListenableBuilder(
+        listenable: focusNode!,
+        builder: (context, child) {
+          return _buildField(isActive: focusNode!.hasFocus);
+        },
+      );
     }
 
     // Default static field if no focus node is provided

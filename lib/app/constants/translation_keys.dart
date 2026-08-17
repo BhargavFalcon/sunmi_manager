@@ -522,4 +522,27 @@ class TranslationKeys {
   static const String android = 'android';
   static const String newLabel = 'newLabel';
   static const String preparingLabel = 'preparingLabel';
+
+  // Refund & Payments
+  static const String refund = 'refund';
+  static const String refunds = 'refunds';
+  static const String by = 'by';
+  static const String createRefund = 'createRefund';
+  static const String alreadyRefunded = 'alreadyRefunded';
+  static const String availableToRefund = 'availableToRefund';
+  static const String reasonOptional = 'reasonOptional';
+  static const String enterReason = 'enterReason';
+  static const String enterValidRefundAmount = 'enterValidRefundAmount';
+  static const String refundAmountExceedsAvailable =
+      'refundAmountExceedsAvailable';
+  static const String orderDelivered = 'orderDelivered';
+
+  // Packaging, Deposit & Vouchers
+  static const String packagingCharge = 'packagingCharge';
+  static const String itemDeposit = 'itemDeposit';
+  static const String voucher = 'voucher';
+  static const String id = 'id';
+  static const String netAmount = 'netAmount';
+  static const String vat = 'vat';
+  static const String vatAmount = 'vatAmount';
 }

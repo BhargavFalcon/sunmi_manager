@@ -12,6 +12,7 @@ import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../widgets/new_order_dialog.dart';
 import '../widgets/new_order_details_bottom_sheet.dart';
 import '../data/NetworkClient.dart';
+import '../model/login_models.dart';
 import '../model/mobile_app_modules_model.dart';
 import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
@@ -32,6 +33,9 @@ class PusherService {
   static const bool pusherUseTLS = true;
 
   bool _isConnected = false;
+  bool _shouldReconnect = false;
+  int? _currentBranchId;
+  int _connectionId = 0;
 
   final Set<String> _processedOrderUuids = {};
   Future<void> _printingLock = Future.value();
@@ -40,41 +44,100 @@ class PusherService {
 
   Future<void> subscribeToOrders(int? branchId) async {
     if (branchId == null) return;
+    if (_currentBranchId == branchId && _socket != null && _isConnected) {
+      return;
+    }
 
     final orderChannel =
         "new-order-created.$branchId.${ArgumentConstant.envSuffix}";
 
     try {
+      _shouldReconnect = true;
+      _currentBranchId = branchId;
+      final connectionId = ++_connectionId;
+      await _disposeSocket();
+
       final scheme = pusherUseTLS ? 'wss' : 'ws';
       final url =
           '$scheme://$pusherHost:$pusherPort/app/$pusherAppKey?protocol=7&client=dart&version=1.0.0&flash=false';
 
-      _socket?.close();
-      _socket = await WebSocket.connect(url);
+      final socket = await WebSocket.connect(url);
+      if (!_isConnectionActive(connectionId, branchId)) {
+        await socket.close();
+        return;
+      }
+      _socket = socket;
 
-      _socket!.listen(
+      socket.listen(
         (message) {
+          if (!_isConnectionActive(connectionId, branchId)) return;
           _handleWebSocketMessage(
             message,
             orderChannel,
           );
         },
         onDone: () {
+          if (!_isConnectionCurrent(connectionId)) return;
           _isConnected = false;
           _pingTimer?.cancel();
-          Future.delayed(const Duration(seconds: 3), () {
-            subscribeToOrders(branchId);
-          });
+          _pingTimer = null;
+          _scheduleReconnect(
+            branchId,
+            const Duration(seconds: 3),
+            connectionId,
+          );
         },
         onError: (err) {
+          if (!_isConnectionCurrent(connectionId)) return;
           _isConnected = false;
+          _pingTimer?.cancel();
+          _pingTimer = null;
+          _scheduleReconnect(
+            branchId,
+            const Duration(seconds: 5),
+            connectionId,
+          );
         },
       );
     } catch (_) {
-      Future.delayed(const Duration(seconds: 5), () {
-        subscribeToOrders(branchId);
-      });
+      _scheduleReconnect(branchId, const Duration(seconds: 5), _connectionId);
     }
+  }
+
+  Future<void> disconnect() async {
+    _shouldReconnect = false;
+    _currentBranchId = null;
+    _isConnected = false;
+    _pingTimer?.cancel();
+    _pingTimer = null;
+    _processedOrderUuids.clear();
+    ++_connectionId;
+    await _disposeSocket();
+  }
+
+  bool _isConnectionCurrent(int connectionId) => connectionId == _connectionId;
+
+  bool _isConnectionActive(int connectionId, int branchId) {
+    return _isConnectionCurrent(connectionId) &&
+        _shouldReconnect &&
+        _currentBranchId == branchId;
+  }
+
+  void _scheduleReconnect(int branchId, Duration delay, int connectionId) {
+    if (!_isConnectionActive(connectionId, branchId)) return;
+    Future.delayed(delay, () {
+      if (!_isConnectionActive(connectionId, branchId)) return;
+      subscribeToOrders(branchId);
+    });
+  }
+
+  Future<void> _disposeSocket() async {
+    final socket = _socket;
+    _socket = null;
+    if (socket == null) return;
+    try {
+      await socket.close();
+    } catch (_) {}
   }
 
   void _handleWebSocketMessage(
@@ -119,7 +182,9 @@ class PusherService {
           }
         }
       }
-    } catch (e) {}
+    } catch (_) {
+      return;
+    }
   }
 
 
@@ -138,9 +203,26 @@ class PusherService {
       final orderUuid = order['uuid'] as String?;
       if (orderUuid == null || orderUuid.isEmpty) return;
 
+      final orderData = await _fetchOrderOnly(orderUuid);
+      if (!_shouldNotifyCurrentUserForOrderData(orderData, fallbackOrder: order)) {
+        return;
+      }
+
+      // Strict Filter: ONLY allow notifications & auto-print for Shop, Android, and iOS customer orders
+      final placedVia = (orderData?.order?.placedVia ?? order['placed_via'] ?? '')
+          .toString()
+          .toLowerCase()
+          .trim();
+      final isAllowedChannel =
+          placedVia == 'shop' || placedVia == 'android' || placedVia == 'ios';
+      if (!isAllowedChannel) {
+        return;
+      }
+
       _refreshOrderList();
 
-      final orderNumber = _extractOrderNumber(order);
+      final orderNumber =
+          orderData?.order?.orderNumber?.toString() ?? _extractOrderNumber(order);
       final notificationsEnabled =
           box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
 
@@ -148,7 +230,7 @@ class PusherService {
         NewOrderDialog.show(
           orderNumber: orderNumber,
           onViewOrder: () async {
-            final data = await _fetchOrderOnly(orderUuid);
+            final data = orderData ?? await _fetchOrderOnly(orderUuid);
             if (data != null) {
               NewOrderDetailsBottomSheet.show(data);
             }
@@ -156,7 +238,11 @@ class PusherService {
         );
       }
 
-      await _fetchAndPrintInvoice(orderUuid);
+      if (orderData != null) {
+        await _printInvoiceData(orderData, orderUuid);
+      } else {
+        await _fetchAndPrintInvoice(orderUuid);
+      }
     } catch (_) {}
   }
 
@@ -196,6 +282,87 @@ class PusherService {
     return data['order_number'].toString();
   }
 
+  bool _shouldNotifyCurrentUserForOrder(Map<String, dynamic> order) {
+    final currentUserId = _getCurrentUserId();
+    if (currentUserId == null || _isCurrentUserAdmin()) {
+      return true;
+    }
+
+    final assignedUserIds = <int>{};
+    _addCandidateUserId(assignedUserIds, order['waiter_id']);
+    _addCandidateUserId(assignedUserIds, order['assigned_user_id']);
+    _addCandidateUserId(assignedUserIds, order['assigned_to']);
+
+    final waiter = order['waiter'];
+    if (waiter is Map<String, dynamic>) {
+      _addCandidateUserId(assignedUserIds, waiter['id']);
+    }
+
+    if (assignedUserIds.isEmpty) {
+      return true;
+    }
+
+    return assignedUserIds.contains(currentUserId);
+  }
+
+  bool _shouldNotifyCurrentUserForOrderData(
+    order_model.Data? orderData, {
+    required Map<String, dynamic> fallbackOrder,
+  }) {
+    final currentUserId = _getCurrentUserId();
+    if (currentUserId == null || _isCurrentUserAdmin()) {
+      return true;
+    }
+
+    final detailedOrder = orderData?.order;
+    final assignedUserIds = <int>{};
+
+    _addCandidateUserId(assignedUserIds, detailedOrder?.waiter?.id);
+
+    if (assignedUserIds.isEmpty) {
+      return _shouldNotifyCurrentUserForOrder(fallbackOrder);
+    }
+
+    return assignedUserIds.contains(currentUserId);
+  }
+
+  int? _getCurrentUserId() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData is Map<String, dynamic>) {
+        return LoginModel.fromJson(loginModelData).data?.user?.id;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  bool _isCurrentUserAdmin() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData is Map<String, dynamic>) {
+        final user = LoginModel.fromJson(loginModelData).data?.user;
+        final roleName = user?.role?.name?.toLowerCase() ?? '';
+        final displayName = user?.role?.displayName?.toLowerCase() ?? '';
+        return roleName.contains('admin') || displayName.contains('admin');
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  void _addCandidateUserId(Set<int> userIds, dynamic value) {
+    final parsed = _parseInt(value);
+    if (parsed != null) {
+      userIds.add(parsed);
+    }
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
   Future<order_model.Data?> _fetchOrderOnly(String orderUuid) async {
     try {
       final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
@@ -231,6 +398,16 @@ class PusherService {
     if (data == null) {
       return null;
     }
+
+    await _printInvoiceData(data, orderUuid);
+
+    return data;
+  }
+
+  Future<void> _printInvoiceData(
+    order_model.Data data,
+    String orderUuid,
+  ) async {
     final printerService = Get.find<PrinterService>();
 
     // Refresh settings from server before printing to guarantee we have the latest config
@@ -254,7 +431,7 @@ class PusherService {
           receiptPrinter,
         );
         if (isConnected) {
-          await _sunmiService.printInvoice(data, copies: receiptCopies);
+          await _sunmiService.printSharpInvoice(data, copies: receiptCopies);
           // Add a small delay after printing to ensure hardware separation
           await Future.delayed(const Duration(seconds: 2));
         }
@@ -268,8 +445,6 @@ class PusherService {
     } finally {
       completer.complete();
     }
-
-    return data;
   }
 
 
@@ -281,7 +456,9 @@ class PusherService {
         controller.currentPage = 1;
         await controller.fetchAllOrders();
       }
-    } catch (e) {}
+    } catch (_) {
+      return;
+    }
   }
 
 

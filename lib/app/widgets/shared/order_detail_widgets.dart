@@ -17,28 +17,36 @@ class OrderDetailWidgets {
   OrderDetailWidgets._();
 
   /// Builds a single table row for an order item.
-  /// [fontSize] is either a logical size (when [fontSizeAlreadyScaled] is false)
-  /// scaled via MySize.getHeight, or an already-scaled size in pixels when true.
   static TableRow buildTableRow({
     required String itemName,
     required List<String> details,
     required String qty,
     required String price,
     required String amount,
+    bool hasDiscount = false,
     double fontSize = 13,
     bool fontSizeAlreadyScaled = false,
   }) {
     final effectiveFontSize =
         fontSizeAlreadyScaled ? fontSize : MySize.getHeight(fontSize);
     return TableRow(
-      decoration: const BoxDecoration(
-        border: Border.symmetric(
-          horizontal: BorderSide(color: Colors.grey, width: 0.5),
-        ),
+      decoration: BoxDecoration(
+        border: hasDiscount
+            ? Border(
+                top: BorderSide(color: Colors.grey, width: 0.5),
+              )
+            : Border.symmetric(
+                horizontal: BorderSide(color: Colors.grey, width: 0.5),
+              ),
       ),
       children: [
         Padding(
-          padding: EdgeInsets.all(MySize.getWidth(6)),
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(3),
+            bottom: hasDiscount ? 0 : MySize.getWidth(3),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -52,33 +60,99 @@ class OrderDetailWidgets {
               if (details.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children:
-                      details
-                          .map(
-                            (detail) => Text(
-                              detail,
-                              style: TextStyle(
-                                fontSize: effectiveFontSize,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          )
-                          .toList(),
+                  children: details
+                      .map(
+                        (detail) => Text(
+                          detail,
+                          style: TextStyle(
+                            fontSize: effectiveFontSize,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
             ],
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(MySize.getWidth(6)),
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(3),
+            bottom: hasDiscount ? 0 : MySize.getWidth(3),
+          ),
           child: Text(qty, style: TextStyle(fontSize: effectiveFontSize)),
         ),
         Padding(
-          padding: EdgeInsets.all(MySize.getWidth(6)),
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(3),
+            bottom: hasDiscount ? 0 : MySize.getWidth(3),
+          ),
           child: Text(price, style: TextStyle(fontSize: effectiveFontSize)),
         ),
         Padding(
-          padding: EdgeInsets.all(MySize.getWidth(6)),
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(3),
+            bottom: hasDiscount ? 0 : MySize.getWidth(3),
+          ),
           child: Text(amount, style: TextStyle(fontSize: effectiveFontSize)),
+        ),
+      ],
+    );
+  }
+
+  /// Builds a discount row for an order item (shown below the item row).
+  static TableRow buildDiscountRow({
+    required String discountLabel,
+    required String discountAmount,
+    double fontSize = 13,
+  }) {
+    final effectiveFontSize = MySize.getHeight(fontSize);
+    return TableRow(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey, width: 0.5),
+        ),
+      ),
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(2),
+            bottom: MySize.getWidth(3),
+          ),
+          child: Text(
+            discountLabel,
+            style: TextStyle(
+              fontSize: effectiveFontSize,
+              color: ColorConstants.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox.shrink(),
+        const SizedBox.shrink(),
+        Padding(
+          padding: EdgeInsets.only(
+            left: MySize.getWidth(6),
+            right: MySize.getWidth(6),
+            top: MySize.getWidth(2),
+            bottom: MySize.getWidth(3),
+          ),
+          child: Text(
+            discountAmount,
+            style: TextStyle(
+              fontSize: effectiveFontSize,
+              color: ColorConstants.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );
@@ -145,7 +219,8 @@ class OrderDetailWidgets {
             style: TextStyle(
               fontSize: MySize.getHeight(fontSize),
               color: isClickable ? Colors.blue : Colors.black87,
-              decoration: isClickable ? TextDecoration.underline : TextDecoration.none,
+              decoration:
+                  isClickable ? TextDecoration.underline : TextDecoration.none,
             ),
           ),
         ),
@@ -158,26 +233,21 @@ class OrderDetailWidgets {
           ? Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  debugPrint('DEBUG: Tapped row: $label');
-                  onTap();
-                },
+                onTap: () => onTap(),
                 child: content,
               ),
             )
           : content,
     );
   }
+
   /// Launch URL using url_launcher
   static Future<void> _launchUrl(Uri url) async {
     try {
-      debugPrint('DEBUG: Attempting to launch URL: $url');
-      // Note: On iOS, canLaunchUrl can return false if no app is configured (like Mail) 
+      // Note: On iOS, canLaunchUrl can return false if no app is configured (like Mail)
       // or if on a simulator (cannot make calls). We try to launch anyway with a catch.
       final success = await launchUrl(url, mode: LaunchMode.externalApplication);
-      debugPrint('DEBUG: launchUrl success: $success');
       if (!success) {
-        // Fallback for devices where externalApplication might be too strict
         await launchUrl(url, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
@@ -281,16 +351,16 @@ class OrderDetailWidgets {
               ),
             ],
           ),
-          ...items.asMap().entries.map((entry) {
+          ...items.asMap().entries.expand((entry) {
             final item = entry.value;
             final modifiers = item.modifiers ?? [];
-            final details =
-                modifiers
-                    .map(
-                      (m) =>
-                          '${m.name ?? ''}${m.price != null && m.price! > 0 ? ' : ${CurrencyFormatter.formatPrice(m.price!.toString())}' : ''}',
-                    )
-                    .toList();
+            final details = modifiers
+                .map(
+                  (m) =>
+                      '${m.name ?? ''}${m.price != null && m.price! > 0 ? ' : ${CurrencyFormatter.formatPrice(m.price!.toString())}' : ''}',
+                )
+                .toList();
+
             if (item.variationName != null && item.variationName!.isNotEmpty) {
               details.insert(
                 0,
@@ -300,23 +370,88 @@ class OrderDetailWidgets {
             if (item.note != null && item.note!.isNotEmpty) {
               details.add('${TranslationKeys.note.tr}: ${item.note}');
             }
-            final priceStr =
-                item.price is num
-                    ? item.price.toString()
-                    : (item.price?.toString() ?? '0');
-            final amountStr =
-                item.amount is num
-                    ? item.amount.toString()
-                    : (item.amount?.toString() ?? '0');
 
-            return buildTableRow(
-              itemName: item.itemName ?? 'N/A',
-              details: List<String>.from(details),
-              qty: item.quantity?.toString() ?? '0',
-              price: CurrencyFormatter.formatPrice(priceStr),
-              amount: CurrencyFormatter.formatPrice(amountStr),
-              fontSize: fontSize,
-            );
+            // Show packaging charge and deposit only for delivery/pickup orders
+            final orderType = (orderDetails?.orderType ?? '').toLowerCase();
+            final isDeliveryOrPickup =
+                orderType == 'delivery' || orderType == 'pickup';
+            if (isDeliveryOrPickup) {
+              final packaging = item.packagingCharge is num
+                  ? (item.packagingCharge as num).toDouble()
+                  : double.tryParse(item.packagingCharge?.toString() ?? '') ??
+                      0.0;
+              if (packaging > 0) {
+                details.add(
+                  'Packaging: ${CurrencyFormatter.formatPrice(packaging.toString())}',
+                );
+              }
+              final dep = item.deposit is num
+                  ? (item.deposit as num).toDouble()
+                  : double.tryParse(item.deposit?.toString() ?? '') ?? 0.0;
+              if (dep > 0) {
+                details.add(
+                  'Deposit: ${CurrencyFormatter.formatPrice(dep.toString())}',
+                );
+              }
+            }
+
+            final qtyVal = item.quantity is num
+                ? (item.quantity as num).toDouble()
+                : double.tryParse(item.quantity?.toString() ?? '') ?? 0.0;
+            final double qty = qtyVal > 0 ? qtyVal : 1.0;
+
+            final double amountVal = item.amount is num
+                ? (item.amount as num).toDouble()
+                : double.tryParse(item.amount?.toString() ?? '') ?? 0.0;
+
+            final double unitPrice = amountVal / qty;
+
+            final double basePrice = item.price is num
+                ? (item.price as num).toDouble()
+                : double.tryParse(item.price?.toString() ?? '') ?? unitPrice;
+
+            final priceStr = unitPrice.toString();
+            final amountStr = amountVal.toString();
+
+            final String displayName =
+                '${item.itemName ?? 'N/A'} (${CurrencyFormatter.formatPrice(basePrice.toString())})';
+
+            final discountAmt = item.discountAmount is num
+                ? (item.discountAmount as num).toDouble()
+                : double.tryParse(item.discountAmount?.toString() ?? '') ?? 0.0;
+            final hasDiscount = discountAmt > 0;
+
+            final rows = <TableRow>[
+              buildTableRow(
+                itemName: displayName,
+                details: List<String>.from(details),
+                qty: item.quantity?.toString() ?? '0',
+                price: CurrencyFormatter.formatPrice(priceStr),
+                amount: CurrencyFormatter.formatPrice(amountStr),
+                hasDiscount: hasDiscount,
+                fontSize: fontSize,
+              ),
+            ];
+
+            if (hasDiscount) {
+              final discountType = item.discountType?.toLowerCase() ?? '';
+              final discountVal = item.discountValue;
+              final discountLabel =
+                  (discountType == 'percentage' || discountType == 'percent') &&
+                          discountVal != null
+                      ? '${TranslationKeys.discount.tr} ($discountVal%)'
+                      : TranslationKeys.discount.tr;
+              rows.add(
+                buildDiscountRow(
+                  discountLabel: discountLabel,
+                  discountAmount:
+                      '-${CurrencyFormatter.formatPrice(discountAmt.toString())}',
+                  fontSize: fontSize,
+                ),
+              );
+            }
+
+            return rows;
           }).toList(),
         ],
       ),
@@ -374,11 +509,9 @@ class OrderDetailWidgets {
 
           if (charges.isNotEmpty)
             ...charges.map((charge) {
-              final chargeAmount =
-                  charge.amount is num
-                      ? (charge.amount as num).toDouble()
-                      : double.tryParse(charge.amount?.toString() ?? '0') ??
-                          0.0;
+              final chargeAmount = charge.amount is num
+                  ? (charge.amount as num).toDouble()
+                  : double.tryParse(charge.amount?.toString() ?? '0') ?? 0.0;
               if (chargeAmount <= 0) return const SizedBox.shrink();
               return buildPriceRow(
                 charge.chargeName ?? TranslationKeys.charge.tr,
@@ -395,8 +528,8 @@ class OrderDetailWidgets {
               orderDetails.totals!.deliveryFee! == 0
                   ? 'Free'
                   : CurrencyFormatter.formatPrice(
-                    orderDetails.totals!.deliveryFee!.toString(),
-                  ),
+                      orderDetails.totals!.deliveryFee!.toString(),
+                    ),
               valueColor:
                   orderDetails.totals!.deliveryFee! == 0 ? Colors.green : null,
               isBold: orderDetails.totals!.deliveryFee! == 0,
@@ -405,35 +538,26 @@ class OrderDetailWidgets {
 
           if (taxes.isNotEmpty)
             ...taxes.map((tax) {
-              final taxAmount =
-                  tax.amount is num
-                      ? (tax.amount as num).toDouble()
-                      : double.tryParse(tax.amount?.toString() ?? '0') ?? 0.0;
+              final taxAmount = tax.amount is num
+                  ? (tax.amount as num).toDouble()
+                  : double.tryParse(tax.amount?.toString() ?? '0') ?? 0.0;
               if (taxAmount <= 0) return const SizedBox.shrink();
-
-              final formattedAmount = CurrencyFormatter.formatPrice(
-                taxAmount.toString(),
-              );
+              final formattedAmount =
+                  CurrencyFormatter.formatPrice(taxAmount.toString());
               final percent = tax.percent?.toString() ?? '';
               final taxSuffix =
                   taxIncluded ? ' ${TranslationKeys.incl.tr}:' : ':';
-              final taxLabel =
-                  percent.isNotEmpty
-                      ? '${tax.taxName ?? TranslationKeys.tax.tr} ($percent%)$taxSuffix'
-                      : '${tax.taxName ?? TranslationKeys.tax.tr}$taxSuffix';
-              return buildPriceRow(
-                taxLabel,
-                formattedAmount,
-                fontSize: fontSize,
-              );
+              final taxLabel = percent.isNotEmpty
+                  ? '${tax.taxName ?? TranslationKeys.tax.tr} ($percent%)$taxSuffix'
+                  : '${tax.taxName ?? TranslationKeys.tax.tr}$taxSuffix';
+              return buildPriceRow(taxLabel, formattedAmount, fontSize: fontSize);
             }),
 
           ...() {
             if (totals?.tipAmount == null) return <Widget>[];
-            final tipAmountStr =
-                totals!.tipAmount is num
-                    ? totals.tipAmount.toString()
-                    : (totals.tipAmount?.toString() ?? '0');
+            final tipAmountStr = totals!.tipAmount is num
+                ? totals.tipAmount.toString()
+                : (totals.tipAmount?.toString() ?? '0');
             if (!isValidAmount(tipAmountStr)) return <Widget>[];
             return [
               buildPriceRow(
@@ -443,39 +567,55 @@ class OrderDetailWidgets {
               ),
             ];
           }(),
+
           ...() {
             if (orderDetails!.totals!.discountAmount == null) return <Widget>[];
-            final discountValue =
-                orderDetails.totals!.discountAmount is num
-                    ? (orderDetails.totals!.discountAmount as num).toDouble()
-                    : double.tryParse(
-                          orderDetails.totals!.discountAmount.toString(),
-                        ) ??
-                        0.0;
+            final discountValue = orderDetails.totals!.discountAmount is num
+                ? (orderDetails.totals!.discountAmount as num).toDouble()
+                : double.tryParse(
+                        orderDetails.totals!.discountAmount.toString()) ??
+                    0.0;
             if (discountValue <= 0) return <Widget>[];
             final couponCode = orderDetails.couponCode;
-            final discountLabel =
-                couponCode != null && couponCode.isNotEmpty
-                    ? '${TranslationKeys.discount.tr} ($couponCode):'
-                    : '${TranslationKeys.discount.tr}:';
+            final discountType =
+                orderDetails.discountType?.toString().toLowerCase();
+            final discountVal = orderDetails.discountValue;
+
+            String labelText = TranslationKeys.discount.tr;
+            if (couponCode != null && couponCode.isNotEmpty) {
+              labelText = '${TranslationKeys.discount.tr} ($couponCode)';
+            } else if (discountType != null && discountType.isNotEmpty) {
+              if (discountType == 'percent' || discountType == 'percentage') {
+                if (discountVal != null && discountVal > 0) {
+                  labelText = '${TranslationKeys.discount.tr} ($discountVal%)';
+                } else {
+                  labelText = '${TranslationKeys.discount.tr} (%)';
+                }
+              } else if (discountType == 'fixed') {
+                labelText = '${TranslationKeys.discount.tr} (Fixed)';
+              }
+            }
             return [
               buildPriceRow(
-                discountLabel,
+                '$labelText:',
                 '-${CurrencyFormatter.formatPrice(discountValue.toString())}',
                 valueColor: const Color(0xFF0B9F6E),
                 fontSize: fontSize,
               ),
             ];
           }(),
+
           Padding(
             padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
             child: const Divider(height: 1, thickness: 1, color: Colors.grey),
           ),
 
-          if (totals?.total != null)
+          if (totals?.effectiveTotal != null || totals?.total != null)
             buildPriceRow(
               '${TranslationKeys.total.tr}:',
-              CurrencyFormatter.formatPrice(totals!.total.toString()),
+              CurrencyFormatter.formatPrice(
+                (totals!.effectiveTotal ?? totals.total)!.toString(),
+              ),
               isBold: true,
               valueColor: Colors.red,
               fontSize: fontSize,
@@ -504,7 +644,8 @@ class OrderDetailWidgets {
     double fontSize = 13,
     double titleFontSize = 15,
   }) {
-    final formattedPhone = _formatPhoneWithPlus(customer.phoneCode, customer.phoneNumber);
+    final formattedPhone =
+        _formatPhoneWithPlus(customer.phoneCode, customer.phoneNumber);
     return Container(
       padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
@@ -531,11 +672,13 @@ class OrderDetailWidgets {
                 color: ColorConstants.primaryColor,
               ),
               SizedBox(width: MySize.getWidth(8)),
-              Text(
-                TranslationKeys.customerDetails.tr,
-                style: TextStyle(
-                  fontSize: MySize.getHeight(titleFontSize),
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  TranslationKeys.customerDetails.tr,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(titleFontSize),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -547,7 +690,9 @@ class OrderDetailWidgets {
               customer.name!,
               fontSize: fontSize,
             ),
-          if (orderType?.toLowerCase() == 'delivery' && deliveryAddress != null && deliveryAddress.isNotEmpty)
+          if (orderType?.toLowerCase() == 'delivery' &&
+              deliveryAddress != null &&
+              deliveryAddress.isNotEmpty)
             buildDetailRow(
               TranslationKeys.address.tr,
               deliveryAddress,
@@ -559,7 +704,8 @@ class OrderDetailWidgets {
               customer.email!,
               fontSize: fontSize,
               isClickable: true,
-              onTap: () => _launchUrl(Uri(scheme: 'mailto', path: customer.email!)),
+              onTap: () =>
+                  _launchUrl(Uri(scheme: 'mailto', path: customer.email!)),
             ),
           if (formattedPhone.isNotEmpty)
             buildDetailRow(
@@ -568,8 +714,8 @@ class OrderDetailWidgets {
               fontSize: fontSize,
               isClickable: true,
               onTap: () {
-                // Sanitize phone number for URI (remove spaces, parentheses, etc.)
-                final sanitizedPhone = formattedPhone.replaceAll(RegExp(r'[\s\(\)\-]'), '');
+                final sanitizedPhone =
+                    formattedPhone.replaceAll(RegExp(r'[\s\(\)\-]'), '');
                 _launchUrl(Uri(scheme: 'tel', path: sanitizedPhone));
               },
             ),
@@ -595,34 +741,34 @@ class OrderDetailWidgets {
     final waiterName = waiter.name?.trim() ?? '';
 
     return Container(
-      padding: EdgeInsets.all(MySize.getWidth(12)),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(8),
+        vertical: MySize.getHeight(6),
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(MySize.getHeight(8)),
         border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        boxShadow: ColorConstants.getShadow2,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.restaurant,
-            size: MySize.getHeight(20),
+            size: MySize.getHeight(16),
             color: ColorConstants.primaryColor,
           ),
-          SizedBox(width: MySize.getWidth(8)),
+          SizedBox(width: MySize.getWidth(6)),
           Expanded(
             child: Text(
               waiterName.isNotEmpty ? waiterName : '—',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: MySize.getHeight(titleFontSize),
-                fontWeight: FontWeight.bold,
+                fontSize: MySize.getHeight(fontSize),
+                fontWeight: FontWeight.w600,
+                height: 1.2,
               ),
             ),
           ),
@@ -651,9 +797,8 @@ class OrderDetailWidgets {
 
     if (createdAt.isNotEmpty) {
       final formattedCreatedAt = formatter(createdAt);
-      timeInfoList.add(
-        '${TranslationKeys.orderCreated.tr}: $formattedCreatedAt',
-      );
+      timeInfoList
+          .add('${TranslationKeys.orderCreated.tr}: $formattedCreatedAt');
     }
 
     if (dateTimeString.isNotEmpty) {
@@ -667,7 +812,10 @@ class OrderDetailWidgets {
     if (timeInfoList.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.all(MySize.getWidth(12)),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(8),
+        vertical: MySize.getHeight(6),
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: ColorConstants.getShadow2,
@@ -676,40 +824,43 @@ class OrderDetailWidgets {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children:
-            timeInfoList
-                .asMap()
-                .entries
-                .map(
-                  (entry) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom:
-                          entry.key < timeInfoList.length - 1
-                              ? MySize.getHeight(8)
-                              : 0,
+        mainAxisSize: MainAxisSize.min,
+        children: timeInfoList
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < timeInfoList.length - 1
+                      ? MySize.getHeight(2)
+                      : 0,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: MySize.getHeight(16),
+                      color: ColorConstants.primaryColor,
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: MySize.getHeight(18),
-                          color: ColorConstants.primaryColor,
+                    SizedBox(width: MySize.getWidth(6)),
+                    Expanded(
+                      child: Text(
+                        entry.value,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(fontSize),
+                          fontWeight: FontWeight.w500,
+                          height: 1.2,
                         ),
-                        SizedBox(width: MySize.getWidth(8)),
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(fontSize),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
       ),
     );
   }

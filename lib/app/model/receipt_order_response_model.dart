@@ -337,7 +337,9 @@ class ReceiptWaiter {
 
 class ReceiptPayment {
   int? id;
+  String? transactionId;
   double? amount;
+  double? amountTotal;
   String? paymentMethod;
   double? tipAmount;
   String? tipNote;
@@ -345,11 +347,16 @@ class ReceiptPayment {
   double? discountValue;
   double? discountAmount;
   double? balance;
+  int? voucherId;
+  double? voucherAmount;
+  String? voucherCode;
   String? createdAt;
 
   ReceiptPayment({
     this.id,
+    this.transactionId,
     this.amount,
+    this.amountTotal,
     this.paymentMethod,
     this.tipAmount,
     this.tipNote,
@@ -357,12 +364,17 @@ class ReceiptPayment {
     this.discountValue,
     this.discountAmount,
     this.balance,
+    this.voucherId,
+    this.voucherAmount,
+    this.voucherCode,
     this.createdAt,
   });
 
   ReceiptPayment.fromJson(Map<String, dynamic> json) {
     id = _receiptToInt(json['id']);
+    transactionId = json['transaction_id']?.toString();
     amount = _receiptToDouble(json['amount']);
+    amountTotal = _receiptToDouble(json['amount_total']);
     paymentMethod = json['payment_method']?.toString();
     tipAmount = _receiptToDouble(json['tip_amount']);
     tipNote = json['tip_note']?.toString();
@@ -370,12 +382,17 @@ class ReceiptPayment {
     discountValue = _receiptToDouble(json['discount_value']);
     discountAmount = _receiptToDouble(json['discount_amount']);
     balance = _receiptToDouble(json['balance']);
+    voucherId = _receiptToInt(json['voucher_id']);
+    voucherAmount = _receiptToDouble(json['voucher_amount']);
+    voucherCode = json['voucher_code']?.toString();
     createdAt = json['created_at']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'transaction_id': transactionId,
     'amount': amount,
+    'amount_total': amountTotal,
     'payment_method': paymentMethod,
     'tip_amount': tipAmount,
     'tip_note': tipNote,
@@ -383,6 +400,9 @@ class ReceiptPayment {
     'discount_value': discountValue,
     'discount_amount': discountAmount,
     'balance': balance,
+    'voucher_id': voucherId,
+    'voucher_amount': voucherAmount,
+    'voucher_code': voucherCode,
     'created_at': createdAt,
   };
 }
@@ -483,20 +503,28 @@ class ReceiptOrderItem {
   String? displayVariationName;
   List<ReceiptDisplayModifier>? displayModifiers;
   double? amount;
+  double? grossAmount;
+  double? price;
   int? quantity;
   String? formattedPrice;
   String? formattedLineAmount;
   String? note;
+  double? packagingCharge;
+  double? deposit;
 
   ReceiptOrderItem({
     this.displayItemName,
     this.displayVariationName,
     this.displayModifiers,
     this.amount,
+    this.grossAmount,
+    this.price,
     this.quantity,
     this.formattedPrice,
     this.formattedLineAmount,
     this.note,
+    this.packagingCharge,
+    this.deposit,
   });
 
   ReceiptOrderItem.fromJson(Map<String, dynamic> json) {
@@ -534,15 +562,26 @@ class ReceiptOrderItem {
           json['rate'] ??
           json['price_formatted'],
     );
+    grossAmount = _receiptToDouble(json['gross_amount']);
+    price = _receiptToDouble(
+      json['price'] ?? json['item_price'] ?? json['rate'],
+    );
     quantity = _receiptToInt(
-      json['quantity'] ?? json['qty'] ?? json['item_qty'] ?? json['item_quantity'],
+      json['quantity'] ??
+          json['qty'] ??
+          json['item_qty'] ??
+          json['item_quantity'],
     );
     formattedPrice =
         (json['formatted_price'] ?? json['item_price_formatted'])?.toString();
     formattedLineAmount =
-        (json['formatted_line_amount'] ?? json['item_amount_formatted'])
+        (json['formatted_line_amount'] ??
+                json['formatted_amount'] ??
+                json['item_amount_formatted'])
             ?.toString();
     note = (json['note'] ?? json['item_note'])?.toString();
+    packagingCharge = _receiptToDouble(json['packaging_charge']);
+    deposit = _receiptToDouble(json['deposit']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -550,10 +589,14 @@ class ReceiptOrderItem {
     'display_variation_name': displayVariationName,
     'display_modifiers': displayModifiers?.map((e) => e.toJson()).toList(),
     'amount': amount,
+    'gross_amount': grossAmount,
+    'price': price,
     'quantity': quantity,
     'formatted_price': formattedPrice,
     'formatted_line_amount': formattedLineAmount,
     'note': note,
+    'packaging_charge': packagingCharge,
+    'deposit': deposit,
   };
 }
 
@@ -573,16 +616,42 @@ class ReceiptDisplayModifier {
   Map<String, dynamic> toJson() => {'id': id, 'name': name, 'price': price};
 }
 
+class ReceiptExtraCharge {
+  String? name;
+  String? type;
+  double? amount;
+  double? rate;
+
+  ReceiptExtraCharge({this.name, this.type, this.amount, this.rate});
+
+  ReceiptExtraCharge.fromJson(Map<String, dynamic> json) {
+    name = json['name']?.toString();
+    type = json['type']?.toString();
+    amount = _receiptToDouble(json['amount']);
+    rate = _receiptToDouble(json['rate']);
+  }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'type': type,
+    'amount': amount,
+    'rate': rate,
+  };
+}
+
 class ReceiptSummary {
   double? subTotal;
   double? discount;
   String? discountType;
   double? discountValue;
-  List<dynamic>? extraCharges;
+  List<ReceiptExtraCharge>? extraCharges;
   double? tip;
   List<ReceiptTax>? taxes;
   double? total;
+  double? amountTotal;
   double? deliveryFee;
+  double? totalPackagingCharge;
+  double? totalDepositAmount;
 
   ReceiptSummary({
     this.subTotal,
@@ -593,7 +662,10 @@ class ReceiptSummary {
     this.tip,
     this.taxes,
     this.total,
+    this.amountTotal,
     this.deliveryFee,
+    this.totalPackagingCharge,
+    this.totalDepositAmount,
   });
 
   ReceiptSummary.fromJson(Map<String, dynamic> json) {
@@ -601,7 +673,14 @@ class ReceiptSummary {
     discount = _receiptToDouble(json['discount']);
     discountType = json['discount_type']?.toString();
     discountValue = _receiptToDouble(json['discount_value']);
-    extraCharges = json['extra_charges'] as List<dynamic>?;
+    if (json['extra_charges'] != null) {
+      extraCharges =
+          (json['extra_charges'] as List)
+              .map(
+                (e) => ReceiptExtraCharge.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
+    }
     tip = _receiptToDouble(json['tip']);
     if (json['taxes'] != null) {
       taxes =
@@ -610,7 +689,10 @@ class ReceiptSummary {
               .toList();
     }
     total = _receiptToDouble(json['total']);
+    amountTotal = _receiptToDouble(json['amount_total']);
     deliveryFee = _receiptToDouble(json['delivery_fee']);
+    totalPackagingCharge = _receiptToDouble(json['total_packaging_charge']);
+    totalDepositAmount = _receiptToDouble(json['total_deposit_amount']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -618,10 +700,13 @@ class ReceiptSummary {
     'discount': discount,
     'discount_type': discountType,
     'discount_value': discountValue,
-    'extra_charges': extraCharges,
+    'extra_charges': extraCharges?.map((e) => e.toJson()).toList(),
     'tip': tip,
     'taxes': taxes?.map((e) => e.toJson()).toList(),
     'total': total,
+    'amount_total': amountTotal,
     'delivery_fee': deliveryFee,
+    'total_packaging_charge': totalPackagingCharge,
+    'total_deposit_amount': totalDepositAmount,
   };
 }

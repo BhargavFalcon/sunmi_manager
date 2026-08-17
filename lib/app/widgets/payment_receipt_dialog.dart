@@ -148,8 +148,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       return;
     }
     try {
-      // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printReceiptFromApi(receiptData);
+      await SunmiInvoicePrinterService().printSharpReceiptFromApi(receiptData);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
@@ -163,7 +162,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: MySize.getWidth(8),
+        horizontal: MySize.getWidth(16),
         vertical: MySize.getHeight(12),
       ),
       decoration: BoxDecoration(
@@ -175,7 +174,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       child: Text(
         '${TranslationKeys.payment.tr} #$paymentId',
         style: TextStyle(
-          fontSize: MySize.getHeight(18),
+          fontSize: MySize.getHeight(16),
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -207,7 +206,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
               ),
               child: Text(
                 TranslationKeys.close.tr,
-                style: TextStyle(fontSize: MySize.getHeight(15)),
+                style: TextStyle(fontSize: MySize.getHeight(14)),
               ),
             ),
           ),
@@ -225,7 +224,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
               ),
               child: Text(
                 TranslationKeys.print.tr,
-                style: TextStyle(fontSize: MySize.getHeight(15)),
+                style: TextStyle(fontSize: MySize.getHeight(14)),
               ),
             ),
           ),
@@ -265,22 +264,29 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
             : '';
     final dateTime = DateTimeFormatter.formatDateTime(order?.dateTime);
     final tableCode = order?.table?.tableCode ?? '';
-    final pax = order?.numberOfPax?.toString() ?? '';
+    final numPax = order?.numberOfPax ?? 0;
+    final pax = numPax > 0 ? numPax.toString() : '';
     final waiterName = order?.waiter?.name ?? '';
 
     return Column(
       children: [
-        _detailRow('${TranslationKeys.order.tr}:', orderNum),
-        _detailRow('${TranslationKeys.paymentId.tr}:', paymentIdStr),
-        _detailRow('${TranslationKeys.dateAndTime.tr}:', dateTime),
-        _detailRow('${TranslationKeys.tableNo.tr}:', tableCode),
-        _detailRow('${TranslationKeys.pax.tr}:', pax),
-        _detailRow('${TranslationKeys.waiter.tr}:', waiterName),
+        if (orderNum.isNotEmpty)
+          _detailRow('${TranslationKeys.order.tr}:', orderNum),
+        if (paymentIdStr.isNotEmpty)
+          _detailRow('${TranslationKeys.paymentId.tr}:', paymentIdStr),
+        if (dateTime.isNotEmpty)
+          _detailRow('${TranslationKeys.dateAndTime.tr}:', dateTime),
+        if (tableCode.isNotEmpty)
+          _detailRow('${TranslationKeys.tableNo.tr}:', tableCode),
+        if (pax.isNotEmpty)
+          _detailRow('${TranslationKeys.pax.tr}:', pax),
+        if (waiterName.isNotEmpty)
+          _detailRow('${TranslationKeys.waiter.tr}:', waiterName),
       ],
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: MySize.getHeight(2)),
       child: Row(
@@ -298,6 +304,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
             style: TextStyle(
               fontSize: MySize.getHeight(12),
               fontWeight: FontWeight.w500,
+              color: valueColor,
             ),
           ),
         ],
@@ -369,7 +376,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           ...items.map((entry) {
             final oi = entry.orderItem;
             final qty = entry.quantity?.toString() ?? '';
-            final itemName = oi?.displayItemName ?? '';
+            String displayName = oi?.displayItemName ?? '';
             final details = <String>[];
             if (oi?.displayVariationName != null &&
                 oi!.displayVariationName!.isNotEmpty) {
@@ -382,16 +389,32 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                       : '';
               details.add('• ${m.name ?? ""}$price');
             }
-            final price = oi?.formattedPrice ??
-                (oi?.amount != null
-                    ? CurrencyFormatter.formatPrice(oi!.amount!.toString())
-                    : '');
-            final amount = oi?.formattedLineAmount ??
-                (oi?.amount != null
-                    ? CurrencyFormatter.formatPrice(
-                      ((oi!.quantity ?? 1) * oi.amount!).toString(),
-                    )
-                    : '');
+            if (oi?.note != null && oi!.note!.isNotEmpty) {
+              details.add('${TranslationKeys.note.tr}: ${oi.note}');
+            }
+            final packaging = oi?.packagingCharge ?? 0.0;
+            if (packaging > 0) {
+              details.add(
+                '${TranslationKeys.packagingCharge.tr}: ${CurrencyFormatter.formatPrice(packaging.toString())}',
+              );
+            }
+            final deposit = oi?.deposit ?? 0.0;
+            if (deposit > 0) {
+              details.add(
+                '${TranslationKeys.itemDeposit.tr}: ${CurrencyFormatter.formatPrice(deposit.toString())}',
+              );
+            }
+            final int quantityVal = oi?.quantity ?? 1;
+            final double qtyDouble =
+                quantityVal > 0 ? quantityVal.toDouble() : 1.0;
+            final double amountVal = oi?.amount ?? 0.0;
+            final double unitPrice = amountVal / qtyDouble;
+            final double basePrice = oi?.price ?? unitPrice;
+
+            final price = CurrencyFormatter.formatPrice(unitPrice.toString());
+            final amount = CurrencyFormatter.formatPrice(amountVal.toString());
+            displayName =
+                "$displayName (${CurrencyFormatter.formatPrice(basePrice.toString())})";
             final effectiveFontSize = MySize.getHeight(10);
             return TableRow(
               decoration: const BoxDecoration(
@@ -413,7 +436,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        itemName,
+                        displayName,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: effectiveFontSize,
@@ -469,14 +492,18 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
             ? CurrencyFormatter.formatPrice(s.subTotal!.toString())
             : '';
     final totalStr =
-        s.total != null
-            ? CurrencyFormatter.formatPrice(s.total!.toString())
+        (s.amountTotal ?? s.total) != null
+            ? CurrencyFormatter.formatPrice(
+              (s.amountTotal ?? s.total)!.toString(),
+            )
             : '';
     final balance = d.payment?.balance ?? 0.0;
     final balanceStr = CurrencyFormatter.formatPrice(balance.toString());
 
     final hasDiscount = s.discount != null && s.discount! > 0;
     final hasTip = s.tip != null && s.tip! > 0;
+    final voucherAmt = d.payment?.voucherAmount ?? 0.0;
+    final hasVoucher = voucherAmt > 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -486,7 +513,15 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           _detailRow(
             TranslationKeys.discount.tr,
             '-${CurrencyFormatter.formatPrice(s.discount!.toString())}',
+            valueColor: ColorConstants.successGreen,
           ),
+        ...(s.extraCharges ?? []).map((charge) {
+          final chargeAmount =
+              charge.amount != null
+                  ? CurrencyFormatter.formatPrice(charge.amount!.toString())
+                  : '';
+          return _detailRow('${charge.name ?? ''}:', chargeAmount);
+        }),
         if (hasTip)
           _detailRow(
             TranslationKeys.tip.tr,
@@ -513,6 +548,14 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                   : '';
           return _detailRow(label, val);
         }),
+        if (hasVoucher)
+          _detailRow(
+            d.payment?.voucherCode != null && d.payment!.voucherCode!.isNotEmpty
+                ? '${TranslationKeys.voucher.tr} (${d.payment!.voucherCode}):'
+                : '${TranslationKeys.voucher.tr}:',
+            '-${CurrencyFormatter.formatPrice(voucherAmt.toString())}',
+            valueColor: ColorConstants.successGreen,
+          ),
         Divider(
           height: MySize.getHeight(12),
           color: ColorConstants.successGreen,
@@ -552,8 +595,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     if (p == null) return const SizedBox.shrink();
 
     final amountStr =
-        p.amount != null
-            ? CurrencyFormatter.formatPrice(p.amount!.toString())
+        (p.amountTotal ?? p.amount) != null
+            ? CurrencyFormatter.formatPrice(
+              (p.amountTotal ?? p.amount)!.toString(),
+            )
             : '';
     final method = p.paymentMethod ?? '';
     final methodDisplay =

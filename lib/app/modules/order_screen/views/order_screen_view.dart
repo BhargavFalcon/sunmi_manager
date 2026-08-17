@@ -5,10 +5,9 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/widgets/app_toast.dart';
 import 'package:managerapp/app/modules/order_screen/controllers/order_screen_controller.dart';
-import 'package:managerapp/app/widgets/running_table_dialog.dart';
+
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
-import 'package:managerapp/app/routes/app_pages.dart';
 
 import 'package:managerapp/main.dart';
 import 'package:managerapp/app/services/printer_service.dart';
@@ -25,31 +24,42 @@ import '../../../utils/date_time_formatter.dart';
 import '../../../utils/order_helpers.dart' as helpers;
 import '../../../widgets/shared/order_detail_widgets.dart';
 
-// Static helper functions for placed_via badge colors and text
-Color _getPlacedViaColorStatic(String placedVia) {
-  switch (placedVia.toLowerCase()) {
-    case 'ios':
-      return const Color(0xFF4A4A4A); // Charcoal/dark grey
-    case 'android':
-      return ColorConstants.statusPaid; // Green like paid
-    case 'pos':
-      return ColorConstants.primaryColor; // Dinemetrics pink
-    case 'qr':
-      return Colors.orange; // Yellow/Orange like kitchen
-    case 'shop':
-      return ColorConstants.statusBilled; // Blue like billed
-    default:
-      return Colors.grey;
-  }
-}
+Widget _buildPlacedViaBadge({
+  required String placedVia,
+  String? providerName,
+}) {
+  final key = placedVia.toLowerCase().trim();
 
-String _formatPlacedViaTextStatic(String placedVia) {
-  switch (placedVia.toLowerCase()) {
-    case 'ios':
-      return 'iOS'; // Proper iOS formatting
-    default:
-      return placedVia.toUpperCase();
-  }
+  // Text badge
+  final color = switch (key) {
+    'ios' => const Color(0xFF4A4A4A),
+    'android' => ColorConstants.statusPaid,
+    'shop' => ColorConstants.statusBilled,
+    _ => ColorConstants.statusBilled,
+  };
+  final label = key == 'ios'
+      ? 'iOS'
+      : key == 'android'
+          ? 'Android'
+          : 'Shop';
+
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+      border: Border.all(color: color, width: 1.5),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        fontSize: MySize.getHeight(10),
+        color: color,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.5,
+      ),
+    ),
+  );
 }
 
 class OrderScreenView extends GetView<OrderScreenController> {
@@ -380,25 +390,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
                                                             .selectedLocalStatus
                                                             .value = 'New',
                                               ),
+
                                               _buildStatusTab(
-                                                label:
-                                                    TranslationKeys
-                                                        .preparingStatus
-                                                        .tr,
-                                                isSelected:
-                                                    selectedStatus ==
-                                                    'Preparing',
-                                                onTap:
-                                                    () =>
-                                                        controller
-                                                            .selectedLocalStatus
-                                                            .value = 'Preparing',
-                                              ),
-                                              _buildStatusTab(
-                                                label:
-                                                    TranslationKeys
-                                                        .readyStatus
-                                                        .tr,
+                                                label: 'OK',
                                                 isSelected:
                                                     selectedStatus == 'Ready',
                                                 onTap:
@@ -538,36 +532,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
               onTap: () {
-                final status = order.status?.toLowerCase() ?? '';
-                final isKotStatus = status == 'kot';
-                final isBilledStatus = status == 'billed';
-                final hasTable = order.table != null && order.table!.id != null;
-                final isDeliveryOrPickup =
-                    order.orderType?.toLowerCase() == 'delivery' ||
-                    order.orderType?.toLowerCase() == 'pickup';
-                final isCounter = order.orderType?.toLowerCase() == 'counter';
-                final showRunningDialog =
-                    isKotStatus &&
-                    (hasTable || isDeliveryOrPickup || isCounter);
-                if (isBilledStatus) {
-                  _openPaymentForOrderCard(context, controller, order);
-                  return;
-                }
-                if (showRunningDialog) {
-                  RunningTableDialog.showRunningTablePopup(
-                    context: context,
-                    tableId: hasTable ? order.table!.id! : null,
-                    orderUuid: !hasTable ? order.uuid : null,
-                    onRefreshTables: () => controller.fetchAllOrders(),
-                    onSetLoader:
-                        (bool show) =>
-                            controller.isNavigatingToOrder.value = show,
-                    sourceScreen: Routes.ORDER_SCREEN,
-                    hideChangeTable: isDeliveryOrPickup || isCounter,
-                  );
-                } else {
-                  showOrderBottomSheet(context, controller, order);
-                }
+                showOrderBottomSheet(context, controller, order);
               },
               child: OrderCard(order: order),
             );
@@ -710,165 +675,43 @@ class OrderScreenView extends GetView<OrderScreenController> {
     OrderScreenController controller,
     order_details_model.Data orderData,
   ) {
-    final showAddPayment = _hasPaymentDue(orderData);
     return Container(
-      padding: EdgeInsets.only(
-        top: MySize.getHeight(8),
-        left: MySize.getWidth(8),
-        right: MySize.getWidth(8),
-        bottom: MySize.getHeight(20),
-      ),
+      padding: EdgeInsets.all(MySize.getWidth(12)),
       decoration: BoxDecoration(
-        color: ColorConstants.bgColor,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: MySize.getWidth(4),
-            offset: Offset(0, -MySize.getHeight(2)),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MySize.getWidth(16),
-                  vertical: MySize.getHeight(10),
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF60616E),
-                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                  boxShadow: ColorConstants.getShadow2,
-                ),
-                child: Text(
-                  TranslationKeys.close.tr,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: MySize.getHeight(15),
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+      child: SizedBox(
+        width: double.infinity,
+        child: InkWell(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(16),
+              vertical: MySize.getHeight(10),
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF60616E),
+              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+              boxShadow: ColorConstants.getShadow2,
+            ),
+            child: Text(
+              TranslationKeys.close.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: MySize.getHeight(15),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          SizedBox(width: MySize.getWidth(12)),
-          Expanded(
-            child:
-                showAddPayment
-                    ? InkWell(
-                      onTap:
-                          () => _openAddPaymentFromSheet(context, controller),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: MySize.getWidth(16),
-                          vertical: MySize.getHeight(10),
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorConstants.successGreen,
-                          borderRadius: BorderRadius.circular(
-                            MySize.getHeight(8),
-                          ),
-                          boxShadow: ColorConstants.getShadow2,
-                        ),
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.payment,
-                                  color: Colors.white,
-                                  size: MySize.getHeight(18),
-                                ),
-                                SizedBox(width: MySize.getWidth(6)),
-                                Text(
-                                  TranslationKeys.pay.tr,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(15),
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                    : Obx(() {
-                      final isPrinting = controller.isPrinting.value;
-                      return InkWell(
-                        onTap:
-                            isPrinting
-                                ? null
-                                : () => _printInvoice(
-                                  context,
-                                  controller,
-                                  orderData,
-                                ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(16),
-                            vertical: MySize.getHeight(10),
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isPrinting
-                                    ? const Color(
-                                      0xFF0E9F6E,
-                                    ).withValues(alpha: 0.7)
-                                    : const Color(0xFF0E9F6E),
-                            borderRadius: BorderRadius.circular(
-                              MySize.getHeight(8),
-                            ),
-                            boxShadow: ColorConstants.getShadow2,
-                          ),
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (isPrinting)
-                                    CupertinoActivityIndicator(
-                                      radius: MySize.getHeight(8),
-                                      color: Colors.white,
-                                    )
-                                  else
-                                    Icon(
-                                      Icons.print,
-                                      color: Colors.white,
-                                      size: MySize.getHeight(18),
-                                    ),
-                                  if (!isPrinting)
-                                    SizedBox(width: MySize.getWidth(6)),
-                                  if (!isPrinting)
-                                    Text(
-                                      TranslationKeys.print.tr,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: MySize.getHeight(15),
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1015,31 +858,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
               ],
               if (placedVia != null && placedVia.isNotEmpty) ...[
                 SizedBox(width: MySize.getWidth(8)),
-                Builder(
-                  builder: (context) {
-                    final placedViaColor = _getPlacedViaColorStatic(placedVia);
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: placedViaColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(
-                          MySize.getHeight(6),
-                        ),
-                        border: Border.all(color: placedViaColor, width: 1.5),
-                      ),
-                      child: Text(
-                        _formatPlacedViaTextStatic(placedVia),
-                        style: TextStyle(
-                          color: placedViaColor,
-                          fontSize: MySize.getHeight(11),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  },
+                _buildPlacedViaBadge(
+                  placedVia: placedVia,
+                  providerName: orderDetails?.providerName,
                 ),
               ],
             ],
@@ -1095,15 +916,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  bool _hasPaymentDue(order_details_model.Data orderData) {
-    final statusDue = orderData.order?.status?.toLowerCase() == 'payment_due';
-    final paymentDue =
-        orderData.order?.payments?.any(
-          (p) => p.paymentMethod?.toLowerCase() == 'due',
-        ) ??
-        false;
-    return statusDue || paymentDue;
-  }
+
 
   bool _isPendingVerification(order_details_model.Data orderData) {
     return orderData.order?.status?.toLowerCase() == 'pending_verification';
@@ -1170,10 +983,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
                       : methodRaw == 'card'
                       ? TranslationKeys.card.tr
                       : payment.paymentMethod ?? '—';
+              final amountVal = payment.amountTotal ?? payment.amount;
               final amountStr =
-                  payment.amount != null
+                  amountVal != null
                       ? CurrencyFormatter.formatPrice(
-                        payment.amount!.toString(),
+                        amountVal.toString(),
                       )
                       : '—';
               return Padding(
@@ -1296,7 +1110,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   ],
                 ),
               );
-            }).toList()
+            })
           else
             Padding(
               padding: EdgeInsets.all(MySize.getWidth(12)),
@@ -1321,6 +1135,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
     final payments = orderData.order?.payments ?? [];
     if (payments.isEmpty) return const SizedBox.shrink();
 
+    final orderStatus = orderData.order?.status?.toLowerCase();
+    final orderUuid = orderData.order?.uuid ?? '';
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1328,118 +1145,188 @@ class OrderScreenView extends GetView<OrderScreenController> {
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: ColorConstants.getShadow2,
       ),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(1.1),
-          1: FlexColumnWidth(1.1),
-          2: FlexColumnWidth(1.9),
-          3: FlexColumnWidth(1.5),
-        },
+      child: Column(
         children: [
-          TableRow(
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(8),
+              vertical: MySize.getHeight(10),
+            ),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(MySize.getHeight(8)),
               ),
             ),
-            children: [
-              _tableHeaderCell(TranslationKeys.amount.tr),
-              _tableHeaderCell(TranslationKeys.paymentMethod.tr),
-              _tableHeaderCell(TranslationKeys.dateAndTime.tr),
-              _tableHeaderCell(TranslationKeys.action.tr),
-            ],
+            child: Row(
+              children: [
+                _tableHeaderCell(TranslationKeys.amount.tr, flex: 10),
+                _tableHeaderCell(TranslationKeys.paymentMethod.tr, flex: 12),
+                _tableHeaderCell(TranslationKeys.dateAndTime.tr, flex: 15),
+                _tableHeaderCell(TranslationKeys.action.tr, flex: 18),
+              ],
+            ),
           ),
-          ...payments.map((payment) {
+          ...payments.asMap().entries.map((entry) {
+            final payment = entry.value;
+            final isLast = entry.key == payments.length - 1;
             final method = payment.paymentMethod?.toLowerCase() ?? '';
             final isDue = method == 'due';
-            final amountStr =
-                payment.amount != null
-                    ? CurrencyFormatter.formatPrice(payment.amount!.toString())
-                    : '—';
-            final methodLabel =
-                isDue
-                    ? TranslationKeys.due.tr
-                    : (method == 'cash'
-                        ? TranslationKeys.cash.tr
-                        : (payment.paymentMethod ?? '—'));
-            final dateTimeStr =
-                payment.createdAt != null && payment.createdAt!.isNotEmpty
-                    ? DateTimeFormatter.formatDateTime(payment.createdAt)
-                    : '—';
-            return TableRow(
-              decoration: const BoxDecoration(
-                border: Border.symmetric(
-                  horizontal: BorderSide(color: Colors.grey, width: 0.5),
+            final amountVal = payment.amountTotal ?? payment.amount;
+            final amountStr = amountVal != null
+                ? CurrencyFormatter.formatPrice(amountVal.toString())
+                : '—';
+            final methodLabel = _paymentMethodLabel(payment);
+            final dateTimeStr = payment.createdAt != null &&
+                    payment.createdAt!.isNotEmpty
+                ? DateTimeFormatter.formatDateTime(payment.createdAt)
+                : '—';
+
+            final refunds = _refundsForPayment(orderData, payment);
+            final alreadyRefundedAmount = _refundedAmountForPayment(refunds);
+            final refundableAmount =
+                _remainingRefundableAmount(payment, refunds);
+
+            final actions = <Widget>[];
+
+            if (!isDue) {
+              actions.add(
+                _outlinedButton(
+                  label: TranslationKeys.view.tr,
+                  icon: Icons.visibility_outlined,
+                  iconOnly: true,
+                  onTap: () {
+                    final id = payment.id;
+                    if (id != null) {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (_) => PaymentReceiptDialog(paymentId: id),
+                      );
+                    }
+                  },
                 ),
-              ),
-              children: [
-                _centeredTableCell(amountStr),
-                _centeredTableCell(methodLabel),
-                _centeredTableCell(dateTimeStr),
-                Padding(
-                  padding: EdgeInsets.all(MySize.getHeight(8)),
-                  child: Center(
-                    child:
-                        isDue
-                            ? _outlinedButton(
-                              label: TranslationKeys.pay.tr,
-                              onTap:
-                                  () => _openAddPaymentFromSheet(
-                                    context,
-                                    controller,
-                                  ),
-                              backgroundColor: ColorConstants.successGreen,
-                            )
-                            : Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _outlinedButton(
-                                  label: TranslationKeys.view.tr,
-                                  icon: Icons.visibility_outlined,
-                                  onTap: () {
-                                    final id = payment.id;
-                                    if (id != null) {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder:
-                                            (_) => PaymentReceiptDialog(
-                                              paymentId: id,
-                                            ),
-                                      );
-                                    }
-                                  },
-                                  iconOnly: true,
-                                ),
-                                SizedBox(width: MySize.getWidth(4)),
-                                _outlinedButton(
-                                  label: TranslationKeys.print.tr,
-                                  icon: Icons.print,
-                                  iconOnly: true,
-                                  onTap: () {
-                                    final id = payment.id;
-                                    if (id != null) {
-                                      _printPaymentReceipt(
-                                        context,
-                                        controller,
-                                        id,
-                                      );
-                                    } else {
-                                      _printInvoice(
-                                        context,
-                                        controller,
-                                        orderData,
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
+              );
+              actions.add(SizedBox(width: MySize.getWidth(4)));
+              actions.add(
+                _outlinedButton(
+                  label: TranslationKeys.print.tr,
+                  icon: Icons.print,
+                  iconOnly: true,
+                  onTap: () {
+                    final id = payment.id;
+                    if (id != null) {
+                      _printPaymentReceipt(context, controller, id);
+                    } else {
+                      _printInvoice(context, controller, orderData);
+                    }
+                  },
+                ),
+              );
+
+              if (orderStatus == 'paid' &&
+                  payment.id != null &&
+                  orderUuid.isNotEmpty &&
+                  refundableAmount > 0.009) {
+                actions.add(SizedBox(width: MySize.getWidth(4)));
+                actions.add(
+                  _outlinedButton(
+                    label: TranslationKeys.refund.tr,
+                    icon: Icons.undo_rounded,
+                    iconOnly: true,
+                    borderColor:
+                        ColorConstants.primaryColor.withValues(alpha: 0.35),
+                    textColor: ColorConstants.primaryColor,
+                    onTap: () => _showRefundDialog(
+                      context,
+                      controller: controller,
+                      orderUuid: orderUuid,
+                      paymentId: payment.id!,
+                      paymentAmount:
+                          (payment.amountTotal ?? payment.amount) ?? 0.0,
+                      alreadyRefundedAmount: alreadyRefundedAmount,
+                      refundableAmount: refundableAmount,
+                    ),
                   ),
-                ),
-              ],
+                );
+              }
+            }
+
+            return Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: MySize.getWidth(8),
+                vertical: MySize.getHeight(10),
+              ),
+              decoration: BoxDecoration(
+                border: isLast
+                    ? null
+                    : Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.shade300,
+                          width: 0.8,
+                        ),
+                      ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 10,
+                        child: Text(
+                          amountStr,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 12,
+                        child: Text(
+                          methodLabel,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 15,
+                        child: Text(
+                          dateTimeStr,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(12),
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 18,
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: actions,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (refunds.isNotEmpty)
+                    ...refunds.map(
+                      (refund) => _buildRefundHistoryLine(refund),
+                    ),
+                ],
+              ),
             );
           }),
         ],
@@ -1447,35 +1334,189 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  /// Reusable centered table cell for payment table (header and data).
-  Widget _centeredTableCell(
-    String text, {
-    double fontSize = 12,
-    FontWeight? fontWeight,
-    Color? color,
-  }) {
-    return Padding(
-      padding: EdgeInsets.all(MySize.getHeight(8)),
-      child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: MySize.getHeight(fontSize),
-            fontWeight: fontWeight,
-            color: color ?? Colors.black,
-          ),
+  Widget _tableHeaderCell(String text, {int flex = 1}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: MySize.getHeight(11),
+          fontWeight: FontWeight.bold,
+          color: Colors.grey.shade700,
         ),
       ),
     );
   }
 
-  Widget _tableHeaderCell(String text) {
-    return _centeredTableCell(
-      text,
-      fontSize: 11,
-      fontWeight: FontWeight.bold,
+  List<order_details_model.Refunds> _refundsForPayment(
+    order_details_model.Data orderData,
+    order_details_model.Payments payment,
+  ) {
+    final paymentId = payment.id;
+    if (paymentId == null) return const [];
+    return (orderData.order?.refundSummary?.refunds ?? [])
+        .where((refund) => refund.paymentId == paymentId)
+        .toList();
+  }
+
+  double _refundedAmountForPayment(List<order_details_model.Refunds> refunds) {
+    return refunds.fold<double>(
+      0.0,
+      (sum, refund) => sum + (refund.amount ?? 0.0),
+    );
+  }
+
+  double _remainingRefundableAmount(
+    order_details_model.Payments payment,
+    List<order_details_model.Refunds> refunds,
+  ) {
+    final paidAmount = (payment.amountTotal ?? payment.amount) ?? 0.0;
+    final refundedAmount = _refundedAmountForPayment(refunds);
+    final remainingAmount = paidAmount - refundedAmount;
+    return remainingAmount > 0 ? remainingAmount : 0.0;
+  }
+
+  String _paymentMethodLabel(order_details_model.Payments payment) {
+    final method = payment.paymentMethod?.toLowerCase() ?? '';
+    switch (method) {
+      case 'cash':
+        return TranslationKeys.cash.tr;
+      case 'due':
+        return TranslationKeys.due.tr;
+      case 'card':
+        return TranslationKeys.card.tr;
+      case 'upi':
+        return TranslationKeys.upi.tr;
+      case 'bank transfer':
+        return TranslationKeys.bankTransfer.tr;
+      default:
+        return payment.paymentMethod ?? '—';
+    }
+  }
+
+  Future<void> _showRefundDialog(
+    BuildContext context, {
+    required OrderScreenController controller,
+    required String orderUuid,
+    required int paymentId,
+    required double paymentAmount,
+    required double alreadyRefundedAmount,
+    required double refundableAmount,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return _RefundDialog(
+          controller: controller,
+          orderUuid: orderUuid,
+          paymentId: paymentId,
+          paymentAmount: paymentAmount,
+          alreadyRefundedAmount: alreadyRefundedAmount,
+          refundableAmount: refundableAmount,
+        );
+      },
+    );
+  }
+
+  Widget _buildRefundHistoryLine(
+    order_details_model.Refunds refund,
+  ) {
+    final amountText =
+        refund.amount != null
+            ? CurrencyFormatter.formatPrice(refund.amount!.toString())
+            : '—';
+    final dateText =
+        refund.createdAt != null && refund.createdAt!.isNotEmpty
+            ? DateTimeFormatter.formatDateTime(refund.createdAt)
+            : '—';
+    final refundedBy = refund.refundedBy?.trim();
+    final refundReason = refund.reason?.trim();
+    final hasMetaLine =
+        (refundedBy != null && refundedBy.isNotEmpty) ||
+        (refundReason != null && refundReason.isNotEmpty);
+
+    final metaTextStyle = TextStyle(
+      fontSize: MySize.getHeight(11),
       color: Colors.grey.shade700,
+    );
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(top: MySize.getHeight(4)),
+      padding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(8),
+        vertical: MySize.getHeight(6),
+      ),
+      decoration: BoxDecoration(
+        color: ColorConstants.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+        border: Border.all(
+          color: ColorConstants.primaryColor.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.reply_outlined,
+            size: MySize.getHeight(14),
+            color: ColorConstants.primaryColor,
+          ),
+          SizedBox(width: MySize.getWidth(6)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: MySize.getWidth(8),
+                  runSpacing: MySize.getHeight(2),
+                  children: [
+                    Text(
+                      '${TranslationKeys.refund.tr}: $amountText',
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(11.5),
+                        fontWeight: FontWeight.w700,
+                        color: ColorConstants.primaryColor,
+                      ),
+                    ),
+                    Text(dateText, style: metaTextStyle),
+                  ],
+                ),
+                if (hasMetaLine) ...[
+                  SizedBox(height: MySize.getHeight(2)),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        if (refundedBy != null && refundedBy.isNotEmpty)
+                          TextSpan(
+                            text: '${TranslationKeys.by.tr} $refundedBy',
+                            style: metaTextStyle,
+                          ),
+                        if (refundedBy != null &&
+                            refundedBy.isNotEmpty &&
+                            refundReason != null &&
+                            refundReason.isNotEmpty)
+                          TextSpan(text: '  ', style: metaTextStyle),
+                        if (refundReason != null && refundReason.isNotEmpty)
+                          TextSpan(
+                            text: '"$refundReason"',
+                            style: metaTextStyle.copyWith(
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
+                    ),
+                    softWrap: true,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1553,42 +1594,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
     );
   }
 
-  static Future<void> _openAddPaymentFromSheet(
-    BuildContext context,
-    OrderScreenController controller,
-  ) async {
-    Navigator.pop(context);
-    final getOrderModel = controller.orderDetails.value;
-    final orderUuid = getOrderModel?.data?.order?.uuid;
-    if (orderUuid == null || orderUuid.isEmpty) return;
 
-    final success = await RunningTableService.openPaymentFlow(
-      context: context,
-      orderUuid: orderUuid,
-    );
-
-    if (success == true) {
-      controller.fetchAllOrders();
-    }
-  }
-
-  static Future<void> _openPaymentForOrderCard(
-    BuildContext context,
-    OrderScreenController controller,
-    order_model.Orders order,
-  ) async {
-    final orderUuid = order.uuid;
-    if (orderUuid == null || orderUuid.isEmpty) return;
-
-    final success = await RunningTableService.openPaymentFlow(
-      context: context,
-      orderUuid: orderUuid,
-    );
-
-    if (success == true) {
-      controller.fetchAllOrders();
-    }
-  }
 
   /// Order card shows API time as-is (format only, no timezone conversion)
   /// so e.g. 03:16 does not become 04:16 when API already sends local/restaurant time.
@@ -1666,7 +1672,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
       }
 
       // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printReceiptFromApi(
+      await SunmiInvoicePrinterService().printSharpReceiptFromApi(
         model.data!,
         copies: 1,
       );
@@ -1709,7 +1715,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
       }
 
       // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printInvoice(orderData, copies: 1);
+      await SunmiInvoicePrinterService().printSharpInvoice(
+        orderData,
+        copies: 1,
+      );
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
@@ -1775,7 +1784,14 @@ class OrderCard extends StatelessWidget {
       order.dateTime,
       order.formattedDateTime,
     );
-    final formattedPrice = CurrencyFormatter.formatPrice(order.total ?? '0');
+    final itemsCount = order.itemsCount ?? 0;
+    final formattedPrice =
+        order.formattedEffectiveTotal ??
+        CurrencyFormatter.formatPrice(
+          (order.effectiveTotal ?? order.total) != null
+              ? (order.effectiveTotal?.toString() ?? order.total ?? '0')
+              : '0',
+        );
     final waiterName = order.waiter?.name ?? '';
 
     return Container(
@@ -1788,6 +1804,7 @@ class OrderCard extends StatelessWidget {
         padding: EdgeInsets.all(MySize.getHeight(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1843,9 +1860,11 @@ class OrderCard extends StatelessWidget {
                           fontSize: MySize.getHeight(14),
                         ),
                       ),
-                      if (order.customer != null && customerName.isNotEmpty)
+                      if (customerName.isNotEmpty)
                         Text(
                           customerName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: MySize.getHeight(13),
@@ -1857,16 +1876,27 @@ class OrderCard extends StatelessWidget {
                 _statusBadge(formattedStatus, statusColor),
               ],
             ),
+            SizedBox(height: MySize.getHeight(4)),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  formattedDateTime,
-                  style: TextStyle(
-                    color: ColorConstants.grey600,
-                    fontSize: MySize.getHeight(12),
+                Expanded(
+                  child: Text(
+                    formattedDateTime,
+                    style: TextStyle(
+                      color: ColorConstants.grey600,
+                      fontSize: MySize.getHeight(12),
+                    ),
                   ),
                 ),
+                if (itemsCount > 0)
+                  Text(
+                    "$itemsCount ${TranslationKeys.itemsPlural.tr}",
+                    style: TextStyle(
+                      color: ColorConstants.grey600,
+                      fontSize: MySize.getHeight(12),
+                    ),
+                  ),
               ],
             ),
             Divider(
@@ -1901,37 +1931,37 @@ class OrderCard extends StatelessWidget {
                     ],
                   ),
                 const Spacer(),
-
-                if (order.placedVia != null && order.placedVia!.isNotEmpty)
-                  Builder(
-                    builder: (context) {
-                      final placedViaColor = _getPlacedViaColorStatic(
-                        order.placedVia!,
-                      );
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: placedViaColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(
-                            MySize.getHeight(6),
-                          ),
-                          border: Border.all(color: placedViaColor, width: 1.5),
-                        ),
-                        child: Text(
-                          _formatPlacedViaTextStatic(order.placedVia!),
-                          style: TextStyle(
-                            color: placedViaColor,
-                            fontSize: MySize.getHeight(13),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
+                if (order.coupon != null && order.coupon!.code != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade100,
+                      borderRadius: BorderRadius.circular(MySize.getHeight(6)),
+                      border: Border.all(
+                        color: Colors.purple.shade300,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      '${TranslationKeys.coupon.tr.toUpperCase()}: ${order.coupon!.code!.toUpperCase()}',
+                      style: TextStyle(
+                        color: Colors.purple.shade700,
+                        fontSize: MySize.getHeight(11),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                const Spacer(),
+                  SizedBox(width: MySize.getWidth(6)),
+                ],
+                if (order.placedVia != null && order.placedVia!.isNotEmpty)
+                  _buildPlacedViaBadge(
+                    placedVia: order.placedVia!,
+                    providerName: order.providerName,
+                  ),
+                SizedBox(width: MySize.getWidth(6)),
                 _buildActionButtons(context),
               ],
             ),
@@ -1947,17 +1977,12 @@ class OrderCard extends StatelessWidget {
 
     if (currentLocalStatus == 'New') {
       return _buildActionButton(
-        label: TranslationKeys.start.tr,
+        label: "OK",
+        icon: Icons.check,
         color: ColorConstants.primaryColor,
         onTap:
             () =>
-                controller.updateLocalStatus(order.id.toString(), 'Preparing'),
-      );
-    } else if (currentLocalStatus == 'Preparing') {
-      return _buildActionButton(
-        label: TranslationKeys.ready.tr,
-        color: ColorConstants.statusPaid,
-        onTap: () => controller.updateLocalStatus(order.id.toString(), 'Ready'),
+                controller.updateLocalStatus(order.id.toString(), 'Ready'),
       );
     }
     return const SizedBox.shrink();
@@ -1967,6 +1992,7 @@ class OrderCard extends StatelessWidget {
     required String label,
     required Color color,
     required VoidCallback onTap,
+    IconData? icon,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1976,17 +2002,25 @@ class OrderCard extends StatelessWidget {
           vertical: MySize.getHeight(6),
         ),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color,
           borderRadius: BorderRadius.circular(MySize.getHeight(6)),
-          border: Border.all(color: color, width: 1.5),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: MySize.getHeight(13),
-            fontWeight: FontWeight.bold,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: Colors.white, size: MySize.getHeight(16)),
+              SizedBox(width: MySize.getWidth(4)),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: MySize.getHeight(13),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -2007,8 +2041,12 @@ class OrderCard extends StatelessWidget {
         return TranslationKeys.kitchenStatus.tr;
       case 'pending_verification':
         return TranslationKeys.pendingVerificationStatus.tr;
+      case 'out_for_delivery':
+        return 'OUT FOR DELIVERY';
+      case 'delivered':
+        return TranslationKeys.orderDelivered.tr.toUpperCase();
       default:
-        return status.toUpperCase();
+        return status.replaceAll('_', ' ').toUpperCase();
     }
   }
 
@@ -2027,6 +2065,10 @@ class OrderCard extends StatelessWidget {
         return ColorConstants.statusPaymentDue;
       case 'pending_verification':
         return Colors.orange;
+      case 'out_for_delivery':
+        return ColorConstants.tableBlue;
+      case 'delivered':
+        return ColorConstants.successGreen;
       default:
         return Colors.grey;
     }
@@ -2055,173 +2097,413 @@ class OrderCard extends StatelessWidget {
   }
 }
 
-class _OrderTypeButtonItem extends StatefulWidget {
-  final String icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool isTablet;
+class _RefundDialog extends StatefulWidget {
+  final OrderScreenController controller;
+  final String orderUuid;
+  final int paymentId;
+  final double paymentAmount;
+  final double alreadyRefundedAmount;
+  final double refundableAmount;
 
-  const _OrderTypeButtonItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.isTablet,
+  const _RefundDialog({
+    required this.controller,
+    required this.orderUuid,
+    required this.paymentId,
+    required this.paymentAmount,
+    required this.alreadyRefundedAmount,
+    required this.refundableAmount,
   });
 
   @override
-  State<_OrderTypeButtonItem> createState() => _OrderTypeButtonItemState();
+  State<_RefundDialog> createState() => _RefundDialogState();
 }
 
-class _OrderTypeButtonItemState extends State<_OrderTypeButtonItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _backgroundAnimation;
+class _RefundDialogState extends State<_RefundDialog> {
+  late final TextEditingController _amountController;
+  late final TextEditingController _reasonController;
+  String? _amountErrorText;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
+    _amountController = TextEditingController(
+      text: CurrencyFormatter.formatOnlyNumber(widget.refundableAmount),
     );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = Tween<double>(
-      begin: widget.isTablet ? 1.0 : 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Interval(0.3, 1.0)));
-
-    _backgroundAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    if (widget.isSelected || widget.isTablet) {
-      _controller.forward();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _OrderTypeButtonItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected || widget.isTablet) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
+    _reasonController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _amountController.dispose();
+    _reasonController.dispose();
     super.dispose();
+  }
+
+  double? _parseRefundAmount(String rawValue) {
+    var normalized = rawValue.trim();
+    final decimalSeparator = CurrencyFormatter.getDecimalSeparator();
+    if (decimalSeparator != '.') {
+      normalized = normalized.replaceAll(decimalSeparator, '.');
+    }
+    normalized = normalized.replaceAll(RegExp(r'[^0-9.]'), '');
+    final firstDotIndex = normalized.indexOf('.');
+    if (firstDotIndex != -1) {
+      normalized =
+          normalized.substring(0, firstDotIndex + 1) +
+          normalized.substring(firstDotIndex + 1).replaceAll('.', '');
+    }
+    return double.tryParse(normalized);
+  }
+
+  void _clearAmountError() {
+    if (_amountErrorText == null || _isSubmitting) return;
+    setState(() {
+      _amountErrorText = null;
+    });
+  }
+
+  InputDecoration _buildTextFieldDecoration({
+    String? hintText,
+    String? errorText,
+  }) {
+    return InputDecoration(
+      isDense: true,
+      hintText: hintText,
+      errorText: errorText,
+      hintStyle: TextStyle(
+        fontSize: MySize.getHeight(12),
+        color: Colors.grey.shade500,
+      ),
+      errorStyle: TextStyle(
+        fontSize: MySize.getHeight(11),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: MySize.getWidth(12),
+        vertical: MySize.getHeight(12),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        borderSide: const BorderSide(color: ColorConstants.primaryColor),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        borderSide: const BorderSide(color: ColorConstants.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+        borderSide: const BorderSide(color: ColorConstants.red),
+      ),
+    );
+  }
+
+  Future<void> _validateAndSubmit() async {
+    if (_isSubmitting) return;
+    FocusScope.of(context).unfocus();
+
+    final amount = _parseRefundAmount(_amountController.text);
+    if (amount == null || amount <= 0) {
+      setState(() {
+        _amountErrorText = TranslationKeys.enterValidRefundAmount.tr;
+      });
+      return;
+    }
+
+    if (amount - widget.refundableAmount > 0.009) {
+      setState(() {
+        _amountErrorText = TranslationKeys.refundAmountExceedsAvailable.tr;
+      });
+      return;
+    }
+
+    final trimmedReason = _reasonController.text.trim();
+    setState(() {
+      _amountErrorText = null;
+      _isSubmitting = true;
+    });
+
+    final errorMessage = await widget.controller.createRefund(
+      orderUuid: widget.orderUuid,
+      paymentId: widget.paymentId,
+      amount: amount,
+      reason: trimmedReason.isEmpty ? null : trimmedReason,
+    );
+
+    if (!mounted) return;
+
+    if (errorMessage == null) {
+      Navigator.of(context).pop();
+      AppToast.showSuccess(
+        TranslationKeys.createRefund.tr,
+        title: TranslationKeys.success.tr,
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = false;
+    });
+    AppToast.showError(errorMessage, title: TranslationKeys.error.tr);
+  }
+
+  Widget _buildRefundSummaryRow(
+    String label,
+    double amount, {
+    Color? valueColor,
+    FontWeight valueWeight = FontWeight.w500,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: MySize.getHeight(12),
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
+        SizedBox(width: MySize.getWidth(8)),
+        Text(
+          CurrencyFormatter.formatPrice(amount.toString()),
+          maxLines: 1,
+          style: TextStyle(
+            fontSize: MySize.getHeight(12.5),
+            fontWeight: valueWeight,
+            color: valueColor ?? Colors.black87,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: MySize.getWidth(widget.isTablet ? 6 : 8),
-              vertical: MySize.getHeight(6),
-            ),
-            decoration: BoxDecoration(
-              color:
-                  widget.isSelected
-                      ? ColorConstants.primaryColor.withValues(
-                        alpha: 0.1 * _backgroundAnimation.value,
-                      )
-                      : Colors.transparent,
-              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-              border:
-                  widget.isSelected
-                      ? Border.all(
-                        color: ColorConstants.primaryColor.withValues(
-                          alpha: _backgroundAnimation.value,
-                        ),
-                        width: 1.5,
-                      )
-                      : null,
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: widget.isTablet ? 0 : MySize.getWidth(6),
+    MySize().init(context);
+    final media = MediaQuery.of(context);
+    final keyboardInset = media.viewInsets.bottom;
+    final keyboardOpen = keyboardInset > 0;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.fromLTRB(
+            MySize.getWidth(20),
+            keyboardOpen ? MySize.getHeight(12) : MySize.getHeight(24),
+            MySize.getWidth(20),
+            keyboardOpen ? MySize.getHeight(12) : MySize.getHeight(24),
+          ),
+          child: AnimatedAlign(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            alignment: keyboardOpen ? Alignment.topCenter : Alignment.center,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MySize.getWidth(340),
               ),
-              child: Row(
-                mainAxisSize:
-                    widget.isTablet ? MainAxisSize.max : MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Image.asset(
-                      widget.icon,
-                      height: MySize.getHeight(20),
-                      width: MySize.getHeight(20),
-                      fit: BoxFit.contain,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(MySize.getHeight(10)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.all(MySize.getHeight(16)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: MySize.getWidth(3),
+                          height: MySize.getHeight(22),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor,
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                        ),
+                        SizedBox(width: MySize.getWidth(10)),
+                        Expanded(
+                          child: Text(
+                            TranslationKeys.createRefund.tr,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(16),
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  if (widget.isTablet || _fadeAnimation.value > 0)
-                    Flexible(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: MySize.getWidth(4)),
-                        child:
-                            widget.isTablet
-                                ? Text(
-                                  widget.label,
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(13),
-                                    color:
-                                        widget.isSelected
-                                            ? ColorConstants.primaryColor
-                                            : Colors.grey.shade700,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.visible,
-                                  textAlign: TextAlign.center,
-                                )
-                                : Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: MySize.getWidth(2),
-                                  ),
-                                  child: SizeTransition(
-                                    axis: Axis.horizontal,
-                                    sizeFactor: _fadeAnimation,
-                                    child: Text(
-                                      widget.label,
-                                      style: TextStyle(
-                                        fontSize: MySize.getHeight(13),
-                                        color:
-                                            widget.isSelected
-                                                ? ColorConstants.primaryColor
-                                                : Colors.grey.shade700,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.visible,
-                                    ),
-                                  ),
-                                ),
+                    SizedBox(height: MySize.getHeight(14)),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MySize.getWidth(12),
+                        vertical: MySize.getHeight(10),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius:
+                            BorderRadius.circular(MySize.getHeight(8)),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildRefundSummaryRow(
+                            TranslationKeys.amount.tr,
+                            widget.paymentAmount,
+                          ),
+                          SizedBox(height: MySize.getHeight(8)),
+                          _buildRefundSummaryRow(
+                            TranslationKeys.alreadyRefunded.tr,
+                            widget.alreadyRefundedAmount,
+                          ),
+                          SizedBox(height: MySize.getHeight(8)),
+                          _buildRefundSummaryRow(
+                            TranslationKeys.availableToRefund.tr,
+                            widget.refundableAmount,
+                            valueColor: ColorConstants.primaryColor,
+                            valueWeight: FontWeight.w800,
+                          ),
+                        ],
                       ),
                     ),
-                ],
+                    SizedBox(height: MySize.getHeight(14)),
+                    Text(
+                      TranslationKeys.amount.tr,
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(12),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(6)),
+                    TextField(
+                      controller: _amountController,
+                      style: TextStyle(fontSize: MySize.getHeight(13)),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (_) => _clearAmountError(),
+                      decoration: _buildTextFieldDecoration(
+                        errorText: _amountErrorText,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(12)),
+                    Text(
+                      TranslationKeys.reasonOptional.tr,
+                      style: TextStyle(
+                        fontSize: MySize.getHeight(12),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(6)),
+                    TextField(
+                      controller: _reasonController,
+                      style: TextStyle(fontSize: MySize.getHeight(13)),
+                      minLines: 3,
+                      maxLines: 3,
+                      decoration: _buildTextFieldDecoration(
+                        hintText: TranslationKeys.enterReason.tr,
+                      ),
+                    ),
+                    SizedBox(height: MySize.getHeight(16)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: OutlinedButton(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize:
+                                  Size.fromHeight(MySize.getHeight(40)),
+                              padding: EdgeInsets.symmetric(
+                                vertical: MySize.getHeight(10),
+                              ),
+                              textStyle: TextStyle(
+                                fontSize: MySize.getHeight(13),
+                                fontWeight: FontWeight.w700,
+                              ),
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(8),
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              TranslationKeys.cancel.tr,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: MySize.getWidth(10)),
+                        Expanded(
+                          flex: 3,
+                          child: ElevatedButton(
+                            onPressed:
+                                _isSubmitting ? null : _validateAndSubmit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ColorConstants.primaryColor,
+                              foregroundColor: Colors.white,
+                              minimumSize:
+                                  Size.fromHeight(MySize.getHeight(40)),
+                              padding: EdgeInsets.symmetric(
+                                vertical: MySize.getHeight(10),
+                              ),
+                              textStyle: TextStyle(
+                                fontSize: MySize.getHeight(13),
+                                fontWeight: FontWeight.w800,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  MySize.getHeight(8),
+                                ),
+                              ),
+                            ),
+                            child: _isSubmitting
+                                ? SizedBox(
+                                    width: MySize.getWidth(18),
+                                    height: MySize.getHeight(18),
+                                    child: const CupertinoActivityIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    TranslationKeys.createRefund.tr,
+                                    textAlign: TextAlign.center,
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 }
+

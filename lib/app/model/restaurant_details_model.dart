@@ -340,7 +340,6 @@ class PaymentGateways {
   };
 }
 
-/// NEW class — maps the `delivery_settings` array in the branch response.
 class DeliverySettings {
   int? id;
   int? branchId;
@@ -351,6 +350,7 @@ class DeliverySettings {
   double? perDistanceRate;
   double? freeDeliveryOverAmount;
   double? minimumOrderAmount;
+  String? orderTimeMinutes;
   dynamic freeDeliveryWithinRadius;
   String? deliveryScheduleStart;
   String? deliveryScheduleEnd;
@@ -373,6 +373,7 @@ class DeliverySettings {
     this.perDistanceRate,
     this.freeDeliveryOverAmount,
     this.minimumOrderAmount,
+    this.orderTimeMinutes,
     this.freeDeliveryWithinRadius,
     this.deliveryScheduleStart,
     this.deliveryScheduleEnd,
@@ -397,6 +398,7 @@ class DeliverySettings {
     freeDeliveryOverAmount =
         (json['free_delivery_over_amount'] as num?)?.toDouble();
     minimumOrderAmount = (json['minimum_order_amount'] as num?)?.toDouble();
+    orderTimeMinutes = json['order_time_minutes'];
     freeDeliveryWithinRadius = json['free_delivery_within_radius'];
     deliveryScheduleStart = json['delivery_schedule_start'];
     deliveryScheduleEnd = json['delivery_schedule_end'];
@@ -424,6 +426,7 @@ class DeliverySettings {
     'per_distance_rate': perDistanceRate,
     'free_delivery_over_amount': freeDeliveryOverAmount,
     'minimum_order_amount': minimumOrderAmount,
+    'order_time_minutes': orderTimeMinutes,
     'free_delivery_within_radius': freeDeliveryWithinRadius,
     'delivery_schedule_start': deliveryScheduleStart,
     'delivery_schedule_end': deliveryScheduleEnd,
