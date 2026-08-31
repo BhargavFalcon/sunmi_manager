@@ -8,8 +8,8 @@ import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/utils/order_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Shared order detail UI widgets extracted from order_screen_view.dart
-/// and new_order_details_bottom_sheet.dart to eliminate code duplication.
+/// Shared order detail UI widgets used across the app (order_screen_view, pusher notifications).
+/// Single source of truth — no duplication.
 ///
 /// All methods accept an optional [fontSize] parameter to allow callers
 /// to customize text sizes (order_screen uses 13, bottom_sheet uses 12).

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:timezone/timezone.dart' as tz;
 
-import '../../main.dart';
-import '../constants/api_constants.dart';
 import 'language_utils.dart';
 
 class DateTimeFormatter {
@@ -46,43 +43,14 @@ class DateTimeFormatter {
   }
 
   static String formatDateTimeWithRestaurantTimezone(String? dateTimeString) {
-    try {
-      final tzName = box.read<String>(ArgumentConstant.restaurantTimezoneKey);
-      return formatDateTimeInTimezone(dateTimeString, tzName);
-    } catch (_) {
-      return formatDateTime(dateTimeString);
-    }
+    return formatDateTime(dateTimeString);
   }
 
   static String formatDateTimeInTimezone(
     String? dateTimeString,
     String? timezoneName,
   ) {
-    if (dateTimeString == null || dateTimeString.isEmpty) return '';
-    if (timezoneName == null || timezoneName.isEmpty) {
-      return formatDateTime(dateTimeString);
-    }
-    try {
-      final dateTime = _parseDateTime(dateTimeString);
-      if (dateTime == null) return formatDateTime(dateTimeString);
-      final location = tz.getLocation(timezoneName);
-      final utc =
-          dateTime.isUtc
-              ? dateTime
-              : DateTime.utc(
-                dateTime.year,
-                dateTime.month,
-                dateTime.day,
-                dateTime.hour,
-                dateTime.minute,
-                dateTime.second,
-                dateTime.millisecond,
-              );
-      final tzDateTime = tz.TZDateTime.from(utc, location);
-      return formatDateTimeObject(tzDateTime);
-    } catch (e) {
-      return formatDateTime(dateTimeString);
-    }
+    return formatDateTime(dateTimeString);
   }
 
   static String formatDateTimeObject(DateTime dateTime) {
@@ -117,7 +85,15 @@ class DateTimeFormatter {
 
   static DateTime? _parseDateTime(String dateTimeString) {
     try {
-      return DateTime.parse(dateTimeString);
+      final dt = DateTime.parse(dateTimeString);
+      return DateTime(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+      );
     } catch (_) {
       final custom = _parseCustomFormat(dateTimeString);
       if (custom != null) return custom;

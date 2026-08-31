@@ -12,17 +12,15 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   // --- Reactive States ---
   final isSunmi = true.obs;
 
-  // Shared Settings
+  // KOT / Kitchen Print Settings (via Sunmi SDK)
   final autoPrintKitchen = true.obs;
   final kitchenCopies = 1.obs;
-  final kitchenWidth = '58mm'.obs;
+  final kitchenWidth = '80mm'.obs;
 
+  // Receipt / Order Print Settings (via Sunmi SDK)
   final autoPrintReceipt = true.obs;
   final receiptCopies = 1.obs;
-  final receiptWidth = '58mm'.obs;
-
-  final selectedKitchenPrinter = 'Internal Sunmi Printer'.obs;
-  final selectedReceiptPrinter = 'Internal Sunmi Printer'.obs;
+  final receiptWidth = '80mm'.obs;
 
   @override
   void onInit() {
@@ -34,37 +32,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Future<void> _initService() async {
     isSunmi.value = await PrinterHelper.isSunmiDevice();
     await loadGeneralSettings();
-    if (isSunmi.value) {
-      await _autoSelectSunmiPrinter();
-    }
-  }
-
-  /// On Sunmi devices, auto-set kitchen and receipt printers to 'Internal Sunmi Printer'
-  /// if they haven't been explicitly set yet (or have a legacy value).
-  Future<void> _autoSelectSunmiPrinter() async {
-    bool changed = false;
-    const validInternalPrinter = 'Internal Sunmi Printer';
-    final legacyValues = {'', 'Internal', 'Sunmi'};
-
-    if (legacyValues.contains(selectedKitchenPrinter.value)) {
-      selectedKitchenPrinter.value = validInternalPrinter;
-      box.write(
-        ArgumentConstant.selectedKitchenPrinterKey,
-        validInternalPrinter,
-      );
-      changed = true;
-    }
-    if (legacyValues.contains(selectedReceiptPrinter.value)) {
-      selectedReceiptPrinter.value = validInternalPrinter;
-      box.write(
-        ArgumentConstant.selectedReceiptPrinterKey,
-        validInternalPrinter,
-      );
-      changed = true;
-    }
-    if (changed) {
-      await saveGeneralSettings();
-    }
   }
 
   @override
@@ -77,18 +44,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     try {
       // Load local hardware settings
       kitchenWidth.value =
-          box.read(ArgumentConstant.kitchenPaperWidthKey) ??
-          box.read(ArgumentConstant.printerWidthKey) ??
-          '58mm';
+          box.read(ArgumentConstant.kitchenPaperWidthKey) ?? '80mm';
       receiptWidth.value =
           box.read(ArgumentConstant.orderPaperWidthKey) ??
           box.read(ArgumentConstant.printerWidthKey) ??
-          '58mm';
-
-      selectedKitchenPrinter.value =
-          box.read(ArgumentConstant.selectedKitchenPrinterKey) ?? 'Internal Sunmi Printer';
-      selectedReceiptPrinter.value =
-          box.read(ArgumentConstant.selectedReceiptPrinterKey) ?? 'Internal Sunmi Printer';
+          '80mm';
 
       // Sync auto-print settings from API (only if authenticated)
       if (box.hasData(ArgumentConstant.tokenKey)) {
@@ -113,14 +73,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       // Save local hardware settings
       box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenWidth.value);
       box.write(ArgumentConstant.orderPaperWidthKey, receiptWidth.value);
-      box.write(
-        ArgumentConstant.selectedKitchenPrinterKey,
-        selectedKitchenPrinter.value,
-      );
-      box.write(
-        ArgumentConstant.selectedReceiptPrinterKey,
-        selectedReceiptPrinter.value,
-      );
+      box.write(ArgumentConstant.printerWidthKey, receiptWidth.value);
 
       // Save to API for auto print settings (only if authenticated)
       if (box.hasData(ArgumentConstant.tokenKey)) {
@@ -178,9 +131,12 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     receiptWidth.value = width;
   }
 
-  Future<bool> checkPrinterConnectivity(String? printerName) async {
-    // Sunmi exclusive
-    await SunmiPrinterPlus().rebindPrinter();
-    return true;
+  /// Checks Sunmi printer connectivity
+  Future<bool> checkPrinterConnectivity([String? printerName]) async {
+    if (isSunmi.value) {
+      await SunmiPrinterPlus().rebindPrinter();
+      return true;
+    }
+    return false;
   }
 }

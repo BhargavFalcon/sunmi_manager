@@ -1,5 +1,5 @@
 class ArgumentConstant {
-  static const bool isPartner = true;
+  static const bool isPartner = false;
 
   static String get baseUrl =>
       isPartner
@@ -36,11 +36,11 @@ class ArgumentConstant {
   // Printer Settings Keys
   static const autoPrintSettingsEndpoint =
       "api/v1/pos/branch/auto-print-settings";
+  static const kitchenMonitorsEndpoint = "api/v1/pos/kitchen-monitors";
+  static const kotsEndpoint = "api/v1/pos/kots";
   static const printerWidthKey = "printer_width";
   static const kitchenPaperWidthKey = "kitchen_paper_width";
   static const orderPaperWidthKey = "order_paper_width";
-  static const selectedKitchenPrinterKey = "selected_kitchen_printer";
-  static const selectedReceiptPrinterKey = "selected_receipt_printer";
 
   // App Settings Keys
   static const hapticFeedbackKey = "haptic_feedback_enabled";
@@ -56,4 +56,7 @@ class ArgumentConstant {
   static const shopMinOrderAmountKey = "minimum_order_amount";
   static const shopDeliveryFeeKey = "delivery_fee";
   static const shopFreeDeliveryAmountKey = "free_delivery_over_amount";
+  static const shopAllowDeliveryOrdersKey = "allow_delivery_orders";
+  static const shopAllowPickupOrdersKey = "allow_pickup_orders";
 }
+

@@ -6,6 +6,7 @@ import '../model/receipt_order_response_model.dart';
 import '../constants/translation_keys.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_time_formatter.dart';
+import '../utils/order_helpers.dart';
 
 class SharpReceiptWidget extends StatelessWidget {
   final dynamic data; // Can be order_model.Data or ReceiptOrderData
@@ -47,11 +48,12 @@ class SharpReceiptWidget extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Metadata Info
-          if (order?.dateTime != null)
-            _iconText(
-              Icons.access_time,
-              DateTimeFormatter.formatDateTime(order!.dateTime),
+          if (order?.createdAt != null && order!.createdAt!.isNotEmpty)
+            _labelText(
+              '${TranslationKeys.orderCreated.tr}:',
+              DateTimeFormatter.formatDateTime(order.createdAt),
             ),
+          _buildTimeLabelRow(order?.orderType, order?.dateTime),
           if (order?.customer?.name != null)
             _iconText(Icons.person, order!.customer!.name!),
           if (order?.orderNumber != null)
@@ -130,11 +132,24 @@ class SharpReceiptWidget extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Metadata Info
-          if (order?.dateTime != null)
-            _iconText(
-              Icons.access_time,
-              DateTimeFormatter.formatDateTime(order!.dateTime),
+          if (d.payment?.createdAt != null && d.payment!.createdAt!.isNotEmpty)
+            _labelText(
+              '${TranslationKeys.orderCreated.tr}:',
+              DateTimeFormatter.formatDateTime(d.payment!.createdAt),
             ),
+          _buildTimeLabelRow(order?.orderType, order?.dateTime),
+          () {
+            final name = _receiptCustomerName(order?.customer);
+            return name != null && name.isNotEmpty
+                ? _iconText(Icons.person, name)
+                : const SizedBox.shrink();
+          }(),
+          () {
+            final phone = _receiptPhoneStr(order?.customer);
+            return phone != null && phone.isNotEmpty
+                ? _iconText(Icons.phone, phone)
+                : const SizedBox.shrink();
+          }(),
           if (order?.orderNumber != null)
             _iconText(
               Icons.receipt_long,
@@ -168,6 +183,8 @@ class SharpReceiptWidget extends StatelessWidget {
           // Receipt Totals
           _buildReceiptTotals(summary, d.payment),
 
+          if (d.hasFiskalyData) _buildTseSection(d.fiskaly!),
+
           const SizedBox(height: 16),
           _divider(),
           const SizedBox(height: 12),
@@ -175,6 +192,49 @@ class SharpReceiptWidget extends StatelessWidget {
           const SizedBox(height: 30),
         ],
       ),
+    );
+  }
+
+  Widget _buildTseSection(ReceiptFiskaly fiskaly) {
+    String formatTseDate(String? dtStr) {
+      if (dtStr == null || dtStr.isEmpty) return '';
+      return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dtStr);
+    }
+
+    final startTime = formatTseDate(fiskaly.startUtc);
+    final endTime = formatTseDate(fiskaly.endUtc);
+    final tssSerial = fiskaly.tssSerialNumber ?? fiskaly.tssId ?? '';
+    final clientSerial = fiskaly.clientSerialNumber ?? fiskaly.clientId ?? '';
+    final txNumber = fiskaly.txNumber ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        _divider(),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'TSE',
+            style: GoogleFonts.inter(
+              fontSize: width > 400 ? 30 : 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (startTime.isNotEmpty)
+          _labelText('${TranslationKeys.tseStart.tr}:', startTime),
+        if (endTime.isNotEmpty)
+          _labelText('${TranslationKeys.tseEnd.tr}:', endTime),
+        if (tssSerial.isNotEmpty)
+          _labelText('${TranslationKeys.tseSerialNumber.tr}:', tssSerial),
+        if (clientSerial.isNotEmpty)
+          _labelText('${TranslationKeys.tseClientId.tr}:', clientSerial),
+        if (txNumber.isNotEmpty)
+          _labelText('${TranslationKeys.tseTransactionNumber.tr}:', txNumber),
+      ],
     );
   }
 
@@ -476,6 +536,24 @@ class SharpReceiptWidget extends StatelessWidget {
               withSymbol: false,
             ),
           ),
+        () {
+          final voucherPayment = order.payments?.firstWhere(
+            (p) => p.voucherAmount != null && p.voucherAmount! > 0,
+            orElse: () => order_model.Payments(),
+          );
+          final voucherAmount = voucherPayment?.voucherAmount;
+          final voucherCode = voucherPayment?.voucherCode;
+          if (voucherAmount != null && voucherAmount > 0) {
+            final label = (voucherCode != null && voucherCode.isNotEmpty)
+                ? '${TranslationKeys.voucher.tr} ($voucherCode):'
+                : '${TranslationKeys.voucher.tr}:';
+            return _totalRow(
+              label,
+              '-${CurrencyFormatter.formatPriceFromDouble(voucherAmount, withSymbol: false)}',
+            );
+          }
+          return const SizedBox.shrink();
+        }(),
         const SizedBox(height: 6),
         _divider(height: 2),
         const SizedBox(height: 6),
@@ -628,6 +706,46 @@ class SharpReceiptWidget extends StatelessWidget {
     );
   }
 
+  /// Builds delivery/pickup time label row (no icon).
+  /// Returns SizedBox.shrink() if dateTime is empty or order type has no label.
+  Widget _buildTimeLabelRow(String? orderType, String? dateTime) {
+    if (dateTime == null || dateTime.isEmpty) return const SizedBox.shrink();
+    final label = getTimeLabel(orderType?.toLowerCase() ?? '');
+    if (label == null) return const SizedBox.shrink();
+    return _labelText('$label:', DateTimeFormatter.formatDateTime(dateTime));
+  }
+
+  /// Displays a label+value row without any icon (used for time fields).
+  Widget _labelText(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: width > 400 ? 26 : 28,
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: width > 400 ? 26 : 28,
+                color: Colors.black,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _totalRow(
     String label,
     String value, {
@@ -693,6 +811,29 @@ class SharpReceiptWidget extends StatelessWidget {
     final c = code?.trim() ?? '';
     final plusCode = c.startsWith('+') ? c : '+$c';
     return '$plusCode ${num.trim()}';
+  }
+
+  /// Extract customer name from dynamic/Map customer (ReceiptOrder)
+  String? _receiptCustomerName(dynamic customer) {
+    if (customer == null) return null;
+    if (customer is Map) return customer['name']?.toString();
+    try { return customer.name?.toString(); } catch (_) { return null; }
+  }
+
+  /// Extract and format phone from dynamic/Map customer (ReceiptOrder)
+  String? _receiptPhoneStr(dynamic customer) {
+    if (customer == null) return null;
+    String? code, num;
+    if (customer is Map) {
+      code = customer['phone_code']?.toString();
+      num  = customer['phone_number']?.toString();
+    } else {
+      try {
+        code = customer.phoneCode?.toString();
+        num  = customer.phoneNumber?.toString();
+      } catch (_) {}
+    }
+    return _formatPhone(code, num);
   }
 
   Widget _buildPaymentInfo(dynamic payment) {

@@ -33,9 +33,27 @@ class SettingScreenController extends GetxController {
   final isSavingShopSettings = false.obs;
   final acceptNewOrders = true.obs;
   final enableScheduleForLater = true.obs;
+  final allowDeliveryOrders = true.obs;
+  final allowPickupOrders = true.obs;
   final minOrderAmountController = TextEditingController();
   final deliveryFeeController = TextEditingController();
   final freeDeliveryAmountController = TextEditingController();
+
+  void toggleDeliveryOrders(bool val) {
+    if (!val && !allowPickupOrders.value) {
+      AppToast.showError(TranslationKeys.cannotDisableBothOrderTypes.tr);
+      return;
+    }
+    allowDeliveryOrders.value = val;
+  }
+
+  void togglePickupOrders(bool val) {
+    if (!val && !allowDeliveryOrders.value) {
+      AppToast.showError(TranslationKeys.cannotDisableBothOrderTypes.tr);
+      return;
+    }
+    allowPickupOrders.value = val;
+  }
 
   // Currency settings
   final decimalSeparator = ".".obs;
@@ -103,6 +121,10 @@ class SettingScreenController extends GetxController {
               data[ArgumentConstant.shopAcceptNewOrdersKey] ?? true;
           enableScheduleForLater.value =
               data[ArgumentConstant.shopEnableScheduleForLaterKey] ?? true;
+          allowDeliveryOrders.value =
+              data[ArgumentConstant.shopAllowDeliveryOrdersKey] ?? true;
+          allowPickupOrders.value =
+              data[ArgumentConstant.shopAllowPickupOrdersKey] ?? true;
           minOrderAmountController.text = _formatForField(
             data[ArgumentConstant.shopMinOrderAmountKey],
           );
@@ -157,6 +179,8 @@ class SettingScreenController extends GetxController {
         ArgumentConstant.shopAcceptNewOrdersKey: acceptNewOrders.value,
         ArgumentConstant.shopEnableScheduleForLaterKey:
             enableScheduleForLater.value,
+        ArgumentConstant.shopAllowDeliveryOrdersKey: allowDeliveryOrders.value,
+        ArgumentConstant.shopAllowPickupOrdersKey: allowPickupOrders.value,
         ArgumentConstant.shopMinOrderAmountKey: _parseFromField(
           minOrderAmountController.text,
         ),

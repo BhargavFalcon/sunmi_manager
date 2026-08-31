@@ -43,6 +43,10 @@ class ReceiptOrderData {
   bool? taxInclusive;
   int? currencyId;
   String? imageUrl;
+  ReceiptFiskaly? fiskaly;
+  String? tseStatus;
+
+  bool get hasFiskalyData => fiskaly != null && fiskaly!.hasData;
 
   ReceiptOrderData({
     this.restaurant,
@@ -59,6 +63,8 @@ class ReceiptOrderData {
     this.taxInclusive,
     this.currencyId,
     this.imageUrl,
+    this.fiskaly,
+    this.tseStatus,
   });
 
   ReceiptOrderData.fromJson(Map<String, dynamic> json) {
@@ -108,6 +114,11 @@ class ReceiptOrderData {
     taxInclusive = json['tax_inclusive'] as bool?;
     currencyId = _receiptToInt(json['currency_id']);
     imageUrl = json['image_url']?.toString();
+    fiskaly =
+        json['fiskaly'] != null
+            ? ReceiptFiskaly.fromJson(json['fiskaly'] as Map<String, dynamic>)
+            : null;
+    tseStatus = json['tse_status']?.toString();
   }
 
   Map<String, dynamic> toJson() => {
@@ -709,4 +720,75 @@ class ReceiptSummary {
     'total_packaging_charge': totalPackagingCharge,
     'total_deposit_amount': totalDepositAmount,
   };
+}
+
+class ReceiptFiskaly {
+  String? txNumber;
+  String? txUuid;
+  String? tssId;
+  String? tssSerialNumber;
+  String? clientId;
+  String? clientSerialNumber;
+  String? startUtc;
+  String? endUtc;
+  String? signature;
+  String? counter;
+  String? qrCodeData;
+  String? processType;
+
+  ReceiptFiskaly({
+    this.txNumber,
+    this.txUuid,
+    this.tssId,
+    this.tssSerialNumber,
+    this.clientId,
+    this.clientSerialNumber,
+    this.startUtc,
+    this.endUtc,
+    this.signature,
+    this.counter,
+    this.qrCodeData,
+    this.processType,
+  });
+
+  ReceiptFiskaly.fromJson(Map<String, dynamic> json) {
+    txNumber = json['tx_number']?.toString();
+    txUuid = json['tx_uuid']?.toString();
+    tssId = json['tss_id']?.toString();
+    tssSerialNumber = json['tss_serial_number']?.toString();
+    clientId = json['client_id']?.toString();
+    clientSerialNumber = json['client_serial_number']?.toString();
+    startUtc = json['start_utc']?.toString();
+    endUtc = json['end_utc']?.toString();
+    signature = json['signature']?.toString();
+    counter = json['counter']?.toString();
+    qrCodeData = json['qr_code_data']?.toString();
+    processType = json['process_type']?.toString();
+  }
+
+  Map<String, dynamic> toJson() => {
+    'tx_number': txNumber,
+    'tx_uuid': txUuid,
+    'tss_id': tssId,
+    'tss_serial_number': tssSerialNumber,
+    'client_id': clientId,
+    'client_serial_number': clientSerialNumber,
+    'start_utc': startUtc,
+    'end_utc': endUtc,
+    'signature': signature,
+    'counter': counter,
+    'qr_code_data': qrCodeData,
+    'process_type': processType,
+  };
+
+  bool get hasData {
+    return (txNumber != null && txNumber!.trim().isNotEmpty) ||
+        (tssSerialNumber != null && tssSerialNumber!.trim().isNotEmpty) ||
+        (tssId != null && tssId!.trim().isNotEmpty) ||
+        (clientSerialNumber != null && clientSerialNumber!.trim().isNotEmpty) ||
+        (clientId != null && clientId!.trim().isNotEmpty) ||
+        (startUtc != null && startUtc!.trim().isNotEmpty) ||
+        (endUtc != null && endUtc!.trim().isNotEmpty) ||
+        (qrCodeData != null && qrCodeData!.trim().isNotEmpty);
+  }
 }

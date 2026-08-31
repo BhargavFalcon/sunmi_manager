@@ -321,6 +321,14 @@ class LocaleString extends Translations {
           'Allow customers to schedule orders for a later time. When disabled, only ASAP orders are available when restaurant is open.',
       'acceptNewOrders': 'Accept New Orders',
       'enableScheduleForLater': 'Enable Schedule For Later',
+      'allowDeliveryOrders': 'Allow Customer to place Delivery Orders',
+      'allowDeliveryOrdersDesc':
+          'Enable this to allow customers to place delivery orders.',
+      'allowPickupOrders': 'Allow Customer to place Pickup Orders',
+      'allowPickupOrdersDesc':
+          'Enable this to allow customers to place pickup orders.',
+      'cannotDisableBothOrderTypes':
+          'Cannot disable both order types. At least one must remain enabled.',
       'minOrderAmount': 'Minimum Order Amount',
       'deliveryFee': 'Delivery Fee',
       'freeDeliveryOverAmount': 'Free Delivery Over Amount',
@@ -397,7 +405,6 @@ class LocaleString extends Translations {
       'autoPrintReceiptWhenPaidDesc':
           'Prints the customer receipt after payment.',
       'printerWidth': 'Paper width',
-      'bluetoothPrinters': 'Bluetooth Printers',
       'scan': 'Scan',
       'scanning': 'Scanning...',
       'noPrintersFound': 'No printers found',
@@ -519,6 +526,11 @@ class LocaleString extends Translations {
       'netAmount': 'Net Amount',
       'vat': 'VAT',
       'vatAmount': 'VAT Amount',
+      'tseStart': 'TSE - Start',
+      'tseEnd': 'TSE - End',
+      'tseSerialNumber': 'TSE - Serial Number',
+      'tseClientId': 'TSE - Client ID',
+      'tseTransactionNumber': 'TSE - Transaction Number',
     },
     'da_DK': {
       // ========== COMMON (Shared across screens) ==========
@@ -809,6 +821,14 @@ class LocaleString extends Translations {
       'shopControls': 'Butikskontrol',
       'acceptNewOrders': 'Accepter nye ordrer',
       'enableScheduleForLater': 'Aktiver planlægning til senere',
+      'allowDeliveryOrders': 'Tillad kunden at afgive leveringsordrer',
+      'allowDeliveryOrdersDesc':
+          'Aktivér dette for at tillade kunder at afgive leveringsordrer.',
+      'allowPickupOrders': 'Tillad kunden at afgive afhentningsordrer',
+      'allowPickupOrdersDesc':
+          'Aktivér dette for at tillade kunder at afgive afhentningsordrer.',
+      'cannotDisableBothOrderTypes':
+          'Kan ikke deaktivere begge ordretyper. Mindst én skal forblive aktiveret.',
       'minOrderAmount': 'Minimum bestillingsbeløb',
       'deliveryFee': 'Leveringsgebyr',
       'freeDeliveryOverAmount': 'Gratis levering over beløb',
@@ -974,6 +994,11 @@ class LocaleString extends Translations {
       'netAmount': 'Nettobeløb',
       'vat': 'Moms',
       'vatAmount': 'Momsbeløb',
+      'tseStart': 'TSE - Start',
+      'tseEnd': 'TSE - End',
+      'tseSerialNumber': 'TSE - Serienummer',
+      'tseClientId': 'TSE - Klient-ID',
+      'tseTransactionNumber': 'TSE - Transaktionsnummer',
     },
     'de_DE': {
       // ========== COMMON (Shared across screens) ==========
@@ -1268,6 +1293,14 @@ class LocaleString extends Translations {
       'shopControls': 'Shop-Steuerungen',
       'acceptNewOrders': 'Neue Bestellungen annehmen',
       'enableScheduleForLater': 'Später planen aktivieren',
+      'allowDeliveryOrders': 'Kunden erlauben, Lieferbestellungen aufzugeben',
+      'allowDeliveryOrdersDesc':
+          'Aktivieren Sie dies, um Kunden das Aufgeben von Lieferbestellungen zu ermöglichen.',
+      'allowPickupOrders': 'Kunden erlauben, Abholbestellungen aufzugeben',
+      'allowPickupOrdersDesc':
+          'Aktivieren Sie dies, um Kunden das Aufgeben von Abholbestellungen zu ermöglichen.',
+      'cannotDisableBothOrderTypes':
+          'Beide Bestellarten können nicht deaktiviert werden. Mindestens eine muss aktiviert bleiben.',
       'minOrderAmount': 'Mindestbestellwert',
       'deliveryFee': 'Liefergebühr',
       'freeDeliveryOverAmount': 'Kostenlose Lieferung ab',
@@ -1437,6 +1470,11 @@ class LocaleString extends Translations {
       'netAmount': 'Nettobetrag',
       'vat': 'MwSt.',
       'vatAmount': 'MwSt.-Betrag',
+      'tseStart': 'TSE - Start',
+      'tseEnd': 'TSE - End',
+      'tseSerialNumber': 'TSE - Seriennummer',
+      'tseClientId': 'TSE - Client-ID',
+      'tseTransactionNumber': 'TSE - Transaktionsnummer',
     },
     'nl_NL': {
       // ========== COMMON (Shared across screens) ==========
@@ -1723,10 +1761,21 @@ class LocaleString extends Translations {
       'newShopOrderNotifications': 'Nieuwe meldingen voor winkelbestellingen',
       'printerSettings': 'Printerinstellingen',
       'shopControls': 'Winkelbediening',
+      'acceptNewOrders': 'Nieuwe bestellingen accepteren',
+      'enableScheduleForLater': 'Inplannen voor later inschakelen',
+      'allowDeliveryOrders': 'Klant toestaan bezorgbestellingen te plaatsen',
+      'allowDeliveryOrdersDesc':
+          'Schakel dit in om klanten bezorgbestellingen te laten plaatsen.',
+      'allowPickupOrders': 'Klant toestaan afhaalbestellingen te plaatsen',
+      'allowPickupOrdersDesc':
+          'Schakel dit in om klanten afhaalbestellingen te laten plaatsen.',
+      'cannotDisableBothOrderTypes':
+          'Kan niet beide besteltypen uitschakelen. Minstens één moet ingeschakeld blijven.',
       'shopStatus': 'Winkelstatus',
       'open': 'Open',
       'closed': 'Gesloten',
       'autoAcceptOrders': 'Bestellingen automatisch accepteren',
+      'deliveryFee': 'Bezorgkosten',
       'minOrderAmount': 'Minimum bestelbedrag',
       'freeDeliveryOverAmount': 'Gratis bezorging vanaf bedrag',
       'averagePrepTime': 'Gemiddelde bereidingstijd',
@@ -1890,6 +1939,11 @@ class LocaleString extends Translations {
       'netAmount': 'Nettobedrag',
       'vat': 'BTW',
       'vatAmount': 'BTW-bedrag',
+      'tseStart': 'TSE - Start',
+      'tseEnd': 'TSE - End',
+      'tseSerialNumber': 'TSE - Serienummer',
+      'tseClientId': 'TSE - Client-ID',
+      'tseTransactionNumber': 'TSE - Transactienummer',
     },
   };
 }

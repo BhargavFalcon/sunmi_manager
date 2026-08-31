@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
 import '../../main.dart';
 import '../model/get_order_model.dart' as order_model;
+import '../model/kitchen_monitor_model.dart';
+import '../model/kitchen_ticket_model.dart';
 import '../services/sunmi_invoice_printer_service.dart';
 import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
+import '../modules/order_screen/views/order_screen_view.dart';
 import '../widgets/new_order_dialog.dart';
-import '../widgets/new_order_details_bottom_sheet.dart';
 import '../data/NetworkClient.dart';
 import '../model/login_models.dart';
 import '../model/mobile_app_modules_model.dart';
@@ -38,6 +39,8 @@ class PusherService {
   int _connectionId = 0;
 
   final Set<String> _processedOrderUuids = {};
+  final Set<int> _processedKotIds = {};
+  Set<String> _cachedMonitorChannels = {};
   Future<void> _printingLock = Future.value();
 
   Future<void> initPusher() async {}
@@ -50,6 +53,18 @@ class PusherService {
 
     final orderChannel =
         "new-order-created.$branchId.${ArgumentConstant.envSuffix}";
+
+    // Fetch Kitchen Monitors to get their channels
+    try {
+      final res = await networkClient.get(
+        ArgumentConstant.kitchenMonitorsEndpoint,
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final monitors = KitchenMonitorResponse.fromJson(res.data).data ?? [];
+        _cachedMonitorChannels =
+            kitchenMonitorChannelNames(branchId, monitors).toSet();
+      }
+    } catch (_) {}
 
     try {
       _shouldReconnect = true;
@@ -71,10 +86,7 @@ class PusherService {
       socket.listen(
         (message) {
           if (!_isConnectionActive(connectionId, branchId)) return;
-          _handleWebSocketMessage(
-            message,
-            orderChannel,
-          );
+          _handleWebSocketMessage(message, orderChannel);
         },
         onDone: () {
           if (!_isConnectionCurrent(connectionId)) return;
@@ -111,6 +123,7 @@ class PusherService {
     _pingTimer?.cancel();
     _pingTimer = null;
     _processedOrderUuids.clear();
+    _processedKotIds.clear();
     ++_connectionId;
     await _disposeSocket();
   }
@@ -153,7 +166,7 @@ class PusherService {
       if (event == 'pusher:connection_established') {
         _isConnected = true;
 
-        // Subscribe to Orders
+        // 1) Subscribe to Orders Channel
         _socket?.add(
           jsonEncode({
             "event": "pusher:subscribe",
@@ -161,7 +174,15 @@ class PusherService {
           }),
         );
 
-
+        // 2) Subscribe to Kitchen Monitor Channels
+        for (final c in _cachedMonitorChannels) {
+          _socket?.add(
+            jsonEncode({
+              "event": "pusher:subscribe",
+              "data": {"channel": c},
+            }),
+          );
+        }
 
         _pingTimer?.cancel();
         _pingTimer = Timer.periodic(const Duration(seconds: 120), (timer) {
@@ -179,6 +200,9 @@ class PusherService {
           if (channel == orderChannel) {
             log('[Pusher] Event: New Order | Data: $dataStr');
             await _handleOrderEvent(dataStr);
+          } else if (channel != null && _cachedMonitorChannels.contains(channel)) {
+            log('[Pusher] Event: KOT Created | Data: $dataStr');
+            await _handleKotCreatedEvent(dataStr);
           }
         }
       }
@@ -187,7 +211,70 @@ class PusherService {
     }
   }
 
+  Future<void> _handleKotCreatedEvent(dynamic eventData) async {
+    int? newKotId;
+    KitchenTicket? pusherKot;
 
+    final decoded = _parseEventData(eventData);
+    if (decoded != null) {
+      newKotId = (decoded['kot_id'] ?? decoded['kot']?['id'] as num?)?.toInt();
+      final kotMap = decoded['kot'];
+      if (kotMap is Map<String, dynamic>) {
+        pusherKot = KitchenTicket.fromJson(kotMap);
+      }
+    }
+
+    if (newKotId != null) {
+      await _fetchAndPrintKOT(newKotId, pusherKot: pusherKot);
+    }
+  }
+
+  Future<void> _fetchAndPrintKOT(
+    int kotId, {
+    KitchenTicket? pusherKot,
+  }) async {
+    final printerService = Get.find<PrinterService>();
+    await printerService.loadGeneralSettings();
+
+    if (!printerService.autoPrintKitchen.value) return;
+    if (_processedKotIds.contains(kotId)) return;
+
+    final completer = Completer<void>();
+    final prev = _printingLock;
+    _printingLock = completer.future;
+    await prev;
+
+    try {
+      if (_processedKotIds.contains(kotId)) return;
+
+      final kotData = pusherKot ?? await _fetchKotOnly(kotId);
+      if (kotData == null) return;
+
+      final copies = printerService.kitchenCopies.value;
+      final isConnected = await printerService.checkPrinterConnectivity();
+      if (isConnected) {
+        await _sunmiService.printKOT(kotData, copies: copies);
+        showPrintToast(TranslationKeys.printSuccessful.tr);
+        _processedKotIds.add(kotId);
+      }
+    } catch (_) {
+    } finally {
+      completer.complete();
+    }
+  }
+
+  Future<KitchenTicket?> _fetchKotOnly(int kotId) async {
+    try {
+      final res = await networkClient.get(
+        '${ArgumentConstant.kotsEndpoint}/$kotId',
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = res.data['data'];
+        if (data is Map<String, dynamic>) return KitchenTicket.fromJson(data);
+      }
+    } catch (_) {}
+    return null;
+  }
 
   Future<void> _handleOrderEvent(dynamic eventData) async {
     if (!_hasPermission('All Orders')) return;
@@ -230,10 +317,18 @@ class PusherService {
         NewOrderDialog.show(
           orderNumber: orderNumber,
           onViewOrder: () async {
-            final data = orderData ?? await _fetchOrderOnly(orderUuid);
-            if (data != null) {
-              NewOrderDetailsBottomSheet.show(data);
-            }
+            final context = Get.context;
+            if (context == null || !context.mounted) return;
+
+            final controller = Get.isRegistered<OrderScreenController>()
+                ? Get.find<OrderScreenController>()
+                : Get.put(OrderScreenController());
+
+            await OrderScreenView.showOrderBottomSheetByUuid(
+              context,
+              controller,
+              orderUuid,
+            );
           },
         );
       }
@@ -349,59 +444,41 @@ class PusherService {
     return false;
   }
 
-  void _addCandidateUserId(Set<int> userIds, dynamic value) {
+  void _addCandidateUserId(Set<int> target, dynamic value) {
     final parsed = _parseInt(value);
-    if (parsed != null) {
-      userIds.add(parsed);
+    if (parsed != null && parsed > 0) {
+      target.add(parsed);
     }
   }
 
   int? _parseInt(dynamic value) {
+    if (value == null) return null;
     if (value is int) return value;
-    if (value is double) return value.toInt();
-    if (value is String) return int.tryParse(value);
-    return null;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString().trim());
   }
 
   Future<order_model.Data?> _fetchOrderOnly(String orderUuid) async {
+    final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
+      ":order_uuid",
+      orderUuid,
+    );
     try {
-      final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
-        ':order_uuid',
-        orderUuid,
-      );
       final response = await networkClient.get(endpoint);
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        return null;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final getOrderModel = order_model.GetOrderModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        return getOrderModel.data;
       }
-
-      if (response.data is! Map<String, dynamic>) {
-        return null;
-      }
-
-      final getOrderModel = order_model.GetOrderModel.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-
-      if (getOrderModel.success != true || getOrderModel.data == null) {
-        return null;
-      }
-
-      return getOrderModel.data;
-    } catch (e) {
-      return null;
-    }
+    } catch (_) {}
+    return null;
   }
 
-  Future<order_model.Data?> _fetchAndPrintInvoice(String orderUuid) async {
+  Future<void> _fetchAndPrintInvoice(String orderUuid) async {
     final data = await _fetchOrderOnly(orderUuid);
-    if (data == null) {
-      return null;
-    }
-
+    if (data == null) return;
     await _printInvoiceData(data, orderUuid);
-
-    return data;
   }
 
   Future<void> _printInvoiceData(
@@ -409,8 +486,6 @@ class PusherService {
     String orderUuid,
   ) async {
     final printerService = Get.find<PrinterService>();
-
-    // Refresh settings from server before printing to guarantee we have the latest config
     await printerService.loadGeneralSettings();
 
     final autoPrintReceipt = printerService.autoPrintReceipt.value;
@@ -422,22 +497,11 @@ class PusherService {
     await previousTask;
 
     try {
-      // 1) Print Receipt (Order)
-      if (autoPrintReceipt) {
-        final receiptPrinter = box.read(
-          ArgumentConstant.selectedReceiptPrinterKey,
-        );
-        final isConnected = await printerService.checkPrinterConnectivity(
-          receiptPrinter,
-        );
-        if (isConnected) {
-          await _sunmiService.printSharpInvoice(data, copies: receiptCopies);
-          // Add a small delay after printing to ensure hardware separation
-          await Future.delayed(const Duration(seconds: 2));
-        }
-      }
+      final isConnected = await printerService.checkPrinterConnectivity();
 
-      if (autoPrintReceipt) {
+      // Print Customer Receipt via Sunmi SDK
+      if (autoPrintReceipt && isConnected) {
+        await _sunmiService.printInvoice(data, copies: receiptCopies);
         showPrintToast(TranslationKeys.printSuccessful.tr);
       }
       _processedOrderUuids.add(orderUuid);
@@ -446,8 +510,6 @@ class PusherService {
       completer.complete();
     }
   }
-
-
 
   Future<void> _refreshOrderList() async {
     try {
@@ -460,12 +522,6 @@ class PusherService {
       return;
     }
   }
-
-
-
-
-
-
 
   bool _hasPermission(String permissionName) {
     try {
@@ -480,9 +536,6 @@ class PusherService {
         }
       }
     } catch (_) {}
-    // If no permissions are found, default to true or false?
-    // Usually, in these apps, if permissions are missing it might mean they aren't loaded yet.
-    // But as per user request, we should only enable if it's there.
     return false;
   }
 }

@@ -5,7 +5,7 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import '../../main.dart';
 
 /// Shared business logic helpers for order-related functionality.
-/// Extracted from order_screen_view.dart and new_order_details_bottom_sheet.dart
+/// Extracted from order_screen_view.dart to be reused across the app.
 /// to eliminate code duplication.
 
 /// Formats the order type string for display.
@@ -27,11 +27,11 @@ String formatOrderType(String? orderType) {
   }
 }
 
-/// Returns a time label based on order type (delivery/pickup).
 String? getTimeLabel(String orderType) {
-  if (orderType == 'delivery' || orderType == 'delivery_order') {
+  final type = orderType.toLowerCase().replaceAll(' ', '_');
+  if (type.contains('delivery')) {
     return TranslationKeys.deliveryTime.tr;
-  } else if (orderType == 'pickup' || orderType == 'pickup_order') {
+  } else if (type.contains('pickup')) {
     return TranslationKeys.pickupTime.tr;
   }
   return null;

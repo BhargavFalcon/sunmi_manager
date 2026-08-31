@@ -9,7 +9,6 @@ import 'package:managerapp/app/modules/order_screen/controllers/order_screen_con
 import 'package:managerapp/app/widgets/access_limited_dialog.dart';
 import 'package:managerapp/app/widgets/payment_receipt_dialog.dart';
 
-import 'package:managerapp/main.dart';
 import 'package:managerapp/app/services/printer_service.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/image_constants.dart';
@@ -18,6 +17,7 @@ import '../../../data/NetworkClient.dart';
 import '../../../model/all_orders_model.dart' as order_model;
 import '../../../model/get_order_model.dart' as order_details_model;
 import '../../../model/receipt_order_response_model.dart';
+import '../../../model/kitchen_ticket_model.dart';
 import '../../../services/sunmi_invoice_printer_service.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../utils/date_time_formatter.dart';
@@ -599,12 +599,21 @@ class OrderScreenView extends GetView<OrderScreenController> {
       );
       return;
     }
+    await showOrderBottomSheetByUuid(context, controller, orderUuid);
+  }
 
+  /// Shows the order details bottom sheet by UUID only — used by pusher_service
+  /// where we only have the UUID but no [order_model.Orders] object.
+  static Future<void> showOrderBottomSheetByUuid(
+    BuildContext context,
+    OrderScreenController controller,
+    String orderUuid,
+  ) async {
     if (!context.mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Always refresh order details when a card is tapped
+    // Always refresh order details when opening the sheet
     if (!controller.isLoadingOrderDetails.value) {
       controller.fetchOrderDetails(orderUuid);
     }
@@ -621,20 +630,19 @@ class OrderScreenView extends GetView<OrderScreenController> {
         ),
       ),
       builder: (builderContext) {
-        return OrderScreenView()._buildBottomSheetContent(
+        return OrderScreenView()._buildBottomSheetContentByUuid(
           builderContext,
           controller,
-          order,
           screenHeight,
         );
       },
     );
   }
 
-  Widget _buildBottomSheetContent(
+
+  Widget _buildBottomSheetContentByUuid(
     BuildContext context,
     OrderScreenController controller,
-    order_model.Orders order,
     double screenHeight,
   ) {
     return Container(
@@ -659,7 +667,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                child: _buildOrderDetailsOrError(context, controller, order),
+                child: _buildOrderDetailsOrErrorFromController(
+                    context, controller),
               ),
             ),
             if (orderData != null)
@@ -676,7 +685,12 @@ class OrderScreenView extends GetView<OrderScreenController> {
     order_details_model.Data orderData,
   ) {
     return Container(
-      padding: EdgeInsets.all(MySize.getWidth(12)),
+      padding: EdgeInsets.fromLTRB(
+        MySize.getWidth(12),
+        MySize.getHeight(8),
+        MySize.getWidth(12),
+        MySize.getHeight(8),
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -687,39 +701,84 @@ class OrderScreenView extends GetView<OrderScreenController> {
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: InkWell(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: MySize.getWidth(16),
-              vertical: MySize.getHeight(10),
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF60616E),
-              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-              boxShadow: ColorConstants.getShadow2,
-            ),
-            child: Text(
-              TranslationKeys.close.tr,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: MySize.getHeight(15),
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+      child: Row(
+        children: [
+          // Close button
+          Expanded(
+            child: InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MySize.getWidth(16),
+                  vertical: MySize.getHeight(10),
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF60616E),
+                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                  boxShadow: ColorConstants.getShadow2,
+                ),
+                child: Text(
+                  TranslationKeys.close.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+          const SizedBox(width: 12),
+          // KOT Print button (Kitchen Tickets)
+          Expanded(
+            child: Obx(() {
+              final printing = controller.isPrinting.value;
+              return InkWell(
+                onTap: printing
+                    ? null
+                    : () => _printKitchenTicket(context, controller, orderData),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MySize.getWidth(16),
+                    vertical: MySize.getHeight(10),
+                  ),
+                  decoration: BoxDecoration(
+                    color: printing
+                        ? ColorConstants.primaryColor.withValues(alpha: 0.7)
+                        : ColorConstants.primaryColor,
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                    boxShadow: ColorConstants.getShadow2,
+                  ),
+                  child: Center(
+                    child: printing
+                        ? CupertinoActivityIndicator(
+                            radius: MySize.getHeight(8),
+                            color: Colors.white,
+                          )
+                        : Text(
+                            TranslationKeys.kitchenTickets.tr,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: MySize.getHeight(14),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildOrderDetailsOrError(
+
+  Widget _buildOrderDetailsOrErrorFromController(
     BuildContext context,
     OrderScreenController controller,
-    order_model.Orders order,
   ) {
     final orderDetails = controller.orderDetails.value;
     final orderData = orderDetails?.data?.order;
@@ -732,7 +791,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
       context,
       controller,
       orderDetails!.data!,
-      order,
     );
   }
 
@@ -808,7 +866,6 @@ class OrderScreenView extends GetView<OrderScreenController> {
     BuildContext context,
     OrderScreenController controller,
     order_details_model.Data orderData,
-    order_model.Orders order,
   ) {
     final orderDetails = orderData.order;
     final couponCode = orderDetails?.couponCode;
@@ -824,7 +881,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             children: [
               Expanded(
                 child: Text(
-                  '${orderDetails?.formattedOrderNumber ?? order.id ?? ''} (${helpers.formatOrderType(orderDetails?.orderType)})',
+                  '${orderDetails?.formattedOrderNumber ?? orderDetails?.id?.toString() ?? ''} (${helpers.formatOrderType(orderDetails?.orderType)})',
                   style: TextStyle(
                     fontSize: MySize.getHeight(17),
                     fontWeight: FontWeight.bold,
@@ -1160,10 +1217,9 @@ class OrderScreenView extends GetView<OrderScreenController> {
             ),
             child: Row(
               children: [
-                _tableHeaderCell(TranslationKeys.amount.tr, flex: 10),
-                _tableHeaderCell(TranslationKeys.paymentMethod.tr, flex: 12),
-                _tableHeaderCell(TranslationKeys.dateAndTime.tr, flex: 15),
-                _tableHeaderCell(TranslationKeys.action.tr, flex: 18),
+                _tableHeaderCell(TranslationKeys.amount.tr, flex: 4),
+                _tableHeaderCell(TranslationKeys.paymentMethod.tr, flex: 7),
+                _tableHeaderCell(TranslationKeys.dateAndTime.tr, flex: 9),
               ],
             ),
           ),
@@ -1194,7 +1250,11 @@ class OrderScreenView extends GetView<OrderScreenController> {
                 _outlinedButton(
                   label: TranslationKeys.view.tr,
                   icon: Icons.visibility_outlined,
-                  iconOnly: true,
+                  textColor: ColorConstants.successGreen,
+                  borderColor:
+                      ColorConstants.successGreen.withValues(alpha: 0.5),
+                  backgroundColor:
+                      ColorConstants.successGreen.withValues(alpha: 0.08),
                   onTap: () {
                     final id = payment.id;
                     if (id != null) {
@@ -1207,12 +1267,16 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   },
                 ),
               );
-              actions.add(SizedBox(width: MySize.getWidth(4)));
+
               actions.add(
                 _outlinedButton(
                   label: TranslationKeys.print.tr,
-                  icon: Icons.print,
-                  iconOnly: true,
+                  icon: Icons.print_outlined,
+                  textColor: ColorConstants.tableBlue,
+                  borderColor:
+                      ColorConstants.tableBlue.withValues(alpha: 0.5),
+                  backgroundColor:
+                      ColorConstants.tableBlue.withValues(alpha: 0.08),
                   onTap: () {
                     final id = payment.id;
                     if (id != null) {
@@ -1228,15 +1292,13 @@ class OrderScreenView extends GetView<OrderScreenController> {
                   payment.id != null &&
                   orderUuid.isNotEmpty &&
                   refundableAmount > 0.009) {
-                actions.add(SizedBox(width: MySize.getWidth(4)));
                 actions.add(
                   _outlinedButton(
                     label: TranslationKeys.refund.tr,
                     icon: Icons.undo_rounded,
-                    iconOnly: true,
-                    borderColor:
-                        ColorConstants.primaryColor.withValues(alpha: 0.35),
-                    textColor: ColorConstants.primaryColor,
+                    borderColor: ColorConstants.red.withValues(alpha: 0.5),
+                    textColor: ColorConstants.red,
+                    backgroundColor: ColorConstants.red.withValues(alpha: 0.08),
                     onTap: () => _showRefundDialog(
                       context,
                       controller: controller,
@@ -1274,7 +1336,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        flex: 10,
+                        flex: 4,
                         child: Text(
                           amountStr,
                           textAlign: TextAlign.center,
@@ -1286,7 +1348,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         ),
                       ),
                       Expanded(
-                        flex: 12,
+                        flex: 7,
                         child: Text(
                           methodLabel,
                           textAlign: TextAlign.center,
@@ -1298,7 +1360,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
                         ),
                       ),
                       Expanded(
-                        flex: 15,
+                        flex: 9,
                         child: Text(
                           dateTimeStr,
                           textAlign: TextAlign.center,
@@ -1309,22 +1371,28 @@ class OrderScreenView extends GetView<OrderScreenController> {
                           ),
                         ),
                       ),
-                      Expanded(
-                        flex: 18,
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: actions,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
-                  if (refunds.isNotEmpty)
-                    ...refunds.map(
-                      (refund) => _buildRefundHistoryLine(refund),
+                  if (actions.isNotEmpty) ...[
+                    SizedBox(height: MySize.getHeight(8)),
+                    Row(
+                      children: [
+                        for (int i = 0; i < actions.length; i++) ...[
+                          if (i > 0) SizedBox(width: MySize.getWidth(6)),
+                          Expanded(child: actions[i]),
+                        ],
+                      ],
                     ),
+                  ],
+                  if (refunds.isNotEmpty) ...[
+                    SizedBox(height: MySize.getHeight(8)),
+                    ...refunds.map(
+                      (refund) => Padding(
+                        padding: EdgeInsets.only(top: MySize.getHeight(4)),
+                        child: _buildRefundHistoryLine(refund),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -1533,20 +1601,24 @@ class OrderScreenView extends GetView<OrderScreenController> {
     final isFilled = backgroundColor != null;
     final effectiveBorderColor =
         borderColor ??
-        (icon == Icons.print
-            ? Colors.red.shade300
+        (icon == Icons.print || icon == Icons.print_outlined
+            ? ColorConstants.tableBlue
             : (icon == Icons.visibility_outlined
-                ? Colors.blue.shade300
-                : Colors.grey.shade400));
+                ? ColorConstants.successGreen
+                : (icon == Icons.undo_rounded
+                    ? ColorConstants.red
+                    : Colors.grey.shade400)));
     final effectiveTextColor =
-        isFilled
+        textColor ??
+        (isFilled
             ? Colors.white
-            : (textColor ??
-                (icon == Icons.print
-                    ? Colors.red
-                    : (icon == Icons.visibility_outlined
-                        ? Colors.blue
-                        : Colors.grey)));
+            : (icon == Icons.print || icon == Icons.print_outlined
+                ? ColorConstants.tableBlue
+                : (icon == Icons.visibility_outlined
+                    ? ColorConstants.successGreen
+                    : (icon == Icons.undo_rounded
+                        ? ColorConstants.red
+                        : Colors.grey.shade700))));
     final iconOnlyPadding =
         showLabel
             ? null
@@ -1554,19 +1626,22 @@ class OrderScreenView extends GetView<OrderScreenController> {
               horizontal: MySize.getWidth(4),
               vertical: MySize.getHeight(4),
             );
-    final iconSize = MySize.getHeight(20);
+    final iconSize = MySize.getHeight(16);
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(MySize.getHeight(6)),
       child: Container(
         padding:
             iconOnlyPadding ??
             EdgeInsets.symmetric(
-              horizontal: MySize.getWidth(8),
-              vertical: MySize.getHeight(6),
+              horizontal: MySize.getWidth(6),
+              vertical: MySize.getHeight(8),
             ),
         decoration: BoxDecoration(
           color: backgroundColor,
-          border: isFilled ? null : Border.all(color: effectiveBorderColor),
+          border: isFilled && borderColor == null
+              ? null
+              : Border.all(color: effectiveBorderColor, width: 1.2),
           borderRadius: BorderRadius.circular(MySize.getHeight(6)),
         ),
         child: Center(
@@ -1576,15 +1651,20 @@ class OrderScreenView extends GetView<OrderScreenController> {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: iconSize, color: effectiveTextColor),
-                if (showLabel) SizedBox(width: MySize.getWidth(4)),
+                if (showLabel) SizedBox(width: MySize.getWidth(5)),
               ],
               if (showLabel)
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: MySize.getHeight(11),
-                    color: effectiveTextColor,
+                Flexible(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: MySize.getHeight(13),
+                      fontWeight: FontWeight.bold,
+                      color: effectiveTextColor,
+                    ),
                   ),
                 ),
             ],
@@ -1659,20 +1739,19 @@ class OrderScreenView extends GetView<OrderScreenController> {
         return;
       }
 
-      final printerName = box.read(ArgumentConstant.selectedReceiptPrinterKey);
       final isConnected = await Get.find<PrinterService>()
-          .checkPrinterConnectivity(printerName);
+          .checkPrinterConnectivity();
 
       if (!isConnected) {
         AppToast.showError(
-          '${TranslationKeys.printerNotConnected.tr}: $printerName',
+          TranslationKeys.printerNotConnected.tr,
           title: TranslationKeys.error.tr,
         );
         return;
       }
 
       // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printSharpReceiptFromApi(
+      await SunmiInvoicePrinterService().printReceiptFromApi(
         model.data!,
         copies: 1,
       );
@@ -1702,23 +1781,105 @@ class OrderScreenView extends GetView<OrderScreenController> {
     try {
       controller.isPrinting.value = true;
 
-      final printerName = box.read(ArgumentConstant.selectedReceiptPrinterKey);
       final isConnected = await Get.find<PrinterService>()
-          .checkPrinterConnectivity(printerName);
+          .checkPrinterConnectivity();
 
       if (!isConnected) {
         AppToast.showError(
-          '${TranslationKeys.printerNotConnected.tr}: $printerName',
+          TranslationKeys.printerNotConnected.tr,
           title: TranslationKeys.error.tr,
         );
         return;
       }
 
       // Since we are Sunmi-exclusive now, we always use SunmiInvoicePrinterService
-      await SunmiInvoicePrinterService().printSharpInvoice(
+      await SunmiInvoicePrinterService().printInvoice(
         orderData,
         copies: 1,
       );
+    } catch (e) {
+      AppToast.showError(
+        TranslationKeys.somethingWentWrong.tr,
+        title: TranslationKeys.error.tr,
+      );
+    } finally {
+      controller.isPrinting.value = false;
+    }
+  }
+
+  Future<void> _printKitchenTicket(
+    BuildContext context,
+    OrderScreenController controller,
+    order_details_model.Data orderData,
+  ) async {
+    if (orderData.order == null) {
+      AppToast.showError(
+        TranslationKeys.invoiceDataNotFound.tr,
+        title: TranslationKeys.error.tr,
+      );
+      return;
+    }
+
+    try {
+      controller.isPrinting.value = true;
+
+      final isConnected = await Get.find<PrinterService>()
+          .checkPrinterConnectivity();
+
+      if (!isConnected) {
+        AppToast.showError(
+          TranslationKeys.printerNotConnected.tr,
+          title: TranslationKeys.error.tr,
+        );
+        return;
+      }
+
+      final ord = orderData.order!;
+      final tableMap = <String, dynamic>{
+        'table_code': ord.table?.tableCode ?? '',
+        'name': ord.table?.tableCode ?? '',
+      };
+
+      final kot = KitchenTicket(
+        id: ord.id,
+        kotNumber: ord.formattedOrderNumber ??
+            (ord.orderNumber != null ? '${ord.orderNumber}' : null),
+        createdAt: ord.createdAt ?? DateTime.now().toIso8601String(),
+        note: ord.note,
+        order: KitchenTicketOrder(
+          id: ord.id,
+          orderNumber: ord.formattedOrderNumber ?? ord.orderNumber,
+          formattedOrderNumber: ord.formattedOrderNumber,
+          orderType: ord.orderType,
+          table: tableMap,
+          note: ord.note,
+        ),
+        items: ord.items?.map((it) {
+          return KitchenTicketItem(
+            id: it.id,
+            itemName: it.itemName,
+            quantity: it.quantity,
+            variationName: it.variationName,
+            note: it.note,
+            modifiers: it.modifiers?.map((m) => KitchenTicketModifier(
+                  id: m.id,
+                  name: m.name,
+                )).toList(),
+          );
+        }).toList(),
+      );
+
+      final printerService = Get.find<PrinterService>();
+      final copies = printerService.kitchenCopies.value > 0
+          ? printerService.kitchenCopies.value
+          : 1;
+
+      await SunmiInvoicePrinterService().printKOT(
+        kot,
+        copies: copies,
+      );
+
+      AppToast.showSuccess(TranslationKeys.printSuccessful.tr);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,

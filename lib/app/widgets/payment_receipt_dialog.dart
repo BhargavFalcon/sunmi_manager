@@ -9,6 +9,7 @@ import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/data/NetworkClient.dart';
 import 'package:managerapp/app/model/receipt_order_response_model.dart';
 import 'package:managerapp/app/services/sunmi_invoice_printer_service.dart';
+import 'package:managerapp/app/services/printer_service.dart';
 import 'package:managerapp/app/utils/currency_formatter.dart';
 import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/utils/order_helpers.dart' as helpers;
@@ -138,7 +139,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     );
   }
 
+  bool _isPrinting = false;
+
   Future<void> _onPrint() async {
+    if (_isPrinting) return;
     final receiptData = _data?.data;
     if (receiptData == null) {
       AppToast.showWarning(
@@ -147,13 +151,26 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
       );
       return;
     }
+    setState(() => _isPrinting = true);
     try {
-      await SunmiInvoicePrinterService().printSharpReceiptFromApi(receiptData);
+      final isConnected =
+          await Get.find<PrinterService>().checkPrinterConnectivity();
+      if (!isConnected) {
+        AppToast.showError(
+          TranslationKeys.printerNotConnected.tr,
+          title: TranslationKeys.error.tr,
+        );
+        return;
+      }
+      await SunmiInvoicePrinterService().printReceiptFromApi(receiptData);
+      AppToast.showSuccess(TranslationKeys.printSuccessful.tr);
     } catch (e) {
       AppToast.showError(
         TranslationKeys.somethingWentWrong.tr,
         title: TranslationKeys.error.tr,
       );
+    } finally {
+      if (mounted) setState(() => _isPrinting = false);
     }
   }
 
@@ -213,19 +230,26 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           SizedBox(width: MySize.getWidth(12)),
           Expanded(
             child: TextButton(
-              onPressed: _onPrint,
+              onPressed: _isPrinting ? null : _onPrint,
               style: TextButton.styleFrom(
-                backgroundColor: ColorConstants.successGreen,
+                backgroundColor: _isPrinting
+                    ? ColorConstants.successGreen.withValues(alpha: 0.7)
+                    : ColorConstants.successGreen,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: MySize.getHeight(8)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(MySize.getHeight(12)),
                 ),
               ),
-              child: Text(
-                TranslationKeys.print.tr,
-                style: TextStyle(fontSize: MySize.getHeight(14)),
-              ),
+              child: _isPrinting
+                  ? CupertinoActivityIndicator(
+                      radius: MySize.getHeight(8),
+                      color: Colors.white,
+                    )
+                  : Text(
+                      TranslationKeys.print.tr,
+                      style: TextStyle(fontSize: MySize.getHeight(14)),
+                    ),
             ),
           ),
         ],
@@ -249,6 +273,10 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           _buildSummarySection(d),
           SizedBox(height: MySize.getHeight(12)),
           _buildPaymentTransactionSection(d),
+          if (d.hasFiskalyData) ...[
+            SizedBox(height: MySize.getHeight(12)),
+            _buildTseFiskalySection(d),
+          ],
         ],
       ),
     );
@@ -262,11 +290,15 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
         paymentId != null
             ? '${order?.formattedOrderNumber ?? ""}.$paymentId'
             : '';
-    final dateTime = DateTimeFormatter.formatDateTime(order?.dateTime);
+    final createdAt = d.payment?.createdAt ?? '';
+    final orderType = order?.orderType?.toLowerCase() ?? '';
+    final dateTimeString = order?.dateTime ?? '';
     final tableCode = order?.table?.tableCode ?? '';
     final numPax = order?.numberOfPax ?? 0;
     final pax = numPax > 0 ? numPax.toString() : '';
     final waiterName = order?.waiter?.name ?? '';
+
+    final timeLabel = helpers.getTimeLabel(orderType);
 
     return Column(
       children: [
@@ -274,8 +306,21 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
           _detailRow('${TranslationKeys.order.tr}:', orderNum),
         if (paymentIdStr.isNotEmpty)
           _detailRow('${TranslationKeys.paymentId.tr}:', paymentIdStr),
-        if (dateTime.isNotEmpty)
-          _detailRow('${TranslationKeys.dateAndTime.tr}:', dateTime),
+        if (createdAt.isNotEmpty)
+          _detailRow(
+            '${TranslationKeys.orderCreated.tr}:',
+            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(createdAt),
+          )
+        else if (dateTimeString.isNotEmpty && timeLabel == null)
+          _detailRow(
+            '${TranslationKeys.orderCreated.tr}:',
+            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString),
+          ),
+        if (dateTimeString.isNotEmpty && timeLabel != null)
+          _detailRow(
+            '$timeLabel:',
+            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString),
+          ),
         if (tableCode.isNotEmpty)
           _detailRow('${TranslationKeys.tableNo.tr}:', tableCode),
         if (pax.isNotEmpty)
@@ -290,7 +335,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: MySize.getHeight(2)),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -299,12 +344,16 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
               color: Colors.grey.shade700,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: MySize.getHeight(12),
-              fontWeight: FontWeight.w500,
-              color: valueColor,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: MySize.getHeight(12),
+                fontWeight: FontWeight.w500,
+                color: valueColor,
+              ),
             ),
           ),
         ],
@@ -671,6 +720,72 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTseFiskalySection(ReceiptOrderData d) {
+    if (!d.hasFiskalyData) return const SizedBox.shrink();
+    final fiskaly = d.fiskaly!;
+
+    String formatTseDateTime(String? dateTimeString) {
+      if (dateTimeString == null || dateTimeString.isEmpty) return '';
+      return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString);
+    }
+
+    final startTime = formatTseDateTime(fiskaly.startUtc);
+    final endTime = formatTseDateTime(fiskaly.endUtc);
+    final tssSerial = fiskaly.tssSerialNumber ?? fiskaly.tssId ?? '';
+    final clientSerial =
+        fiskaly.clientSerialNumber ?? fiskaly.clientId ?? '';
+    final txNumber = fiskaly.txNumber ?? '';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: ColorConstants.getShadow2,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+      ),
+      padding: EdgeInsets.all(MySize.getWidth(10)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'TSE',
+            style: TextStyle(
+              fontSize: MySize.getHeight(13),
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: MySize.getHeight(6)),
+          if (startTime.isNotEmpty)
+            _detailRow(
+              '${TranslationKeys.tseStart.tr}:',
+              startTime,
+            ),
+          if (endTime.isNotEmpty)
+            _detailRow(
+              '${TranslationKeys.tseEnd.tr}:',
+              endTime,
+            ),
+          if (tssSerial.isNotEmpty)
+            _detailRow(
+              '${TranslationKeys.tseSerialNumber.tr}:',
+              tssSerial,
+            ),
+          if (clientSerial.isNotEmpty)
+            _detailRow(
+              '${TranslationKeys.tseClientId.tr}:',
+              clientSerial,
+            ),
+          if (txNumber.isNotEmpty)
+            _detailRow(
+              '${TranslationKeys.tseTransactionNumber.tr}:',
+              txNumber,
+            ),
         ],
       ),
     );

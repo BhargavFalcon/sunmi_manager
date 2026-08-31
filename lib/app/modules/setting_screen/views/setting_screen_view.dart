@@ -126,7 +126,7 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     (val) =>
                                         controller.acceptNewOrders.value = val,
                               ),
-                                    SizedBox(height: MySize.getHeight(10)),
+                              SizedBox(height: MySize.getHeight(10)),
                               _buildShopControlSwitch(
                                 title: TranslationKeys.enableScheduleForLater.tr,
                                 value: controller.enableScheduleForLater.value,
@@ -134,6 +134,18 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                     (val) =>
                                         controller.enableScheduleForLater.value =
                                             val,
+                              ),
+                              SizedBox(height: MySize.getHeight(10)),
+                              _buildShopControlSwitch(
+                                title: TranslationKeys.allowDeliveryOrders.tr,
+                                value: controller.allowDeliveryOrders.value,
+                                onChanged: controller.toggleDeliveryOrders,
+                              ),
+                              SizedBox(height: MySize.getHeight(10)),
+                              _buildShopControlSwitch(
+                                title: TranslationKeys.allowPickupOrders.tr,
+                                value: controller.allowPickupOrders.value,
+                                onChanged: controller.togglePickupOrders,
                               ),
                               SizedBox(height: MySize.getHeight(12)),
                               Container(
@@ -306,14 +318,17 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: MySize.getHeight(14),
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: MySize.getHeight(14),
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
           ),
+          SizedBox(width: MySize.getWidth(8)),
           Switch.adaptive(
             value: value,
             activeTrackColor: ColorConstants.primaryColor,

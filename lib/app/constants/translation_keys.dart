@@ -112,6 +112,12 @@ class TranslationKeys {
   static const String scheduleDesc = 'scheduleDesc';
   static const String acceptNewOrders = 'acceptNewOrders';
   static const String enableScheduleForLater = 'enableScheduleForLater';
+  static const String allowDeliveryOrders = 'allowDeliveryOrders';
+  static const String allowDeliveryOrdersDesc = 'allowDeliveryOrdersDesc';
+  static const String allowPickupOrders = 'allowPickupOrders';
+  static const String allowPickupOrdersDesc = 'allowPickupOrdersDesc';
+  static const String cannotDisableBothOrderTypes =
+      'cannotDisableBothOrderTypes';
   static const String minOrderAmount = 'minOrderAmount';
   static const String deliveryFee = 'deliveryFee';
   static const String freeDeliveryOverAmount = 'freeDeliveryOverAmount';
@@ -442,6 +448,11 @@ class TranslationKeys {
   static const String managePrinters = 'managePrinters';
   static const String printingRules = 'printingRules';
   static const String printService = 'printService';
+  static const String tseStart = 'tseStart';
+  static const String tseEnd = 'tseEnd';
+  static const String tseSerialNumber = 'tseSerialNumber';
+  static const String tseClientId = 'tseClientId';
+  static const String tseTransactionNumber = 'tseTransactionNumber';
   static const String connection = 'connection';
   static const String domainUrl = 'domainUrl';
   static const String apiKey = 'apiKey';
