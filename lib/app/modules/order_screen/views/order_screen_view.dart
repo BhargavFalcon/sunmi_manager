@@ -684,12 +684,190 @@ class OrderScreenView extends GetView<OrderScreenController> {
     OrderScreenController controller,
     order_details_model.Data orderData,
   ) {
+    final orderStatus = orderData.order?.status?.toLowerCase();
+    final isCanceled = orderStatus == 'canceled' || orderStatus == 'cancelled';
+    final showCancelAndRefund = !isCanceled && (orderData.order?.uuid != null);
+    final isMobile = MediaQuery.of(context).size.shortestSide < 600;
+
+    Widget buildCloseBtn() {
+      return InkWell(
+        onTap: () => Navigator.pop(context),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(16),
+            vertical: MySize.getHeight(10),
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFF60616E),
+            borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+            boxShadow: ColorConstants.getShadow2,
+          ),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.close_rounded,
+                  size: MySize.getHeight(17),
+                  color: Colors.white,
+                ),
+                SizedBox(width: MySize.getWidth(6)),
+                Text(
+                  TranslationKeys.close.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget buildCancelAndRefundBtn() {
+      return InkWell(
+        onTap: () => _openCancelAndRefundDialog(
+          context,
+          orderData,
+          controller: controller,
+        ),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MySize.getWidth(16),
+            vertical: MySize.getHeight(10),
+          ),
+          decoration: BoxDecoration(
+            color: ColorConstants.red,
+            borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+            boxShadow: ColorConstants.getShadow2,
+          ),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.undo_rounded,
+                  size: MySize.getHeight(17),
+                  color: Colors.white,
+                ),
+                SizedBox(width: MySize.getWidth(6)),
+                Text(
+                  TranslationKeys.cancelAndRefund.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: MySize.getHeight(14),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget buildKitchenTicketsBtn() {
+      return Obx(() {
+        final printing = controller.isPrinting.value;
+        return InkWell(
+          onTap: printing
+              ? null
+              : () => _printKitchenTicket(context, controller, orderData),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: MySize.getWidth(16),
+              vertical: MySize.getHeight(10),
+            ),
+            decoration: BoxDecoration(
+              color: printing
+                  ? const Color(0xFF2F80ED).withValues(alpha: 0.7)
+                  : const Color(0xFF2F80ED),
+              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+              boxShadow: ColorConstants.getShadow2,
+            ),
+            child: Center(
+              child: printing
+                  ? CupertinoActivityIndicator(
+                      radius: MySize.getHeight(8),
+                      color: Colors.white,
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.local_printshop_outlined,
+                          size: MySize.getHeight(17),
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: MySize.getWidth(6)),
+                        Text(
+                          TranslationKeys.kitchenTicket.tr,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(14),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        );
+      });
+    }
+
+    if (isMobile) {
+      return Container(
+        padding: EdgeInsets.fromLTRB(
+          MySize.getWidth(12),
+          MySize.getHeight(8),
+          MySize.getWidth(12),
+          MySize.getHeight(16),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showCancelAndRefund) ...[
+              SizedBox(
+                width: double.infinity,
+                child: buildCancelAndRefundBtn(),
+              ),
+              SizedBox(height: MySize.getHeight(8)),
+            ],
+            Row(
+              children: [
+                Expanded(child: buildCloseBtn()),
+                SizedBox(width: MySize.getWidth(10)),
+                Expanded(child: buildKitchenTicketsBtn()),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         MySize.getWidth(12),
         MySize.getHeight(8),
         MySize.getWidth(12),
-        MySize.getHeight(8),
+        MySize.getHeight(12),
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -703,74 +881,233 @@ class OrderScreenView extends GetView<OrderScreenController> {
       ),
       child: Row(
         children: [
-          // Close button
-          Expanded(
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MySize.getWidth(16),
-                  vertical: MySize.getHeight(10),
+          Expanded(child: buildCloseBtn()),
+          if (showCancelAndRefund) ...[
+            SizedBox(width: MySize.getWidth(12)),
+            Expanded(child: buildCancelAndRefundBtn()),
+          ],
+          SizedBox(width: MySize.getWidth(12)),
+          Expanded(child: buildKitchenTicketsBtn()),
+        ],
+      ),
+    );
+  }
+
+  void _openCancelAndRefundDialog(
+    BuildContext context,
+    order_details_model.Data orderData, {
+    OrderScreenController? controller,
+  }) {
+    final orderUuid = orderData.order?.uuid;
+    if (orderUuid == null || orderUuid.isEmpty) {
+      AppToast.showError(TranslationKeys.noActiveOrderFoundToCancel.tr);
+      return;
+    }
+
+    final isCancelingOrder = false.obs;
+    final commentController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.white,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: MySize.getWidth(24),
+          vertical: MySize.getHeight(24),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(MySize.getHeight(16)),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(MySize.getHeight(20)),
+          constraints: const BoxConstraints(
+            maxWidth: 550,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: ColorConstants.red,
+                      size: MySize.getHeight(24),
+                    ),
+                    SizedBox(width: MySize.getWidth(12)),
+                    Expanded(
+                      child: Text(
+                        TranslationKeys.cancelAndRefundQuestion.tr,
+                        style: TextStyle(
+                          fontSize: MySize.getHeight(18),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF60616E),
-                  borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                  boxShadow: ColorConstants.getShadow2,
+                SizedBox(height: MySize.getHeight(16)),
+                Container(
+                  padding: EdgeInsets.all(MySize.getHeight(14)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                    border: Border.all(
+                      color: const Color(0xFFFFE082),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: const Color(0xFFE65100),
+                        size: MySize.getHeight(20),
+                      ),
+                      SizedBox(width: MySize.getWidth(10)),
+                      Expanded(
+                        child: Text(
+                          TranslationKeys.cancelAndRefundConfirmation.tr,
+                          style: TextStyle(
+                            fontSize: MySize.getHeight(13),
+                            color: const Color(0xFFE65100),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Text(
-                  TranslationKeys.close.tr,
-                  textAlign: TextAlign.center,
+                SizedBox(height: MySize.getHeight(16)),
+                Text(
+                  TranslationKeys.additionalCommentOptional.tr,
                   style: TextStyle(
                     fontSize: MySize.getHeight(14),
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
                   ),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // KOT Print button (Kitchen Tickets)
-          Expanded(
-            child: Obx(() {
-              final printing = controller.isPrinting.value;
-              return InkWell(
-                onTap: printing
-                    ? null
-                    : () => _printKitchenTicket(context, controller, orderData),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MySize.getWidth(16),
-                    vertical: MySize.getHeight(10),
-                  ),
+                SizedBox(height: MySize.getHeight(8)),
+                Container(
                   decoration: BoxDecoration(
-                    color: printing
-                        ? ColorConstants.primaryColor.withValues(alpha: 0.7)
-                        : ColorConstants.primaryColor,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-                    boxShadow: ColorConstants.getShadow2,
                   ),
-                  child: Center(
-                    child: printing
-                        ? CupertinoActivityIndicator(
-                            radius: MySize.getHeight(8),
-                            color: Colors.white,
-                          )
-                        : Text(
-                            TranslationKeys.kitchenTickets.tr,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(14),
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                  child: TextField(
+                    controller: commentController,
+                    maxLines: 3,
+                    style: TextStyle(fontSize: MySize.getHeight(14)),
+                    decoration: InputDecoration(
+                      hintText: TranslationKeys.additionalCommentOptional.tr,
+                      hintStyle: TextStyle(
+                        fontSize: MySize.getHeight(14),
+                        color: Colors.grey.shade400,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                        borderSide: BorderSide(color: ColorConstants.primaryColor),
+                      ),
+                      contentPadding: EdgeInsets.all(MySize.getHeight(12)),
+                    ),
+                  ),
+                ),
+                SizedBox(height: MySize.getHeight(24)),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: InkWell(
+                        onTap: () {
+                          commentController.dispose();
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: MySize.getHeight(12)),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF60616E),
+                            borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              TranslationKeys.close.tr,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: MySize.getHeight(14),
+                              ),
                             ),
                           ),
-                  ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: MySize.getWidth(12)),
+                    Expanded(
+                      flex: 3,
+                      child: Obx(() {
+                        final isCanceling = isCancelingOrder.value;
+                        return InkWell(
+                          onTap: isCanceling
+                              ? null
+                              : () async {
+                                  final comment = commentController.text.trim();
+                                  isCancelingOrder.value = true;
+                                  final success = await controller?.cancelOrder(
+                                    orderUuid: orderUuid,
+                                    additionalComment:
+                                        comment.isNotEmpty ? comment : null,
+                                  );
+                                  isCancelingOrder.value = false;
+                                  if (dialogContext.mounted) {
+                                    commentController.dispose();
+                                    Navigator.of(dialogContext).pop();
+                                  }
+                                  if (success == true && context.mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: MySize.getHeight(12)),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.red,
+                              borderRadius: BorderRadius.circular(MySize.getHeight(8)),
+                            ),
+                            child: Center(
+                              child: isCanceling
+                                  ? CupertinoActivityIndicator(
+                                      radius: MySize.getHeight(8),
+                                      color: Colors.white,
+                                    )
+                                  : Text(
+                                      TranslationKeys.cancelAndRefundQuestion.tr,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: MySize.getHeight(14),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
                 ),
-              );
-            }),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -963,222 +1300,7 @@ class OrderScreenView extends GetView<OrderScreenController> {
             SizedBox(height: MySize.getHeight(8)),
             _buildPaymentsTable(context, orderData, controller),
           ],
-          if (_isPendingVerification(orderData)) ...[
-            SizedBox(height: MySize.getHeight(8)),
-            _buildPendingVerificationSection(context, orderData, controller),
-          ],
           SizedBox(height: MySize.getHeight(16)),
-        ],
-      ),
-    );
-  }
-
-
-
-  bool _isPendingVerification(order_details_model.Data orderData) {
-    return orderData.order?.status?.toLowerCase() == 'pending_verification';
-  }
-
-  Widget _buildPendingVerificationSection(
-    BuildContext context,
-    order_details_model.Data orderData,
-    OrderScreenController controller,
-  ) {
-    final orderUuid = orderData.order?.uuid ?? '';
-    final payments = orderData.order?.payments ?? [];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(MySize.getHeight(8)),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: MySize.getWidth(12),
-              vertical: MySize.getHeight(8),
-            ),
-            decoration: BoxDecoration(
-              color: Colors.orange.shade100,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(MySize.getHeight(8)),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.pending_outlined,
-                  size: MySize.getHeight(16),
-                  color: Colors.orange.shade800,
-                ),
-                SizedBox(width: MySize.getWidth(6)),
-                Text(
-                  TranslationKeys.pendingVerificationStatus.tr,
-                  style: TextStyle(
-                    fontSize: MySize.getHeight(13),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange.shade800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Payment rows
-          if (payments.isNotEmpty)
-            ...payments.map((payment) {
-              final methodRaw = payment.paymentMethod?.toLowerCase() ?? '';
-              final methodLabel =
-                  methodRaw == 'cash'
-                      ? TranslationKeys.cash.tr
-                      : methodRaw == 'due'
-                      ? TranslationKeys.due.tr
-                      : methodRaw == 'card'
-                      ? TranslationKeys.card.tr
-                      : payment.paymentMethod ?? '—';
-              final amountVal = payment.amountTotal ?? payment.amount;
-              final amountStr =
-                  amountVal != null
-                      ? CurrencyFormatter.formatPrice(
-                        amountVal.toString(),
-                      )
-                      : '—';
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MySize.getWidth(12),
-                  vertical: MySize.getHeight(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Row 1: amount + method chip
-                    Row(
-                      children: [
-                        Text(
-                          amountStr,
-                          style: TextStyle(
-                            fontSize: MySize.getHeight(13.5),
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        SizedBox(width: MySize.getWidth(6)),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(6),
-                            vertical: MySize.getHeight(3),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(
-                              MySize.getHeight(4),
-                            ),
-                          ),
-                          child: Text(
-                            methodLabel,
-                            style: TextStyle(
-                              fontSize: MySize.getHeight(11),
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: MySize.getHeight(8)),
-                    // Row 2: Confirm Payment + Report Unpaid buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              if (orderUuid.isEmpty) return;
-                              final success = await controller
-                                  .updateOrderStatus(orderUuid, 'paid');
-                              if (success && context.mounted) {
-                                Navigator.of(context).pop();
-                                controller.fetchAllOrders();
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                vertical: MySize.getHeight(8),
-                              ),
-                              decoration: BoxDecoration(
-                                color: ColorConstants.successGreen,
-                                borderRadius: BorderRadius.circular(
-                                  MySize.getHeight(6),
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  TranslationKeys.confirmPayment.tr,
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(12),
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: MySize.getWidth(8)),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              if (orderUuid.isEmpty) return;
-                              final success = await controller
-                                  .updateOrderStatus(orderUuid, 'payment_due');
-                              if (success && context.mounted) {
-                                Navigator.of(context).pop();
-                                controller.fetchAllOrders();
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                vertical: MySize.getHeight(8),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade400,
-                                borderRadius: BorderRadius.circular(
-                                  MySize.getHeight(6),
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  TranslationKeys.reportUnpaid.tr,
-                                  style: TextStyle(
-                                    fontSize: MySize.getHeight(12),
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            })
-          else
-            Padding(
-              padding: EdgeInsets.all(MySize.getWidth(12)),
-              child: Text(
-                'No payment details available.',
-                style: TextStyle(
-                  fontSize: MySize.getHeight(13),
-                  color: Colors.black54,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -1676,25 +1798,10 @@ class OrderScreenView extends GetView<OrderScreenController> {
 
 
 
-  /// Order card shows API time as-is (format only, no timezone conversion)
-  /// so e.g. 03:16 does not become 04:16 when API already sends local/restaurant time.
-  static String _formatOrderCardDateTime(
-    String? dateTime,
-    String? formattedDateTime,
-  ) {
-    if (dateTime != null && dateTime.isNotEmpty) {
-      return DateTimeFormatter.formatDateTime(dateTime);
-    }
-    if (formattedDateTime != null && formattedDateTime.isNotEmpty) {
-      return DateTimeFormatter.formatDateTime(formattedDateTime);
-    }
-    return '';
-  }
+
 
   static String formatOrderDateTimeForCard(String? dateTimeString) {
-    return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(
-      dateTimeString,
-    );
+    return DateTimeFormatter.formatDateTime(dateTimeString);
   }
 
   Future<void> _printPaymentReceipt(
@@ -1844,7 +1951,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
         id: ord.id,
         kotNumber: ord.formattedOrderNumber ??
             (ord.orderNumber != null ? '${ord.orderNumber}' : null),
-        createdAt: ord.createdAt ?? DateTime.now().toIso8601String(),
+        createdAt: ord.createdAt ??
+            DateTimeFormatter.nowInRestaurantTimezone().toIso8601String(),
         note: ord.note,
         order: KitchenTicketOrder(
           id: ord.id,
@@ -1941,9 +2049,10 @@ class OrderCard extends StatelessWidget {
     final statusColor = _getStatusColor(status);
     final formattedStatus = _formatStatusText(status);
 
-    final formattedDateTime = OrderScreenView._formatOrderCardDateTime(
-      order.dateTime,
-      order.formattedDateTime,
+    final formattedDateTime = DateTimeFormatter.formatDateTime(
+      (order.dateTime != null && order.dateTime!.isNotEmpty)
+          ? order.dateTime
+          : order.formattedDateTime,
     );
     final itemsCount = order.itemsCount ?? 0;
     final formattedPrice =

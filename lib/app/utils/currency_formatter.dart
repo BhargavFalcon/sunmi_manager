@@ -16,6 +16,39 @@ class CurrencyFormatter {
     return null;
   }
 
+  // Get restaurant name
+  static String getRestaurantName() {
+    try {
+      final details = getRestaurantDetails();
+      return details?.data?.name ?? '';
+    } catch (_) {}
+    return '';
+  }
+
+  // Get active branch name
+  static String getBranchName() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      final details = getRestaurantDetails();
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final branchId = loginModelData['data']?['user']?['branch_id'] ??
+            loginModelData['user']?['branch_id'];
+        final branches = details?.data?.branches;
+        if (branches != null && branches.isNotEmpty) {
+          if (branchId != null) {
+            for (final b in branches) {
+              if (b.id == branchId && b.name != null && b.name!.isNotEmpty) {
+                return b.name!;
+              }
+            }
+          }
+          return branches.first.name ?? '';
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
   // Get currency symbol
   static String getCurrencySymbol() {
     final restaurantDetails = getRestaurantDetails();

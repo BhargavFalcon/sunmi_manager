@@ -406,9 +406,12 @@ class OrderDetailWidgets {
 
             final double unitPrice = amountVal / qty;
 
-            final double basePrice = item.price is num
-                ? (item.price as num).toDouble()
-                : double.tryParse(item.price?.toString() ?? '') ?? unitPrice;
+            final double basePrice = item.basePrice is num
+                ? (item.basePrice as num).toDouble()
+                : double.tryParse(item.basePrice?.toString() ?? '') ??
+                    (item.price is num
+                        ? (item.price as num).toDouble()
+                        : double.tryParse(item.price?.toString() ?? '') ?? unitPrice);
 
             final priceStr = unitPrice.toString();
             final amountStr = amountVal.toString();
@@ -788,7 +791,7 @@ class OrderDetailWidgets {
     if (orderDetails == null) return const SizedBox.shrink();
 
     final formatter =
-        dateFormatter ?? DateTimeFormatter.formatDateTimeWithRestaurantTimezone;
+        dateFormatter ?? DateTimeFormatter.formatDateTime;
     final createdAt = orderDetails.createdAt ?? '';
     final orderType = orderDetails.orderType?.toLowerCase() ?? '';
     final dateTimeString = orderDetails.dateTime ?? '';

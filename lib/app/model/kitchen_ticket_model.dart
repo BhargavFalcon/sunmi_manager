@@ -102,6 +102,7 @@ class KitchenTicketOrder {
   String? orderNumber;
   String? formattedOrderNumber;
   String? orderType;
+  String? placedVia;
   dynamic table;
   String? note;
   String? dateTime;
@@ -112,6 +113,7 @@ class KitchenTicketOrder {
     this.orderNumber,
     this.formattedOrderNumber,
     this.orderType,
+    this.placedVia,
     this.table,
     this.note,
     this.dateTime,
@@ -123,6 +125,7 @@ class KitchenTicketOrder {
     orderNumber = json['order_number']?.toString();
     formattedOrderNumber = json['formatted_order_number']?.toString();
     orderType = json['order_type'];
+    placedVia = json['placed_via']?.toString();
     table = json['table'];
     note = json['note'];
     dateTime = json['date_time']?.toString();

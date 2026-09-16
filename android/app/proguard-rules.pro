@@ -46,3 +46,12 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
+# Keep flutter_background_service classes
+-keep class id.flutter.flutter_background_service.** { *; }
+
+# Keep Sunmi printer classes
+-keep class woyou.aidlservice.jiuiv5.** { *; }
+-keep class com.sunmi.** { *; }
+-keep class br.com.brasizza.sunmi_printer_plus.** { *; }
+
+

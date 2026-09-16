@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../main.dart';
 import '../model/get_order_model.dart' as order_model;
@@ -19,7 +20,7 @@ import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
 import '../constants/sizeConstant.dart';
 
-class PusherService {
+class PusherService with WidgetsBindingObserver {
   WebSocket? _socket;
   Timer? _pingTimer;
 
@@ -38,12 +39,30 @@ class PusherService {
   int? _currentBranchId;
   int _connectionId = 0;
 
+  /// Track whether the app is in background
+  bool _isAppInBackground = false;
+
   final Set<String> _processedOrderUuids = {};
   final Set<int> _processedKotIds = {};
   Set<String> _cachedMonitorChannels = {};
   Future<void> _printingLock = Future.value();
 
-  Future<void> initPusher() async {}
+  Future<void> initPusher() async {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  /// Called by Flutter whenever the app lifecycle state changes.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppInBackground =
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached;
+  }
 
   Future<void> subscribeToOrders(int? branchId) async {
     if (branchId == null) return;
@@ -225,6 +244,9 @@ class PusherService {
     }
 
     if (newKotId != null) {
+      if (_isAppInBackground) {
+        return;
+      }
       await _fetchAndPrintKOT(newKotId, pusherKot: pusherKot);
     }
   }
@@ -249,6 +271,16 @@ class PusherService {
 
       final kotData = pusherKot ?? await _fetchKotOnly(kotId);
       if (kotData == null) return;
+
+      // Only print KOT for Shop, Android, and iOS orders
+      final kotPlacedVia =
+          (kotData.order?.placedVia ?? '').toString().toLowerCase().trim();
+      if (kotPlacedVia.isNotEmpty &&
+          kotPlacedVia != 'shop' &&
+          kotPlacedVia != 'android' &&
+          kotPlacedVia != 'ios') {
+        return;
+      }
 
       final copies = printerService.kitchenCopies.value;
       final isConnected = await printerService.checkPrinterConnectivity();
@@ -295,7 +327,7 @@ class PusherService {
         return;
       }
 
-      // Strict Filter: ONLY allow notifications & auto-print for Shop, Android, and iOS customer orders
+      // Only allow notifications & auto-print for Shop, Android, and iOS customer orders
       final placedVia = (orderData?.order?.placedVia ?? order['placed_via'] ?? '')
           .toString()
           .toLowerCase()
@@ -303,6 +335,11 @@ class PusherService {
       final isAllowedChannel =
           placedVia == 'shop' || placedVia == 'android' || placedVia == 'ios';
       if (!isAllowedChannel) {
+        return;
+      }
+
+      // If app is in the background, background service will handle printing
+      if (_isAppInBackground) {
         return;
       }
 

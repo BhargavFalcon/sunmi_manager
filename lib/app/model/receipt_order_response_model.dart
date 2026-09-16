@@ -517,11 +517,16 @@ class ReceiptOrderItem {
   double? grossAmount;
   double? price;
   int? quantity;
+  double? basePrice;
+  String? formattedBasePrice;
   String? formattedPrice;
   String? formattedLineAmount;
   String? note;
   double? packagingCharge;
   double? deposit;
+  double? discountAmount;
+  String? discountType;
+  double? discountValue;
 
   ReceiptOrderItem({
     this.displayItemName,
@@ -531,11 +536,16 @@ class ReceiptOrderItem {
     this.grossAmount,
     this.price,
     this.quantity,
+    this.basePrice,
+    this.formattedBasePrice,
     this.formattedPrice,
     this.formattedLineAmount,
     this.note,
     this.packagingCharge,
     this.deposit,
+    this.discountAmount,
+    this.discountType,
+    this.discountValue,
   });
 
   ReceiptOrderItem.fromJson(Map<String, dynamic> json) {
@@ -583,6 +593,8 @@ class ReceiptOrderItem {
           json['item_qty'] ??
           json['item_quantity'],
     );
+    basePrice = _receiptToDouble(json['base_price']);
+    formattedBasePrice = json['formatted_base_price']?.toString();
     formattedPrice =
         (json['formatted_price'] ?? json['item_price_formatted'])?.toString();
     formattedLineAmount =
@@ -593,6 +605,9 @@ class ReceiptOrderItem {
     note = (json['note'] ?? json['item_note'])?.toString();
     packagingCharge = _receiptToDouble(json['packaging_charge']);
     deposit = _receiptToDouble(json['deposit']);
+    discountAmount = _receiptToDouble(json['discount_amount'] ?? json['discount']);
+    discountType = json['discount_type']?.toString();
+    discountValue = _receiptToDouble(json['discount_value']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -603,11 +618,16 @@ class ReceiptOrderItem {
     'gross_amount': grossAmount,
     'price': price,
     'quantity': quantity,
+    'base_price': basePrice,
+    'formatted_base_price': formattedBasePrice,
     'formatted_price': formattedPrice,
     'formatted_line_amount': formattedLineAmount,
     'note': note,
     'packaging_charge': packagingCharge,
     'deposit': deposit,
+    'discount_amount': discountAmount,
+    'discount_type': discountType,
+    'discount_value': discountValue,
   };
 }
 

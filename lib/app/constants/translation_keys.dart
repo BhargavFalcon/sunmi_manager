@@ -101,7 +101,6 @@ class TranslationKeys {
   static const String printOnlyAvailableOnAndroid =
       'printOnlyAvailableOnAndroid';
   static const String shopControls = 'shopControls';
-  static const String manageNotifications = 'manageNotifications';
   static const String newShopOrders = 'newShopOrders';
   static const String qrCodeOrders = 'qrCodeOrders';
   static const String newKitchenTickets = 'newKitchenTickets';
@@ -123,6 +122,7 @@ class TranslationKeys {
   static const String freeDeliveryOverAmount = 'freeDeliveryOverAmount';
   static const String quickControlsOnly = 'quickControlsOnly';
   static const String minutes = 'minutes';
+  static const String todaySummary = 'todaySummary';
 
   // Cart Screen
   static const String cart = 'cart';
@@ -331,6 +331,7 @@ class TranslationKeys {
   static const String option = 'option';
 
   // Kitchen Tickets Screen
+  static const String kitchenTicket = 'kitchenTicket';
   static const String kitchenTickets = 'kitchenTickets';
   static const String kitchenOrderTicket = 'kitchenOrderTicket';
   static const String specialInstructions = 'specialInstructions';
@@ -556,4 +557,44 @@ class TranslationKeys {
   static const String netAmount = 'netAmount';
   static const String vat = 'vat';
   static const String vatAmount = 'vatAmount';
+
+  // Daily Summary / Reports
+  static const String period = 'period';
+  static const String timezone = 'timezone';
+  static const String end = 'end';
+  static const String generatedAt = 'generatedAt';
+  static const String totalOrders = 'totalOrders';
+  static const String paidOrders = 'paidOrders';
+  static const String countedOrders = 'countedOrders';
+  static const String cancelledOrders = 'cancelledOrders';
+  static const String ongoing = 'ongoing';
+  static const String ongoingAmount = 'ongoingAmount';
+  static const String byOrderType = 'byOrderType';
+  static const String byStatus = 'byStatus';
+  static const String sales = 'sales';
+  static const String gross = 'gross';
+  static const String taxesByRate = 'taxesByRate';
+  static const String nameRate = 'nameRate';
+  static const String net = 'net';
+  static const String discounts = 'discounts';
+  static const String tips = 'tips';
+  static const String orderLevel = 'orderLevel';
+  static const String paymentLevel = 'paymentLevel';
+  static const String salesByType = 'salesByType';
+  static const String payments = 'payments';
+  static const String totalCollected = 'totalCollected';
+  static const String netOfDue = 'netOfDue';
+  static const String dueOutstanding = 'dueOutstanding';
+  static const String awaitingVerification = 'awaitingVerification';
+  static const String byMethod = 'byMethod';
+  static const String printed = 'printed';
+  static const String count = 'count';
+  static const String vouchers = 'vouchers';
+  static const String rate = 'rate';
+  static const String type = 'type';
+  static const String method = 'method';
+  static const String cancelAndRefund = 'cancelAndRefund';
+  static const String cancelAndRefundQuestion = 'cancelAndRefundQuestion';
+  static const String cancelAndRefundConfirmation = 'cancelAndRefundConfirmation';
+  static const String additionalCommentOptional = 'additionalCommentOptional';
 }

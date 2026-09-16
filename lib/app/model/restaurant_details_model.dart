@@ -67,6 +67,7 @@ class Branches {
   List<AdditionalCharges>? additionalCharges;
   PaymentGateways? paymentGateways;
   List<DeliverySettings>? deliverySettings; // NEW
+  String? timezone;
 
   Branches({
     this.id,
@@ -88,6 +89,7 @@ class Branches {
     this.additionalCharges,
     this.paymentGateways,
     this.deliverySettings,
+    this.timezone,
   });
 
   Branches.fromJson(Map<String, dynamic> json) {
@@ -125,6 +127,7 @@ class Branches {
         (v) => deliverySettings!.add(DeliverySettings.fromJson(v)),
       );
     }
+    timezone = json['timezone'];
   }
 
   Map<String, dynamic> toJson() {
@@ -156,6 +159,7 @@ class Branches {
       data['delivery_settings'] =
           deliverySettings!.map((v) => v.toJson()).toList();
     }
+    data['timezone'] = timezone;
     return data;
   }
 }

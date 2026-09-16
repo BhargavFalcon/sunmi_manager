@@ -6,6 +6,7 @@ import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
 import 'package:managerapp/app/utils/language_utils.dart';
+import 'package:managerapp/app/widgets/daily_summary_dialog.dart';
 import '../controllers/setting_screen_controller.dart';
 
 class SettingScreenView extends GetWidget<SettingScreenController> {
@@ -81,6 +82,41 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                                 ),
                               ),
                           ],
+                        ),
+                      ),
+                      SizedBox(width: MySize.getWidth(8)),
+                      GestureDetector(
+                        onTap: () => DailySummaryDialog.show(context),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MySize.getWidth(14),
+                            vertical: MySize.getHeight(10),
+                          ),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.primaryColor,
+                            borderRadius: BorderRadius.circular(
+                              MySize.getHeight(10),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bar_chart_rounded,
+                                color: Colors.white,
+                                size: MySize.getHeight(17),
+                              ),
+                              SizedBox(width: MySize.getWidth(5)),
+                              Text(
+                                TranslationKeys.todaySummary.tr,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: MySize.getHeight(13),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

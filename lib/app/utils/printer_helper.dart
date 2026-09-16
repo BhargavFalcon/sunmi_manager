@@ -6,7 +6,7 @@ class PrinterHelper {
   static bool? _isSunmi;
 
   static Future<bool> isSunmiDevice() async {
-    if (_isSunmi != null) return _isSunmi!;
+    if (_isSunmi == true) return true;
     if (!Platform.isAndroid) {
       _isSunmi = false;
       return false;
@@ -16,17 +16,24 @@ class PrinterHelper {
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
       final manufacturer = androidInfo.manufacturer.toLowerCase();
+      final brand = androidInfo.brand.toLowerCase();
+      final model = androidInfo.model.toLowerCase();
 
-      if (manufacturer.contains('sunmi')) {
-        final sunmiPrinterPlus = SunmiPrinterPlus();
-        final result = await sunmiPrinterPlus.rebindPrinter();
-        _isSunmi = result == true;
+      final isSunmiHardware = manufacturer.contains('sunmi') ||
+          brand.contains('sunmi') ||
+          model.contains('sunmi');
+
+      if (isSunmiHardware) {
+        try {
+          await SunmiPrinterPlus().rebindPrinter();
+        } catch (_) {}
+        _isSunmi = true;
+        return true;
       } else {
         _isSunmi = false;
+        return false;
       }
-      return _isSunmi!;
     } catch (_) {
-      _isSunmi = false;
       return false;
     }
   }

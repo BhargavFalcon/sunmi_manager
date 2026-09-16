@@ -108,3 +108,12 @@ bool isTaxIncluded(dynamic orderData) {
 /// Checks if a status code indicates success (used in API responses).
 bool isSuccessStatus(int? statusCode) =>
     statusCode == 200 || statusCode == 201 || statusCode == 204;
+
+/// Formats any method/type string: snake_case, single-word, compound into Capitalized Words.
+String capitalizeWords(String s) {
+  if (s.isEmpty) return s;
+  return s
+      .split('_')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
+}

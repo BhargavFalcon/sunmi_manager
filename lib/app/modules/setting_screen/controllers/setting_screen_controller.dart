@@ -14,6 +14,7 @@ import '../../../model/restaurant_details_model.dart';
 import '../../../utils/currency_formatter.dart';
 import '../../../services/app_lock_service.dart';
 import '../../../services/printer_service.dart';
+import '../../../model/daily_sales_summary_model.dart';
 import '../../../services/network_connectivity_service.dart';
 
 class SettingScreenController extends GetxController {
@@ -31,6 +32,7 @@ class SettingScreenController extends GetxController {
   // Shop Settings Fields
   final isShopSettingsLoading = false.obs;
   final isSavingShopSettings = false.obs;
+  final isSummaryLoading = false.obs;
   final acceptNewOrders = true.obs;
   final enableScheduleForLater = true.obs;
   final allowDeliveryOrders = true.obs;
@@ -278,6 +280,25 @@ class SettingScreenController extends GetxController {
     } catch (_) {}
 
     Get.offAllNamed(Routes.LOGIN_SCREEN);
+  }
+
+  Future<DailySalesSummaryModel?> fetchDailySalesSummary() async {
+    try {
+      isSummaryLoading.value = true;
+      final response = await networkClient.get(
+        ArgumentConstant.dailySalesSummaryEndpoint,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return DailySalesSummaryModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+    } catch (e) {
+      AppToast.showError(TranslationKeys.error.tr);
+    } finally {
+      isSummaryLoading.value = false;
+    }
+    return null;
   }
 
   @override

@@ -1,3 +1,4 @@
+import '../../../utils/branch_utils.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -403,6 +404,7 @@ class LoginScreenController extends GetxController {
                 ArgumentConstant.restaurantDetailsKey,
                 restaurantModel.toJson(),
               );
+              BranchUtils.saveBranchTimezone(restaurantModel);
             } catch (_) {}
           }
         }

@@ -738,6 +738,8 @@ class Items {
   List<Modifiers>? modifiers;
   int? quantity;
   double? price;
+  double? basePrice;
+  double? combinedUnitPrice;
   double? grossAmount;
   double? amount;
   double? packagingCharge;
@@ -761,6 +763,8 @@ class Items {
     this.modifiers,
     this.quantity,
     this.price,
+    this.basePrice,
+    this.combinedUnitPrice,
     this.grossAmount,
     this.amount,
     this.packagingCharge,
@@ -785,6 +789,8 @@ class Items {
       modifiers = _listFromJson(json['modifiers'], Modifiers.fromJson),
       quantity = _toInt(json['quantity']),
       price = _toDouble(json['price']),
+      basePrice = _toDouble(json['base_price']),
+      combinedUnitPrice = _toDouble(json['combined_unit_price']),
       grossAmount = _toDouble(json['gross_amount']),
       amount = _toDouble(json['amount']),
       packagingCharge = _toDouble(json['packaging_charge']),
@@ -808,6 +814,8 @@ class Items {
     'modifiers': modifiers?.map((v) => v.toJson()).toList(),
     'quantity': quantity,
     'price': price,
+    'base_price': basePrice,
+    'combined_unit_price': combinedUnitPrice,
     'gross_amount': grossAmount,
     'amount': amount,
     'packaging_charge': packagingCharge,

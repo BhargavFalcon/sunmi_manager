@@ -7,6 +7,7 @@ import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import '../data/NetworkClient.dart';
 
 class PrinterService extends GetxService with WidgetsBindingObserver {
+  static bool isBackground = false;
   final NetworkClient _networkClient = NetworkClient();
 
   // --- Reactive States ---
@@ -50,8 +51,17 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
           box.read(ArgumentConstant.printerWidthKey) ??
           '80mm';
 
-      // Sync auto-print settings from API (only if authenticated)
-      if (box.hasData(ArgumentConstant.tokenKey)) {
+      autoPrintKitchen.value =
+          box.read(ArgumentConstant.autoPrintKitchenKey) ?? true;
+      kitchenCopies.value =
+          box.read(ArgumentConstant.kitchenPrintCopiesKey) ?? 1;
+      autoPrintReceipt.value =
+          box.read(ArgumentConstant.autoPrintReceiptKey) ?? true;
+      receiptCopies.value =
+          box.read(ArgumentConstant.receiptPrintCopiesKey) ?? 1;
+
+      // Sync auto-print settings from API (only if authenticated and not in background isolate)
+      if (!isBackground && box.hasData(ArgumentConstant.tokenKey)) {
         final response = await _networkClient.get(
           ArgumentConstant.autoPrintSettingsEndpoint,
         );
@@ -62,6 +72,23 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
             kitchenCopies.value = data['kot_print_copies'] ?? 1;
             autoPrintReceipt.value = data['auto_print_receipt'] ?? true;
             receiptCopies.value = data['receipt_print_copies'] ?? 1;
+
+            box.write(
+              ArgumentConstant.autoPrintKitchenKey,
+              autoPrintKitchen.value,
+            );
+            box.write(
+              ArgumentConstant.kitchenPrintCopiesKey,
+              kitchenCopies.value,
+            );
+            box.write(
+              ArgumentConstant.autoPrintReceiptKey,
+              autoPrintReceipt.value,
+            );
+            box.write(
+              ArgumentConstant.receiptPrintCopiesKey,
+              receiptCopies.value,
+            );
           }
         }
       }
@@ -74,6 +101,22 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       box.write(ArgumentConstant.kitchenPaperWidthKey, kitchenWidth.value);
       box.write(ArgumentConstant.orderPaperWidthKey, receiptWidth.value);
       box.write(ArgumentConstant.printerWidthKey, receiptWidth.value);
+      box.write(
+        ArgumentConstant.autoPrintKitchenKey,
+        autoPrintKitchen.value,
+      );
+      box.write(
+        ArgumentConstant.kitchenPrintCopiesKey,
+        kitchenCopies.value,
+      );
+      box.write(
+        ArgumentConstant.autoPrintReceiptKey,
+        autoPrintReceipt.value,
+      );
+      box.write(
+        ArgumentConstant.receiptPrintCopiesKey,
+        receiptCopies.value,
+      );
 
       // Save to API for auto print settings (only if authenticated)
       if (box.hasData(ArgumentConstant.tokenKey)) {
@@ -133,10 +176,14 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /// Checks Sunmi printer connectivity
   Future<bool> checkPrinterConnectivity([String? printerName]) async {
-    if (isSunmi.value) {
-      await SunmiPrinterPlus().rebindPrinter();
-      return true;
-    }
+    try {
+      final isSunmiDevice = isSunmi.value || await PrinterHelper.isSunmiDevice();
+      if (isSunmiDevice) {
+        isSunmi.value = true;
+        await SunmiPrinterPlus().rebindPrinter();
+        return true;
+      }
+    } catch (_) {}
     return false;
   }
 }

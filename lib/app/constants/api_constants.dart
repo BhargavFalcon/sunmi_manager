@@ -26,8 +26,6 @@ class ArgumentConstant {
       "api/v1/pos/orders/:order_uuid/payments/:payment_id/refunds";
   static const allOrdersEndpoint = "api/v1/pos/orders";
   static const cancelOrderEndpoint = "api/v1/pos/orders/:order_uuid/cancel";
-  static const updateOrderStatusEndpoint =
-      "api/v1/pos/orders/:order_uuid/main-status";
   static const cancelReasonsEndpoint = "api/v1/pos/orders/cancel-reasons";
   static const orderKey = "order";
   static const restaurantTimezoneKey = "restaurant_timezone";
@@ -41,6 +39,12 @@ class ArgumentConstant {
   static const printerWidthKey = "printer_width";
   static const kitchenPaperWidthKey = "kitchen_paper_width";
   static const orderPaperWidthKey = "order_paper_width";
+  static const autoPrintKitchenKey = "auto_print_kitchen";
+  static const kitchenPrintCopiesKey = "kitchen_print_copies";
+  static const autoPrintReceiptKey = "auto_print_receipt";
+  static const receiptPrintCopiesKey = "receipt_print_copies";
+  static const cachedKotChannelsKey = "cached_kot_channels";
+  static const isAppForegroundKey = "is_app_foreground";
 
   // App Settings Keys
   static const hapticFeedbackKey = "haptic_feedback_enabled";
@@ -58,5 +62,7 @@ class ArgumentConstant {
   static const shopFreeDeliveryAmountKey = "free_delivery_over_amount";
   static const shopAllowDeliveryOrdersKey = "allow_delivery_orders";
   static const shopAllowPickupOrdersKey = "allow_pickup_orders";
-}
 
+  // Reports
+  static const dailySalesSummaryEndpoint = "api/v1/pos/reports/daily-sales-summary";
+}

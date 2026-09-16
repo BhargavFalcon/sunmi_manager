@@ -1,5 +1,7 @@
+import '../../../utils/branch_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../../data/pusher_service.dart';
 import '../../../data/NetworkClient.dart';
 import '../../order_screen/controllers/order_screen_controller.dart';
@@ -9,6 +11,7 @@ import '../../../model/login_models.dart';
 import '../../../model/mobile_app_modules_model.dart';
 import '../../../model/restaurant_details_model.dart';
 import '../../../services/printer_service.dart';
+import '../../../utils/device_utils.dart';
 
 class MainHomeScreenController extends GetxController {
   final selectedIndex = 0.obs;
@@ -30,6 +33,32 @@ class MainHomeScreenController extends GetxController {
         }
       } catch (_) {}
     });
+
+    // Request notification permission and start background service safely in foreground
+    Future.delayed(const Duration(seconds: 3), () async {
+      try {
+        final bool isGranted =
+            await DeviceUtils.requestNotificationPermission();
+        if (isGranted) {
+          // Request battery optimization exemption
+          try {
+            final isIgnoring =
+                await DeviceUtils.isIgnoringBatteryOptimizations();
+            if (!isIgnoring) {
+              await DeviceUtils.requestIgnoreBatteryOptimizations();
+            }
+          } catch (_) {}
+
+          final bgService = FlutterBackgroundService();
+          final running = await bgService.isRunning();
+          if (!running) {
+            await bgService.startService();
+          } else {
+            bgService.invoke('updateConfig');
+          }
+        }
+      } catch (_) {}
+    });
   }
 
   Future<void> _subscribeToPusher() async {
@@ -42,6 +71,16 @@ class MainHomeScreenController extends GetxController {
         if (branchId != null) {
           final pusherService = Get.find<PusherService>();
           await pusherService.subscribeToOrders(branchId);
+
+          try {
+            final bgService = FlutterBackgroundService();
+            final running = await bgService.isRunning();
+            if (!running) {
+              await bgService.startService();
+            } else {
+              bgService.invoke('updateConfig');
+            }
+          } catch (_) {}
         }
       }
     } catch (_) {
@@ -150,6 +189,7 @@ class MainHomeScreenController extends GetxController {
                   ArgumentConstant.restaurantDetailsKey,
                   restaurantModel.toJson(),
                 );
+                BranchUtils.saveBranchTimezone(restaurantModel);
               } catch (_) {
                 // Restaurant model parse/store failed
               }

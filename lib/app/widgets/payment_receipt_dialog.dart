@@ -309,17 +309,17 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
         if (createdAt.isNotEmpty)
           _detailRow(
             '${TranslationKeys.orderCreated.tr}:',
-            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(createdAt),
+            DateTimeFormatter.formatDateTime(createdAt),
           )
         else if (dateTimeString.isNotEmpty && timeLabel == null)
           _detailRow(
             '${TranslationKeys.orderCreated.tr}:',
-            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString),
+            DateTimeFormatter.formatDateTime(dateTimeString),
           ),
         if (dateTimeString.isNotEmpty && timeLabel != null)
           _detailRow(
             '$timeLabel:',
-            DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString),
+            DateTimeFormatter.formatDateTime(dateTimeString),
           ),
         if (tableCode.isNotEmpty)
           _detailRow('${TranslationKeys.tableNo.tr}:', tableCode),
@@ -458,7 +458,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
                 quantityVal > 0 ? quantityVal.toDouble() : 1.0;
             final double amountVal = oi?.amount ?? 0.0;
             final double unitPrice = amountVal / qtyDouble;
-            final double basePrice = oi?.price ?? unitPrice;
+            final double basePrice = oi?.basePrice ?? oi?.price ?? unitPrice;
 
             final price = CurrencyFormatter.formatPrice(unitPrice.toString());
             final amount = CurrencyFormatter.formatPrice(amountVal.toString());
@@ -731,7 +731,7 @@ class _PaymentReceiptDialogState extends State<PaymentReceiptDialog> {
 
     String formatTseDateTime(String? dateTimeString) {
       if (dateTimeString == null || dateTimeString.isEmpty) return '';
-      return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dateTimeString);
+      return DateTimeFormatter.formatTseDateTime(dateTimeString);
     }
 
     final startTime = formatTseDateTime(fiskaly.startUtc);

@@ -1,3 +1,4 @@
+import '../../../utils/date_time_formatter.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -55,8 +56,10 @@ class OrderScreenController extends GetxController {
   RxString selectedOrderType = 'All Orders'.obs;
   RxString selectedSourceFilter = 'All Sources'.obs;
 
-  Rx<DateTime> startDate = DateTime.now().obs;
-  Rx<DateTime> endDate = DateTime.now().obs;
+  Rx<DateTime> startDate =
+      DateTimeFormatter.todayCalendarDateInRestaurantTimezone().obs;
+  Rx<DateTime> endDate =
+      DateTimeFormatter.todayCalendarDateInRestaurantTimezone().obs;
 
   // Local Status Workflow
   final String _localStatusKey = 'order_local_statuses';
@@ -123,6 +126,12 @@ class OrderScreenController extends GetxController {
     box.listenKey(ArgumentConstant.mobileAppModulesKey, (value) {
       _checkAndShowDialog();
     });
+    box.listenKey(ArgumentConstant.restaurantTimezoneKey, (_) {
+      if (selectedMonth.value == 'Today') {
+        _updateDatesByOption('Today');
+        fetchAllOrders();
+      }
+    });
   }
 
   void _setupScrollListener() {
@@ -163,6 +172,10 @@ class OrderScreenController extends GetxController {
       isLoading.value = true;
       currentPage = 1;
       allOrders.clear();
+    }
+
+    if (!isLoadMore && selectedMonth.value == 'Today') {
+      _updateDatesByOption('Today');
     }
 
     final dateFrom = _formatDateForApi(startDate.value);
@@ -239,6 +252,10 @@ class OrderScreenController extends GetxController {
   }
 
   Future<void> onRefresh() async {
+    final currentOption = selectedMonth.value;
+    if (currentOption != 'Custom Date') {
+      _updateDatesByOption(currentOption);
+    }
     currentPage = 1;
     await fetchAllOrders();
   }
@@ -304,18 +321,49 @@ class OrderScreenController extends GetxController {
     }
   }
 
-  Future<bool> updateOrderStatus(String orderUuid, String status) async {
+  Future<bool> cancelOrder({
+    required String orderUuid,
+    String? additionalComment,
+  }) async {
     try {
-      final endpoint = ArgumentConstant.updateOrderStatusEndpoint.replaceAll(
-        ':order_uuid',
-        orderUuid,
+      final requestBody = <String, dynamic>{
+        if (additionalComment != null && additionalComment.isNotEmpty)
+          'comment': additionalComment,
+      };
+      final response = await networkClient.post(
+        ArgumentConstant.cancelOrderEndpoint.replaceAll(
+          ':order_uuid',
+          orderUuid,
+        ),
+        data: requestBody,
       );
-      final response = await networkClient.patch(
-        endpoint,
-        data: {'status': status},
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AppToast.showSuccess(
+          TranslationKeys.orderCancelledSuccessfully.tr,
+          title: TranslationKeys.success.tr,
+        );
+        await refreshOrderDetails(orderUuid);
+        await fetchAllOrders();
+        return true;
+      }
+      AppToast.showError(
+        TranslationKeys.failedToCancelOrder.tr,
+        title: TranslationKeys.error.tr,
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+      return false;
+    } on ApiException catch (e) {
+      AppToast.showError(
+        e.message.isNotEmpty
+            ? e.message
+            : TranslationKeys.failedToCancelOrder.tr,
+        title: TranslationKeys.error.tr,
+      );
+      return false;
     } catch (_) {
+      AppToast.showError(
+        TranslationKeys.failedToCancelOrder.tr,
+        title: TranslationKeys.error.tr,
+      );
       return false;
     }
   }
@@ -370,7 +418,7 @@ class OrderScreenController extends GetxController {
   }
 
   void _updateDatesByOption(String option) {
-    final now = DateTime.now();
+    final now = DateTimeFormatter.nowInRestaurantTimezone();
 
     switch (option) {
       case 'Today':
@@ -433,7 +481,7 @@ class OrderScreenController extends GetxController {
     MySize().init(context);
     DateTime? selectedStartDate = startDate.value;
     DateTime? selectedEndDate = endDate.value;
-    final now = DateTime.now();
+    final now = DateTimeFormatter.nowInRestaurantTimezone();
     final dateRange = now.subtract(const Duration(days: 365 * 5));
     final primaryColor = ColorConstants.primaryColor;
     final borderRadius = MySize.getHeight(20);
@@ -673,7 +721,7 @@ class OrderScreenController extends GetxController {
   }
 
   String getDisplayDate() {
-    final now = DateTime.now();
+    final now = DateTimeFormatter.nowInRestaurantTimezone();
 
     switch (selectedMonth.value) {
       case 'Today':

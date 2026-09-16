@@ -79,7 +79,8 @@ class SharpReceiptWidget extends StatelessWidget {
               ),
             ),
           _buildTablePaxInfo(order),
-          if (order?.waiter?.name != null && order!.waiter!.name!.trim().isNotEmpty)
+          if (order?.waiter?.name != null &&
+              order!.waiter!.name!.trim().isNotEmpty)
             _iconText(
               Icons.badge,
               '${TranslationKeys.waiter.tr}: ${order.waiter!.name!}',
@@ -103,7 +104,9 @@ class SharpReceiptWidget extends StatelessWidget {
           const SizedBox(height: 16),
           _divider(),
           const SizedBox(height: 12),
-          _buildFooter(order?.payments?.isNotEmpty == true ? order!.payments!.first : null),
+          _buildFooter(
+            order?.payments?.isNotEmpty == true ? order!.payments!.first : null,
+          ),
           const SizedBox(height: 30),
         ],
       ),
@@ -158,7 +161,8 @@ class SharpReceiptWidget extends StatelessWidget {
             ),
           if (order?.orderType != null) _buildOrderTypeInfo(order!.orderType!),
           _buildTablePaxInfo(order),
-          if (order?.waiter?.name != null && order!.waiter!.name!.trim().isNotEmpty)
+          if (order?.waiter?.name != null &&
+              order!.waiter!.name!.trim().isNotEmpty)
             _iconText(
               Icons.badge,
               '${TranslationKeys.waiter.tr}: ${order.waiter!.name!}',
@@ -198,7 +202,7 @@ class SharpReceiptWidget extends StatelessWidget {
   Widget _buildTseSection(ReceiptFiskaly fiskaly) {
     String formatTseDate(String? dtStr) {
       if (dtStr == null || dtStr.isEmpty) return '';
-      return DateTimeFormatter.formatDateTimeWithRestaurantTimezone(dtStr);
+      return DateTimeFormatter.formatTseDateTime(dtStr);
     }
 
     final startTime = formatTseDate(fiskaly.startUtc);
@@ -293,47 +297,63 @@ class SharpReceiptWidget extends StatelessWidget {
   // REUSABLE ITEM ROW LOGIC
   // ==========================================
   Widget _buildOrderItemRow(order_model.Items item) {
-    final modifierList = item.modifiers
-        ?.map((m) => {
-              'name': m.name ?? '',
-              'price': m.price != null
-                  ? '+${CurrencyFormatter.formatPriceFromDouble(m.price!, withSymbol: false)}'
-                  : null,
-            })
-        .toList();
+    final modifierList =
+        item.modifiers
+            ?.map(
+              (m) => {
+                'name': m.name ?? '',
+                'price':
+                    m.price != null
+                        ? '+${CurrencyFormatter.formatPriceFromDouble(m.price!, withSymbol: false)}'
+                        : null,
+              },
+            )
+            .toList();
 
     return _buildUnifiedItemRow(
       quantity: item.quantity?.toString() ?? '1',
       itemName: item.itemName ?? '',
-      basePrice: item.price,
+      basePrice: item.basePrice ?? item.price,
       amount: item.amount ?? 0.0,
       variationName: item.variationName,
       modifiers: modifierList,
       packagingCharge: item.packagingCharge,
       deposit: item.deposit,
       note: item.note,
+      discountAmount: item.discountAmount,
+      discountType: item.discountType,
+      discountValue: item.discountValue?.toDouble(),
     );
   }
 
   Widget _buildReceiptItemEntryRow(ReceiptItemEntry item) {
     final oi = item.orderItem;
-    final modifierList = oi?.displayModifiers
-        ?.map((m) => {
-              'name': m.name ?? '',
-              'price': m.price != null && m.price!.isNotEmpty ? '(+${m.price})' : null,
-            })
-        .toList();
+    final modifierList =
+        oi?.displayModifiers
+            ?.map(
+              (m) => {
+                'name': m.name ?? '',
+                'price':
+                    m.price != null && m.price!.isNotEmpty
+                        ? '(+${m.price})'
+                        : null,
+              },
+            )
+            .toList();
 
     return _buildUnifiedItemRow(
       quantity: (item.quantity ?? oi?.quantity)?.toString() ?? '1',
       itemName: oi?.displayItemName ?? '',
-      basePrice: oi?.price,
+      basePrice: oi?.basePrice ?? oi?.price,
       amount: oi?.amount ?? 0.0,
       variationName: oi?.displayVariationName,
       modifiers: modifierList,
       packagingCharge: oi?.packagingCharge,
       deposit: oi?.deposit,
       note: oi?.note,
+      discountAmount: oi?.discountAmount,
+      discountType: oi?.discountType,
+      discountValue: oi?.discountValue,
     );
   }
 
@@ -347,10 +367,14 @@ class SharpReceiptWidget extends StatelessWidget {
     double? packagingCharge,
     double? deposit,
     String? note,
+    double? discountAmount,
+    String? discountType,
+    double? discountValue,
   }) {
-    final basePriceStr = (basePrice != null && basePrice > 0)
-        ? ' (${CurrencyFormatter.formatPriceFromDouble(basePrice, withSymbol: false)})'
-        : '';
+    final basePriceStr =
+        (basePrice != null && basePrice > 0)
+            ? ' (${CurrencyFormatter.formatPriceFromDouble(basePrice, withSymbol: false)})'
+            : '';
     final displayName = '$itemName$basePriceStr';
 
     return Padding(
@@ -376,7 +400,10 @@ class SharpReceiptWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                CurrencyFormatter.formatPriceFromDouble(amount, withSymbol: false),
+                CurrencyFormatter.formatPriceFromDouble(
+                  amount,
+                  withSymbol: false,
+                ),
                 style: GoogleFonts.inter(
                   fontSize: width > 400 ? 28 : 30,
                   fontWeight: FontWeight.w400,
@@ -446,6 +473,47 @@ class SharpReceiptWidget extends StatelessWidget {
                 ),
               ),
             ),
+          if (discountAmount != null && discountAmount > 0)
+            () {
+              final dType = discountType?.toLowerCase() ?? '';
+              String discountLabel = TranslationKeys.discount.tr;
+              if (dType == 'percentage' || dType == 'percent') {
+                if (discountValue != null && discountValue > 0) {
+                  final formattedVal = (discountValue == discountValue.toInt())
+                      ? discountValue.toInt()
+                      : discountValue;
+                  discountLabel = '${TranslationKeys.discount.tr} ($formattedVal%)';
+                } else {
+                  discountLabel = '${TranslationKeys.discount.tr} (%)';
+                }
+              } else if (dType == 'fixed') {
+                discountLabel = '${TranslationKeys.discount.tr} (Fixed)';
+              }
+              return Padding(
+                padding: const EdgeInsets.only(left: 38, top: 1),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      discountLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 25,
+                        color: Colors.red[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '-${CurrencyFormatter.formatPriceFromDouble(discountAmount, withSymbol: false)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 25,
+                        color: Colors.red[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }(),
         ],
       ),
     );
@@ -471,32 +539,35 @@ class SharpReceiptWidget extends StatelessWidget {
             ),
           ),
         if (order.totals?.discountAmount != null &&
-            order.totals!.discountAmount! > 0) () {
-          final couponCode = order.couponCode;
-          final type = order.discountType?.toString().toLowerCase();
-          final value = order.discountValue;
+            order.totals!.discountAmount! > 0)
+          () {
+            final couponCode = order.couponCode;
+            final type = order.discountType?.toString().toLowerCase();
+            final value = order.discountValue;
 
-          String labelText = TranslationKeys.discount.tr;
-          if (couponCode != null && couponCode.isNotEmpty) {
-            labelText = '${TranslationKeys.discount.tr} ($couponCode)';
-          } else if (type != null && type.isNotEmpty) {
-            if (type == 'percent' || type == 'percentage') {
-              if (value != null && value > 0) {
-                final formattedVal = (value == value.toInt()) ? value.toInt() : value;
-                labelText = '${TranslationKeys.discount.tr} ($formattedVal%)';
-              } else {
-                labelText = '${TranslationKeys.discount.tr} (%)';
+            String labelText = TranslationKeys.discount.tr;
+            if (couponCode != null && couponCode.isNotEmpty) {
+              labelText = '${TranslationKeys.discount.tr} ($couponCode)';
+            } else if (type != null && type.isNotEmpty) {
+              if (type == 'percent' || type == 'percentage') {
+                if (value != null && value > 0) {
+                  final formattedVal =
+                      (value == value.toInt()) ? value.toInt() : value;
+                  labelText = '${TranslationKeys.discount.tr} ($formattedVal%)';
+                } else {
+                  labelText = '${TranslationKeys.discount.tr} (%)';
+                }
+              } else if (type == 'fixed') {
+                labelText = '${TranslationKeys.discount.tr} (Fixed)';
               }
-            } else if (type == 'fixed') {
-              labelText = '${TranslationKeys.discount.tr} (Fixed)';
             }
-          }
-          return _totalRow(
-            labelText,
-            '-${CurrencyFormatter.formatPriceFromDouble(order.totals!.discountAmount!, withSymbol: false)}',
-          );
-        }(),
-        if (data is order_model.Data && (data as order_model.Data).taxes != null)
+            return _totalRow(
+              labelText,
+              '-${CurrencyFormatter.formatPriceFromDouble(order.totals!.discountAmount!, withSymbol: false)}',
+            );
+          }(),
+        if (data is order_model.Data &&
+            (data as order_model.Data).taxes != null)
           for (var tax in (data as order_model.Data).taxes!)
             if (tax.amount != null && tax.amount! > 0)
               _totalRow(
@@ -510,12 +581,30 @@ class SharpReceiptWidget extends StatelessWidget {
           for (var charge in order.charges!)
             if (charge.amount != null && charge.amount! > 0)
               _totalRow(
-                charge.chargeName ?? 'Charge',
+                charge.chargeName ?? TranslationKeys.charge.tr,
                 CurrencyFormatter.formatPriceFromDouble(
                   charge.amount!,
                   withSymbol: false,
                 ),
               ),
+        if (order.totals?.totalPackagingCharge != null &&
+            order.totals!.totalPackagingCharge! > 0)
+          _totalRow(
+            TranslationKeys.packagingCharge.tr,
+            CurrencyFormatter.formatPriceFromDouble(
+              order.totals!.totalPackagingCharge!,
+              withSymbol: false,
+            ),
+          ),
+        if (order.totals?.totalDepositAmount != null &&
+            order.totals!.totalDepositAmount! > 0)
+          _totalRow(
+            TranslationKeys.itemDeposit.tr,
+            CurrencyFormatter.formatPriceFromDouble(
+              order.totals!.totalDepositAmount!,
+              withSymbol: false,
+            ),
+          ),
         if (order.orderType?.toLowerCase() == 'delivery' &&
             order.totals?.deliveryFee != null &&
             order.totals!.deliveryFee! >= 0)
@@ -524,9 +613,9 @@ class SharpReceiptWidget extends StatelessWidget {
             order.totals!.deliveryFee! == 0
                 ? TranslationKeys.free.tr
                 : CurrencyFormatter.formatPriceFromDouble(
-                    order.totals!.deliveryFee!,
-                    withSymbol: false,
-                  ),
+                  order.totals!.deliveryFee!,
+                  withSymbol: false,
+                ),
           ),
         if (order.totals?.tipAmount != null && order.totals!.tipAmount! > 0)
           _totalRow(
@@ -544,9 +633,10 @@ class SharpReceiptWidget extends StatelessWidget {
           final voucherAmount = voucherPayment?.voucherAmount;
           final voucherCode = voucherPayment?.voucherCode;
           if (voucherAmount != null && voucherAmount > 0) {
-            final label = (voucherCode != null && voucherCode.isNotEmpty)
-                ? '${TranslationKeys.voucher.tr} ($voucherCode):'
-                : '${TranslationKeys.voucher.tr}:';
+            final label =
+                (voucherCode != null && voucherCode.isNotEmpty)
+                    ? '${TranslationKeys.voucher.tr} ($voucherCode):'
+                    : '${TranslationKeys.voucher.tr}:';
             return _totalRow(
               label,
               '-${CurrencyFormatter.formatPriceFromDouble(voucherAmount, withSymbol: false)}',
@@ -589,29 +679,55 @@ class SharpReceiptWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildReceiptTotals(ReceiptSummary? summary, ReceiptPayment? payment) {
-    final double totalVal = summary?.amountTotal ?? summary?.total ?? 0;
+  Widget _buildReceiptTotals(
+    ReceiptSummary? summary,
+    ReceiptPayment? payment,
+  ) {
+    final double totalVal =
+        summary?.amountTotal ?? summary?.total ?? payment?.amountTotal ?? 0;
+    final subTotalVal = summary?.subTotal;
 
     return Column(
       children: [
-        if (summary?.subTotal != null)
+        if (subTotalVal != null)
           _totalRow(
             TranslationKeys.subTotal.tr,
             CurrencyFormatter.formatPriceFromDouble(
-              summary!.subTotal!,
+              subTotalVal,
               withSymbol: false,
             ),
           ),
-        if (summary?.discount != null && summary!.discount! > 0)
-          _totalRow(
-            TranslationKeys.discount.tr,
-            '-${CurrencyFormatter.formatPriceFromDouble(summary.discount!, withSymbol: false)}',
-          ),
+        () {
+          final discountVal = summary?.discount ?? payment?.discountAmount;
+          if (discountVal == null || discountVal <= 0) {
+            return const SizedBox.shrink();
+          }
+          final type =
+              (summary?.discountType ?? payment?.discountType)?.toLowerCase();
+          final val = summary?.discountValue ?? payment?.discountValue;
+          String labelText = TranslationKeys.discount.tr;
+          if (type != null && type.isNotEmpty) {
+            if (type == 'percent' || type == 'percentage') {
+              if (val != null && val > 0) {
+                final formattedVal = (val == val.toInt()) ? val.toInt() : val;
+                labelText = '${TranslationKeys.discount.tr} ($formattedVal%)';
+              } else {
+                labelText = '${TranslationKeys.discount.tr} (%)';
+              }
+            } else if (type == 'fixed') {
+              labelText = '${TranslationKeys.discount.tr} (Fixed)';
+            }
+          }
+          return _totalRow(
+            labelText,
+            '-${CurrencyFormatter.formatPriceFromDouble(discountVal, withSymbol: false)}',
+          );
+        }(),
         if (summary?.taxes != null)
           for (var tax in summary!.taxes!)
             if (tax.amount != null && tax.amount! > 0)
               _totalRow(
-                '${tax.name ?? 'Tax'}${tax.percent != null && tax.percent!.isNotEmpty ? ' (${tax.percent}%)' : ''} ${tax.isInclusive == true ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}',
+                '${tax.name ?? TranslationKeys.tax.tr}${tax.percent != null && tax.percent!.isNotEmpty ? ' (${tax.percent}%)' : ''} ${tax.isInclusive == true ? TranslationKeys.inc.tr : TranslationKeys.exc.tr}',
                 CurrencyFormatter.formatPriceFromDouble(
                   tax.amount!,
                   withSymbol: false,
@@ -621,21 +737,39 @@ class SharpReceiptWidget extends StatelessWidget {
           for (var charge in summary!.extraCharges!)
             if (charge.amount != null && charge.amount! > 0)
               _totalRow(
-                charge.name ?? 'Charge',
+                charge.name ?? TranslationKeys.charge.tr,
                 CurrencyFormatter.formatPriceFromDouble(
                   charge.amount!,
                   withSymbol: false,
                 ),
               ),
+        if (summary?.totalPackagingCharge != null &&
+            summary!.totalPackagingCharge! > 0)
+          _totalRow(
+            TranslationKeys.packagingCharge.tr,
+            CurrencyFormatter.formatPriceFromDouble(
+              summary.totalPackagingCharge!,
+              withSymbol: false,
+            ),
+          ),
+        if (summary?.totalDepositAmount != null &&
+            summary!.totalDepositAmount! > 0)
+          _totalRow(
+            TranslationKeys.itemDeposit.tr,
+            CurrencyFormatter.formatPriceFromDouble(
+              summary.totalDepositAmount!,
+              withSymbol: false,
+            ),
+          ),
         if (summary?.deliveryFee != null && summary!.deliveryFee! >= 0)
           _totalRow(
             TranslationKeys.deliveryCharge.tr,
             summary.deliveryFee! == 0
                 ? TranslationKeys.free.tr
                 : CurrencyFormatter.formatPriceFromDouble(
-                    summary.deliveryFee!,
-                    withSymbol: false,
-                  ),
+                  summary.deliveryFee!,
+                  withSymbol: false,
+                ),
           ),
         if (summary?.tip != null && summary!.tip! > 0)
           _totalRow(
@@ -686,9 +820,13 @@ class SharpReceiptWidget extends StatelessWidget {
         children: [
           SizedBox(
             width: 35,
-            child: icon is IconData
-                ? Icon(icon, size: 28, color: Colors.black)
-                : Text(icon.toString(), style: const TextStyle(fontSize: 26)),
+            child:
+                icon is IconData
+                    ? Icon(icon, size: 28, color: Colors.black)
+                    : Text(
+                      icon.toString(),
+                      style: const TextStyle(fontSize: 26),
+                    ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -712,7 +850,10 @@ class SharpReceiptWidget extends StatelessWidget {
     if (dateTime == null || dateTime.isEmpty) return const SizedBox.shrink();
     final label = getTimeLabel(orderType?.toLowerCase() ?? '');
     if (label == null) return const SizedBox.shrink();
-    return _labelText('$label:', DateTimeFormatter.formatDateTime(dateTime));
+    return _labelText(
+      '$label:',
+      DateTimeFormatter.formatDateTime(dateTime),
+    );
   }
 
   /// Displays a label+value row without any icon (used for time fields).
@@ -817,7 +958,11 @@ class SharpReceiptWidget extends StatelessWidget {
   String? _receiptCustomerName(dynamic customer) {
     if (customer == null) return null;
     if (customer is Map) return customer['name']?.toString();
-    try { return customer.name?.toString(); } catch (_) { return null; }
+    try {
+      return customer.name?.toString();
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Extract and format phone from dynamic/Map customer (ReceiptOrder)
@@ -826,11 +971,11 @@ class SharpReceiptWidget extends StatelessWidget {
     String? code, num;
     if (customer is Map) {
       code = customer['phone_code']?.toString();
-      num  = customer['phone_number']?.toString();
+      num = customer['phone_number']?.toString();
     } else {
       try {
         code = customer.phoneCode?.toString();
-        num  = customer.phoneNumber?.toString();
+        num = customer.phoneNumber?.toString();
       } catch (_) {}
     }
     return _formatPhone(code, num);
@@ -885,7 +1030,10 @@ class SharpReceiptWidget extends StatelessWidget {
     } else if (hasTable) {
       return _iconText(Icons.restaurant, tableCode);
     } else if (hasPax) {
-      return _iconText(Icons.restaurant, '${TranslationKeys.cover.tr}: $numPax');
+      return _iconText(
+        Icons.restaurant,
+        '${TranslationKeys.cover.tr}: $numPax',
+      );
     }
     return const SizedBox.shrink();
   }

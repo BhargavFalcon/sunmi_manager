@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,9 +8,11 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
+import 'app/constants/api_constants.dart';
 import 'app/data/pusher_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/services/app_lock_service.dart';
+import 'app/services/background_service.dart';
 import 'app/services/printer_service.dart';
 import 'app/services/network_connectivity_service.dart';
 import 'app/utils/locale_string.dart';
@@ -22,6 +25,17 @@ void main() async {
   tz.initializeTimeZones();
   WakelockPlus.enable();
   await GetStorage.init();
+
+  // Initialize Background Service
+  try {
+    box.write(ArgumentConstant.isAppForegroundKey, true);
+    await BackgroundServiceManager.initializeService();
+    WidgetsBinding.instance.addObserver(AppLifecycleObserver());
+    // Mark as foreground on startup
+    FlutterBackgroundService().invoke('setAppForeground', {
+      'isForeground': true,
+    });
+  } catch (_) {}
 
   Get.put(PrinterService(), permanent: true);
   Get.put(NetworkConnectivityService(), permanent: true);
@@ -71,6 +85,25 @@ void _setDeviceOrientation() {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+  }
+}
+
+class AppLifecycleObserver extends WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    try {
+      final service = FlutterBackgroundService();
+      if (state == AppLifecycleState.resumed) {
+        box.write(ArgumentConstant.isAppForegroundKey, true);
+        service.invoke('setAppForeground', {'isForeground': true});
+        WakelockPlus.enable();
+      } else if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.detached ||
+          state == AppLifecycleState.inactive) {
+        box.write(ArgumentConstant.isAppForegroundKey, false);
+        service.invoke('setAppForeground', {'isForeground': false});
+      }
+    } catch (_) {}
   }
 }
 
