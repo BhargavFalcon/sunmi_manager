@@ -50,6 +50,46 @@ class KitchenTicket {
         json['order'] != null
             ? KitchenTicketOrder.fromJson(json['order'])
             : null;
+    if (order == null && (json['order_id'] != null || json['order_uuid'] != null)) {
+      order = KitchenTicketOrder(
+        id: json['order_id'] is int
+            ? json['order_id']
+            : int.tryParse(json['order_id']?.toString() ?? ''),
+        uuid: json['order_uuid']?.toString(),
+      );
+    } else if (order != null) {
+      if (order!.uuid == null && json['order_uuid'] != null) {
+        order!.uuid = json['order_uuid']?.toString();
+      }
+      if (order!.id == null && json['order_id'] != null) {
+        order!.id = json['order_id'] is int
+            ? json['order_id']
+            : int.tryParse(json['order_id']?.toString() ?? '');
+      }
+    }
+  }
+
+  void syncOrderDetails(dynamic orderData) {
+    if (orderData == null) return;
+    dynamic ord;
+    try {
+      ord = orderData.order;
+    } catch (_) {}
+    if (ord == null) return;
+    order ??= KitchenTicketOrder();
+    order!.uuid ??= ord.uuid?.toString();
+    order!.orderNumber ??=
+        ord.orderNumber?.toString() ?? ord.formattedOrderNumber?.toString();
+    order!.formattedOrderNumber ??= ord.formattedOrderNumber?.toString();
+    if (order!.createdAt == null || order!.createdAt!.trim().isEmpty) {
+      order!.createdAt = ord.createdAt?.toString();
+    }
+    if (order!.dateTime == null || order!.dateTime!.trim().isEmpty) {
+      order!.dateTime = ord.dateTime?.toString();
+    }
+    if (order!.orderType == null || order!.orderType!.trim().isEmpty) {
+      order!.orderType = ord.orderType?.toString();
+    }
   }
 }
 
@@ -99,6 +139,7 @@ class KitchenTicketModifier {
 
 class KitchenTicketOrder {
   int? id;
+  String? uuid;
   String? orderNumber;
   String? formattedOrderNumber;
   String? orderType;
@@ -110,6 +151,7 @@ class KitchenTicketOrder {
 
   KitchenTicketOrder({
     this.id,
+    this.uuid,
     this.orderNumber,
     this.formattedOrderNumber,
     this.orderType,
@@ -122,6 +164,7 @@ class KitchenTicketOrder {
 
   KitchenTicketOrder.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+    uuid = json['uuid']?.toString();
     orderNumber = json['order_number']?.toString();
     formattedOrderNumber = json['formatted_order_number']?.toString();
     orderType = json['order_type'];

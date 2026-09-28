@@ -14,6 +14,7 @@ import 'package:dio/dio.dart';
 import 'package:managerapp/app/constants/api_constants.dart';
 import 'package:managerapp/app/services/printer_service.dart';
 import 'package:managerapp/app/services/sunmi_invoice_printer_service.dart';
+import 'package:managerapp/app/utils/date_time_formatter.dart';
 import 'package:managerapp/app/model/get_order_model.dart' as order_model;
 import 'package:managerapp/app/model/kitchen_ticket_model.dart';
 import 'package:managerapp/app/model/login_models.dart';
@@ -207,6 +208,13 @@ void onStart(ServiceInstance service) async {
         ),
       );
 
+      try {
+        final ackEndpoint = ArgumentConstant
+            .acknowledgeOrderNotificationEndpoint
+            .replaceAll(':order_uuid', orderUuid);
+        dio.patch(ackEndpoint).ignore();
+      } catch (_) {}
+
       final endpoint = ArgumentConstant.getOrderEndpoint.replaceAll(
         ':order_uuid',
         orderUuid,
@@ -234,6 +242,8 @@ void onStart(ServiceInstance service) async {
 
             final autoPrint =
                 box.read(ArgumentConstant.autoPrintReceiptKey) ?? true;
+            final autoPrintKot =
+                box.read(ArgumentConstant.autoPrintKitchenKey) ?? true;
             final rawCopies =
                 box.read(ArgumentConstant.receiptPrintCopiesKey) ?? 1;
             final int copies = rawCopies is int
@@ -243,6 +253,10 @@ void onStart(ServiceInstance service) async {
                 await printerService.checkPrinterConnectivity();
 
             if (isConnected && autoPrint) {
+              if (autoPrintKot) {
+                await Future.delayed(const Duration(seconds: 2));
+              }
+
               final completer = Completer<void>();
               final prev = bgPrintingLock;
               bgPrintingLock = completer.future;
@@ -295,9 +309,13 @@ void onStart(ServiceInstance service) async {
 
       final kotId = (decoded['kot_id'] ?? decoded['kot']?['id']) as dynamic;
       if (kotId == null) return;
-      final int? kotIdInt =
+      final kotIdInt =
           kotId is int ? kotId : int.tryParse(kotId.toString());
       if (kotIdInt == null) return;
+
+      final kotEnabled =
+          box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+      if (!kotEnabled) return;
 
       if (processedKotIds.contains(kotIdInt)) return;
       processedKotIds.add(kotIdInt);
@@ -385,6 +403,42 @@ void onStart(ServiceInstance service) async {
         );
       }
 
+      final orderUuid = kotData.order?.uuid ??
+          (kotData.order?.id != null ? kotData.order!.id.toString() : null);
+
+      order_model.Data? orderDetails;
+      if (orderUuid != null &&
+          orderUuid.isNotEmpty &&
+          (kotData.order?.createdAt == null ||
+              kotData.order?.dateTime == null)) {
+        try {
+          final dio = Dio(
+            BaseOptions(
+              baseUrl: ArgumentConstant.baseUrl,
+              connectTimeout: const Duration(seconds: 15),
+              receiveTimeout: const Duration(seconds: 15),
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+            ),
+          );
+          final res = await dio.get(
+            ArgumentConstant.getOrderEndpoint.replaceAll(':order_uuid', orderUuid),
+          );
+          if (res.statusCode == 200 || res.statusCode == 201) {
+            if (res.data is Map<String, dynamic>) {
+              orderDetails = order_model.GetOrderModel.fromJson(res.data).data;
+              kotData.syncOrderDetails(orderDetails);
+            }
+          }
+        } catch (_) {}
+      }
+
+      final timezone = orderDetails?.restaurant?.timezone ??
+          DateTimeFormatter.restaurantTimezoneNameFromStorage();
+
       final printerService = Get.find<PrinterService>();
       final isConnected = await printerService.checkPrinterConnectivity();
       if (isConnected) {
@@ -395,7 +449,11 @@ void onStart(ServiceInstance service) async {
 
         try {
           final sunmiService = SunmiInvoicePrinterService();
-          await sunmiService.printKOT(kotData, copies: copies);
+          await sunmiService.printKOT(
+            kotData,
+            copies: copies,
+            timezone: timezone,
+          );
         } finally {
           completer.complete();
         }
@@ -427,14 +485,18 @@ void onStart(ServiceInstance service) async {
           }),
         );
 
-        // Subscribe to all KOT channels
-        for (final kotChannel in kotChannels) {
-          socket?.add(
-            jsonEncode({
-              "event": "pusher:subscribe",
-              "data": {"channel": kotChannel},
-            }),
-          );
+        // Subscribe to all KOT channels if enabled
+        final kotEnabled =
+            box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+        if (kotEnabled) {
+          for (final kotChannel in kotChannels) {
+            socket?.add(
+              jsonEncode({
+                "event": "pusher:subscribe",
+                "data": {"channel": kotChannel},
+              }),
+            );
+          }
         }
 
         pingTimer?.cancel();

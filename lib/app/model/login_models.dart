@@ -130,6 +130,12 @@ class User {
     }
     return data;
   }
+
+  bool get isAdmin {
+    final roleName = role?.name?.toLowerCase() ?? '';
+    final roleDisplayName = role?.displayName?.toLowerCase() ?? '';
+    return roleName.contains('admin') || roleDisplayName.contains('admin');
+  }
 }
 
 class Role {

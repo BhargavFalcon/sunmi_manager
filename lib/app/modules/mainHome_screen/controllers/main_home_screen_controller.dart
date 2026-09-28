@@ -5,6 +5,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../../data/pusher_service.dart';
 import '../../../data/NetworkClient.dart';
 import '../../order_screen/controllers/order_screen_controller.dart';
+import '../../setting_screen/controllers/setting_screen_controller.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../model/login_models.dart';
@@ -89,24 +90,15 @@ class MainHomeScreenController extends GetxController {
   }
 
   void changeTab(int index) {
-    _performTabChange(index);
-  }
-
-  void _performTabChange(int index) {
-    selectedIndex.value = index;
-    pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 1),
-      curve: Curves.easeInOut,
-    );
-
-    // Refresh data when switching to All Orders (index 0)
-    if (index == 0) {
-      try {
-        if (Get.isRegistered<OrderScreenController>()) {
-          Get.find<OrderScreenController>().fetchAllOrders();
-        }
-      } catch (_) {}
+    if (selectedIndex.value != index) {
+      selectedIndex.value = index;
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 1),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _refreshTabContent(index);
     }
   }
 
@@ -116,15 +108,17 @@ class MainHomeScreenController extends GetxController {
 
   void onPageChanged(int index) {
     selectedIndex.value = index;
+    _refreshTabContent(index);
+  }
 
-    if (index == 0) {
-      try {
-        if (Get.isRegistered<OrderScreenController>()) {
-          final orderController = Get.find<OrderScreenController>();
-          orderController.fetchAllOrders();
-        }
-      } catch (_) {}
-    }
+  void _refreshTabContent(int index) {
+    try {
+      if (index == 0 && Get.isRegistered<OrderScreenController>()) {
+        Get.find<OrderScreenController>().fetchAllOrders();
+      } else if (index == 1 && Get.isRegistered<SettingScreenController>()) {
+        Get.find<SettingScreenController>().fetchAndRefreshBranchDetails();
+      }
+    } catch (_) {}
   }
 
   Future<void> _fetchMobileAppModules() async {

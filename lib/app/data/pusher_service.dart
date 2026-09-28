@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import '../model/get_order_model.dart' as order_model;
 import '../model/kitchen_monitor_model.dart';
 import '../model/kitchen_ticket_model.dart';
 import '../services/sunmi_invoice_printer_service.dart';
+import '../utils/date_time_formatter.dart';
 import '../services/printer_service.dart';
 import '../modules/order_screen/controllers/order_screen_controller.dart';
 import '../modules/order_screen/views/order_screen_view.dart';
@@ -64,16 +64,7 @@ class PusherService with WidgetsBindingObserver {
         state == AppLifecycleState.detached;
   }
 
-  Future<void> subscribeToOrders(int? branchId) async {
-    if (branchId == null) return;
-    if (_currentBranchId == branchId && _socket != null && _isConnected) {
-      return;
-    }
-
-    final orderChannel =
-        "new-order-created.$branchId.${ArgumentConstant.envSuffix}";
-
-    // Fetch Kitchen Monitors to get their channels
+  Future<void> _fetchKitchenMonitors(int branchId) async {
     try {
       final res = await networkClient.get(
         ArgumentConstant.kitchenMonitorsEndpoint,
@@ -84,6 +75,27 @@ class PusherService with WidgetsBindingObserver {
             kitchenMonitorChannelNames(branchId, monitors).toSet();
       }
     } catch (_) {}
+  }
+
+  Future<void> subscribeToOrders(int? branchId) async {
+    if (branchId == null) return;
+    if (_currentBranchId == branchId && _socket != null && _isConnected) {
+      final kotEnabled =
+          box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+      if (kotEnabled) {
+        for (final c in _cachedMonitorChannels) {
+          subscribeChannel(c);
+        }
+      } else {
+        unsubscribeKotCreatedChannels();
+      }
+      return;
+    }
+
+    final orderChannel =
+        "new-order-created.$branchId.${ArgumentConstant.envSuffix}";
+
+    await _fetchKitchenMonitors(branchId);
 
     try {
       _shouldReconnect = true;
@@ -138,6 +150,7 @@ class PusherService with WidgetsBindingObserver {
   Future<void> disconnect() async {
     _shouldReconnect = false;
     _currentBranchId = null;
+    _cachedMonitorChannels.clear();
     _isConnected = false;
     _pingTimer?.cancel();
     _pingTimer = null;
@@ -172,6 +185,61 @@ class PusherService with WidgetsBindingObserver {
     } catch (_) {}
   }
 
+  void subscribeChannel(String channel) {
+    if (_socket != null && _isConnected && channel.isNotEmpty) {
+      _socket?.add(
+        jsonEncode({
+          "event": "pusher:subscribe",
+          "data": {"channel": channel},
+        }),
+      );
+      debugPrint("📡 [PUSHER] Subscribe: $channel");
+    }
+  }
+
+  void unsubscribeChannel(String channel) {
+    if (_socket != null && _isConnected && channel.isNotEmpty) {
+      _socket?.add(
+        jsonEncode({
+          "event": "pusher:unsubscribe",
+          "data": {"channel": channel},
+        }),
+      );
+      debugPrint("🔕 [PUSHER] Unsubscribe: $channel");
+    }
+  }
+
+  Future<void> subscribeKotCreatedChannels() async {
+    final branchId = _currentBranchId ?? _getSavedBranchId();
+    if (_cachedMonitorChannels.isEmpty && branchId != null) {
+      await _fetchKitchenMonitors(branchId);
+    }
+    if (_socket != null && _isConnected) {
+      for (final ch in _cachedMonitorChannels) {
+        subscribeChannel(ch);
+      }
+    } else if (branchId != null) {
+      await subscribeToOrders(branchId);
+    }
+  }
+
+  void unsubscribeKotCreatedChannels() {
+    for (final ch in _cachedMonitorChannels) {
+      unsubscribeChannel(ch);
+    }
+  }
+
+  int? _getSavedBranchId() {
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final loginModel = LoginModel.fromJson(loginModelData);
+        return loginModel.data?.user?.branchId;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   void _handleWebSocketMessage(
     dynamic message,
     String orderChannel,
@@ -184,8 +252,10 @@ class PusherService with WidgetsBindingObserver {
 
       if (event == 'pusher:connection_established') {
         _isConnected = true;
+        debugPrint("🟢 [PUSHER] Connection Established");
 
         // 1) Subscribe to Orders Channel
+        debugPrint("📡 [PUSHER] Subscribing: $orderChannel");
         _socket?.add(
           jsonEncode({
             "event": "pusher:subscribe",
@@ -193,14 +263,21 @@ class PusherService with WidgetsBindingObserver {
           }),
         );
 
-        // 2) Subscribe to Kitchen Monitor Channels
-        for (final c in _cachedMonitorChannels) {
-          _socket?.add(
-            jsonEncode({
-              "event": "pusher:subscribe",
-              "data": {"channel": c},
-            }),
-          );
+        // 2) Subscribe to Kitchen Monitor Channels if enabled
+        final kotEnabled =
+            box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+        if (kotEnabled) {
+          for (final c in _cachedMonitorChannels) {
+            debugPrint("📡 [PUSHER] Subscribing KOT: $c");
+            _socket?.add(
+              jsonEncode({
+                "event": "pusher:subscribe",
+                "data": {"channel": c},
+              }),
+            );
+          }
+        } else {
+          debugPrint("⏸️ [PUSHER] KOT channels disabled in Settings");
         }
 
         _pingTimer?.cancel();
@@ -211,17 +288,45 @@ class PusherService with WidgetsBindingObserver {
         });
       } else if (event == 'pusher:ping') {
         _socket?.add(jsonEncode({"event": "pusher:pong", "data": {}}));
+      } else if (event == 'pusher:pong') {
+        // Heartbeat response from server
       } else if (event == 'pusher_internal:subscription_succeeded') {
+        debugPrint("✅ [PUSHER] Subscribed successfully to channel: $channel");
       } else if (event == 'pusher:error') {
+        debugPrint("❌ [PUSHER] Error: $dataStr");
       } else {
         // This is where actual data events land
         if (dataStr != null) {
+          String formattedJson = '';
+          try {
+            dynamic parsedData = dataStr;
+            if (dataStr is String) {
+              parsedData = jsonDecode(dataStr);
+            }
+            const encoder = JsonEncoder.withIndent('  ');
+            formattedJson = encoder.convert(parsedData);
+          } catch (_) {
+            formattedJson = dataStr.toString();
+          }
+
+          debugPrint(
+            "\n================== 🔔 [PUSHER EVENT RECEIVED] ==================",
+          );
+          debugPrint("📡 Channel : $channel");
+          debugPrint("⚡ Event   : $event");
+          debugPrint("📦 Full JSON Data:\n$formattedJson");
+          debugPrint(
+            "=================================================================\n",
+          );
+
           if (channel == orderChannel) {
-            log('[Pusher] Event: New Order | Data: $dataStr');
             await _handleOrderEvent(dataStr);
           } else if (channel != null && _cachedMonitorChannels.contains(channel)) {
-            log('[Pusher] Event: KOT Created | Data: $dataStr');
-            await _handleKotCreatedEvent(dataStr);
+            final kotEnabled =
+                box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+            if (kotEnabled) {
+              await _handleKotCreatedEvent(dataStr);
+            }
           }
         }
       }
@@ -231,6 +336,10 @@ class PusherService with WidgetsBindingObserver {
   }
 
   Future<void> _handleKotCreatedEvent(dynamic eventData) async {
+    final kotEnabled =
+        box.read(ArgumentConstant.kitchenTicketGenerationKey) ?? true;
+    if (!kotEnabled) return;
+
     int? newKotId;
     KitchenTicket? pusherKot;
 
@@ -282,10 +391,28 @@ class PusherService with WidgetsBindingObserver {
         return;
       }
 
+      final orderUuid = kotData.order?.uuid ??
+          (kotData.order?.id != null ? kotData.order!.id.toString() : null);
+
+      order_model.Data? orderDetails;
+      if (orderUuid != null &&
+          orderUuid.isNotEmpty &&
+          (kotData.order?.createdAt == null ||
+              kotData.order?.dateTime == null)) {
+        orderDetails = await _fetchOrderOnly(orderUuid);
+        kotData.syncOrderDetails(orderDetails);
+      }
+
       final copies = printerService.kitchenCopies.value;
       final isConnected = await printerService.checkPrinterConnectivity();
       if (isConnected) {
-        await _sunmiService.printKOT(kotData, copies: copies);
+        final timezone = orderDetails?.restaurant?.timezone ??
+            DateTimeFormatter.restaurantTimezoneNameFromStorage();
+        await _sunmiService.printKOT(
+          kotData,
+          copies: copies,
+          timezone: timezone,
+        );
         showPrintToast(TranslationKeys.printSuccessful.tr);
         _processedKotIds.add(kotId);
       }
@@ -347,28 +474,24 @@ class PusherService with WidgetsBindingObserver {
 
       final orderNumber =
           orderData?.order?.orderNumber?.toString() ?? _extractOrderNumber(order);
-      final notificationsEnabled =
-          box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
+      NewOrderDialog.show(
+        orderNumber: orderNumber,
+        orderUuid: orderUuid,
+        onViewOrder: () async {
+          final context = Get.context;
+          if (context == null || !context.mounted) return;
 
-      if (notificationsEnabled) {
-        NewOrderDialog.show(
-          orderNumber: orderNumber,
-          onViewOrder: () async {
-            final context = Get.context;
-            if (context == null || !context.mounted) return;
+          final controller = Get.isRegistered<OrderScreenController>()
+              ? Get.find<OrderScreenController>()
+              : Get.put(OrderScreenController());
 
-            final controller = Get.isRegistered<OrderScreenController>()
-                ? Get.find<OrderScreenController>()
-                : Get.put(OrderScreenController());
-
-            await OrderScreenView.showOrderBottomSheetByUuid(
-              context,
-              controller,
-              orderUuid,
-            );
-          },
-        );
-      }
+          await OrderScreenView.showOrderBottomSheetByUuid(
+            context,
+            controller,
+            orderUuid,
+          );
+        },
+      );
 
       if (orderData != null) {
         await _printInvoiceData(orderData, orderUuid);
@@ -473,9 +596,7 @@ class PusherService with WidgetsBindingObserver {
       final loginModelData = box.read(ArgumentConstant.loginModelKey);
       if (loginModelData is Map<String, dynamic>) {
         final user = LoginModel.fromJson(loginModelData).data?.user;
-        final roleName = user?.role?.name?.toLowerCase() ?? '';
-        final displayName = user?.role?.displayName?.toLowerCase() ?? '';
-        return roleName.contains('admin') || displayName.contains('admin');
+        return user?.isAdmin ?? false;
       }
     } catch (_) {}
     return false;

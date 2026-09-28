@@ -88,7 +88,6 @@ class TranslationKeys {
   static const String syncMenu = 'syncMenu';
   static const String language = 'language';
   static const String hapticFeedback = 'hapticFeedback';
-  static const String beepSound = 'beepSound';
   static const String newShopOrderNotifications = 'newShopOrderNotifications';
   static const String printerSettings = 'printerSettings';
   static const String logout = 'logout';

@@ -1,9 +1,29 @@
+import 'dart:convert';
 import '../../main.dart';
 import '../constants/api_constants.dart';
 import '../model/login_models.dart';
 import '../model/restaurant_details_model.dart';
 
 class BranchUtils {
+  /// Checks if current logged in user is admin.
+  static bool isCurrentUserAdmin() {
+    try {
+      final loginData = box.read(ArgumentConstant.loginModelKey);
+      if (loginData == null) return false;
+      Map<String, dynamic>? data;
+      if (loginData is String) {
+        data = json.decode(loginData) as Map<String, dynamic>;
+      } else if (loginData is Map) {
+        data = Map<String, dynamic>.from(loginData);
+      }
+      if (data == null) return false;
+      final loginModel = LoginModel.fromJson(data);
+      return loginModel.data?.user?.isAdmin ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Gets the branch ID from storage login data.
   static int? getBranchIdFromStorage() {
     try {

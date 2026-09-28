@@ -1961,6 +1961,8 @@ class OrderScreenView extends GetView<OrderScreenController> {
           orderType: ord.orderType,
           table: tableMap,
           note: ord.note,
+          dateTime: ord.dateTime,
+          createdAt: ord.createdAt,
         ),
         items: ord.items?.map((it) {
           return KitchenTicketItem(

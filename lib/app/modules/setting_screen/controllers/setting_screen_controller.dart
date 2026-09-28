@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../main.dart';
 import '../../../constants/api_constants.dart';
 import '../../../widgets/app_toast.dart';
@@ -16,18 +17,22 @@ import '../../../services/app_lock_service.dart';
 import '../../../services/printer_service.dart';
 import '../../../model/daily_sales_summary_model.dart';
 import '../../../services/network_connectivity_service.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import '../../../utils/branch_utils.dart';
 
 class SettingScreenController extends GetxController {
   final networkClient = NetworkClient();
   final isLoading = false.obs;
   final hapticFeedbackEnabled = true.obs;
-  final beepSoundEnabled = true.obs;
   final selectedLanguage = 'en'.obs;
   final branchName = ''.obs;
   final branchLogo = ''.obs;
   final themeHex = ''.obs;
-  final newShopOrderNotificationsEnabled = true.obs;
+  final kitchenTicketGenerationEnabled = true.obs;
   final isShopSettingsExpanded = false.obs;
+  final appVersion = '4.0.0'.obs;
+  final appBuildNumber = '12'.obs;
+  final isAdmin = false.obs;
 
   // Shop Settings Fields
   final isShopSettingsLoading = false.obs;
@@ -60,22 +65,45 @@ class SettingScreenController extends GetxController {
   // Currency settings
   final decimalSeparator = ".".obs;
 
+  bool _isFetchingBranchDetails = false;
+
   @override
   void onInit() {
     super.onInit();
     _loadSettings();
-    _fetchShopSettings();
+    _loadRestaurantDetailsFromStorage();
+    fetchAndRefreshBranchDetails();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (packageInfo.version.isNotEmpty) {
+        appVersion.value = packageInfo.version;
+      }
+      if (packageInfo.buildNumber.isNotEmpty) {
+        appBuildNumber.value = packageInfo.buildNumber;
+      }
+    } catch (e) {
+      debugPrint('Error loading app version: $e');
+    }
   }
 
   void _loadSettings() {
     hapticFeedbackEnabled.value =
         box.read(ArgumentConstant.hapticFeedbackKey) ?? true;
-    beepSoundEnabled.value = box.read(ArgumentConstant.beepSoundKey) ?? true;
     selectedLanguage.value = LanguageUtils.getLanguage();
-    newShopOrderNotificationsEnabled.value =
-        box.read(ArgumentConstant.newShopOrderNotificationsKey) ?? true;
+    final savedKitchenTicket =
+        box.read(ArgumentConstant.kitchenTicketGenerationKey);
+    kitchenTicketGenerationEnabled.value =
+        savedKitchenTicket != null ? (savedKitchenTicket as bool) : true;
     decimalSeparator.value = CurrencyFormatter.getDecimalSeparator();
+    isAdmin.value = BranchUtils.isCurrentUserAdmin();
+    _loadAppVersion();
+  }
 
+  void _loadRestaurantDetailsFromStorage() {
+    isAdmin.value = BranchUtils.isCurrentUserAdmin();
     try {
       final loginModelData = box.read(ArgumentConstant.loginModelKey);
       final storedData = box.read(ArgumentConstant.restaurantDetailsKey);
@@ -107,6 +135,40 @@ class SettingScreenController extends GetxController {
         }
       }
     } catch (_) {}
+  }
+
+  Future<void> fetchAndRefreshBranchDetails() async {
+    if (_isFetchingBranchDetails) return;
+    _isFetchingBranchDetails = true;
+    try {
+      final loginModelData = box.read(ArgumentConstant.loginModelKey);
+      if (loginModelData != null && loginModelData is Map<String, dynamic>) {
+        final loginModel = LoginModel.fromJson(loginModelData);
+        final restaurantId = loginModel.data?.user?.restaurantId;
+        if (restaurantId != null) {
+          final endpoint = ArgumentConstant.restaurantDetailsEndpoint
+              .replaceAll(':restaurant_id', restaurantId.toString());
+          final response = await networkClient.get(endpoint);
+          if ((response.statusCode == 200 || response.statusCode == 201) &&
+              response.data != null &&
+              response.data is Map<String, dynamic>) {
+            final restaurantModel = RestaurantModel.fromJson(
+              response.data as Map<String, dynamic>,
+            );
+            box.write(
+              ArgumentConstant.restaurantDetailsKey,
+              restaurantModel.toJson(),
+            );
+            BranchUtils.saveBranchTimezone(restaurantModel);
+            _loadRestaurantDetailsFromStorage();
+          }
+        }
+      }
+      await _fetchShopSettings();
+    } catch (_) {
+    } finally {
+      _isFetchingBranchDetails = false;
+    }
   }
 
   Future<void> _fetchShopSettings() async {
@@ -219,18 +281,37 @@ class SettingScreenController extends GetxController {
     }
   }
 
-  void toggleBeepSound() {
-    beepSoundEnabled.value = !beepSoundEnabled.value;
-    box.write(ArgumentConstant.beepSoundKey, beepSoundEnabled.value);
+  Future<void> toggleKitchenTicketGeneration() async {
+    kitchenTicketGenerationEnabled.value =
+        !kitchenTicketGenerationEnabled.value;
+    await box.write(
+      ArgumentConstant.kitchenTicketGenerationKey,
+      kitchenTicketGenerationEnabled.value,
+    );
+    await box.save();
+    _syncKotChannels(kitchenTicketGenerationEnabled.value);
+    _syncBackgroundService();
   }
 
-  void toggleNewShopOrderNotifications() {
-    newShopOrderNotificationsEnabled.value =
-        !newShopOrderNotificationsEnabled.value;
-    box.write(
-      ArgumentConstant.newShopOrderNotificationsKey,
-      newShopOrderNotificationsEnabled.value,
-    );
+  void _syncKotChannels(bool enabled) {
+    try {
+      if (!Get.isRegistered<PusherService>()) return;
+      final pusher = Get.find<PusherService>();
+      if (enabled) {
+        pusher.subscribeKotCreatedChannels();
+      } else {
+        pusher.unsubscribeKotCreatedChannels();
+      }
+    } catch (_) {}
+  }
+
+  void _syncBackgroundService() async {
+    try {
+      final bgService = FlutterBackgroundService();
+      if (await bgService.isRunning()) {
+        bgService.invoke('updateConfig');
+      }
+    } catch (_) {}
   }
 
   Future<void> changeLanguage(String languageCode) async {

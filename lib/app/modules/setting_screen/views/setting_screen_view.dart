@@ -5,6 +5,7 @@ import 'package:managerapp/app/constants/color_constant.dart';
 import 'package:managerapp/app/constants/sizeConstant.dart';
 import 'package:managerapp/app/constants/translation_keys.dart';
 import 'package:managerapp/app/routes/app_pages.dart';
+import 'package:managerapp/app/constants/image_constants.dart';
 import 'package:managerapp/app/utils/language_utils.dart';
 import 'package:managerapp/app/widgets/daily_summary_dialog.dart';
 import '../controllers/setting_screen_controller.dart';
@@ -84,41 +85,43 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           ],
                         ),
                       ),
-                      SizedBox(width: MySize.getWidth(8)),
-                      GestureDetector(
-                        onTap: () => DailySummaryDialog.show(context),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MySize.getWidth(14),
-                            vertical: MySize.getHeight(10),
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor,
-                            borderRadius: BorderRadius.circular(
-                              MySize.getHeight(10),
+                      if (controller.isAdmin.value) ...[
+                        SizedBox(width: MySize.getWidth(8)),
+                        GestureDetector(
+                          onTap: () => DailySummaryDialog.show(context),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MySize.getWidth(14),
+                              vertical: MySize.getHeight(10),
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(
+                                MySize.getHeight(10),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.bar_chart_rounded,
+                                  color: Colors.white,
+                                  size: MySize.getHeight(17),
+                                ),
+                                SizedBox(width: MySize.getWidth(5)),
+                                Text(
+                                  TranslationKeys.todaySummary.tr,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: MySize.getHeight(13),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.bar_chart_rounded,
-                                color: Colors.white,
-                                size: MySize.getHeight(17),
-                              ),
-                              SizedBox(width: MySize.getWidth(5)),
-                              Text(
-                                TranslationKeys.todaySummary.tr,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: MySize.getHeight(13),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ),
+                      ],
                     ],
                   );
                 }),
@@ -231,27 +234,18 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                             onToggle: () => controller.toggleHapticFeedback(),
                           ),
                         ),
+
                         SizedBox(height: MySize.getHeight(6)),
                         Obx(
                           () => _buildToggleSettingItem(
-                            icon: Icons.volume_up,
-                            title: TranslationKeys.beepSound.tr,
-                            color: ColorConstants.primaryColor,
-                            value: controller.beepSoundEnabled.value,
-                            onToggle: () => controller.toggleBeepSound(),
-                          ),
-                        ),
-                        SizedBox(height: MySize.getHeight(6)),
-                        Obx(
-                          () => _buildToggleSettingItem(
-                            icon: Icons.notifications_active,
-                            title: TranslationKeys.newShopOrders.tr,
+                            icon: Icons.restaurant_menu,
+                            title: TranslationKeys.newKitchenTickets.tr,
                             color: ColorConstants.primaryColor,
                             value:
-                                controller.newShopOrderNotificationsEnabled.value,
+                                controller.kitchenTicketGenerationEnabled.value,
                             onToggle:
                                 () =>
-                                    controller.toggleNewShopOrderNotifications(),
+                                    controller.toggleKitchenTicketGeneration(),
                           ),
                         ),
                         SizedBox(height: MySize.getHeight(6)),
@@ -275,7 +269,9 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
                           },
                           showArrow: false,
                         ),
-                        SizedBox(height: MySize.getHeight(20)),
+                        SizedBox(height: MySize.getHeight(28)),
+                        _buildAppVersionFooter(controller),
+                        SizedBox(height: MySize.getHeight(24)),
                       ],
                     ),
                   ),
@@ -285,6 +281,75 @@ class SettingScreenView extends GetWidget<SettingScreenController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAppVersionFooter(SettingScreenController controller) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: MySize.getHeight(44),
+            height: MySize.getHeight(44),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(MySize.getHeight(10)),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 0.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: MySize.getWidth(6),
+                  offset: Offset(0, MySize.getHeight(2)),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(MySize.getHeight(7)),
+            child: Image.asset(
+              ImageConstant.bottomLogo,
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(height: MySize.getHeight(10)),
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: MySize.getHeight(13),
+                color: ColorConstants.grey9E9E9E,
+              ),
+              children: [
+                const TextSpan(text: 'Powered by '),
+                TextSpan(
+                  text: 'Dine',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: ColorConstants.grey800,
+                  ),
+                ),
+                const TextSpan(text: 'metrics'),
+              ],
+            ),
+          ),
+          SizedBox(height: MySize.getHeight(4)),
+          Obx(
+            () => Text(
+              controller.appBuildNumber.value.isNotEmpty
+                  ? 'V ${controller.appVersion.value} (${controller.appBuildNumber.value})'
+                  : 'V ${controller.appVersion.value}',
+              style: TextStyle(
+                fontSize: MySize.getHeight(11),
+                color: ColorConstants.grey9E9E9E,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

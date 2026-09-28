@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../constants/api_constants.dart';
 import '../constants/translation_keys.dart';
+import '../data/NetworkClient.dart';
 import '../utils/sound_service.dart';
 
 class NewOrderDialog {
   static bool _isDialogShowing = false;
+  static final Set<String> _acknowledgedOrders = {};
+
+  static Future<void> acknowledgeOrderNotification(String orderUuid) async {
+    if (_acknowledgedOrders.contains(orderUuid)) return;
+    _acknowledgedOrders.add(orderUuid);
+    try {
+      final endpoint = ArgumentConstant.acknowledgeOrderNotificationEndpoint
+          .replaceAll(':order_uuid', orderUuid);
+      final networkClient = NetworkClient();
+      await networkClient.patch(endpoint);
+      debugPrint('🔔 [POS] Acknowledged order notification for: $orderUuid');
+    } catch (e) {
+      debugPrint('⚠️ [POS] Failed to acknowledge order notification: $e');
+      _acknowledgedOrders.remove(orderUuid);
+    }
+  }
 
   static Future<void> show({
     required String orderNumber,
+    String? orderUuid,
     VoidCallback? onViewOrder,
   }) async {
     if (Get.context == null) return;
+
+    if (orderUuid != null && orderUuid.isNotEmpty) {
+      acknowledgeOrderNotification(orderUuid);
+    }
 
     if (_isDialogShowing) {
       Get.back();
@@ -72,72 +95,87 @@ class NewOrderDialog {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '${TranslationKeys.orderNumber.tr}$orderNumber',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black54,
-                  ),
-                  textAlign: TextAlign.center,
+                Builder(
+                  builder: (context) {
+                    final prefix = TranslationKeys.orderNumber.tr.replaceAll('#', '').trim();
+                    return Text(
+                      orderNumber.isNotEmpty ? '$prefix #$orderNumber' : '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _isDialogShowing = false;
-                          SoundService.stop();
-                          Get.back();
-                          onViewOrder?.call();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _isDialogShowing = false;
+                            SoundService.stop();
+                            Get.back();
+                            onViewOrder?.call();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          TranslationKeys.viewOrder.tr,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _isDialogShowing = false;
-                          SoundService.stop();
-                          Get.back();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          TranslationKeys.dismiss.tr,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          child: Text(
+                            TranslationKeys.viewOrder.tr,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _isDialogShowing = false;
+                            SoundService.stop();
+                            Get.back();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            TranslationKeys.dismiss.tr,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

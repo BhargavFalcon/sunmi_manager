@@ -20,6 +20,8 @@ class ArgumentConstant {
   static const restaurantDetailsKey = "restaurant_details";
   static const mobileAppModulesKey = "mobile_app_modules";
   static const getOrderEndpoint = "api/v1/pos/orders/:order_uuid";
+  static const acknowledgeOrderNotificationEndpoint =
+      "api/v1/pos/orders/:order_uuid/notification-acknowledged";
   static const deleteOrderEndpoint = "api/v1/pos/orders/:order_uuid";
   static const paymentReceiptEndpoint = "api/v1/pos/payments/:id/receipt";
   static const createRefundEndpoint =
@@ -48,10 +50,9 @@ class ArgumentConstant {
 
   // App Settings Keys
   static const hapticFeedbackKey = "haptic_feedback_enabled";
-  static const beepSoundKey = "beep_sound_enabled";
   static const selectedLanguageKey = "selected_language";
-  static const newShopOrderNotificationsKey =
-      "new_shop_order_notifications_enabled";
+  static const kitchenTicketGenerationKey =
+      "kitchen_ticket_generation_enabled";
 
   // Shop Settings
   static const shopSettingsEndpoint = "api/v1/pos/branch/pos-settings";
